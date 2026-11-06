@@ -7,7 +7,8 @@ $extraCss = '/css/landing-nomen.css?v=5iclylew';
 $heroProps = [
     'brand' => (string)($brand['name'] ?? 'Nomen'),
     'loggedIn' => (bool)$loggedIn,
-    'docsBase' => (string)(\Nomen\Src\Plugins::mountUrl('pages') ?: ''),
+    // 文档维护在官方站，本地页面只有欢迎和沙盒
+    'docsBase' => rtrim(\Nomen\Src\Special\Version::PROJECT_URL, '/') . '/w',
     'urls' => [
         'register' => '/register',
         'login' => '/login',
