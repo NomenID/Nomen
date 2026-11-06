@@ -31,7 +31,7 @@ $feature = static function (string $envKey, string $configKey) use ($appConf): b
 return [
     // 基本信息
     'name'         => $brand['name'],
-    'version'      => '1.0.0',
+    'version'      => '1.0.1',
     'base_url'     => $brand['base_url'],
 
     // 安全
@@ -89,14 +89,14 @@ return [
     // 可选功能：默认全关，不需要的站长不用被迫接受
     //   guardians  家庭与未成年监护（家长同意、家长邮箱、家庭页）
     //   country    注册时填写国家 / 地区（含按 IP 预填）
-    // 安装器第 3 步可以勾选，装完后改 config/installed.php 的 features 段或环境变量
+    // 安装向导的「扩展」一步可以勾选，装完后改 config/installed.php 的 features 段或环境变量
     'features' => [
         'guardians' => $feature('FEATURE_GUARDIANS', 'guardians'),
         'country'   => $feature('FEATURE_COUNTRY', 'country'),
     ],
 
     // 多语言
-    // 没登录、浏览器语言也匹配不上时用的语言；安装器第 3 步可以选
+    // 没登录、浏览器语言也匹配不上时用的语言；安装向导的「站点」一步可以选
     'language_default'      => getenv('APP_LANGUAGE') ?: ($appConf['language_default'] ?? 'zh-hans'),
     // 关掉后全站固定默认语言：语言选择器、?lang=、账号语言偏好全部停用
     'language_allow_switch' => filter_var($appConf['language_allow_switch'] ?? true, FILTER_VALIDATE_BOOLEAN),
