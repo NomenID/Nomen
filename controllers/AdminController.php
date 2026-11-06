@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{ActivityLog, Csrf, Database, Email, EmailTemplate, FamilyHelper, Features, Hooks, I18n, Plugins, RecoveryHelper, RedisClient, Response, Session, TextDiff};
+use Nomen\Src\{ActivityLog, Csrf, Database, Email, EmailTemplate, FamilyHelper, Features, Hooks, I18n, Plugins, RecoveryHelper, RedisClient, Response, Session, TextDiff, Upgrade};
 use PDO;
 
 /**
@@ -91,6 +91,7 @@ class AdminController
             'recentLogs'  => ActivityLog::listFor([], 1, 10)['items'],
             // 安装向导没删就一直提醒：它留着谁都能重跑安装
             'installerPresent' => is_file(dirname(__DIR__) . '/public/nomen-install/index.php'),
+            'upgradePending'  => Upgrade::mismatch($this->db),
         ]);
     }
 

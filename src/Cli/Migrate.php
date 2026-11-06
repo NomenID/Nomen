@@ -3,6 +3,7 @@ namespace Nomen\Src\Cli;
 
 use Nomen\Src\Database;
 use Nomen\Src\Installer\Database as InstallDb;
+use Nomen\Src\Upgrade as AppUpgrade;
 use PDO;
 use PDOException;
 
@@ -65,7 +66,10 @@ class Migrate
             $applied++;
         }
 
+        AppUpgrade::record($pdo, (string)($config['version'] ?? ''));
+
         echo $applied === 0 ? '没有待应用的迁移。' : '应用了 ' . $applied . ' 个迁移。', PHP_EOL;
+        echo '库记录的应用版本已更新为 ', AppUpgrade::codeVersion(), '。', PHP_EOL;
 
         return 0;
     }

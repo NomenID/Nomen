@@ -165,14 +165,31 @@ GeoIP（按 IP 查地点）本来就是一个插件，不需要就在 `config/pl
 
 ## 升级
 
-```bash
-git pull
-composer install --no-dev
-php bin/nomen migrate
-php bin/nomen plugins migrate
+先备份数据库，以及这几个不会随升级包走的东西：
+
+```
+config/installed.php   站点配置和密钥，覆盖掉就得以这个为准
+.env                   本地覆盖（没改过就不用管）
+data/                  上传的文件、GeoIP 数据
+public/assets/avatars/ 头像
+public/assets/recovery/ 恢复工单里的截图
 ```
 
-`migrate` 只跑 `database/migrations/` 下没跑过的 SQL，记录在 `schema_migrations` 表。`plugins migrate` 跑各插件自己的 `plugins/<slug>/database/migrations/`，记录在 `plugin_migrations` 表。方言专属的迁移按后缀区分：`.mysql.sql`、`.sqlite.sql`；不带后缀的 `.sql` 是通用写法。
+**下载 zip 的**：把新包里除上面几项以外的文件覆盖上去就行。**用 git 的**：`git pull`。然后跑：
+
+```bash
+composer install --no-dev   # 依赖有变时
+php bin/nomen upgrade
+```
+
+`upgrade` 就是核心迁移 + 插件迁移两条命令一起跑，跑完把库里的版本号更新成当前程序版本。
+
+- `migrate` 只跑 `database/migrations/` 下没跑过的 SQL，记录在 `schema_migrations` 表；
+  插件自己的迁移在 `plugins/<slug>/database/migrations/`，记录在 `plugin_migrations`。
+- 方言专属的迁移按后缀区分：`.mysql.sql`、`.sqlite.sql`；不带后缀的 `.sql` 是通用写法。
+- 忘了跑升级时后台概览页会挂一条「数据库版本和程序不一致」，跑完自己消失。
+
+已经发布的迁移文件不会再执行，重复跑 `upgrade` 是安全的。
 
 ## 排错
 

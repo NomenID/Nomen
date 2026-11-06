@@ -12,6 +12,9 @@ switch ($cmd) {
     case 'migrate':
         exit(Nomen\Src\Cli\Migrate::run(array_slice($args, 2)));
 
+    case 'upgrade':
+        exit(Nomen\Src\Cli\Upgrade::run(array_slice($args, 2)));
+
     case 'plugins':
         exit(Nomen\Src\Cli\Plugin::run(array_slice($args, 2)));
 
@@ -20,6 +23,7 @@ switch ($cmd) {
     case '-h':
         echo '用法：php bin/nomen <命令>', PHP_EOL, PHP_EOL;
         echo '  install          交互式安装：建库、导表、建管理员、写 .env', PHP_EOL;
+        echo '  upgrade          覆盖新版本文件之后跑：核心迁移 + 插件迁移', PHP_EOL;
         echo '  migrate          应用 database/migrations 下还没跑过的 SQL', PHP_EOL;
         echo '  plugins list     列出插件与启用状态', PHP_EOL;
         echo '  plugins migrate  跑插件自己的 database/migrations', PHP_EOL;

@@ -604,4 +604,10 @@ BEGIN
   UPDATE users SET updated_at = datetime('now','localtime') WHERE rowid = NEW.rowid;
 END;
 
+DROP TABLE IF EXISTS app_meta;
+CREATE TABLE app_meta (
+  k TEXT PRIMARY KEY,
+  v TEXT NOT NULL DEFAULT ''
+);
+
 PRAGMA foreign_keys = ON;

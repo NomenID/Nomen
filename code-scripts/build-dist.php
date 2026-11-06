@@ -31,6 +31,14 @@ if (!preg_match("/'version'\s*=>\s*'([^']+)'/", (string)file_get_contents($root 
 }
 $version = $m[1];
 
+// 插件不在核心仓库里，打包机上得先 clone 到 plugins/；漏了就打出个没有插件的包
+foreach (['pages', 'open-platform', 'geoip'] as $bundled) {
+    if (!is_file($root . '/plugins/' . $bundled . '/plugin.json')) {
+        fwrite(STDERR, '缺插件：plugins/' . $bundled . '（见 plugins/README.md，先 clone 到 plugins/）' . PHP_EOL);
+        exit(1);
+    }
+}
+
 // 源码、开发笔记、构建脚本和运行期数据都不进包
 $skip = [
     '.git',
@@ -43,6 +51,8 @@ $skip = [
     'data',
     '.env',
     '.gitignore',
+    'AGENTS.md',
+    'CLAUDE.md',
     'config/installed.php',
     'public/assets/avatars',
     'public/assets/recovery',

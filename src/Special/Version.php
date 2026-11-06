@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Src\Special;
 
-use Nomen\Src\{Brand, Database, Plugins, Skins};
+use Nomen\Src\{Brand, Database, Plugins, Skins, Upgrade};
 
 class Version
 {
@@ -56,6 +56,13 @@ class Version
                 $rows[] = [
                     self::link($mariadb ? 'MariaDB' : 'MySQL', $mariadb ? 'https://mariadb.org/' : 'https://www.mysql.com/'),
                     self::esc(self::plain($version)),
+                ];
+            }
+            $mismatch = Upgrade::mismatch($db);
+            if ($mismatch !== null) {
+                $rows[] = [
+                    '数据库结构',
+                    self::esc(($mismatch['db'] ?? '未记录') . '（与程序版本不一致，站点管理员需要运行升级）'),
                 ];
             }
         } catch (\Throwable) {
@@ -141,8 +148,10 @@ class Version
 
         $rows = [];
         foreach ($plugins as $manifest) {
+            $name = self::plain($manifest['name'] ?? '');
+            $homepage = (string)($manifest['homepage'] ?? '');
             $rows[] = [
-                self::esc($manifest['name'] ?? ''),
+                $homepage !== '' ? self::link($name, $homepage) : self::esc($name),
                 self::esc(self::plain($manifest['version'] ?? '')),
                 self::licenseCell($manifest['license'] ?? '', 'plugin', (string)($manifest['slug'] ?? '')),
                 self::esc(t(self::plain($manifest['description'] ?? ''))),
@@ -150,7 +159,9 @@ class Version
             ];
         }
 
-        return '<h2>安装的插件</h2>' . self::table(['插件', '版本', '许可协议', '描述', '作者'], $rows);
+        return '<h2>安装的插件</h2>'
+            . self::table(['插件', '版本', '许可协议', '描述', '作者'], $rows)
+            . '<p>插件由各自的作者维护，按各自的许可协议发布，不属于 Nomen 本体。</p>';
     }
 
     private static function libraries(): string

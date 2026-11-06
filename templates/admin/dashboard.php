@@ -3,6 +3,7 @@
  *  @var array $recentLogs
  *  @var array $admin
  *  @var array $redis
+ *  @var array{code: string, db: string|null}|null $upgradePending
  */
 $cards = [
     ['label' => '注册用户', 'value' => (int)$stats['total_users'], 'hint' => '今日新增 ' . (int)$stats['new_users_today']],
@@ -25,6 +26,17 @@ if (\Nomen\Src\Features::guardians()) {
     <h1>概览</h1>
     <p>站点状态、待处理事项和最近活动。</p>
 </div>
+
+<?php if (!empty($upgradePending)): ?>
+<div class="admin-card" style="border-color:#9e6a03">
+    <div class="admin-card__head"><h2>数据库版本和程序不一致</h2></div>
+    <p style="margin:0">
+        程序是 <code><?= htmlspecialchars($upgradePending['code']) ?></code>，库里记录的是
+        <code><?= htmlspecialchars($upgradePending['db'] ?? '未记录') ?></code>。
+        在项目根目录跑 <code>php bin/nomen upgrade</code>，跑完这条提示会自己消失。
+    </p>
+</div>
+<?php endif; ?>
 
 <?php if (!empty($installerPresent)): ?>
 <div class="admin-card" style="border-color:#9e6a03">

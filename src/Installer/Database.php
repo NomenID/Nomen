@@ -3,6 +3,7 @@ namespace Nomen\Src\Installer;
 
 use Nomen\Src\Cli\Sql;
 use Nomen\Src\Db\Connection;
+use Nomen\Src\Upgrade as AppUpgrade;
 use Nomen\Src\Db\Dialect;
 use Nomen\Src\Database as AppDatabase;
 use PDO;
@@ -146,6 +147,9 @@ class Database
                 }
             }
         }
+
+        // 刚装完的库就是这个版本的最终结构，顺手记下版本，免得后台一上来就提示「需要升级」
+        AppUpgrade::record($pdo);
 
         return $marked;
     }

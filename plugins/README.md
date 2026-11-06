@@ -241,3 +241,15 @@ php docs-internal/i18n/extract.php --check
 - 依赖用 Composer 装到项目根，别塞一份 `vendor/` 进插件目录。
 - 不要把密钥、Token、密码写进 `ActivityLog` 或通知正文。
 - 插件自己的路由、后台页面、挂载点、模板、资源、迁移、命令都要写进 README，别让下一个维护的人猜。
+
+## 自带插件
+
+发布包里带三个插件，但它们是独立项目、独立仓库，不属于 Nomen 本体：
+
+| 插件 | 仓库 | 做什么 |
+|---|---|---|
+| `pages` | <https://github.com/NomenID/plugin-pages> | 站内文档页面 |
+| `open-platform` | <https://github.com/NomenID/plugin-open-platform> | 开发者门户 |
+| `geoip` | <https://github.com/NomenID/plugin-geoip> | IP 归属地 |
+
+本仓库的 `plugins/` 只有这份说明；插件源码在各自仓库里。打包时先把三个目录 clone 到 `plugins/`，再跑 `php code-scripts/build-dist.php`，zip 里会带上它们。
