@@ -33,6 +33,7 @@ $props = [
     'descriptionMin' => \Nomen\Controllers\RecoveryController::DESCRIPTION_MIN,
     'today' => date('Y-m-d'),
     'uploadUrl' => '/recovery/upload',
+    'brandLogo' => (string)\Nomen\Src\Brand::get('logo'),
 ];
 
 $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;

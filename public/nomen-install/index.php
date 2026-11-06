@@ -12,16 +12,6 @@ require $root . '/src/bootstrap.php';
 
 $configFile = $root . '/config/installed.php';
 
-const WIZARD_STEPS = [
-    'env'     => '环境检查',
-    'db'      => '数据库',
-    'site'    => '站点',
-    'admin'   => '管理员',
-    'plugins' => '扩展',
-    'mail'    => '邮件',
-    'review'  => '确认',
-];
-
 function h(mixed $value): string
 {
     return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
@@ -164,26 +154,10 @@ function page(array $options): void
     header('X-Robots-Tag: noindex, nofollow');
     header('Cache-Control: no-store, max-age=0');
 
-    $stepKey = (string)($options['step'] ?? '');
     $title = (string)($options['title'] ?? '安装');
     $lead = (string)($options['lead'] ?? '');
     $body = (string)($options['body'] ?? '');
     $artName = (string)($options['art'] ?? 'brand');
-
-    $progress = '';
-    if (isset(WIZARD_STEPS[$stepKey])) {
-        $keys = array_keys(WIZARD_STEPS);
-        $index = (int)array_search($stepKey, $keys, true) + 1;
-        $total = count($keys);
-        $segs = '';
-        foreach ($keys as $i => $key) {
-            $class = $i + 1 < $index ? ' class="is-done"' : ($i + 1 === $index ? ' class="is-now"' : '');
-            $segs .= '<span' . $class . '></span>';
-        }
-        $progress = '<div class="progress" aria-hidden="true">' . $segs . '</div>'
-            . '<div class="progress-meta"><span>第 ' . $index . ' 步，共 ' . $total . ' 步</span>'
-            . '<span>' . h(WIZARD_STEPS[$stepKey]) . '</span></div>';
-    }
 
     echo '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">'
         . '<meta name="viewport" content="width=device-width, initial-scale=1">'
@@ -223,13 +197,6 @@ function page(array $options): void
         . '.panel__inner{padding:26px 36px 30px}'
         . '@media(max-width:560px){.topbar{padding:18px 16px 0}.stage{padding:22px 14px 40px}'
         . '.panel__inner{padding:22px 20px 24px}.panel{border-radius:16px}}'
-        . '.progress{display:flex;gap:5px}'
-        . '.progress span{height:3px;flex:1;border-radius:99px;background:#262c34;transition:background .3s}'
-        . '.progress span.is-done{background:rgba(47,129,247,.5)}'
-        . '.progress span.is-now{background:var(--accent)}'
-        . '.progress-meta{display:flex;justify-content:space-between;align-items:baseline;'
-        . 'gap:12px;margin:9px 0 24px;font-size:12px;color:var(--subtle)}'
-        . '.progress-meta span:last-child{color:var(--muted)}'
         . '.head{text-align:center;margin-bottom:24px}'
         . '.art{width:64px;height:64px;margin:0 auto 18px;border-radius:17px;display:grid;place-items:center;'
         . 'background:linear-gradient(180deg,rgba(122,162,247,.16),rgba(122,162,247,.06));'
@@ -380,7 +347,6 @@ function page(array $options): void
         . '</style></head><body>'
         . '<header class="topbar">' . brand_icon(26) . '<b>Nomen</b><span>安装</span></header>'
         . '<main class="stage"><section class="panel"><div class="panel__inner">'
-        . $progress
         . '<div class="head">' . art($artName) . '<h1>' . h($title) . '</h1>'
         . ($lead !== '' ? '<p class="lead">' . h($lead) . '</p>' : '')
         . '</div>' . $body . '</div></section></main>'
@@ -434,7 +400,7 @@ function render_start(array $state): void
         'title' => '安装 Nomen',
         'lead' => $resume
             ? '上次填到一半，接着来。每一步只问一件事，随时可以回上一步。'
-            : '把 Nomen 装到这台服务器上。向导分七步，每一步只问一件事，随时可以回上一步。',
+            : '把 Nomen 装到这台服务器上。每一步只问一件事，随时可以回上一步。',
         'body' => $body,
     ]);
 }
@@ -653,6 +619,7 @@ function render_site(array $state, string $error): void
         'copyright' => '',
         'support_email' => '',
         'admin_notify_email' => '',
+        'logo' => '',
         'language_default' => 'zh-hans',
         'language_allow_switch' => true,
     ];
@@ -666,7 +633,7 @@ function render_site(array $state, string $error): void
     }
 
     $moreOpen = ($site['copyright'] ?? '') !== '' || ($site['support_email'] ?? '') !== ''
-        || ($site['admin_notify_email'] ?? '') !== '';
+        || ($site['admin_notify_email'] ?? '') !== '' || ($site['logo'] ?? '') !== '';
 
     $body = ($error !== '' ? alert(h($error), 'error') : '')
         . '<form method="post">'
@@ -686,8 +653,11 @@ function render_site(array $state, string $error): void
         . (!empty($site['language_allow_switch']) ? ' checked' : '') . '><span class="switch__track"></span>'
         . '<span>允许访客切换界面语言</span></label></div>'
         . '</div>'
-        . '<details class="more"' . ($moreOpen ? ' open' : '') . '><summary>可选：页脚版权和联系邮箱</summary>'
+        . '<details class="more"' . ($moreOpen ? ' open' : '') . '><summary>可选：图标、页脚版权和联系邮箱</summary>'
         . '<div class="fields">'
+        . '<div class="field"><label for="site_logo">站点图标 URL</label>'
+        . '<input class="input" id="site_logo" name="site_logo" maxlength="500" placeholder="https://example.com/icon.png" value="' . h($site['logo'] ?? '') . '">'
+        . '<div class="hint">留空用 Nomen 图标。可以填完整 URL，也可以填 / 开头的站内路径。</div></div>'
         . '<div class="field"><label for="site_copyright">页脚版权</label>'
         . '<input class="input" id="site_copyright" name="site_copyright" maxlength="200" placeholder="© 2026 Example" value="' . h($site['copyright']) . '">'
         . '<div class="hint">留空就不显示版权行。</div></div>'
@@ -1198,6 +1168,7 @@ if ($requestedStep === 'site') {
                 'copyright' => post('site_copyright'),
                 'support_email' => post('support_email'),
                 'admin_notify_email' => post('admin_notify_email'),
+                'logo' => post('site_logo'),
                 'language_default' => post('language_default', 'zh-hans'),
                 'language_allow_switch' => post_raw('language_allow_switch') === '1',
             ];
@@ -1218,6 +1189,8 @@ if ($requestedStep === 'site') {
                 $error = '对外支持邮箱格式不对。';
             } elseif ($site['admin_notify_email'] !== '' && !filter_var($site['admin_notify_email'], FILTER_VALIDATE_EMAIL)) {
                 $error = '管理员通知邮箱格式不对。';
+            } elseif ($site['logo'] !== '' && !preg_match('#^(https?://|/)#i', $site['logo'])) {
+                $error = '站点图标要填完整 URL 或以 / 开头的站内路径。';
             }
 
             if ($error === '') {
@@ -1444,6 +1417,7 @@ if ($requestedStep === 'review') {
             'copyright' => $site['copyright'] ?? '',
             'support_email' => $site['support_email'] ?? '',
             'admin_notify_email' => $site['admin_notify_email'] ?? '',
+            'logo' => $site['logo'] ?? '',
             'language_default' => $site['language_default'] ?? 'zh-hans',
             'language_allow_switch' => (bool)($site['language_allow_switch'] ?? true),
             'features' => [

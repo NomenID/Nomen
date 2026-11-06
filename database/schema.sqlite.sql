@@ -610,4 +610,18 @@ CREATE TABLE app_meta (
   v TEXT NOT NULL DEFAULT ''
 );
 
+DROP TABLE IF EXISTS site_settings;
+CREATE TABLE site_settings (
+  k TEXT PRIMARY KEY,
+  v TEXT NOT NULL DEFAULT ''
+);
+
+DROP TABLE IF EXISTS cache_items;
+CREATE TABLE cache_items (
+  k TEXT PRIMARY KEY,
+  v TEXT NOT NULL,
+  expires_at INTEGER NOT NULL
+);
+CREATE INDEX idx_cache_items_expires_at ON cache_items (expires_at);
+
 PRAGMA foreign_keys = ON;

@@ -25,6 +25,7 @@ $props = [
         'email' => (string)$choice['email'],
         'is_primary' => !empty($choice['is_primary']),
     ], $emailChoices ?? []),
+    'brandLogo' => (string)\Nomen\Src\Brand::get('logo'),
     'urls' => [
         'sendCode' => '/2fa/verify/send-code',
         'verify' => '/2fa/verify',

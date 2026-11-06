@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{ActivityLog, Database, Session, Csrf, Response, RateLimiter, Email, EmailTemplate, Captcha, GeoIP, I18n, RecoveryHelper, VerifyCode, FamilyHelper, EmailPolicy, EmailSet, Skins, Hooks, Features};
+use Nomen\Src\{ActivityLog, Database, Session, Csrf, Response, RateLimiter, Email, EmailTemplate, Captcha, GeoIP, I18n, RecoveryHelper, VerifyCode, FamilyHelper, EmailPolicy, EmailSet, Settings, Skins, Hooks, Features};
 use Nomen\Controllers\{DeviceController, DashboardController};
 use PDO;
 
@@ -458,8 +458,19 @@ class AuthController
         $userId = (int)$user['id'];
         $policy = $user['two_factor_policy'] ?? 'new_device';
 
+        // 站点级开关优先：默认关闭（开源版装完就能进后台），站长在后台按需开
+        $sitePolicy = (string)Settings::get('security.login_2fa', 'off');
+        if (!in_array($sitePolicy, ['off', 'new_device', 'every_login'], true)) {
+            $sitePolicy = 'off';
+        }
+        if ($sitePolicy === 'off') {
+            return false;
+        }
+
         // every_login：每次登录都二验；new_device：仅当前设备未被信任时二验
-        $need2fa = ($policy === 'every_login') || !DeviceController::isTrustedDevice($userId);
+        $need2fa = $sitePolicy === 'every_login'
+            || $policy === 'every_login'
+            || !DeviceController::isTrustedDevice($userId);
         if (!$need2fa) {
             return false;
         }
@@ -732,6 +743,15 @@ class AuthController
             }
         }
 
+        if (!Email::isConfigured()) {
+            $message = t('本站还没有配置邮件服务，暂时不能用邮箱验证码登录，请改用密码');
+            if ($isAjax) {
+                Response::json(['success' => false, 'message' => $message]);
+            }
+            Session::flash('error', $message);
+            Response::redirect($loginUrl);
+        }
+
         // 条件图片验证码 + IP 限流
         if ($this->enforceLoginGuards($loginUrl, $isAjax, null)) {
             return;
@@ -902,6 +922,11 @@ class AuthController
     public function handleLoginWithCode(): void
     {
         [$redirect_to, $loginUrl] = $this->resolveRedirect();
+
+        if (!Email::isConfigured()) {
+            Session::flash('error', t('本站还没有配置邮件服务，暂时不能用邮箱验证码登录，请改用密码'));
+            Response::redirect($loginUrl);
+        }
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
             Session::flash('error', t('请求无效，请重试'));

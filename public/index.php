@@ -23,7 +23,7 @@ if (!is_file(__DIR__ . '/../config/installed.php') && !is_file(__DIR__ . '/../.e
 require_once __DIR__ . '/../src/I18n.php';
 
 use Nomen\Src\{Router, Session, Response, Database, RecoveryHelper, FamilyHelper, Features, AppData, Nav, Admin, Plugins};
-use Nomen\Controllers\{AuthController, OAuthController, DashboardController, ApiController, ActivationController, BiometricController, TwoFactorController, NotificationController, RecoveryController, AdminController, AdminAppsController, AdminMountsController, FamilyController, EmailController};
+use Nomen\Controllers\{AuthController, OAuthController, DashboardController, ApiController, ActivationController, BiometricController, TwoFactorController, NotificationController, RecoveryController, AdminController, AdminAppsController, AdminMountsController, AdminSettingsController, FamilyController, EmailController};
 
 // 全局安全响应头（HSTS 由 nginx 统一设置，此处不重复）
 header('X-Content-Type-Options: nosniff');
@@ -65,6 +65,7 @@ Admin::menu('apps', '/admin/apps', '应用', 30);
 Admin::menu('mounts', '/admin/mounts', '接入点', 40);
 Admin::menu('recovery', '/admin/recovery', '恢复工单', 50);
 Admin::menu('logs', '/admin/logs', '活动日志', 60);
+Admin::menu('settings', '/admin/settings', '设置', 70);
 
 // 核心自带的特殊页面。注册在插件之后，插件不能顶掉它。
 // title 存键原文，渲染时才翻译 —— 插件在清单里写的标题同样吃这套
@@ -376,6 +377,8 @@ $router->post('/admin/recovery/resend',     [AdminController::class, 'recoveryRe
 $router->get('/admin/logs',                 [AdminController::class, 'logs'], ['admin']);
 $router->get('/admin/logs/export',          [AdminController::class, 'logExport'], ['admin']);
 $router->get('/admin/logs/{id}',            [AdminController::class, 'logDetail'], ['admin']);
+$router->get('/admin/settings',             [AdminSettingsController::class, 'index'], ['admin']);
+$router->post('/admin/settings',            [AdminSettingsController::class, 'update'], ['admin']);
 
 // 开放平台
 

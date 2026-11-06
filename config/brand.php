@@ -9,8 +9,8 @@ return [
     'admin_notify_email' => getenv('ADMIN_NOTIFY_EMAIL') ?: ($app['admin_notify_email'] ?? ''),
     'session_name'       => getenv('SESSION_NAME') ?: 'NOMEN_SESSION',
 
-    // 站点图标：布局左上角、favicon、页脚都用它
-    'logo'               => getenv('BRAND_LOGO') ?: '/assets/brand/nomen-icon.svg',
+    // 站点图标：布局左上角、favicon、页脚都用它。留空就用包里带的 Nomen 图标
+    'logo'               => getenv('BRAND_LOGO') ?: (($app['logo'] ?? '') ?: '/assets/brand/nomen-icon.svg'),
 
     // 页脚版权行：站点所有者自己填，留空就不显示
     'copyright'          => getenv('BRAND_COPYRIGHT') ?: ($app['copyright'] ?? ''),

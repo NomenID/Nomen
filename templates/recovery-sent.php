@@ -11,7 +11,7 @@ $maskedContact = \Nomen\Src\RecoveryHelper::maskEmail($contact);
     <div class="auth-card" style="max-width:520px;">
         <div class="auth-header">
             <div class="auth-logo">
-                <img src="/assets/brand/nomen-icon.svg" alt="" width="48" height="48">
+                <img src="<?= htmlspecialchars((string)\Nomen\Src\Brand::get('logo')) ?>" alt="" width="48" height="48">
             </div>
             <h1><?= t('申诉已提交') ?></h1>
             <p><?= t('站点管理员会尽快审核您的申诉') ?></p>

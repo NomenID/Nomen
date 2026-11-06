@@ -24,6 +24,13 @@ const langHref = (slug) => {
   return `${langBasePath}?${query.toString()}`
 }
 
+// 页脚署名：href 指向项目主页，点左键回站内版本页（中键 / Ctrl 点按 href 打开项目站）
+const onPoweredClick = (e) => {
+  if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+  e.preventDefault()
+  window.location.href = '/special/version'
+}
+
 const filteredLocales = computed(() => {
   const q = langQuery.value.trim().toLowerCase()
   if (!q) return locales
@@ -225,7 +232,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
     <div class="footer-inner">
       <span v-if="brand.copyright">{{ brand.copyright }}</span>
       <span v-else>&copy; {{ new Date().getFullYear() }} {{ brand.name || 'Nomen' }}</span>
-      <a v-if="brand.poweredBy !== false" class="footer-powered" href="/special/version">Powered by Nomen</a>
+      <a v-if="brand.poweredBy !== false" class="footer-powered" :href="brand.poweredUrl || '/special/version'" @click="onPoweredClick">Powered by Nomen</a>
     </div>
   </footer>
 

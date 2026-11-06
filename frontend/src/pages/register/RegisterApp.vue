@@ -25,6 +25,7 @@ const props = defineProps({
   privacyUrl: { type: String, default: '' },
   termsUrl: { type: String, default: '' },
   supportEmail: { type: String, default: '' },
+  brandLogo: { type: String, default: '/assets/brand/nomen-icon.svg' },
   urls: { type: Object, default: () => ({}) },
 })
 
@@ -372,7 +373,7 @@ onMounted(() => {
   <div class="auth-card auth-card--register">
     <div class="auth-header">
         <div class="auth-logo">
-          <img src="/assets/brand/nomen-icon.svg" alt="" width="48" height="48">
+          <img :src="brandLogo" alt="" width="48" height="48">
         </div>
         <h1>{{ t('注册 Nomen') }}</h1>
         <p>{{ t('创建你的专属账户') }}</p>

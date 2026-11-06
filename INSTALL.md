@@ -36,6 +36,7 @@ Apache：`public/.htaccess` 已经带了规则，确认 `mod_rewrite` 开了、�
 1. 把代码放到站点目录（发布 zip 解压即可，`vendor/` 和前端产物都在里面）
 2. 浏览器打开站点，没装过会自动跳到 `/nomen-install/`
 3. 七步：环境检查 → 数据库 → 站点 → 管理员 → 扩展 → 邮件（先问要不要现在配）→ 确认
+   站点一步可以填自己的图标 URL，留空就用 Nomen 图标；装完也能改 `config/installed.php` 的 `app.logo`
 4. 装完按页面提示收尾：
    - PHP 能写 `config/` 时，页面会显示「进入网站」和「用管理员账号登录」两个按钮，`installed.php` 已经自己生成好了
    - 不能写时，页面会给一份内容，下载成 `installed.php` 传到 `config/`

@@ -23,6 +23,14 @@ class Email
         }
     }
 
+    /** 配了 SMTP 主机才算能寄信；没配的站点不该把邮箱验证码摆出来 */
+    public static function isConfigured(): bool
+    {
+        self::init();
+
+        return trim((string)(self::$config['host'] ?? '')) !== '';
+    }
+
     public static function send(string $to, string $subject, string $htmlBody, array $embedded = []): bool
     {
         return self::sendDetailed($to, $subject, $htmlBody, $embedded)['ok'];
@@ -71,7 +79,7 @@ class Email
             // SMTP 配置
             $mail->isSMTP();
             $mail->Host       = self::$config['host'];
-            $mail->SMTPAuth   = true;
+            $mail->SMTPAuth   = (string)self::$config['username'] !== '';
             $mail->Username   = self::$config['username'];
             $mail->Password   = self::$config['password'];
             $mail->SMTPSecure = self::$config['encryption'];

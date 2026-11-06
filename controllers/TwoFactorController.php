@@ -646,18 +646,21 @@ class TwoFactorController
             'placeholder' => '请输入您的密码',
         ];
 
-        // 邮箱验证码（账号有任意一个已验证邮箱就行，不再只看首选那个）
-        $stmt = $this->db->prepare('SELECT email_verified FROM users WHERE id = :id');
-        $stmt->execute([':id' => $userId]);
-        $user = $stmt->fetch();
-        if (($user && $user['email_verified']) || EmailSet::hasVerified($userId)) {
-            $factors['email_code'] = [
-                'type' => 'email_code',
-                'label' => '邮箱验证码',
-                'icon' => 'mail',
-                'input_type' => 'text',
-                'placeholder' => '请输入6位验证码',
-            ];
+        // 邮箱验证码（账号有任意一个已验证邮箱、且站点配了 SMTP 才算）
+        // 没配 SMTP 时不能把它当可用因素：验证码根本寄不出去，用户会卡死在二验页
+        if (Email::isConfigured()) {
+            $stmt = $this->db->prepare('SELECT email_verified FROM users WHERE id = :id');
+            $stmt->execute([':id' => $userId]);
+            $user = $stmt->fetch();
+            if (($user && $user['email_verified']) || EmailSet::hasVerified($userId)) {
+                $factors['email_code'] = [
+                    'type' => 'email_code',
+                    'label' => '邮箱验证码',
+                    'icon' => 'mail',
+                    'input_type' => 'text',
+                    'placeholder' => '请输入6位验证码',
+                ];
+            }
         }
 
         // TOTP（如果已启用）

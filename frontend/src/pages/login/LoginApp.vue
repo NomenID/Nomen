@@ -24,6 +24,8 @@ const props = defineProps({
   developerGuidelinesUrl: { type: String, default: '' },
   supportEmail: { type: String, default: '' },
   supportName: { type: String, default: '' },
+  mailEnabled: { type: Boolean, default: true },
+  brandLogo: { type: String, default: '/assets/brand/nomen-icon.svg' },
   urls: { type: Object, default: () => ({}) },
 })
 
@@ -39,6 +41,7 @@ const remembered = rememberedAccount()
 const biometricSupported = ref(!!(window.PublicKeyCredential && navigator.credentials && navigator.credentials.get))
 
 function available(method) {
+  if (method === 'email_code') return props.mailEnabled
   return method === 'biometric' ? biometricSupported.value : true
 }
 
@@ -350,7 +353,7 @@ onBeforeUnmount(() => {
   <div class="auth-card">
     <div class="auth-header">
       <div class="auth-logo">
-        <img src="/assets/brand/nomen-icon.svg" alt="" width="48" height="48">
+        <img :src="brandLogo" alt="" width="48" height="48">
       </div>
       <h1>{{ t('登录 Nomen') }}</h1>
       <p>{{ t('使用您的 Nomen 账户继续') }}</p>
@@ -581,7 +584,7 @@ onBeforeUnmount(() => {
       >{{ t('更多登录方式') }}</button>
       <div v-show="moreOpen" class="login-more__list" id="login-more-list">
         <button v-show="current !== 'password'" type="button" class="login-more__item" @click="showMethod('password')">{{ t('密码登录') }}</button>
-        <button v-show="current !== 'email_code'" type="button" class="login-more__item" @click="showMethod('email_code')">{{ t('邮箱验证码登录') }}</button>
+        <button v-show="current !== 'email_code'" v-if="mailEnabled" type="button" class="login-more__item" @click="showMethod('email_code')">{{ t('邮箱验证码登录') }}</button>
         <button v-if="biometricSupported" v-show="current !== 'biometric'" type="button" class="login-more__item" @click="showMethod('biometric')">{{ t('生物识别登录') }}</button>
         <a class="login-more__item" href="/fast-pass">{{ t('临时密钥登录') }}</a>
       </div>

@@ -110,6 +110,7 @@ class ActivityLog
         'admin.app_toggle'                => '管理员启用/停用应用',
         'admin.app_delete'                => '管理员删除应用',
         'admin.mount_update'              => '修改插件挂载点',
+        'admin.site_settings'             => '修改站点设置',
         'admin.developer_toggle'          => '管理员启用/停用开发者',
 
         'account.delete'                  => '注销账户',

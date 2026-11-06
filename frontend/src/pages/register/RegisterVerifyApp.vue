@@ -12,6 +12,7 @@ const props = defineProps({
   error: { type: String, default: '' },
   success: { type: String, default: '' },
   resendAfter: { type: Number, default: 0 },
+  brandLogo: { type: String, default: '/assets/brand/nomen-icon.svg' },
 })
 
 const left = ref(Math.max(0, Number(props.resendAfter) || 0))
@@ -46,7 +47,7 @@ onBeforeUnmount(() => {
   <div class="auth-card">
     <div class="auth-header">
       <div class="auth-logo">
-        <img src="/assets/brand/nomen-icon.svg" alt="" width="48" height="48">
+        <img :src="brandLogo" alt="" width="48" height="48">
       </div>
       <h1>{{ t('这个邮箱已经被占用了') }}</h1>
       <p>{{ t('验证一下邮箱，就能接着完成注册') }}</p>

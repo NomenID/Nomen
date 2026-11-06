@@ -177,6 +177,18 @@ php bin/nomen plugins example:sync  # 跑命令
 
 命令处理函数返回字符串会打印出来，返回整数会打印「完成（N）」。
 
+## 缓存
+
+核心缓存有 `redis`、`file`、`db` 三种内置驱动，站长在后台「设置」里选；选中的驱动不可用时会自动回退到文件。插件可以注册自己的驱动：
+
+```php
+use Nomen\Src\Cache;
+
+Cache::registerDriver('memcached', static fn() => new MyMemcachedDriver());
+```
+
+驱动实现 `Nomen\Src\Cache\Driver`（`get` / `put` / `forget`，未命中返回 `null`）。注册的名字会出现在后台的下拉框里。
+
 ## 钩子
 
 ```php

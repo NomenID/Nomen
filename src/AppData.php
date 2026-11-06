@@ -18,6 +18,7 @@ final class AppData
                 'url'       => (string)Brand::get('base_url'),
                 'copyright' => (string)Brand::get('copyright'),
                 'poweredBy' => (bool)Brand::get('powered_by', true),
+                'poweredUrl' => \Nomen\Src\Special\Version::PROJECT_URL,
             ],
             'csrf' => Csrf::getToken(),
             'locales' => array_map(static fn(array $entry): array => [

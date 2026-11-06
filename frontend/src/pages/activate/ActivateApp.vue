@@ -10,6 +10,7 @@ const props = defineProps({
   success: { type: String, default: '' },
   email: { type: String, default: '' },
   usesGuardianAddress: { type: Boolean, default: false },
+  brandLogo: { type: String, default: '/assets/brand/nomen-icon.svg' },
 })
 
 const sending = ref(false)
@@ -113,7 +114,7 @@ onBeforeUnmount(() => {
   <div class="auth-card">
     <div class="auth-header">
       <div class="auth-logo">
-        <img src="/assets/brand/nomen-icon.svg" alt="" width="48" height="48">
+        <img :src="brandLogo" alt="" width="48" height="48">
       </div>
       <h1>{{ t('邮箱验证') }}</h1>
       <p>{{ usesGuardianAddress ? t('请家长确认这个邮箱') : t('请验证你的邮箱地址以激活账户') }}</p>

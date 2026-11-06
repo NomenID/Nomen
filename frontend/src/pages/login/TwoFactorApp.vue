@@ -13,6 +13,7 @@ const props = defineProps({
   firstLabel: { type: String, default: '第一步验证' },
   error: { type: String, default: '' },
   emailChoices: { type: Array, default: () => [] },
+  brandLogo: { type: String, default: '/assets/brand/nomen-icon.svg' },
   urls: { type: Object, default: () => ({}) },
 })
 
@@ -145,7 +146,7 @@ onBeforeUnmount(() => {
   <div class="auth-card auth-card--2fa">
     <div class="auth-header">
       <div class="auth-logo">
-        <img src="/assets/brand/nomen-icon.svg" alt="" width="48" height="48">
+        <img :src="brandLogo" alt="" width="48" height="48">
       </div>
       <h1>{{ t('两步验证') }}</h1>
       <p>{{ t(firstLabel) }}{{ t('已通过，请再选择一种方式确认是你本人') }}</p>

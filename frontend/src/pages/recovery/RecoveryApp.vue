@@ -17,6 +17,7 @@ const props = defineProps({
   descriptionMin: { type: Number, default: 20 },
   today: { type: String, default: '' },
   uploadUrl: { type: String, default: '/recovery/upload' },
+  brandLogo: { type: String, default: '/assets/brand/nomen-icon.svg' },
 })
 
 const old = Array.isArray(props.old) ? {} : (props.old || {})
@@ -219,7 +220,7 @@ onBeforeUnmount(() => document.removeEventListener('paste', onPaste))
   <div class="auth-card auth-card--register">
     <div class="auth-header">
       <div class="auth-logo">
-        <img src="/assets/brand/nomen-icon.svg" alt="" width="48" height="48">
+        <img :src="brandLogo" alt="" width="48" height="48">
       </div>
       <h1>{{ t('账号恢复申诉') }}</h1>
       <p>{{ t('向支持团队申请恢复 {:name} 的访问权限', { name: ctx.username }) }}</p>

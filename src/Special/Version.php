@@ -1,12 +1,21 @@
 <?php
 namespace Nomen\Src\Special;
 
-use Nomen\Src\{Brand, Database, Plugins, Skins, Upgrade};
+use Nomen\Src\{Brand, Cache, Database, Plugins, Skins, Upgrade};
 
 class Version
 {
-    private const PROJECT_URL = 'https://nomen.caellab.com/';
+    public const PROJECT_URL = 'https://nomen.caellab.com/';
+
+    // 版本页要查库、扫插件，内容又不常变：缓存一分钟，够挡住刷新风暴
+    private const CACHE_TTL = 60;
+
     public static function render(): string
+    {
+        return (string)Cache::remember('special:version', self::CACHE_TTL, static fn(): string => self::build());
+    }
+
+    private static function build(): string
     {
         $config = require dirname(__DIR__, 2) . '/config/app.php';
 

@@ -12,7 +12,7 @@
     <?php foreach (\Nomen\Src\Admin::styles() as $href): ?>
         <link rel="stylesheet" href="<?= htmlspecialchars($href) ?>">
     <?php endforeach; ?>
-    <link rel="icon" href="<?= htmlspecialchars($brand['logo']) ?>" type="image/svg+xml">
+    <link rel="icon" href="<?= htmlspecialchars($brand['logo']) ?>">
     <script>
         (function(){
             var t = localStorage.getItem('theme');
@@ -53,7 +53,7 @@
         </main>
     </div>
 
-    <script src="/js/app.js?v=h7t2qk9m"></script>
+    <script src="/js/app.js?v=r4mt8xqw"></script>
     <script src="/js/admin.js?v=91370385"></script>
     <?php foreach (\Nomen\Src\Admin::scripts() as $src): ?>
         <script src="<?= htmlspecialchars($src) ?>"></script>

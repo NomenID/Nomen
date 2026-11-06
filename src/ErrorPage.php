@@ -227,7 +227,7 @@ final class ErrorPage
         $favicon = '';
         $logo = (string)($brand['logo'] ?? '');
         if ($logo !== '') {
-            $favicon = '<link rel="icon" href="' . htmlspecialchars($logo) . '" type="image/svg+xml">';
+            $favicon = '<link rel="icon" href="' . htmlspecialchars($logo) . '">';
         }
 
         return '<!DOCTYPE html>

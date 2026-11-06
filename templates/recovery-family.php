@@ -14,7 +14,7 @@ $title = t('账号由家长管理');
     <div class="auth-card" style="max-width:520px;">
         <div class="auth-header">
             <div class="auth-logo">
-                <img src="/assets/brand/nomen-icon.svg" alt="" width="48" height="48">
+                <img src="<?= htmlspecialchars((string)\Nomen\Src\Brand::get('logo')) ?>" alt="" width="48" height="48">
             </div>
             <h1><?= t('账号由家长管理') ?></h1>
             <p><?= htmlspecialchars(t('{:name} 已经在家庭里', ['name' => $username])) ?></p>

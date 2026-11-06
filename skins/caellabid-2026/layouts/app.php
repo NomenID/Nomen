@@ -21,7 +21,7 @@ $brand = \Nomen\Src\Brand::all();
     <?php foreach (\Nomen\Src\Plugins::styles() as $href): ?>
         <link rel="stylesheet" href="<?= htmlspecialchars($href) ?>">
     <?php endforeach; ?>
-    <link rel="icon" href="<?= htmlspecialchars($brand['logo']) ?>" type="image/svg+xml">
+    <link rel="icon" href="<?= htmlspecialchars($brand['logo']) ?>">
     <script>
         // 阻止主题切换闪烁：在 CSS 加载前就设置好主题
         (function(){

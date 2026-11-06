@@ -23,6 +23,8 @@ $props = [
     'developerGuidelinesUrl' => (string)\Nomen\Src\Brand::get('developer_guidelines_url'),
     'supportEmail' => (string)\Nomen\Src\Brand::get('support_email'),
     'supportName' => (string)\Nomen\Src\Brand::get('support_name'),
+    'mailEnabled' => \Nomen\Src\Email::isConfigured(),
+    'brandLogo' => (string)\Nomen\Src\Brand::get('logo'),
     'urls' => [
         'sendCode' => '/login/send-code',
         'biometricOptions' => '/biometric/auth/options',
@@ -37,7 +39,7 @@ $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APO
         <div class="auth-card">
             <div class="auth-header">
                 <div class="auth-logo">
-                    <img src="/assets/brand/nomen-icon.svg" alt="" width="48" height="48">
+                    <img src="<?= htmlspecialchars((string)\Nomen\Src\Brand::get('logo')) ?>" alt="" width="48" height="48">
                 </div>
                 <h1><?= t('登录 Nomen') ?></h1>
                 <p><?= t('使用您的 Nomen 账户继续') ?></p>

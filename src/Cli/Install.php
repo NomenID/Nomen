@@ -172,6 +172,7 @@ class Install
             'base_url' => rtrim(self::ask('  访问地址', 'http://localhost:8080'), '/'),
             'support_email' => self::ask('  支持邮箱（显示给用户，可留空）'),
             'admin_email' => self::ask('  管理员通知邮箱（新工单提醒，可留空）'),
+            'logo' => self::ask('  站点图标 URL（留空用 Nomen 图标）'),
             'language_default' => $language,
             'language_allow_switch' => $yes($switch),
             'features' => [
@@ -270,6 +271,7 @@ class Install
                 'base_url' => $site['base_url'],
                 'support_email' => $site['support_email'],
                 'admin_notify_email' => $site['admin_email'],
+                'logo' => $site['logo'] ?? '',
                 'language_default' => $site['language_default'] ?? 'zh-hans',
                 'language_allow_switch' => (bool)($site['language_allow_switch'] ?? true),
                 'features' => [

@@ -9,7 +9,7 @@ $title = t('临时密钥登录');
     <div class="auth-card" style="max-width:480px;">
         <div class="auth-header">
             <div class="auth-logo">
-                <img src="/assets/brand/nomen-icon.svg" alt="" width="48" height="48">
+                <img src="<?= htmlspecialchars((string)\Nomen\Src\Brand::get('logo')) ?>" alt="" width="48" height="48">
             </div>
             <h1><?= t('临时密钥登录') ?></h1>
             <p><?= t('使用临时密钥快速登录，跳过新设备验证') ?></p>

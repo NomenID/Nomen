@@ -3231,7 +3231,24 @@ function formatTime(ts) {
     return d.toLocaleString(window.NOMEN_LANG || 'zh-Hans');
 }
 
+// 页脚署名：静态 HTML 链到版本页（无 JS 也满足 NOTICE 2.1(b)）；
+// 有 JS 时把地址换成项目主页，点左键仍回站内版本页（中键 / Ctrl 点按 href 打开项目站）
+function initFooterPowered() {
+    var link = document.querySelector('a.footer-powered[data-project-url]');
+    if (!link) return;
+    var projectUrl = link.getAttribute('data-project-url');
+    var versionUrl = link.getAttribute('href');
+    if (!projectUrl || !versionUrl) return;
+    link.setAttribute('href', projectUrl);
+    link.addEventListener('click', function(e) {
+        if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        e.preventDefault();
+        window.location.href = versionUrl;
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     initSettingsBiometrics();
     initIconSvgConvert();
+    initFooterPowered();
 });
