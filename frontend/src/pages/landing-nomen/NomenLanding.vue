@@ -74,7 +74,7 @@ const links = docsBase
 
     <div class="np-hero__inner">
       <h1 class="np-hero__title">{{ props.brand }}</h1>
-      <p class="np-hero__line">{{ t('自托管的统一登录服务') }}</p>
+      <p class="np-hero__line">{{ t('自由的账号星系') }}</p>
 
       <div class="np-hero__actions">
         <template v-if="props.loggedIn">

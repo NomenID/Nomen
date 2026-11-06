@@ -22,7 +22,7 @@ $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APO
         <section class="np-hero">
             <div class="np-hero__inner">
                 <h1 class="np-hero__title"><?= htmlspecialchars((string)($brand['name'] ?? 'Nomen')) ?></h1>
-                <p class="np-hero__line"><?= t('自托管的统一登录服务') ?></p>
+                <p class="np-hero__line"><?= t('自由的账号星系') ?></p>
                 <div class="np-hero__actions">
                     <?php if ($loggedIn): ?>
                         <a href="/dashboard" class="btn btn-primary btn-lg"><?= t('进入控制台') ?></a>
