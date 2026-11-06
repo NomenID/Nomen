@@ -7,6 +7,7 @@ import AppLayout from './AppLayout.vue'
 const props = defineProps({
   viewer: { type: Object, required: true },
   brand: { type: Object, default: () => ({}) },
+  footerHtml: { type: String, default: '' },
   csrf: { type: String, required: true },
   locales: { type: Array, default: () => [] },
   page: { type: Object, required: true },
@@ -18,6 +19,7 @@ setCsrf(props.csrf)
 const viewer = reactive({ ...props.viewer })
 provide('viewer', viewer)
 provide('brand', props.brand || {})
+provide('footerHtml', props.footerHtml || '')
 provide('csrf', props.csrf)
 provide('locales', props.locales || [])
 // 首屏数据一次性交给当前路由对应的页面组件

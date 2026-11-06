@@ -555,6 +555,7 @@ class AuthController
             'temp_key'   => '临时密钥',
             'biometric'  => '生物识别',
             '2fa'        => '两步验证',
+            'social'     => '第三方登录',
         ];
         ActivityLog::record([
             'action'   => 'auth.login',

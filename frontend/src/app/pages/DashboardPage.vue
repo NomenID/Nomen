@@ -57,7 +57,6 @@ void router; void viewer; void csrf; void loading
       :recent-activity="data.recentActivity"
       :success="data.success"
       :error="data.error"
-      :redirected-from-home="data.redirectedFromHome"
       :revoke-handler="revoke"
       :revoking="revoking"
     />

@@ -26,6 +26,7 @@ const props = defineProps({
   termsUrl: { type: String, default: '' },
   supportEmail: { type: String, default: '' },
   brandLogo: { type: String, default: '/assets/brand/nomen-icon.svg' },
+  providers: { type: Array, default: () => [] },
   urls: { type: Object, default: () => ({}) },
 })
 
@@ -571,6 +572,21 @@ onMounted(() => {
           <BaseButton v-if="currentStep === totalSteps" id="btn-submit" type="submit" block>{{ t('完成注册') }}</BaseButton>
         </div>
       </form>
+
+      <div v-if="props.providers.length" class="auth-providers">
+        <p class="auth-providers__label">{{ t('或使用以下方式注册') }}</p>
+        <div class="auth-providers__list">
+          <a
+            v-for="provider in props.providers"
+            :key="provider.slug"
+            class="auth-provider"
+            :href="`/auth/${provider.slug}/redirect`"
+          >
+            <span class="auth-provider__mark">{{ provider.name.slice(0, 1) }}</span>
+            <span>{{ provider.name }}</span>
+          </a>
+        </div>
+      </div>
 
       <div class="auth-footer">
         <p>{{ t('已有账户？') }} <a href="/login">{{ t('登录') }}</a></p>

@@ -28,6 +28,8 @@ const props = defineProps({
   currentSkin: { type: String, default: '' },
   activeTokens: { type: Array, default: () => [] },
   trustedDevices: { type: Array, default: () => [] },
+  identities: { type: Array, default: () => [] },
+  identityProviders: { type: Array, default: () => [] },
   urls: { type: Object, default: () => ({}) },
 })
 
@@ -42,6 +44,35 @@ const urls = {
 }
 
 const devices = ref(props.trustedDevices.map((device) => ({ ...device })))
+const linkedIdentities = ref(props.identities.map((item) => ({ ...item })))
+const unlinkedProviders = computed(() =>
+  props.identityProviders.filter((provider) => !linkedIdentities.value.some((item) => item.provider_slug === provider.slug)),
+)
+
+async function unlinkIdentity(item) {
+  const ok = await window.Nomen.confirm(
+    t('解绑登录方式'),
+    t('解绑后不能再通过 {:name} 登录，确定继续？', { name: item.provider_name }),
+    { confirmText: t('解绑'), cancelText: t('取消') },
+  )
+  if (!ok) return
+  const body = new URLSearchParams()
+  body.set('_csrf', props.csrf)
+  body.set('provider_id', String(item.provider_id))
+  const response = await fetch('/settings/identities/unlink', {
+    method: 'POST',
+    body,
+    credentials: 'same-origin',
+    headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' },
+  })
+  const result = await response.json().catch(() => ({ success: false, message: t('请求失败') }))
+  if (result.success) {
+    linkedIdentities.value = linkedIdentities.value.filter((row) => row.provider_id !== item.provider_id)
+    toast(result.message, 'success')
+  } else {
+    toast(result.message || t('解绑失败'), 'error')
+  }
+}
 
 const profile = reactive({
   display_name: props.user.display_name || '',
@@ -553,6 +584,33 @@ onMounted(() => {
         {{ t('最多可以绑定 {:n} 个邮箱。发通知、找回账号用的是「首选」那一个；登录时任何一个已验证的邮箱都能用。', { n: maxEmails }) }}
       </p>
       <EmailSetSection :csrf="csrf" :emails="emails" :max-emails="maxEmails" />
+    </div>
+
+    <div class="settings-section" id="sec-identities">
+      <h2>{{ t('第三方登录') }}</h2>
+      <p class="form-hint" style="margin-bottom:16px;">
+        {{ t('绑定的账号可以直接用来登录；解绑前请确认还有别的登录方式。') }}
+      </p>
+
+      <div v-if="linkedIdentities.length" class="identity-list">
+        <div v-for="item in linkedIdentities" :key="item.provider_id" class="identity-row">
+          <div class="identity-row__info">
+            <strong>{{ item.provider_name }}</strong>
+            <span class="text-muted">{{ item.display_name || item.email || '' }}</span>
+          </div>
+          <button type="button" class="btn btn-danger btn-sm" @click="unlinkIdentity(item)">{{ t('解绑') }}</button>
+        </div>
+      </div>
+      <p v-else class="form-hint">{{ t('还没有绑定第三方账号。') }}</p>
+
+      <div v-if="unlinkedProviders.length" class="identity-links">
+        <a
+          v-for="provider in unlinkedProviders"
+          :key="provider.slug"
+          class="btn btn-secondary btn-sm"
+          :href="`/auth/${provider.slug}/redirect?link=1`"
+        >{{ t('绑定 {:name}', { name: provider.name }) }}</a>
+      </div>
     </div>
 
     <div class="settings-section settings-section--danger" id="sec-account">

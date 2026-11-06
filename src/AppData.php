@@ -20,6 +20,7 @@ final class AppData
                 'poweredBy' => (bool)Brand::get('powered_by', true),
                 'poweredUrl' => \Nomen\Src\Special\Version::PROJECT_URL,
             ],
+            'footerHtml' => Footer::html('app'),
             'csrf' => Csrf::getToken(),
             'locales' => array_map(static fn(array $entry): array => [
                 'slug' => (string)$entry['slug'],
@@ -59,6 +60,26 @@ final class AppData
         ];
 
         return Hooks::filter('viewer.props', $viewer, $userId, $user);
+    }
+
+    /** @return array<int, array<string, mixed>> */
+    private static function identitiesFor(int $userId): array
+    {
+        try {
+            $stmt = Database::getInstance()->prepare(
+                'SELECT ui.id, ui.provider_id, ui.display_name, ui.email, ui.created_at,
+                        ip.slug AS provider_slug, ip.name AS provider_name
+                 FROM user_identities ui
+                 JOIN identity_providers ip ON ip.id = ui.provider_id
+                 WHERE ui.user_id = :u
+                 ORDER BY ip.sort_order ASC, ip.id ASC'
+            );
+            $stmt->execute([':u' => $userId]);
+
+            return $stmt->fetchAll();
+        } catch (\PDOException $e) {
+            return [];
+        }
     }
 
     private static function flash(): array
@@ -105,7 +126,6 @@ final class AppData
                 'recentActivity' => $recentActivity,
                 'success' => $flash['success'],
                 'error' => $flash['error'],
-                'redirectedFromHome' => (bool)Session::getFlash('redirected_from_home'),
             ],
         ];
     }
@@ -205,6 +225,8 @@ final class AppData
                 'currentSkin' => Skins::active(),
                 'activeTokens' => $activeTokens,
                 'trustedDevices' => $trustedDevices,
+                'identities' => self::identitiesFor($userId),
+                'identityProviders' => IdentityProviders::publicList(),
                 'urls' => [
                     'avatar' => '/settings/avatar',
                     'profile' => '/settings/profile',

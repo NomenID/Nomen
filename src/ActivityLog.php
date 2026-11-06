@@ -111,7 +111,16 @@ class ActivityLog
         'admin.app_delete'                => '管理员删除应用',
         'admin.mount_update'              => '修改插件挂载点',
         'admin.site_settings'             => '修改站点设置',
+        'admin.homepage_update'           => '修改首页设置',
+        'admin.identity_create'           => '添加第三方登录',
+        'admin.identity_update'           => '更新第三方登录',
+        'admin.identity_delete'           => '删除第三方登录',
+        'admin.identity_toggle'           => '启用/停用第三方登录',
         'admin.developer_toggle'          => '管理员启用/停用开发者',
+
+        'identity.linked'                 => '绑定第三方登录',
+        'identity.unlinked'               => '解绑第三方登录',
+        'identity.registered'             => '通过第三方登录创建账号',
 
         'account.delete'                  => '注销账户',
         'account.reclaim'                 => '回收未验证邮箱',

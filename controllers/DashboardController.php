@@ -361,7 +361,16 @@ class DashboardController
         $rows = ActivityLog::recentFor($userId, $limit * 2);
         $rows = array_filter($rows, static fn(array $row) => !in_array($row['action'], $hidden, true));
 
-        return array_slice(array_values($rows), 0, $limit);
+        return array_map(static function (array $row): array {
+            return [
+                'id'          => (int)$row['id'],
+                'label'       => (string)($row['summary'] ?: ActivityLog::actionLabel((string)$row['action'])),
+                'action'      => (string)$row['action'],
+                'icon'        => ActivityLog::iconFor((string)$row['category']),
+                'device_name' => (string)($row['device_name'] ?? ''),
+                'created_at'  => (string)$row['created_at'],
+            ];
+        }, array_slice(array_values($rows), 0, $limit));
     }
 
     /**

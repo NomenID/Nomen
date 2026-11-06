@@ -13,7 +13,7 @@ $brand = \Nomen\Src\Brand::all();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex">
     <title><?php $t = $title ?? $brand['name']; echo htmlspecialchars($t === $brand['name'] ? $t : "$t - " . $brand['name']); ?></title>
-    <link rel="stylesheet" href="/css/style.css?v=4btk9ktk">
+    <link rel="stylesheet" href="/css/style.css?v=r8n4v2kq">
     <link rel="stylesheet" href="/css/ui.css?v=woimt5tg">
     <?php if (\Nomen\Src\I18n::isRtl()): ?>
         <link rel="stylesheet" href="/css/rtl.css?v=31472968">
@@ -33,8 +33,10 @@ $brand = \Nomen\Src\Brand::all();
             }
         })();
     </script>
+    <?= \Nomen\Src\Hooks::filter('layout.head', '', 'app') ?>
 </head>
 <body>
+    <?= \Nomen\Src\Hooks::filter('layout.body.start', '', 'app') ?>
     <?php require \Nomen\Src\Skins::template('_site_sky'); ?>
     <?= $content ?>
     <script src="<?= \Nomen\Src\I18n::catalogUrl() ?>"></script>
@@ -42,5 +44,6 @@ $brand = \Nomen\Src\Brand::all();
     <?php foreach (\Nomen\Src\Plugins::scripts() as $src): ?>
         <script src="<?= htmlspecialchars($src) ?>"></script>
     <?php endforeach; ?>
+    <?= \Nomen\Src\Hooks::filter('layout.body.end', '', 'app') ?>
 </body>
 </html>

@@ -11,7 +11,6 @@ const props = defineProps({
   recentActivity: { type: Array, default: () => [] },
   success: { type: String, default: '' },
   error: { type: String, default: '' },
-  redirectedFromHome: { type: Boolean, default: false },
   revokeHandler: { type: Function, default: null },
   revoking: { type: Boolean, default: false },
   urls: { type: Object, default: () => ({}) },
@@ -33,10 +32,6 @@ function initialOf(name) {
 
 <template>
   <div class="dashboard">
-    <p v-if="redirectedFromHome" class="text-muted" style="font-size:13px;margin:0 0 12px">
-      <a href="/?redirect=no">{{ t('（重定向自 /）') }}</a>
-    </p>
-
     <div class="dashboard-header">
       <div class="dashboard-user">
         <img v-if="user.avatar_url" :src="user.avatar_url" alt="" class="dashboard-avatar">

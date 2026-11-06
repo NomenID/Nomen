@@ -1,0 +1,95 @@
+/* Nomen SSR 皮肤：首页文字优先，去掉背景装饰与卡片阴影 */
+
+.skin-ssr {
+    background: var(--color-bg);
+}
+
+.ssr-home {
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 88px 24px 96px;
+}
+
+.ssr-home__head h1 {
+    margin: 0;
+    font-size: clamp(2rem, 4.4vw, 2.8rem);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+}
+
+.ssr-home__line {
+    margin: 14px 0 0;
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    color: var(--color-text-muted);
+}
+
+.ssr-home__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 28px 0 0;
+}
+
+.ssr-home__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-top: 28px;
+    padding-top: 16px;
+    border-top: 1px solid var(--color-border);
+}
+
+.ssr-home__links a {
+    font-size: 13px;
+    color: var(--color-text-muted);
+    text-decoration: none;
+}
+
+.ssr-home__links a:hover {
+    color: var(--color-primary);
+}
+
+.ssr-home__notes {
+    display: grid;
+    gap: 0;
+    margin: 56px 0 0;
+    border-top: 1px solid var(--color-border);
+}
+
+.ssr-home__notes > div {
+    display: grid;
+    grid-template-columns: 140px minmax(0, 1fr);
+    gap: 16px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.ssr-home__notes dt {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.ssr-home__notes dd {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--color-text-muted);
+}
+
+.ssr-home__sections {
+    margin-top: 56px;
+}
+
+@media (max-width: 640px) {
+    .ssr-home {
+        padding-top: 56px;
+    }
+
+    .ssr-home__notes > div {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+}

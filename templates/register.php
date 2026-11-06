@@ -42,6 +42,7 @@ $props = [
         'country' => $featureCountry,
         'guardians' => $featureGuardians,
     ],
+    'providers' => \Nomen\Src\IdentityProviders::publicList(),
     'privacyUrl' => (string)\Nomen\Src\Brand::get('privacy_url'),
     'termsUrl' => (string)\Nomen\Src\Brand::get('terms_url'),
     'supportEmail' => (string)\Nomen\Src\Brand::get('support_email'),

@@ -23,7 +23,7 @@ if (!is_file(__DIR__ . '/../config/installed.php') && !is_file(__DIR__ . '/../.e
 require_once __DIR__ . '/../src/I18n.php';
 
 use Nomen\Src\{Router, Session, Response, Database, RecoveryHelper, FamilyHelper, Features, AppData, Nav, Admin, Plugins};
-use Nomen\Controllers\{AuthController, OAuthController, DashboardController, ApiController, ActivationController, BiometricController, TwoFactorController, NotificationController, RecoveryController, AdminController, AdminAppsController, AdminMountsController, AdminSettingsController, FamilyController, EmailController};
+use Nomen\Controllers\{AuthController, OAuthController, DashboardController, ApiController, ActivationController, BiometricController, TwoFactorController, NotificationController, RecoveryController, AdminController, AdminAppsController, AdminMountsController, AdminSettingsController, AdminHomepageController, AdminIdentityController, IdentityController, FamilyController, EmailController};
 
 // 全局安全响应头（HSTS 由 nginx 统一设置，此处不重复）
 header('X-Content-Type-Options: nosniff');
@@ -59,13 +59,15 @@ Nav::add('admin', [
     'visible' => static fn(?int $uid): bool => $uid !== null && $uid > 0 && AdminController::isAdminUser($uid),
 ]);
 
-Admin::menu('dashboard', '/admin', '概览', 10);
-Admin::menu('users', '/admin/users', '用户', 20);
-Admin::menu('apps', '/admin/apps', '应用', 30);
-Admin::menu('mounts', '/admin/mounts', '接入点', 40);
-Admin::menu('recovery', '/admin/recovery', '恢复工单', 50);
-Admin::menu('logs', '/admin/logs', '活动日志', 60);
-Admin::menu('settings', '/admin/settings', '设置', 70);
+Admin::menu('dashboard', '/admin', '概览', 10, '总览');
+Admin::menu('homepage', '/admin/homepage', '首页', 14, '内容');
+Admin::menu('users', '/admin/users', '用户', 20, '用户与接入');
+Admin::menu('apps', '/admin/apps', '应用', 30, '用户与接入');
+Admin::menu('identities', '/admin/identities', '登录方式', 35, '用户与接入');
+Admin::menu('mounts', '/admin/mounts', '接入点', 40, '用户与接入');
+Admin::menu('recovery', '/admin/recovery', '恢复工单', 50, '安全');
+Admin::menu('logs', '/admin/logs', '活动日志', 60, '安全');
+Admin::menu('settings', '/admin/settings', '设置', 70, '系统');
 
 // 核心自带的特殊页面。注册在插件之后，插件不能顶掉它。
 // title 存键原文，渲染时才翻译 —— 插件在清单里写的标题同样吃这套
@@ -194,18 +196,7 @@ $router->get('/special/{page}', function (string $page) {
 });
 
 $router->get('/', function () {
-    if (Session::get('user_id') && ($_GET['redirect'] ?? '') !== 'no') {
-        Session::flash('redirected_from_home', true);
-        Response::redirect('/dashboard');
-    }
-
-    $db = Database::getInstance();
-    $stmt = $db->query('SELECT
-        (SELECT COUNT(*) FROM oauth_clients WHERE status = 1) AS total_apps,
-        (SELECT COUNT(*) FROM developers WHERE status = 1) AS total_developers,
-        (SELECT COUNT(*) FROM users) AS total_users');
-    $stats = $stmt->fetch();
-    Response::view('landing', compact('stats'));
+    \Nomen\Src\Homepage::render();
 });
 
 // 认证相关
@@ -224,6 +215,11 @@ $router->post('/register/verify/resend', [AuthController::class, 'resendRegister
 $router->get('/api/check-username', [AuthController::class, 'checkUsername']);
 $router->get('/api/consent-age', [ApiController::class, 'consentAge']);
 $router->get('/logout',   [AuthController::class, 'logout']);
+
+// 第三方登录（GitHub / Google / Microsoft / CaelLabID / 自定义 OAuth2）
+$router->get('/auth/{slug}/redirect', [IdentityController::class, 'redirect']);
+$router->get('/auth/{slug}/callback', [IdentityController::class, 'callback']);
+$router->post('/settings/identities/unlink', [IdentityController::class, 'unlink'], ['auth']);
 
 // 双因素验证（2FA）：新设备验证与「每次登录验证」共用这一条链路
 $router->get('/2fa/verify',              [TwoFactorController::class, 'verifyPage']);
@@ -353,32 +349,45 @@ $router->get('/recovery/ticket',         [RecoveryController::class, 'ticket']);
 $router->get('/recovery/secure',         [RecoveryController::class, 'secure']);
 $router->post('/recovery/secure/finish', [RecoveryController::class, 'finish']);
 
-// 管理后台
-$router->get('/admin',                      [AdminController::class, 'index'], ['admin']);
-$router->get('/admin/users',                [AdminController::class, 'users'], ['admin']);
-$router->get('/admin/users/{id}',           [AdminController::class, 'userDetail'], ['admin']);
+// 管理后台：GET 一律交给 SPA 外壳，数据走 /api/admin/*
+$router->get('/admin', function (): void {
+    \Nomen\Src\AdminShell::render();
+}, ['admin']);
+$router->get('/admin/logs/export',          [AdminController::class, 'logExport'], ['admin']);
+$router->get('/admin/{path:.*}', function (string $path): void {
+    \Nomen\Src\AdminShell::render();
+}, ['admin']);
+
+$router->get('/api/admin/dashboard',        [AdminController::class, 'index'], ['admin']);
+$router->get('/api/admin/users',            [AdminController::class, 'users'], ['admin']);
+$router->get('/api/admin/users/{id}',       [AdminController::class, 'userDetail'], ['admin']);
 $router->post('/admin/users/toggle-status', [AdminController::class, 'toggleStatus'], ['admin']);
 $router->post('/admin/users/toggle-admin',  [AdminController::class, 'toggleAdmin'], ['admin']);
-$router->get('/admin/apps',                 [AdminAppsController::class, 'index'], ['admin']);
-$router->get('/admin/apps/create',          [AdminAppsController::class, 'create'], ['admin']);
+$router->get('/api/admin/apps',             [AdminAppsController::class, 'index'], ['admin']);
+$router->get('/api/admin/apps/create',      [AdminAppsController::class, 'create'], ['admin']);
+$router->get('/api/admin/apps/{clientId}',  [AdminAppsController::class, 'show'], ['admin']);
 $router->post('/admin/apps/create',         [AdminAppsController::class, 'store'], ['admin']);
-$router->get('/admin/apps/{clientId}',      [AdminAppsController::class, 'show'], ['admin']);
 $router->post('/admin/apps/{clientId}/update',       [AdminAppsController::class, 'update'], ['admin']);
 $router->post('/admin/apps/{clientId}/reset-secret', [AdminAppsController::class, 'resetSecret'], ['admin']);
 $router->post('/admin/apps/{clientId}/toggle',       [AdminAppsController::class, 'toggle'], ['admin']);
 $router->post('/admin/apps/{clientId}/delete',       [AdminAppsController::class, 'delete'], ['admin']);
-$router->get('/admin/mounts',               [AdminMountsController::class, 'index'], ['admin']);
+$router->get('/api/admin/mounts',           [AdminMountsController::class, 'index'], ['admin']);
 $router->post('/admin/mounts/{plugin}',     [AdminMountsController::class, 'updatePath'], ['admin']);
-$router->get('/admin/recovery',             [AdminController::class, 'recovery'], ['admin']);
-$router->get('/admin/recovery/{id}',        [AdminController::class, 'recoveryDetail'], ['admin']);
+$router->get('/api/admin/recovery',         [AdminController::class, 'recovery'], ['admin']);
+$router->get('/api/admin/recovery/{id}',    [AdminController::class, 'recoveryDetail'], ['admin']);
 $router->post('/admin/recovery/approve',    [AdminController::class, 'recoveryApprove'], ['admin']);
 $router->post('/admin/recovery/reject',     [AdminController::class, 'recoveryReject'], ['admin']);
 $router->post('/admin/recovery/resend',     [AdminController::class, 'recoveryResend'], ['admin']);
-$router->get('/admin/logs',                 [AdminController::class, 'logs'], ['admin']);
-$router->get('/admin/logs/export',          [AdminController::class, 'logExport'], ['admin']);
-$router->get('/admin/logs/{id}',            [AdminController::class, 'logDetail'], ['admin']);
-$router->get('/admin/settings',             [AdminSettingsController::class, 'index'], ['admin']);
+$router->get('/api/admin/logs',             [AdminController::class, 'logs'], ['admin']);
+$router->get('/api/admin/logs/{id}',        [AdminController::class, 'logDetail'], ['admin']);
+$router->get('/api/admin/settings',         [AdminSettingsController::class, 'index'], ['admin']);
 $router->post('/admin/settings',            [AdminSettingsController::class, 'update'], ['admin']);
+$router->get('/api/admin/homepage',         [AdminHomepageController::class, 'show'], ['admin']);
+$router->post('/admin/homepage',            [AdminHomepageController::class, 'update'], ['admin']);
+$router->get('/api/admin/identities',       [AdminIdentityController::class, 'index'], ['admin']);
+$router->post('/admin/identities/save',     [AdminIdentityController::class, 'save'], ['admin']);
+$router->post('/admin/identities/delete',   [AdminIdentityController::class, 'delete'], ['admin']);
+$router->post('/admin/identities/toggle',   [AdminIdentityController::class, 'toggle'], ['admin']);
 
 // 开放平台
 

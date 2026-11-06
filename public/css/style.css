@@ -5377,3 +5377,88 @@ body.mobile-menu-open {
     color: var(--color-primary);
     background: var(--color-primary-light);
 }
+
+/* 第三方登录入口：登录 / 注册页共用 */
+.auth-providers {
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid var(--color-border);
+}
+
+.auth-providers__label {
+    margin: 0 0 10px;
+    font-size: 12.5px;
+    color: var(--color-text-muted);
+    text-align: center;
+}
+
+.auth-providers__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 8px;
+}
+
+.auth-provider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 0 14px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--color-radius);
+    background: var(--color-bg-secondary);
+    color: var(--color-text);
+    font-size: 13.5px;
+    text-decoration: none;
+    transition: border-color 0.12s ease, background 0.12s ease;
+}
+
+.auth-provider:hover {
+    border-color: var(--color-border-hover);
+    background: var(--color-bg-tertiary);
+}
+
+.auth-provider__mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.identity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.identity-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--color-radius);
+    background: var(--color-bg-secondary);
+}
+
+.identity-row__info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 13.5px;
+}
+
+.identity-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}

@@ -8,6 +8,7 @@ const { t } = useT()
 const router = useRouter()
 const viewer = inject('viewer')
 const brand = inject('brand') || {}
+const footerHtml = inject('footerHtml') || ''
 const locales = inject('locales') || []
 const currentLocale = window.NOMEN_LOCALE || 'zh-hans'
 
@@ -228,7 +229,8 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
     <slot />
   </main>
 
-  <footer class="footer">
+  <div v-if="footerHtml" class="footer-host" v-html="footerHtml"></div>
+  <footer v-else class="footer">
     <div class="footer-inner">
       <span v-if="brand.copyright">{{ brand.copyright }}</span>
       <span v-else>&copy; {{ new Date().getFullYear() }} {{ brand.name || 'Nomen' }}</span>

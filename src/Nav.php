@@ -50,6 +50,6 @@ class Nav
 
         usort($out, static fn(array $a, array $b): int => [$a['order'], $a['key']] <=> [$b['order'], $b['key']]);
 
-        return $out;
+        return Hooks::filter('nav.items', $out, $userId);
     }
 }

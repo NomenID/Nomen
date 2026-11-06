@@ -99,19 +99,30 @@ public static function boot(): void
 
 ## 后台页面
 
-`Admin::page()` 或清单里的 `adminPages` 注册，地址是 `/admin/<slug>`。处理函数返回 HTML 字符串，核心用后台布局套起来。
+后台外壳是 Vue SPA，插件页面仍由服务端返回 HTML，核心把 HTML 放进面板里渲染。`Admin::page()` 或清单里的 `adminPages` 注册，地址是 `/admin/<slug>`。
 
 ```php
-$html = '<div class="admin-card">...</div>';
-return $html;
+\Nomen\Src\Admin::page('content', [
+    'title'       => '内容',
+    'description' => '站点文档页面',
+    'menu'        => '内容',   // false = 不进菜单；字符串 = 菜单文字
+    'group'       => '内容',   // 侧栏分组
+    'order'       => 15,
+    'tabs'        => [
+        ['id' => 'all', 'label' => '全部', 'handler' => static fn(): string => '...'],
+    ],
+    // 没有 tabs 时用 handler
+    'handler'     => null,
+]);
 ```
 
-可以给后台页面加样式和脚本：
+面板里的约定：
 
-```php
-\Nomen\Src\Admin::style(\Nomen\Src\Plugins::assetUrl('example', 'admin.css'));
-\Nomen\Src\Admin::script(\Nomen\Src\Plugins::assetUrl('example', 'admin.js'));
-```
+- 表单加 `data-admin-ajax`，提交由外层接管（POST + 自动刷新面板）；再加 `data-admin-confirm="..."` 会先弹确认。
+- 指向 `/admin/...` 的链接会被 SPA 接管；外部链接加 `target="_blank"`。
+- 表单里带 `_return=admin`，动作完成后可以跳回后台页面（插件自己的控制器里判断）。
+- 样式直接用 `a-*` 类（`a-card` / `a-table` / `a-btn` / `a-input` / `a-field` / `a-tabs` ...），不用另写一套。
+- 需要额外 CSS / JS 用 `Admin::style()` / `Admin::script()`。
 
 后台菜单由注册表统一渲染，插件不用改皮肤里的布局。`Admin::menu()` 只登记菜单项，不注册页面，给核心页面用；插件一般用 `Admin::page()`。
 
@@ -220,6 +231,31 @@ $claims = Hooks::filter('userinfo.claims', $claims, $user, $scopes);
 | `email.sending` | filter | `payload`（`to` / `subject` / `body`）, `embedded` | 真正投递 SMTP 之前；返回数组可替换 |
 | `notification.created` | run | `userId`, `category`, `title`, `body`, `notificationId` | 站内通知入库之后、发邮件之前 |
 | `viewer.props` | filter | `viewer`, `userId`, `user` | SPA 的 viewer 数据组装完 |
+| `nav.items` | filter | `items`, `userId` | 站点导航组装完（PHP 布局和 Vue 外壳共用） |
+| `layout.head` | filter | `html`, `layout` | 布局 `</head>` 前；返回值原样输出 |
+| `layout.body.start` | filter | `html`, `layout` | 布局 `<body>` 后 |
+| `layout.body.end` | filter | `html`, `layout` | 布局 `</body>` 前 |
+| `homepage.links` | filter | `links` | 首页底部链接组 |
+| `homepage.sections` | filter | `sections`, `home` | 默认首页正文区块；插件返回 HTML 片段数组 |
+| `footer.links` | filter | `links`, `brand`, `layout` | 页脚链接数组 |
+| `footer.html` | filter | `html`, `layout`, `brand`, `links` | 页脚最终 HTML（config/footer.php 或皮肤 partial 渲染完） |
+| `admin.menu.items` | filter | `items` | 后台侧栏菜单组装完 |
+| `admin.shell.props` | filter | `props`, `adminId` | 后台 SPA 首屏数据 |
+| `admin.dashboard.cards` | filter | `cards`, `stats` | 概览页统计卡 |
+| `admin.dashboard.site` | filter | `site` | 概览页站点信息块 |
+| `admin.users.rows` | filter | `rows` | 用户列表返回前 |
+| `admin.user.detail` | filter | `payload`, `userId`, `user`, `admin` | 用户详情返回前 |
+| `admin.apps.list` | filter | `apps` | 应用列表返回前 |
+| `admin.apps.detail` | filter | `app`, `clientId` | 应用详情返回前 |
+| `admin.mounts.list` | filter | `mounts` | 挂载点列表返回前 |
+| `admin.logs.rows` | filter | `rows` | 活动日志列表返回前 |
+| `admin.recovery.detail` | filter | `payload`, `request`, `user` | 恢复工单详情返回前 |
+| `admin.settings.data` | filter | `payload` | 站点设置页数据 |
+| `admin.settings.saved` | run | `policy`, `backend`, `adminId` | 站点设置保存后 |
+| `admin.plugin.page.body` | filter | `html`, `slug`, `page`, `tab` | 插件后台页面输出前 |
+| `pages.content.before_save` | filter | `data`, `existing`, `isNew` | Pages 插件写库前，可改字段 |
+| `pages.content.saved` | run | `pageId`, `data`, `isNew`, `userId` | Pages 插件保存后 |
+| `pages.content.deleted` | run | `pageId`, `page`, `userId` | Pages 插件删除前 |
 
 ## 多语言
 

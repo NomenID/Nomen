@@ -1,7 +1,7 @@
 <?php
-$brand = \Nomen\Src\Brand::all();
+$brand = $brand ?? \Nomen\Src\Brand::all();
 $copyright = trim((string)($brand['copyright'] ?? ''));
-$links = \Nomen\Src\Brand::footerLinks();
+$links = $links ?? \Nomen\Src\Brand::footerLinks();
 ?>
 <footer class="footer">
     <div class="footer-inner">

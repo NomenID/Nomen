@@ -81,18 +81,54 @@ class AdminController
                 (SELECT COUNT(*) FROM user_authorizations) AS total_authorizations'
         )->fetch();
 
-        Response::view('admin/dashboard', [
-            'layout'      => 'admin',
-            'pageTitle'   => '概览',
-            'activeMenu'  => 'dashboard',
-            'admin'       => $admin,
-            'stats'       => $stats,
-            'redis'       => self::redisHealth(),
-            'recentLogs'  => ActivityLog::listFor([], 1, 10)['items'],
-            // 安装向导没删就一直提醒：它留着谁都能重跑安装
+        Response::json([
+            'success'          => true,
+            'stats'            => $stats,
+            'cards'            => Hooks::filter('admin.dashboard.cards', self::statCards($stats), $stats),
+            'redis'            => self::redisHealth(),
+            'recentLogs'       => self::logRows(ActivityLog::listFor([], 1, 10)['items']),
             'installerPresent' => is_file(dirname(__DIR__) . '/public/nomen-install/index.php'),
-            'upgradePending'  => Upgrade::mismatch($this->db),
+            'upgradePending'   => Upgrade::mismatch($this->db),
+            'plugins'          => self::pluginSummary(),
+            'site'             => Hooks::filter('admin.dashboard.site', [
+                'version' => (string)(self::config()['version'] ?? ''),
+            ]),
         ]);
+    }
+
+    /** @return array<int, array{label: string, value: int, hint: string, alert?: bool}> */
+    private static function statCards(array $stats): array
+    {
+        $cards = [
+            ['label' => '注册用户', 'value' => (int)$stats['total_users'], 'hint' => '今日新增 ' . (int)$stats['new_users_today']],
+            ['label' => '已验证邮箱', 'value' => (int)$stats['verified_users'], 'hint' => '未验证 ' . ((int)$stats['total_users'] - (int)$stats['verified_users'])],
+            ['label' => '待处理恢复工单', 'value' => (int)$stats['pending_recovery'], 'hint' => $stats['pending_recovery'] > 0 ? '有申诉等待审核' : '暂无待处理', 'alert' => $stats['pending_recovery'] > 0],
+            ['label' => '已通过待完成', 'value' => (int)$stats['approved_recovery'], 'hint' => '已发链接、用户尚未完成修复'],
+            ['label' => '管理员', 'value' => (int)$stats['admins'], 'hint' => '含你自己'],
+            ['label' => '已禁用账户', 'value' => (int)$stats['disabled_users'], 'hint' => '已停用'],
+            ['label' => '30 天活跃设备', 'value' => (int)$stats['active_devices'], 'hint' => '最近 30 天有活动'],
+            ['label' => '在架应用', 'value' => (int)$stats['active_apps'], 'hint' => '累计授权 ' . (int)$stats['total_authorizations'] . ' 次'],
+        ];
+
+        if (Features::guardians()) {
+            $cards[] = ['label' => '邀请中的家庭', 'value' => (int)$stats['unclaimed_families'], 'hint' => $stats['unclaimed_families'] > 0 ? '等家长用账号加入' : '都处理完了', 'alert' => $stats['unclaimed_families'] > 0];
+            $cards[] = ['label' => '家庭里的孩子', 'value' => (int)$stats['managed_children'], 'hint' => '有家长一起用的账号'];
+        }
+
+        return $cards;
+    }
+
+    /** @return array{loaded: int, bundled: string[], missingExt: string[]} */
+    private static function pluginSummary(): array
+    {
+        return [
+            'loaded'     => count(Plugins::loaded()),
+            'bundled'    => array_values(array_map(static fn(array $p): string => (string)$p['name'], Plugins::all())),
+            'missingExt' => array_values(array_filter(
+                ['gd', 'fileinfo', 'redis'],
+                static fn(string $ext): bool => !extension_loaded($ext)
+            )),
+        ];
     }
 
     /**
@@ -195,12 +231,9 @@ class AdminController
         }
         unset($user);
 
-        Response::view('admin/users', [
-            'layout'     => 'admin',
-            'pageTitle'  => '用户管理',
-            'activeMenu' => 'users',
-            'admin'      => $admin,
-            'users'      => $users,
+        Response::json([
+            'success'    => true,
+            'users'      => Hooks::filter('admin.users.rows', $users),
             'search'     => $search,
             'filter'     => $filter,
             'pagination' => ['page' => $page, 'pages' => max(1, (int)ceil($total / self::PER_PAGE)), 'total' => $total],
@@ -252,23 +285,21 @@ class AdminController
             }
         }
 
-        Response::view('admin/user-detail', [
-            'layout'       => 'admin',
-            'pageTitle'    => '用户 · ' . $user['username'],
-            'activeMenu'   => 'users',
-            'admin'        => $admin,
-            'user'         => $user,
-            'methods'      => $groups['login'],
-            'assistMethods' => $groups['assist'],
-            'authorizations' => $authorizations,
-            'recoveryHistory' => $recoveryHistory,
-            'membership'   => $membership,
-            'familyGuardians' => $membership ? FamilyHelper::guardiansOf((int)$membership['group_id']) : [],
-            'ownedGroups'  => $familyChildren,
+        Response::json(Hooks::filter('admin.user.detail', [
+            'success'             => true,
+            'user'                => $user,
+            'methods'             => $groups['login'],
+            'assistMethods'       => $groups['assist'],
+            'authorizations'      => $authorizations,
+            'recoveryHistory'     => $recoveryHistory,
+            'membership'          => $membership,
+            'familyGuardians'     => $membership ? FamilyHelper::guardiansOf((int)$membership['group_id']) : [],
+            'ownedGroups'         => $familyChildren,
             'ownedGroupsChildren' => $familyChildrenByGroup,
-            'guardianEmail' => Features::guardians() ? FamilyHelper::guardianEmailFor($userId) : null,
-            'recentLogs'   => ActivityLog::recentFor($userId, 20),
-        ]);
+            'guardianEmail'       => Features::guardians() ? FamilyHelper::guardianEmailFor($userId) : null,
+            'recentLogs'          => self::logRows(ActivityLog::recentFor($userId, 20)),
+            'isSelf'              => (int)$user['id'] === (int)$admin['id'],
+        ], $userId, $user, $admin));
     }
 
     public function toggleStatus(): void
@@ -406,11 +437,8 @@ class AdminController
         $stmt->bindValue(':off', ($page - 1) * self::PER_PAGE, PDO::PARAM_INT);
         $stmt->execute();
 
-        Response::view('admin/recovery', [
-            'layout'     => 'admin',
-            'pageTitle'  => '恢复工单',
-            'activeMenu' => 'recovery',
-            'admin'      => $admin,
+        Response::json([
+            'success'    => true,
             'requests'   => $stmt->fetchAll(),
             'status'     => $status,
             'search'     => $search,
@@ -444,17 +472,14 @@ class AdminController
             static fn(array $row) => $row['action'] !== 'oauth.token_issued'
         ));
 
-        Response::view('admin/recovery-detail', [
-            'layout'     => 'admin',
-            'pageTitle'  => '工单 #' . (int)$request['id'],
-            'activeMenu' => 'recovery',
-            'admin'      => $admin,
-            'request'    => $request,
-            'user'       => $user,
+        Response::json(Hooks::filter('admin.recovery.detail', [
+            'success'     => true,
+            'request'     => $request,
+            'user'        => $user,
             'attachments' => RecoveryHelper::listAttachments((int)$request['id']),
-            'recentLogs' => $recentLogs,
+            'recentLogs'  => self::logRows($recentLogs),
             'linkTtlDays' => (int)ceil(((int)(self::config()['recovery_token_ttl'] ?? 604800)) / 86400),
-        ]);
+        ], $request, $user));
     }
 
     public function recoveryApprove(): void
@@ -517,8 +542,12 @@ class AdminController
 
             $this->sendOutcomeEmail($request, 'reject');
 
-            Session::flash('success', '已拒绝该申诉，并已通知申请人');
-            Response::redirect('/admin/recovery/' . $requestId);
+            Response::json([
+                'success'    => true,
+                'message'    => '已拒绝该申诉，并已通知申请人',
+                'request_id' => $requestId,
+                'status'     => 'rejected',
+            ]);
         }
 
         // approve / resend 都是重新签发一次性恢复链接（旧链接立刻失效）
@@ -550,19 +579,20 @@ class AdminController
 
         $this->sendOutcomeEmail($request, 'approve', $token, $expiresAt);
 
-        Session::flash('success', $mode === 'resend'
-            ? '恢复链接已重新发送，旧链接已失效'
-            : '已通过该申诉，恢复链接已发送');
-        Response::redirect('/admin/recovery/' . $requestId);
+        Response::json([
+            'success'    => true,
+            'message'    => $mode === 'resend'
+                ? '恢复链接已重新发送，旧链接已失效'
+                : '已通过该申诉，恢复链接已发送',
+            'request_id' => $requestId,
+            'status'     => 'approved',
+            'expires_at' => $expiresAt,
+        ]);
     }
 
     private function reviewFail(bool $isAjax, string $message): void
     {
-        if ($isAjax) {
-            Response::json(['success' => false, 'message' => $message]);
-        }
-        Session::flash('error', $message);
-        Response::redirect('/admin/recovery');
+        Response::json(['success' => false, 'message' => $message], 422);
     }
 
     // ========== 活动日志 ==========
@@ -581,15 +611,14 @@ class AdminController
             unset($query['keyword']);
         }
 
-        Response::view('admin/logs', [
-            'layout'     => 'admin',
-            'pageTitle'  => '活动日志',
-            'activeMenu' => 'logs',
-            'admin'      => $admin,
-            'logs'       => $result['items'],
+        Response::json([
+            'success'    => true,
+            'logs'       => Hooks::filter('admin.logs.rows', self::logRows($result['items'])),
             'filter'     => $filter,
             'pagination' => ['page' => $result['page'], 'pages' => $result['pages'], 'total' => $result['total']],
             'query'      => $query,
+            'categories' => ActivityLog::CATEGORIES,
+            'actions'    => ActivityLog::ACTIONS,
         ]);
     }
 
@@ -602,12 +631,9 @@ class AdminController
             Response::error(404, '这条日志不存在');
         }
 
-        Response::view('admin/log-detail', [
-            'layout'     => 'admin',
-            'pageTitle'  => '日志 #' . (int)$log['id'],
-            'activeMenu' => 'logs',
-            'admin'      => $admin,
-            'log'        => $log,
+        Response::json([
+            'success' => true,
+            'log'     => self::logRows([$log], true)[0],
         ]);
     }
 
@@ -649,6 +675,71 @@ class AdminController
 
         fclose($out);
         exit;
+    }
+
+    /**
+     * 日志行 → SPA 契约：补上展示用的标签和可点链接。
+     * $full 为 true 时 changes 解码成字段对照，否则给一段纯文本摘要。
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private static function logRows(array $rows, bool $full = false): array
+    {
+        return array_map(static function (array $row) use ($full): array {
+            return [
+                'id'               => (int)$row['id'],
+                'created_at'       => (string)$row['created_at'],
+                'actor_type'       => (string)($row['actor_type'] ?? ''),
+                'actor_id'         => (int)($row['actor_id'] ?? 0),
+                'actor_username'   => (string)($row['actor_username'] ?? ''),
+                'actor_label'      => ActivityLog::actorLabel($row),
+                'actor_url'        => self::actorUrl($row),
+                'category'         => (string)$row['category'],
+                'category_label'   => ActivityLog::categoryLabel((string)$row['category']),
+                'action'           => (string)$row['action'],
+                'action_label'     => ActivityLog::actionLabel((string)$row['action']),
+                'target_type'      => (string)($row['target_type'] ?? ''),
+                'target_type_label' => ($row['target_type'] ?? '') !== '' ? self::targetTypeLabel((string)$row['target_type']) : '',
+                'target_id'        => (string)($row['target_id'] ?? ''),
+                'target_name'      => (string)($row['target_name'] ?? ''),
+                'target_url'       => self::targetUrl($row),
+                'summary'          => (string)($row['summary'] ?? ''),
+                'ip_address'       => (string)($row['ip_address'] ?? ''),
+                'device_name'      => (string)($row['device_name'] ?? ''),
+                'user_agent'       => (string)($row['user_agent'] ?? ''),
+                'changes'          => $full
+                    ? self::changesArray($row['changes'] ?? null)
+                    : self::changesText($row['changes'] ?? null),
+            ];
+        }, $rows);
+    }
+
+    /** @return array<int, array{field: string, label: string, old: string, new: string}> */
+    private static function changesArray(?string $changes): array
+    {
+        if (!$changes) {
+            return [];
+        }
+
+        $decoded = json_decode($changes, true);
+        if (!is_array($decoded)) {
+            return [];
+        }
+
+        $out = [];
+        foreach ($decoded as $field => $pair) {
+            if (!is_array($pair)) {
+                continue;
+            }
+            $out[] = [
+                'field' => (string)$field,
+                'label' => self::FIELD_LABELS[$field] ?? (string)$field,
+                'old'   => self::valueText($pair['old'] ?? null),
+                'new'   => self::valueText($pair['new'] ?? null),
+            ];
+        }
+
+        return $out;
     }
 
     /** @return array<string, mixed> */

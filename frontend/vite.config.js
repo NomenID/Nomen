@@ -26,6 +26,7 @@ export default defineConfig(({ command }) => ({
         recoverySecure: fileURLToPath(new URL('src/entries/recovery-secure.js', import.meta.url)),
         family: fileURLToPath(new URL('src/entries/family.js', import.meta.url)),
         app: fileURLToPath(new URL('src/entries/app.js', import.meta.url)),
+        admin: fileURLToPath(new URL('src/entries/admin.js', import.meta.url)),
       },
       output: {
         entryFileNames: 'js/[name]-[hash].js',

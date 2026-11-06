@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{ActivityLog, Admin, Cache, Csrf, Email, Response, Session, Settings};
+use Nomen\Src\{ActivityLog, Admin, Cache, Csrf, Email, Hooks, Response, Settings};
 use PDOException;
 
 class AdminSettingsController
@@ -27,7 +27,7 @@ class AdminSettingsController
 
     public function index(): void
     {
-        $admin = Admin::requireAdmin();
+        Admin::requireAdmin();
 
         $policy = (string)Settings::get('security.login_2fa', 'off');
         if (!isset(self::LOGIN_2FA_OPTIONS[$policy])) {
@@ -39,11 +39,8 @@ class AdminSettingsController
             $backend = 'auto';
         }
 
-        Response::view('admin/settings', [
-            'layout'           => 'admin',
-            'pageTitle'        => '设置',
-            'activeMenu'       => 'settings',
-            'admin'            => $admin,
+        Response::json(Hooks::filter('admin.settings.data', [
+            'success'          => true,
             'policy'           => $policy,
             'login2faOptions'  => self::LOGIN_2FA_OPTIONS,
             'backend'          => $backend,
@@ -51,9 +48,7 @@ class AdminSettingsController
             'effectiveBackend' => Cache::driverName(),
             'mailConfigured'   => Email::isConfigured(),
             'settingsReady'    => Settings::ready(),
-            'success'          => (string)(Session::getFlash('success') ?: ''),
-            'error'            => (string)(Session::getFlash('error') ?: ''),
-        ]);
+        ]));
     }
 
     public function update(): void
@@ -61,16 +56,14 @@ class AdminSettingsController
         $admin = Admin::requireAdmin();
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            Session::flash('error', '请求无效，请重试');
-            Response::redirect('/admin/settings');
+            Response::json(['success' => false, 'message' => '请求无效，请重试'], 422);
         }
 
         $policy = (string)($_POST['login_2fa'] ?? '');
         $backend = (string)($_POST['cache_backend'] ?? '');
 
         if (!isset(self::LOGIN_2FA_OPTIONS[$policy]) || !isset(self::cacheOptions()[$backend])) {
-            Session::flash('error', '选项不在列表里，请重新选择');
-            Response::redirect('/admin/settings');
+            Response::json(['success' => false, 'message' => '选项不在列表里，请重新选择'], 422);
         }
 
         $oldPolicy = (string)Settings::get('security.login_2fa', 'off');
@@ -83,8 +76,7 @@ class AdminSettingsController
             ]);
         } catch (PDOException $e) {
             error_log('[settings] 保存失败: ' . $e->getMessage());
-            Session::flash('error', '数据库还没升级（缺 site_settings 表），先跑 php bin/nomen upgrade');
-            Response::redirect('/admin/settings');
+            Response::json(['success' => false, 'message' => '数据库还没升级（缺 site_settings 表），先跑 php bin/nomen upgrade'], 500);
         }
 
         ActivityLog::record([
@@ -101,7 +93,8 @@ class AdminSettingsController
             ),
         ]);
 
-        Session::flash('success', '设置已保存，下次请求生效');
-        Response::redirect('/admin/settings');
+        Hooks::run('admin.settings.saved', [$policy, $backend, (int)$admin['id']]);
+
+        Response::json(['success' => true, 'message' => '设置已保存，下次请求生效']);
     }
 }

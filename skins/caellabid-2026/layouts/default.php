@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="canonical" href="<?= htmlspecialchars($brand['base_url']) ?><?= rtrim(strtolower(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)), '/') ?: '/' ?>">
     <title><?php $t = $title ?? $brand['name']; echo htmlspecialchars($t === $brand['name'] ? $t : "$t - " . $brand['name']); ?></title>
-    <link rel="stylesheet" href="/css/style.css?v=4btk9ktk">
+    <link rel="stylesheet" href="/css/style.css?v=r8n4v2kq">
     <link rel="stylesheet" href="/css/ui.css?v=woimt5tg">
     <?php if (\Nomen\Src\I18n::isRtl()): ?>
         <link rel="stylesheet" href="/css/rtl.css?v=31472968">
@@ -31,12 +31,14 @@
             }
         })();
     </script>
+    <?= \Nomen\Src\Hooks::filter('layout.head', '', 'default') ?>
 </head>
 <body>
+    <?= \Nomen\Src\Hooks::filter('layout.body.start', '', 'default') ?>
     <?php require \Nomen\Src\Skins::template('_site_sky'); ?>
     <header class="header">
         <div class="header-inner">
-            <a href="<?= \Nomen\Src\Session::get('user_id') ? '/dashboard' : '/' ?>" class="logo">
+            <a href="/" class="logo">
                 <img src="<?= htmlspecialchars($brand['logo']) ?>" alt="<?= htmlspecialchars($brand['name']) ?>" class="logo-icon" width="32" height="32">
                 <span class="logo-text"><?= htmlspecialchars($brand['name']) ?></span>
             </a>
@@ -84,7 +86,7 @@
         <?= $content ?>
     </main>
 
-    <?php require __DIR__ . '/../partials/footer.php'; ?>
+    <?php \Nomen\Src\Footer::render('default'); ?>
 
     <?php
     $drawerUserId = \Nomen\Src\Session::get('user_id');
@@ -115,6 +117,7 @@
     <?php if (!empty($extraJs)): ?>
         <script src="<?= htmlspecialchars($extraJs) ?>"></script>
     <?php endif; ?>
+    <?= \Nomen\Src\Hooks::filter('layout.body.end', '', 'default') ?>
     <?= \Nomen\Src\Csrf::field() ?>
 </body>
 </html>

@@ -1,33 +1,28 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{ActivityLog, Admin, Brand, Csrf, Plugins, Response, Session};
+use Nomen\Src\{ActivityLog, Admin, Brand, Csrf, Hooks, Plugins, Response};
 
 class AdminMountsController
 {
     public function index(): void
     {
-        $admin = Admin::requireAdmin();
+        Admin::requireAdmin();
         $base = rtrim((string)Brand::get('base_url'), '/');
 
         $endpoints = [
-            ['授权', '/oauth/authorize', '浏览器跳转到这里，用户确认后带 code 回到回调地址'],
-            ['令牌', '/oauth/token', '用 code 换 access_token / refresh_token'],
-            ['用户信息', '/api/userinfo', '带 Bearer token 读取 sub、用户名、昵称、头像'],
-            ['令牌校验', '/api/token-info', '校验 token 是否有效'],
-            ['撤销', '/oauth/revoke', '撤销 access_token 或 refresh_token'],
+            ['label' => '授权', 'path' => '/oauth/authorize', 'description' => '浏览器跳转到这里，用户确认后带 code 回到回调地址'],
+            ['label' => '令牌', 'path' => '/oauth/token', 'description' => '用 code 换 access_token / refresh_token'],
+            ['label' => '用户信息', 'path' => '/api/userinfo', 'description' => '带 Bearer token 读取 sub、用户名、昵称、头像'],
+            ['label' => '令牌校验', 'path' => '/api/token-info', 'description' => '校验 token 是否有效'],
+            ['label' => '撤销', 'path' => '/oauth/revoke', 'description' => '撤销 access_token 或 refresh_token'],
         ];
 
-        Response::view('admin/mounts', [
-            'layout'     => 'admin',
-            'pageTitle'  => '接入点',
-            'activeMenu' => 'mounts',
-            'admin'      => $admin,
-            'base'       => $base,
-            'endpoints'  => $endpoints,
-            'mounts'     => Plugins::mounts(),
-            'success'    => (string)(Session::getFlash('success') ?: ''),
-            'error'      => (string)(Session::getFlash('error') ?: ''),
+        Response::json([
+            'success'   => true,
+            'base'      => $base,
+            'endpoints' => $endpoints,
+            'mounts'    => Hooks::filter('admin.mounts.list', Plugins::mounts()),
         ]);
     }
 
@@ -36,8 +31,7 @@ class AdminMountsController
         $admin = Admin::requireAdmin();
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            Session::flash('error', '请求无效，请重试');
-            Response::redirect('/admin/mounts');
+            Response::json(['success' => false, 'message' => '请求无效，请重试'], 422);
         }
 
         $id = trim((string)($_POST['mount_id'] ?? ''));
@@ -53,20 +47,17 @@ class AdminMountsController
         }
 
         if ($mount === null || empty($mount['config']) || $key !== $mount['config']) {
-            Session::flash('error', '这个挂载点不支持在后台改路径');
-            Response::redirect('/admin/mounts');
+            Response::json(['success' => false, 'message' => '这个挂载点不支持在后台改路径'], 422);
         }
 
         if ($path === '' || !preg_match('#^/[a-z0-9][a-z0-9\-/]*$#', $path) || str_contains($path, '//')) {
-            Session::flash('error', '路径要以 / 开头，只能用小写字母、数字、连字符和斜杠');
-            Response::redirect('/admin/mounts');
+            Response::json(['success' => false, 'message' => '路径要以 / 开头，只能用小写字母、数字、连字符和斜杠'], 422);
         }
 
         $path = '/' . trim($path, '/');
 
         if (!Plugins::setConfig($plugin, [$key => $path])) {
-            Session::flash('error', '写不进 config/plugins/，检查目录权限');
-            Response::redirect('/admin/mounts');
+            Response::json(['success' => false, 'message' => '写不进 config/plugins/，检查目录权限'], 500);
         }
 
         ActivityLog::record([
@@ -81,7 +72,10 @@ class AdminMountsController
             'summary'       => '把 ' . $mount['title'] . ' 的挂载点改成 ' . $path,
         ]);
 
-        Session::flash('success', '挂载点已改到 ' . $path . '，下一次请求生效');
-        Response::redirect('/admin/mounts');
+        Response::json([
+            'success' => true,
+            'message' => '挂载点已改到 ' . $path . '，下一次请求生效',
+            'path'    => $path,
+        ]);
     }
 }

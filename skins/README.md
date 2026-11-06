@@ -14,10 +14,11 @@
 
 `slug` 就是目录名，写进 `config/skins.php` 的 `default`（或环境变量 `DEFAULT_SKIN`）就是站点默认皮肤。用户可以在设置页换自己的，登录后写进 `users.skin`。
 
-`enabled` 是站点启用的皮肤列表，默认带两个：
+`enabled` 是站点启用的皮肤列表，默认带三个：
 
 - `nomen-2026`：默认皮肤，通用首页
-- `caellabid-2026`：另一套配色的皮肤，首页与默认皮肤一致
+- `caellabid-2026`：另一套配色的皮肤
+- `nomen-ssr`：纯服务端渲染的轻量外观，没有星图背景，首页文字优先
 
 站长把不想用的从 `enabled` 里删掉就行；整个 `enabled` 键不写表示不限制。默认皮肤被禁用时会自动落到列表里第一个可用皮肤。
 
@@ -25,7 +26,7 @@
 
 | 路径 | 作用 |
 |---|---|
-| `layouts/` | 页面外壳（`default` / `app` / `admin`），提供哪个就覆盖哪个 |
+| `layouts/` | 页面外壳（`default` / `app` / `admin-app`），提供哪个就覆盖哪个 |
 | `templates/` | **页面模板覆盖**，和核心 `templates/` 同名就顶掉 |
 | `partials/` | 皮肤自己的片段，布局里按相对路径 require |
 | `i18n/` | 皮肤特有文案的译文（`<lang>.json`，键 = 简体中文原文），见下面「多语言」 |
@@ -33,17 +34,23 @@
 
 ## 模板覆盖
 
-`Response::view('landing')` 的查找顺序：
+`/` 现在由核心的 `Homepage` 渲染，三种模式：
 
-1. 当前皮肤的 `templates/landing.php`
-2. 默认皮肤的 `templates/landing.php`
-3. 核心的 `templates/landing.php`
+1. 默认首页 → `templates/home.php`
+2. 指定 Pages 页面 → `templates/home-page.php`
+3. `config/home-*.php` 自定义模板 → `templates/home-custom.php` 外壳
 
-所以想改首页、登录页、注册页，直接把同名文件放进皮肤目录，不用动核心。默认皮肤已经把 `landing.php` 收进来了，首页算皮肤的一部分。
+`Response::view('home')` 的查找顺序：
+
+1. 当前皮肤的 `templates/home.php`
+2. 默认皮肤的 `templates/home.php`
+3. 核心的 `templates/home.php`
+
+所以想改首页版式，把同名文件放进皮肤目录即可；只改标题、按钮这些文字，去后台「首页」，不用碰皮肤。登录页、注册页同样按同名文件覆盖。
 
 布局里有 `$content`（页面正文）这个变量；取公共片段用 `Skins::template('_site_sky')`，这样皮肤也能覆盖公共片段。
 
-后台左边那列菜单不是写死的，`Admin::menuItems()` 会把核心和插件注册的项一起排出来；皮肤的后台布局只负责渲染。
+后台外壳是 Vue SPA，布局名是 `admin-app`；旧的 `admin.php` 布局已不再使用。后台左边那列菜单不是写死的，`Admin::menuItems()` 会把核心和插件注册的项一起排出来（插件页由 SPA 面板渲染）。
 
 ## 插件模板
 
@@ -82,7 +89,9 @@
 
 ## 页脚
 
-默认皮肤只有一个很素的页脚：版权 + 可选链接 + `Powered by Nomen`，片段在 `partials/footer.php`。想加别的东西，改这个片段。
+页脚统一走 `\Nomen\Src\Footer::render()`：先找 `config/footer.php`，没有就用当前皮肤的 `partials/footer.php`。默认皮肤只有一个很素的页脚：版权 + 可选链接 + `Powered by Nomen`。
+
+站长想改页脚，把 `config/footer.example.php` 复制成 `config/footer.php` 改就行，变量 `$brand` / `$links` / `$layout` 都能用。插件用 `footer.links` 加链接、`footer.html` 改最终 HTML。
 
 署名那条链到 `/special/version`，是 GPLv3 第 7 条 (b) 款要求的。拆开是两条独立的要求：
 

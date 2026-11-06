@@ -18,12 +18,13 @@ class Admin
     /** @var array<string, string> */
     private static array $scripts = [];
 
-    public static function menu(string $key, string $href, string $label, int $order = 100): void
+    public static function menu(string $key, string $href, string $label, int $order = 100, string $group = ''): void
     {
         self::$menu[$key] = [
             'href'  => $href,
             'label' => $label,
             'order' => $order,
+            'group' => $group,
         ];
     }
 
@@ -36,7 +37,9 @@ class Admin
     /**
      * 注册一个插件管理页：/admin/<slug>。
      *
-     * $def: title, description, handler, menu（false 表示不进菜单，字符串表示菜单文字）, order
+     * $def: title, description, handler, tabs, menu（false 表示不进菜单，字符串表示菜单文字）,
+     *       order, group（侧栏分组标题）
+     * tabs: [['id' => 'basic', 'label' => '常规', 'handler' => callable], ...]
      */
     public static function page(string $slug, array $def): void
     {
@@ -50,15 +53,17 @@ class Admin
             'title'       => $slug,
             'description' => '',
             'handler'     => null,
+            'tabs'        => [],
             'menu'        => true,
             'order'       => 100,
+            'group'       => '',
         ];
 
         self::$pages[$slug] = $def;
 
         if ($def['menu'] !== false) {
             $label = is_string($def['menu']) ? $def['menu'] : (string)$def['title'];
-            self::menu($slug, '/admin/' . $slug, $label, (int)$def['order']);
+            self::menu($slug, '/admin/' . $slug, $label, (int)$def['order'], (string)$def['group']);
         }
     }
 
@@ -81,49 +86,96 @@ class Admin
             return [$a['order'], $a['label']] <=> [$b['order'], $b['label']];
         });
 
-        return $items;
+        return Hooks::filter('admin.menu.items', $items);
     }
 
-    /** 必须在核心管理路由之前调用：同名路径由核心覆盖。 */
+    /** 插件页面的公开信息（不含处理函数），给 SPA 侧栏和路由用。 */
+    public static function pageMeta(): array
+    {
+        $out = [];
+        foreach (self::$pages as $slug => $page) {
+            $out[] = [
+                'slug'        => $slug,
+                'title'       => (string)$page['title'],
+                'description' => (string)$page['description'],
+                'path'        => '/admin/' . $slug,
+                'group'       => (string)($page['group'] ?? ''),
+                'tabs'        => self::tabsMeta($page),
+            ];
+        }
+
+        return $out;
+    }
+
+    /** 必须在核心管理路由之前调用：插件管理页的数据接口。 */
     public static function applyRoutes(Router $router): void
     {
         foreach (self::$pages as $slug => $page) {
-            $router->get('/admin/' . $slug, static function () use ($slug): void {
-                self::render($slug);
+            $router->get('/api/admin/plugin/' . $slug, static function () use ($slug): void {
+                self::renderApi($slug);
             }, ['admin']);
         }
     }
 
-    public static function render(string $slug): void
+    /** 插件管理页返回 JSON：标题、选项卡、当前选项卡的 HTML。 */
+    public static function renderApi(string $slug): void
     {
         $slug = strtolower($slug);
         $page = self::$pages[$slug] ?? null;
 
         if ($page === null) {
-            Response::error(404);
+            Response::json(['success' => false, 'message' => '页面不存在'], 404);
             return;
         }
         if (!Router::isAdmin()) {
-            Response::error(403);
-            return;
-        }
-        if (!is_callable($page['handler'])) {
-            Response::error(500, '管理页面没有处理函数');
+            Response::json(['success' => false, 'message' => '没有权限'], 403);
             return;
         }
 
-        $body = call_user_func($page['handler']);
-        if ($body === null) {
+        $tabs = self::tabsMeta($page);
+        $active = (string)($_GET['tab'] ?? ($tabs[0]['id'] ?? ''));
+        $handler = null;
+        foreach (array_values((array)($page['tabs'] ?? [])) as $tab) {
+            if ((string)($tab['id'] ?? '') === $active) {
+                $handler = $tab['handler'] ?? null;
+                break;
+            }
+        }
+        if ($tabs === []) {
+            $handler = $page['handler'];
+        }
+
+        if (!is_callable($handler)) {
+            Response::json(['success' => false, 'message' => '管理页面没有处理函数'], 500);
             return;
         }
 
-        Response::view('admin/plugin-page', [
-            'layout'     => 'admin',
-            'pageTitle'  => (string)$page['title'],
-            'activeMenu' => $slug,
-            'page'       => $page,
-            'body'       => (string)$body,
+        $body = Hooks::filter('admin.plugin.page.body', (string)call_user_func($handler), $slug, $page, $active);
+
+        Response::json([
+            'success'     => true,
+            'slug'        => $slug,
+            'title'       => (string)$page['title'],
+            'description' => (string)$page['description'],
+            'tabs'        => array_map(static fn(array $tab): array => ['id' => $tab['id'], 'label' => $tab['label']], $tabs),
+            'activeTab'   => $active,
+            'body'        => (string)$body,
         ]);
+    }
+
+    /** @return array<int, array{id: string, label: string}> */
+    private static function tabsMeta(array $page): array
+    {
+        $out = [];
+        foreach ((array)($page['tabs'] ?? []) as $tab) {
+            $id = (string)($tab['id'] ?? '');
+            if ($id === '') {
+                continue;
+            }
+            $out[] = ['id' => $id, 'label' => (string)($tab['label'] ?? $id)];
+        }
+
+        return $out;
     }
 
     public static function requireAdmin(): array

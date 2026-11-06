@@ -25,6 +25,7 @@ $props = [
     'supportName' => (string)\Nomen\Src\Brand::get('support_name'),
     'mailEnabled' => \Nomen\Src\Email::isConfigured(),
     'brandLogo' => (string)\Nomen\Src\Brand::get('logo'),
+    'providers' => \Nomen\Src\IdentityProviders::publicList(),
     'urls' => [
         'sendCode' => '/login/send-code',
         'biometricOptions' => '/biometric/auth/options',

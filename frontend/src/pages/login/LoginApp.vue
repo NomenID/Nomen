@@ -26,6 +26,7 @@ const props = defineProps({
   supportName: { type: String, default: '' },
   mailEnabled: { type: Boolean, default: true },
   brandLogo: { type: String, default: '/assets/brand/nomen-icon.svg' },
+  providers: { type: Array, default: () => [] },
   urls: { type: Object, default: () => ({}) },
 })
 
@@ -587,6 +588,21 @@ onBeforeUnmount(() => {
         <button v-show="current !== 'email_code'" v-if="mailEnabled" type="button" class="login-more__item" @click="showMethod('email_code')">{{ t('邮箱验证码登录') }}</button>
         <button v-if="biometricSupported" v-show="current !== 'biometric'" type="button" class="login-more__item" @click="showMethod('biometric')">{{ t('生物识别登录') }}</button>
         <a class="login-more__item" href="/fast-pass">{{ t('临时密钥登录') }}</a>
+      </div>
+    </div>
+
+    <div v-if="props.providers.length" class="auth-providers">
+      <p class="auth-providers__label">{{ t('或使用以下方式登录') }}</p>
+      <div class="auth-providers__list">
+        <a
+          v-for="provider in props.providers"
+          :key="provider.slug"
+          class="auth-provider"
+          :href="`/auth/${provider.slug}/redirect?redirect_to=${encodeURIComponent(props.redirectTo)}`"
+        >
+          <span class="auth-provider__mark">{{ provider.name.slice(0, 1) }}</span>
+          <span>{{ provider.name }}</span>
+        </a>
       </div>
     </div>
 
