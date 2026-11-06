@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>授权应用（本地预览）</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/ui.css">
+</head>
+<body>
+  <main class="main main--landing">
+    <div id="authorize-app" class="auth-container">
+      <script type="application/json" id="authorize-props">
+      {
+        "csrf": "dev-csrf",
+        "client": {
+          "name": "轻之舟百科",
+          "developer_name": "虚舟实验室",
+          "icon": "",
+          "developer_icon": "",
+          "homepage_url": "https://130.wiki"
+        },
+        "user": {
+          "display_name": "云云",
+          "username": "yunyun",
+          "avatar_url": ""
+        },
+        "scope": "openid profile email",
+        "state": "dev-state",
+        "scopeDescriptions": {
+          "openid": "基本用户信息",
+          "profile": "用户名、昵称、头像",
+          "email": "已验证邮箱"
+        },
+        "requestedScopeList": ["openid", "profile", "email"],
+        "redirectUri": "https://130.wiki/oauth/callback",
+        "clientId": "dev-client",
+        "responseType": "code",
+        "isFirstParty": false,
+        "quickLogin": false,
+        "urls": {
+          "authorize": "/oauth/authorize",
+          "deny": "/oauth/deny"
+        }
+      }
+      </script>
+    </div>
+  </main>
+
+  <script type="module" src="/src/entries/authorize.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>

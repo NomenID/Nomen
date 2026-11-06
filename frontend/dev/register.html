@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>注册（本地预览）</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/ui.css">
+  <link rel="stylesheet" href="/css/register.css">
+</head>
+<body>
+  <main class="main main--landing">
+    <div id="register-app" class="auth-container"><noscript><p class="form-hint">注册需要开启 JavaScript。</p></noscript></div>
+  </main>
+
+  <script type="application/json" id="register-props">
+  {
+    "csrf": "dev-csrf",
+    "error": "",
+    "old": {},
+    "country": "",
+    "autoCountry": false,
+    "today": "2026-11-04",
+    "countries": [
+      { "code": "CN", "zh": "中国", "en": "China", "local": "中国" },
+      { "code": "US", "zh": "美国", "en": "United States", "local": "United States" },
+      { "code": "GB", "zh": "英国", "en": "United Kingdom", "local": "United Kingdom" },
+      { "code": "FR", "zh": "法国", "en": "France", "local": "France" },
+      { "code": "DE", "zh": "德国", "en": "Germany", "local": "Deutschland" },
+      { "code": "JP", "zh": "日本", "en": "Japan", "local": "日本" },
+      { "code": "KR", "zh": "韩国", "en": "South Korea", "local": "대한민국" },
+      { "code": "TH", "zh": "泰国", "en": "Thailand", "local": "ประเทศไทย" },
+      { "code": "BR", "zh": "巴西", "en": "Brazil", "local": "Brasil" },
+      { "code": "IN", "zh": "印度", "en": "India", "local": "भारत" },
+      { "code": "SG", "zh": "新加坡", "en": "Singapore", "local": "Singapura" },
+      { "code": "HK", "zh": "中国香港", "en": "Hong Kong", "local": "香港" },
+      { "code": "TW", "zh": "中国台湾", "en": "Taiwan", "local": "臺灣" },
+      { "code": "MY", "zh": "马来西亚", "en": "Malaysia", "local": "Malaysia" },
+      { "code": "PH", "zh": "菲律宾", "en": "Philippines", "local": "Pilipinas" },
+      { "code": "AT", "zh": "奥地利", "en": "Austria", "local": "Österreich" },
+      { "code": "ES", "zh": "西班牙", "en": "Spain", "local": "España" },
+      { "code": "IT", "zh": "意大利", "en": "Italy", "local": "Italia" },
+      { "code": "CA", "zh": "加拿大", "en": "Canada", "local": "Canada" },
+      { "code": "AU", "zh": "澳大利亚", "en": "Australia", "local": "Australia" }
+    ],
+    "urls": {
+      "consentAge": "/api/consent-age",
+      "checkUsername": "/api/check-username",
+      "captcha": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='110' height='44'%3E%3Crect width='110' height='44' fill='%23e8edf5'/%3E%3Ctext x='55' y='29' font-family='monospace' font-size='19' text-anchor='middle' fill='%23333'%3EAB12%3C/text%3E%3C/svg%3E"
+    }
+  }
+  </script>
+
+  <script type="module" src="/dev/mock-api.js"></script>
+  <script type="module" src="/src/entries/register.js"></script>
+</body>
+</html>

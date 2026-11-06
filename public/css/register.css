@@ -1,0 +1,661 @@
+/* 注册页面样式 */
+
+/* 注册卡片 - 更宽 */
+.auth-card--register {
+    max-width: 480px;
+}
+
+.auth-card--register .auth-header {
+    margin-bottom: 20px;
+}
+
+.auth-card--register .auth-header h1 {
+    font-size: 18px;
+    letter-spacing: -0.01em;
+}
+
+.auth-card--register .auth-header p {
+    margin-top: 4px;
+    font-size: 13px;
+}
+
+.auth-card--register .auth-logo {
+    margin-bottom: 8px;
+}
+
+.auth-card--register .auth-logo img {
+    width: 36px;
+    height: 36px;
+}
+
+/* 注册进度：一条细线 + 当前位置，不把全部步骤铺开 */
+.register-progress {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+}
+
+.register-progress[hidden] {
+    display: none;
+}
+
+.register-progress__bar {
+    flex: 1;
+    height: 3px;
+    border-radius: 3px;
+    background: var(--color-border);
+    overflow: hidden;
+}
+
+.register-progress__fill {
+    display: block;
+    width: 20%;
+    height: 100%;
+    border-radius: 3px;
+    background: var(--color-primary);
+    transition: width 0.3s ease;
+}
+
+.register-progress__count {
+    font-size: 11px;
+    color: var(--color-text-subtle);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.4px;
+}
+
+/* 多步步骤条：注册页已改用上面的进度线，账号恢复申诉页仍在用 */
+.register-steps {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 32px;
+    padding: 0 20px;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+}
+
+.step-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--color-border);
+    color: var(--color-text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.step.active .step-circle {
+    background: var(--color-primary);
+    color: white;
+    box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.3);
+}
+
+.step.completed .step-circle {
+    background: var(--color-success);
+    color: white;
+}
+
+.step-label {
+    font-size: 12px;
+    color: var(--color-text-muted);
+    transition: color 0.3s ease;
+}
+
+.step.active .step-label {
+    color: var(--color-primary);
+    font-weight: 500;
+}
+
+.step-line {
+    flex: 1;
+    height: 2px;
+    background: var(--color-border);
+    margin: 0 12px;
+    margin-bottom: 24px;
+    transition: background 0.3s ease;
+}
+
+.step-line.active {
+    background: var(--color-primary);
+}
+
+/* 步骤内容 */
+.form-step {
+    display: none;
+    animation: fadeInUp 0.3s ease;
+}
+
+.form-step.active {
+    display: block;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 步骤 Hero 区域 */
+.step-hero {
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+.step-icon-wrapper {
+    width: 64px;
+    height: 64px;
+    border-radius: 18px;
+    background: var(--color-primary-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+}
+
+.step-icon {
+    font-size: 30px;
+    line-height: 1;
+    color: var(--color-primary);
+}
+
+.step-title {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--color-text);
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+}
+
+.step-desc {
+    font-size: 14px;
+    color: var(--color-text-muted);
+    line-height: 1.5;
+}
+
+/* 用户名表单组 */
+.form-group--username {
+    margin-top: 8px;
+}
+
+/* 大输入框 */
+.input-wrapper--large input {
+    height: 52px;
+    font-size: 18px;
+    padding: 0 48px 0 16px;
+    border-radius: 12px;
+    border: 2px solid var(--color-border);
+    transition: all 0.2s ease;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.input-wrapper--large input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 4px rgba(var(--color-primary-rgb), 0.1);
+    outline: none;
+}
+
+.input-wrapper--large .input-status {
+    right: 16px;
+    font-size: 20px;
+}
+
+/* 表单提示 */
+.form-hint {
+    font-size: 13px;
+    color: var(--color-text-muted);
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.form-hint .hint-icon {
+    font-size: 14px;
+}
+
+.form-hint.success {
+    color: var(--color-success);
+}
+
+.form-hint.error {
+    color: var(--color-danger);
+}
+
+/* 输入框包装器 */
+.input-wrapper {
+    position: relative;
+}
+
+.input-status {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+}
+
+.input-status[data-state="ok"] {
+    color: var(--color-success);
+}
+
+.input-status[data-state="bad"] {
+    color: var(--color-danger);
+}
+
+.input-status[data-state="loading"] .icon {
+    animation: nomenSpin 1s linear infinite;
+}
+
+@keyframes nomenSpin {
+    to { transform: rotate(360deg); }
+}
+
+/* 国家下拉框（可搜索） */
+.country-picker {
+    position: relative;
+}
+
+.country-picker__input {
+    width: 100%;
+    height: 44px;
+    padding: 0 36px 0 14px;
+    border: 2px solid var(--color-border);
+    border-radius: 10px;
+    background: var(--color-bg, #fff);
+    color: var(--color-text, #333);
+    font-size: 15px;
+    font-family: inherit;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+}
+
+.country-picker__input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 4px rgba(var(--color-primary-rgb), 0.1);
+}
+
+.country-picker__input::placeholder {
+    color: var(--color-text-subtle);
+}
+
+.country-picker__list {
+    position: absolute;
+    z-index: 30;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    max-height: 260px;
+    overflow-y: auto;
+    margin: 0;
+    padding: 6px;
+    list-style: none;
+    background: var(--color-bg, #fff);
+    border: 2px solid var(--color-border);
+    border-radius: 10px;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+    box-sizing: border-box;
+}
+
+.country-picker__option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 9px 10px;
+    border-radius: 7px;
+    font-size: 15px;
+    color: var(--color-text);
+    cursor: pointer;
+}
+
+.country-picker__option:hover,
+.country-picker__option[aria-selected="true"] {
+    background: var(--color-primary-soft, rgba(var(--color-primary-rgb), 0.08));
+}
+
+.country-picker__code {
+    font-size: 12px;
+    color: var(--color-text-subtle);
+    letter-spacing: 0.5px;
+}
+
+.country-picker__empty {
+    padding: 12px 10px;
+    font-size: 14px;
+    color: var(--color-text-subtle);
+    text-align: center;
+}
+
+/* 儿童年龄的法律依据（第五步，家长邮箱下面） */
+.consent-source {
+    margin: 10px 0 0;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--color-text-subtle);
+}
+
+.consent-source a {
+    color: var(--color-primary);
+    text-decoration: none;
+}
+
+.consent-source a:hover {
+    text-decoration: underline;
+}
+
+/* 出生日期 */
+input[type="date"] {
+    width: 100%;
+    height: 44px;
+    padding: 0 14px;
+    border: 2px solid var(--color-border);
+    border-radius: 10px;
+    background: var(--color-bg, #fff);
+    color: var(--color-text, #333);
+    font-size: 15px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+}
+
+input[type="date"]:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 4px rgba(var(--color-primary-rgb), 0.1);
+}
+
+/* 性别选择 */
+.gender-radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.gender-radio-row {
+    display: flex;
+    align-items: center;
+    padding: 10px 14px;
+    border-radius: 10px;
+    transition: background 0.15s;
+    cursor: pointer;
+}
+
+.gender-radio-row:hover {
+    background: var(--color-bg-secondary, #f0f2f5);
+}
+
+.gender-radio-row input[type="radio"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--color-border, #ccc);
+    border-radius: 50%;
+    margin: 0 10px 0 0;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.15s;
+    flex-shrink: 0;
+}
+
+.gender-radio-row input[type="radio"]:checked {
+    border-color: var(--color-primary);
+    background: var(--color-primary);
+    box-shadow: inset 0 0 0 3px #fff;
+}
+
+.gender-radio-row input[type="radio"]:focus-visible {
+    box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.25);
+}
+
+.gender-radio-row label {
+    font-size: 15px;
+    color: var(--color-text, #333);
+    cursor: pointer;
+    user-select: none;
+    margin: 0;
+}
+
+/* 家长同意区 */
+.parent-consent-box {
+    background: var(--color-bg-secondary, #f7f8fa);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    color: var(--color-text, #333);
+    line-height: 1.7;
+}
+
+.consent-greeting {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.consent-list {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.consent-list li {
+    margin-bottom: 4px;
+}
+
+.consent-btn-row {
+    margin: 20px 0;
+}
+
+.consent-btn-label {
+    cursor: pointer;
+    display: inline-block;
+}
+
+.consent-btn-check {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.consent-btn {
+    display: inline-block;
+    padding: 12px 28px;
+    background: var(--color-primary);
+    color: #fff;
+    border-radius: 24px;
+    font-size: 15px;
+    font-weight: 600;
+    transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
+    user-select: none;
+}
+
+.consent-btn:hover {
+    background: var(--color-primary-dark, #0056b3);
+    box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.3);
+}
+
+.consent-btn:active {
+    transform: scale(0.97);
+}
+
+.consent-btn-check:checked + .consent-btn {
+    background: var(--color-success);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.consent-links {
+    font-size: 13px;
+    color: var(--color-text-muted);
+}
+
+.consent-links a {
+    color: var(--color-primary);
+}
+
+.consent-note {
+    font-size: 13px;
+    color: var(--color-text-muted);
+    margin: 6px 0;
+}
+
+.consent-closing {
+    margin-top: 16px;
+    font-weight: 500;
+}
+
+.consent-signature {
+    font-weight: 600;
+    color: var(--color-primary);
+    margin-top: 4px;
+}
+
+/* 密码强度 / 生成按钮 / .pw-wrap 见 style.css，注册页与设置页共用 */
+
+/* 切换密码可见性 */
+.toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    font-size: 16px;
+}
+
+/* 协议区域 */
+.agreement-section {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-top: 8px;
+}
+
+/* 导航按钮 */
+.form-navigation {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.form-navigation .btn {
+    flex: 1;
+}
+
+.form-navigation .btn-secondary {
+    flex: 0 0 auto;
+}
+
+/* 响应式 */
+@media (max-width: 480px) {
+    .step-label {
+        display: none;
+    }
+
+    .step-line {
+        margin: 0 8px;
+        margin-bottom: 0;
+    }
+
+    .input-wrapper--large input {
+        height: 46px;
+        font-size: 16px;
+    }
+
+    .country-picker__input {
+        height: 40px;
+        font-size: 14px;
+    }
+
+    .country-picker__list {
+        max-height: 220px;
+    }
+
+    input[type="date"] {
+        height: 40px;
+        font-size: 14px;
+    }
+
+    .gender-radio-row {
+        padding: 8px 10px;
+    }
+
+    .gender-radio-row label {
+        font-size: 14px;
+    }
+}
+
+/* ===== Vue 注册页（#register-app）：细节打磨，不影响 recovery ===== */
+#register-app .form-step,
+#recovery-app .form-step {
+    animation: none;
+}
+
+#register-app .form-step.active,
+#recovery-app .form-step.active {
+    animation: registerStepIn 0.32s var(--ease-out);
+}
+
+@keyframes registerStepIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#register-app .step-hero {
+    margin-bottom: var(--space-6);
+}
+
+#register-app .step-icon-wrapper {
+    margin-bottom: var(--space-3);
+}
+
+#register-app .country-picker__list {
+    max-height: min(320px, 45vh);
+}
+
+#register-app .nomen-alert {
+    margin-bottom: var(--space-6);
+}
+
+@media (max-width: 640px) {
+    #register-app .form-navigation {
+        gap: var(--space-2);
+    }
+
+    #register-app .form-navigation .btn,
+    #register-app .form-navigation .btn-secondary {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+}

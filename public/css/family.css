@@ -1,0 +1,219 @@
+/* Nomen - 家庭组页面 */
+
+.family-status {
+    margin: 0 0 18px;
+    font-size: 14px;
+    color: var(--color-text-muted);
+}
+
+.family-status strong {
+    color: var(--color-text);
+}
+
+.family-sub {
+    margin: 22px 0 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.family-list {
+    list-style: none;
+    margin: 0 0 8px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.family-list li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 14px;
+    padding: 12px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--color-radius);
+    background: var(--color-bg-secondary);
+}
+
+.family-list__name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.family-list__meta {
+    font-size: 13px;
+    color: var(--color-text-muted);
+}
+
+.family-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.family-actions form {
+    margin: 0;
+}
+
+.family-checks {
+    list-style: none;
+    margin: 0 0 18px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.family-checks li {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--color-text-muted);
+}
+
+.family-checks__mark {
+    font-weight: 700;
+}
+
+.family-checks .is-ok {
+    color: var(--color-text);
+}
+
+.family-checks .is-ok .family-checks__mark {
+    color: var(--color-success);
+}
+
+.family-checks .is-todo .family-checks__mark {
+    color: var(--color-warning);
+}
+
+.family-checks .form-hint {
+    display: block;
+}
+
+.family-inline-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+.family-inline-form input[type="email"],
+.family-inline-form input[type="text"] {
+    flex: 1 1 220px;
+    min-width: 0;
+}
+
+.family-reset-form {
+    flex-basis: 100%;
+    margin: 10px 0 0;
+    padding-top: 12px;
+    border-top: 1px solid var(--color-border);
+}
+
+.family-create-form .form-group {
+    max-width: 420px;
+}
+
+.family-inline-form input[type="email"],
+.family-inline-form input[type="text"] {
+    flex: 1 1 220px;
+    min-width: 0;
+}
+
+/* 亲代看到的一条邀请 */
+.family-member {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 14px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--color-radius);
+    background: var(--color-bg-secondary);
+}
+
+.family-member__main {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1 1 240px;
+    min-width: 0;
+}
+
+.family-member form {
+    margin: 0;
+}
+
+.family-tag {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-primary);
+    background: var(--color-primary-light);
+}
+
+/* 家长能做什么 / 不能做什么 —— 三家都把"做不到的事"写出来 */
+.family-perms {
+    list-style: none;
+    margin: 0 0 18px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.family-perms li {
+    font-size: 13px;
+    line-height: 1.7;
+    padding-left: 20px;
+    position: relative;
+    color: var(--color-text-muted);
+}
+
+.family-perms li::before {
+    position: absolute;
+    left: 0;
+    font-weight: 700;
+}
+
+.family-perms .is-can {
+    color: var(--color-text);
+}
+
+.family-perms .is-can::before {
+    content: '✓';
+    color: var(--color-success);
+}
+
+.family-perms .is-cannot::before {
+    content: '×';
+    color: var(--color-text-subtle);
+}
+
+@media (max-width: 640px) {
+    .family-list li {
+        align-items: flex-start;
+    }
+
+    .family-actions {
+        margin-left: 0;
+        flex-basis: 100%;
+    }
+
+    .family-inline-form input,
+    .family-inline-form select,
+    .family-inline-form button {
+        flex-basis: 100%;
+        width: 100%;
+    }
+}

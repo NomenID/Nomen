@@ -1,0 +1,32 @@
+#!/usr/bin/env php
+<?php
+require __DIR__ . '/../src/bootstrap.php';
+
+$args = $_SERVER['argv'];
+$cmd = $args[1] ?? 'help';
+
+switch ($cmd) {
+    case 'install':
+        exit(Nomen\Src\Cli\Install::run(array_slice($args, 2)));
+
+    case 'migrate':
+        exit(Nomen\Src\Cli\Migrate::run(array_slice($args, 2)));
+
+    case 'plugins':
+        exit(Nomen\Src\Cli\Plugin::run(array_slice($args, 2)));
+
+    case 'help':
+    case '--help':
+    case '-h':
+        echo '用法：php bin/nomen <命令>', PHP_EOL, PHP_EOL;
+        echo '  install          交互式安装：建库、导表、建管理员、写 .env', PHP_EOL;
+        echo '  migrate          应用 database/migrations 下还没跑过的 SQL', PHP_EOL;
+        echo '  plugins list     列出插件与启用状态', PHP_EOL;
+        echo '  plugins migrate  跑插件自己的 database/migrations', PHP_EOL;
+        echo '  plugins <命令>   跑插件注册的命令，plugins list 里能看到', PHP_EOL;
+        exit(0);
+
+    default:
+        fwrite(STDERR, '未知命令：' . $cmd . '（php bin/nomen help）' . PHP_EOL);
+        exit(1);
+}

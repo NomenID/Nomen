@@ -1,0 +1,21 @@
+{
+    "name": "nomenid/nomen",
+    "description": "Self-hosted single sign-on for a group of sites",
+    "type": "project",
+    "license": "GPL-3.0-only",
+    "require": {
+        "php": ">=8.1",
+        "phpmailer/phpmailer": "^6.8",
+        "lbuchs/webauthn": "^2.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Nomen\\Src\\": "src/",
+            "Nomen\\Controllers\\": "controllers/"
+        },
+        "files": []
+    },
+    "suggest": {
+        "geoip2/geoip2": "Needed by the GeoIP plugin (plugins/geoip). Without it the plugin is a no-op."
+    }
+}

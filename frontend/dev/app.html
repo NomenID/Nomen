@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>应用区 SPA（本地预览）</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/ui.css">
+</head>
+<body>
+  <div id="app-root" class="app-root-host">
+    <noscript><p class="form-hint">此页面需要开启 JavaScript。</p></noscript>
+    <script type="application/json" id="app-props">
+    {
+      "viewer": {
+        "id": 1, "username": "yunyun", "displayName": "云云", "avatarUrl": "",
+        "isDeveloper": false, "isAdmin": false, "unreadCount": 2,
+        "latestUnread": { "id": 123, "title": "安全提醒：你启用了 TOTP", "link": "/notifications/123" }
+      },
+      "csrf": "dev-csrf",
+      "locales": [
+        { "slug": "zh-hans", "name": "简体中文", "code": "zh-CN" },
+        { "slug": "en", "name": "English", "code": "en" }
+      ],
+      "locales": [
+        { "slug": "zh-hans", "name": "简体中文", "code": "zh-CN" },
+        { "slug": "en", "name": "English", "code": "en" }
+      ],
+      "page": {
+        "name": "dashboard",
+        "data": {
+          "user": { "display_name": "云云", "username": "yunyun", "avatar_url": "" },
+          "authorizations": [
+            { "client_id": "dev-client-1", "client_name": "轻之舟百科", "icon": "", "developer_icon": "", "homepage_url": "https://130.wiki", "scopes": "openid profile email", "updated_at": "2026-11-04 21:40" }
+          ],
+          "recentActivity": [
+            { "label": "登录成功", "icon": "log-in", "device_name": "Chrome · Windows", "created_at": "2026-11-04 22:10" }
+          ],
+          "showDevPromo": false,
+          "success": "",
+          "error": "",
+          "redirectedFromHome": false
+        }
+      }
+    }
+    </script>
+  </div>
+
+  <script type="module" src="/dev/mock-api.js"></script>
+  <script type="module" src="/src/entries/app.js"></script>
+</body>
+</html>

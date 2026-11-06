@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>仪表盘（本地预览）</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/ui.css">
+</head>
+<body>
+  <main class="main main--landing">
+    <div id="dashboard-app" class="container">
+      <script type="application/json" id="dashboard-props">
+      {
+        "csrf": "dev-csrf",
+        "user": {
+          "display_name": "云云",
+          "username": "yunyun",
+          "avatar_url": ""
+        },
+        "authorizations": [
+          {
+            "client_id": "dev-client-1",
+            "client_name": "轻之舟百科",
+            "icon": "",
+            "developer_icon": "",
+            "homepage_url": "https://130.wiki",
+            "scopes": "openid profile email",
+            "updated_at": "2026-11-04 21:40"
+          },
+          {
+            "client_id": "dev-client-2",
+            "client_name": "CaelLab Search",
+            "icon": "",
+            "developer_icon": "",
+            "homepage_url": "",
+            "scopes": "openid profile",
+            "updated_at": "2026-11-03 12:10"
+          }
+        ],
+        "recentActivity": [
+          { "label": "登录成功", "icon": "log-in", "device_name": "Chrome · Windows", "created_at": "2026-11-04 22:10" },
+          { "label": "授权应用「轻之舟百科」", "icon": "key", "device_name": "Chrome · Windows", "created_at": "2026-11-04 21:40" }
+        ],
+        "showDevPromo": true,
+        "success": "",
+        "error": "",
+        "redirectedFromHome": false,
+        "urls": { "revokeBase": "/dashboard/revoke/" }
+      }
+      </script>
+    </div>
+  </main>
+
+  <script type="module" src="/src/entries/dashboard.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>

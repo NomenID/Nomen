@@ -1,0 +1,32 @@
+/* 邮箱回收验证页 */
+
+.claim-note {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--color-text-muted);
+}
+
+.claim-note p {
+    margin: 0 0 8px 0;
+}
+
+.claim-note p:last-child {
+    margin-bottom: 0;
+}
+
+.claim-code-input {
+    text-align: center;
+    letter-spacing: 8px;
+    font-size: 22px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.claim-resend-form {
+    margin-top: 12px;
+}

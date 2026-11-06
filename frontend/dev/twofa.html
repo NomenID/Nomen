@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>两步验证（本地预览）</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/ui.css">
+</head>
+<body>
+  <main class="main main--landing">
+    <div id="twofa-app" class="auth-container">
+      <script type="application/json" id="twofa-props">
+      {
+        "csrf": "dev-csrf",
+        "nonce": "dev-nonce",
+        "firstLabel": "密码",
+        "error": "",
+        "factors": {
+          "email_code": {
+            "type": "email_code",
+            "label": "邮箱验证码",
+            "icon": "mail",
+            "input_type": "text",
+            "placeholder": "请输入6位验证码"
+          },
+          "totp": {
+            "type": "totp",
+            "label": "验证器APP（TOTP）",
+            "icon": "phone",
+            "input_type": "text",
+            "placeholder": "请输入6位动态码"
+          },
+          "recovery_code": {
+            "type": "recovery_code",
+            "label": "恢复码",
+            "icon": "refresh",
+            "input_type": "text",
+            "placeholder": "请输入12位恢复码"
+          }
+        },
+        "emailChoices": [
+          { "email": "yunyun@caellab.com", "is_primary": true },
+          { "email": "backup@caellab-test.com", "is_primary": false }
+        ],
+        "urls": {
+          "sendCode": "/2fa/verify/send-code",
+          "verify": "/2fa/verify"
+        }
+      }
+      </script>
+    </div>
+  </main>
+
+  <script type="module" src="/dev/mock-api.js"></script>
+  <script type="module" src="/src/entries/twofa.js"></script>
+</body>
+</html>

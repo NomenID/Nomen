@@ -1,0 +1,56 @@
+<?php
+/** @var string      $username
+ *  @var array       $methods         登录方式（计入数量）
+ *  @var array       $assistMethods   快速辅助验证方式（不计入数量）
+ *  @var int         $methodCount
+ *  @var int         $requiredCount
+ *  @var bool        $resetDone
+ *  @var bool        $canFinish
+ *  @var string      $supportEmail
+ *  @var string|null $error
+ *  @var string|null $success
+ */
+$title = t('恢复账户访问权限');
+
+$methodState = static fn(array $m): string => $m['present'] ? ($m['on'] ?? '已拥有') : ($m['off'] ?? '未设置');
+
+$mapMethod = static fn(array $m): array => [
+    'label' => t($m['label']),
+    'present' => (bool)($m['present'] ?? false),
+    'on' => t($m['on'] ?? '已拥有'),
+    'off' => t($m['off'] ?? '未设置'),
+];
+
+$emailMethod = $methods['email'] ?? null;
+$emailMissing = $emailMethod && empty($emailMethod['present']);
+
+$props = [
+    'csrf' => \Nomen\Src\Csrf::getToken(),
+    'username' => (string)$username,
+    'methods' => array_values(array_map($mapMethod, $methods ?? [])),
+    'assistMethods' => array_values(array_map($mapMethod, $assistMethods ?? [])),
+    'methodCount' => (int)$methodCount,
+    'requiredCount' => (int)$requiredCount,
+    'resetDone' => (bool)$resetDone,
+    'canFinish' => (bool)$canFinish,
+    'supportEmail' => (string)$supportEmail,
+    'emails' => array_map(static fn(array $row): array => [
+        'id' => (int)$row['id'],
+        'email' => (string)$row['email'],
+        'is_primary' => !empty($row['is_primary']),
+        'verified' => !empty($row['verified']),
+    ], $emails ?? []),
+    'maxEmails' => (int)($maxEmails ?? \Nomen\Src\EmailSet::MAX),
+    'error' => $error ?: '',
+    'success' => $success ?: '',
+    'assistLabel' => t(\Nomen\Src\RecoveryHelper::ASSIST_LABEL),
+    'emailMissing' => (bool)$emailMissing,
+];
+
+$jsonFlags = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
+?>
+<div id="recovery-secure-app" class="container">
+    <noscript><p class="form-hint">安全修复页需要开启 JavaScript。</p></noscript>
+    <script type="application/json" id="recovery-secure-props"><?= json_encode($props, $jsonFlags) ?></script>
+</div>
+<?= \Nomen\Src\ViteAssets::entry('src/entries/recovery-secure.js') ?>

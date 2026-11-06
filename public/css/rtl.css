@@ -1,0 +1,65 @@
+/* RTL adjustments for ar / fa / he. Loaded only when <html dir="rtl">. */
+
+/* Drawer and toasts slide in from the other side */
+[dir="rtl"] .mobile-menu-drawer {
+    right: auto;
+    left: 0;
+    border-left: none;
+    border-right: 1px solid var(--color-border);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.18);
+    transform: translateX(-100%);
+}
+[dir="rtl"] .mobile-menu-drawer.show {
+    transform: translateX(0);
+}
+[dir="rtl"] .nomen-toast {
+    transform: translateX(calc(-100% - 40px));
+}
+[dir="rtl"] .nomen-toast.show {
+    transform: translateX(0);
+}
+[dir="rtl"] .nomen-toast.hide {
+    transform: translateX(calc(-100% - 40px));
+}
+
+/* Form fields and prose read right-to-left */
+[dir="rtl"] .form-group input,
+[dir="rtl"] .form-group textarea,
+[dir="rtl"] .form-group select {
+    text-align: right;
+}
+[dir="rtl"] .form-group input[dir="ltr"],
+[dir="rtl"] input[type="email"],
+[dir="rtl"] input[type="url"],
+[dir="rtl"] input[type="password"] {
+    text-align: right;
+    direction: rtl;
+}
+[dir="rtl"] .otp-input,
+[dir="rtl"] input[type="number"] {
+    direction: ltr;
+    text-align: center;
+}
+
+/* Code, usernames and machine values stay LTR */
+[dir="rtl"] .open-code-block,
+[dir="rtl"] .open-code-block pre,
+[dir="rtl"] .code-inline,
+[dir="rtl"] code,
+[dir="rtl"] pre {
+    direction: ltr;
+    text-align: left;
+}
+
+/* Header and footer flow right-to-left */
+[dir="rtl"] .nav {
+    flex-direction: row-reverse;
+}
+[dir="rtl"] .footer-inner {
+    text-align: right;
+}
+
+/* Input affixed buttons (captcha row, reveal-password) switch sides */
+[dir="rtl"] .input-with-button {
+    flex-direction: row-reverse;
+}

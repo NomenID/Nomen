@@ -1,0 +1,40 @@
+<?php
+// 统一启动：加载 .env、Composer 依赖和自动加载。Web 入口与 CLI 共用。
+
+$root = dirname(__DIR__);
+
+$envFile = $root . '/.env';
+if (file_exists($envFile)) {
+    foreach (file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+        $line = trim($line);
+        if ($line === '' || $line[0] === '#' || strpos($line, '=') === false) {
+            continue;
+        }
+        [$key, $value] = explode('=', $line, 2);
+        putenv(trim($key) . '=' . trim($value, " \t\n\r\0\x0B\"'"));
+    }
+}
+
+if (file_exists($root . '/vendor/autoload.php')) {
+    require $root . '/vendor/autoload.php';
+}
+
+spl_autoload_register(function (string $class) use ($root) {
+    $prefixes = [
+        'Nomen\\Src\\' => $root . '/src/',
+        'Nomen\\Controllers\\' => $root . '/controllers/',
+    ];
+
+    foreach ($prefixes as $prefix => $baseDir) {
+        if (strpos($class, $prefix) === 0) {
+            $file = $baseDir . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
+            if (file_exists($file)) {
+                require $file;
+                return;
+            }
+        }
+    }
+});
+
+// 全局兜底：未捕获异常和致命错误都走独立报错页（细节受 APP_DEBUG 控制）
+\Nomen\Src\ErrorPage::register();

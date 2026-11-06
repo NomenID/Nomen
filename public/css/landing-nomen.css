@@ -1,0 +1,159 @@
+/* ========== Nomen 皮肤首页 ========== */
+.np-hero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: calc(100svh - 64px);
+    overflow: hidden;
+}
+
+.np-hero__inner {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 96px 24px;
+}
+
+.np-hero__title {
+    margin: 0 0 20px;
+    font-size: clamp(56px, 9vw, 112px);
+    font-weight: 700;
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+}
+
+.np-hero__line {
+    margin: 0 0 32px;
+    font-size: clamp(18px, 2vw, 24px);
+    color: var(--color-text-muted);
+}
+
+.np-hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.np-hero__scene {
+    position: absolute;
+    z-index: 1;
+    top: 50%;
+    right: -4%;
+    width: min(620px, 48vw);
+    height: auto;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.np-scene__orbits circle {
+    fill: none;
+    stroke: var(--color-border);
+    stroke-width: 1;
+    opacity: 0.7;
+}
+
+.np-scene__links path {
+    fill: none;
+    stroke: var(--color-border);
+    stroke-width: 1;
+    stroke-dasharray: 2 8;
+    opacity: 0.8;
+}
+
+.np-scene__nodes circle {
+    fill: var(--color-text-subtle);
+}
+
+.np-scene__core-ring {
+    fill: none;
+    stroke: var(--color-primary);
+    stroke-width: 1;
+    opacity: 0.45;
+}
+
+.np-scene__core-dot {
+    fill: var(--color-primary);
+}
+
+/* ---------- 正文 ---------- */
+.np-section {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 56px 24px;
+}
+
+.np-section + .np-section {
+    border-top: 1px solid var(--color-border);
+}
+
+.np-section h2 {
+    margin: 0 0 24px;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.np-features {
+    display: grid;
+    gap: 18px;
+    margin: 0;
+}
+
+.np-feature {
+    display: grid;
+    grid-template-columns: 140px minmax(0, 1fr);
+    gap: 24px;
+    align-items: baseline;
+}
+
+.np-feature dt {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.np-feature dd {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--color-text-muted);
+}
+
+.np-links {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.np-links a {
+    font-size: 14px;
+    color: var(--color-text);
+    text-decoration: none;
+}
+
+.np-links a:hover {
+    color: var(--color-primary);
+    text-decoration: underline;
+}
+
+@media (max-width: 860px) {
+    .np-hero {
+        min-height: auto;
+    }
+
+    .np-hero__scene {
+        display: none;
+    }
+
+    .np-hero__inner {
+        padding: 72px 24px 56px;
+    }
+
+    .np-feature {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+}

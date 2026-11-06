@@ -1,0 +1,164 @@
+Nomen
+Copyright (C) 2025-2026 Yunyun
+https://nomen.caellab.com/
+
+ADDITIONAL TERMS AND NOTICES
+
+This file forms part of the distribution of the Nomen software. It is to be read
+together with the GNU General Public License, version 3 ("GPLv3"), the text of
+which is contained in the file LICENSE. Capitalised terms have the meanings
+given in Section 1 or, where not defined in this file, in GPLv3.
+
+
+WHY THIS FILE EXISTS
+
+Free software is rarely one person's work. A deployment of Nomen runs the
+Program, the libraries it depends on, the plugins and skins its operator chose
+to install, and the packages those bring with them. Each of them has authors,
+and each carries a license of its own.
+
+The Version Page is where a deployment names them. It lists the Program, the
+plugins, the skins and the libraries, so that the people who wrote them are
+acknowledged where their work actually runs. An attribution nobody can reach
+credits nobody, which is why Section 2 asks for a link as well as the words,
+and why Section 4 asks that the page stay public.
+
+This is not a branding requirement. Nomen is free software: you may change it,
+rename it and run it as you see fit. What these terms ask is that the chain of
+credit survives being passed on, and that a deployment presenting itself as
+Nomen keeps the page that says whose work it is. Section 6 provides the other
+way out: rebrand, and the deployment no longer relies on the permission granted
+there. Section 2 continues to apply whenever the Program itself is conveyed.
+
+The GPL's own preamble makes the same argument at greater length.
+
+
+1. DEFINITIONS
+
+"Licensor" means the copyright holder named at the head of this file.
+
+"Program" means the Nomen software as distributed by the Licensor, including its
+source code, templates, default configuration and the Default Skin.
+
+"Default Skin" means the skin distributed with the Program under the directory
+name "nomen-2026", which provides the default page layout and the default site
+footer.
+
+"Attribution Notice" means the visible text "Powered by Nomen" contained in the
+footer of the Default Skin. In the Default Skin that text is linked to the
+Version Page.
+
+"Front Page" means the first page of a Deployment that is served to a visitor
+who is not signed in.
+
+"Version Page" means the page served at the path /special/version of a
+Deployment, or an equivalent page of that Deployment which displays the
+copyright notice, the applicable license and the notices referred to in
+Section 4.
+
+"Deployment" means a running instance of the Program made available to users,
+whether or not the Program is conveyed to those users.
+
+"Convey" has the meaning given in Section 0 of GPLv3.
+
+
+2. ATTRIBUTION (GPLv3 SECTION 7(b))
+
+The Program, as distributed by the Licensor, displays the Attribution Notice in
+the footer of the Default Skin. The Attribution Notice is a reasonable author
+attribution within the meaning of Section 7(b) of GPLv3 and is preserved as an
+additional term under that Section.
+
+2.1 Upon conveying the Program or a modified version of it, the following two
+requirements apply. They are independent of each other and may be satisfied by
+a single element or by two separate elements:
+
+    (a) the Front Page shall display the text "Powered by Nomen" in a form that
+        is perceptible to a human reader without interaction; and
+
+    (b) the Front Page shall contain a hyperlink that is perceptible and
+        operable and that leads to the Version Page.
+
+2.2 Neither element shall be concealed or rendered inoperable, including by
+means of display:none, visibility:hidden, zero or negligible dimensions, color
+matching the background, overlapping elements, off-screen positioning, disabled
+pointer events, or any comparable technique.
+
+2.3 The Attribution Notice may be relocated and restyled. The footer of the
+Default Skin may be modified or removed only if the requirements of Section 2.1
+are satisfied on the Front Page by other means, including by an equivalent
+attribution supplied by you.
+
+2.4 This Section applies equally where you replace the layout or templates of
+the Default Skin, replace the Front Page, or incorporate the Program into
+another work.
+
+
+3. THIRD-PARTY SKINS
+
+The Program supports skins other than the Default Skin. If you install,
+distribute or deploy such a skin, you are responsible for verifying that the
+requirements of Section 2.1 continue to be satisfied. A skin that removes or
+conceals the Attribution Notice, without an equivalent attribution being
+provided on the Front Page, does not satisfy these terms.
+
+
+4. VERSION PAGE
+
+A Deployment that relies on Section 6 shall keep its Version Page publicly
+accessible. The Version Page shall not be restricted to administrators or
+otherwise withheld from visitors.
+
+For security reasons, a Deployment may omit or redact specific implementation
+details from the Version Page, including without limitation installed component
+versions, database server versions, interpreter versions, library listings and
+filesystem paths, provided that the Version Page continues to display:
+
+    (a) the copyright notice of the Program;
+    (b) the license under which the Program is distributed; and
+    (c) the attribution required by Section 2.
+
+A Deployment should also make this NOTICE and the README of the Program
+available on or through the Version Page, either by reproducing them or by
+linking to them.
+
+
+5. SOURCE CODE AND NOTICES
+
+A Deployment may remove this NOTICE and the README from the Version Page,
+provided that the Version Page then offers at least one of the following:
+
+    (a) the complete corresponding source code of the Program; or
+
+    (b) a reference to a location published by the Licensor from which that
+        source code may be obtained,
+
+and provided that the attribution required by Section 2 remains satisfied.
+
+
+6. NAME AND MARKS
+
+The name "Nomen" and the Nomen logo identify the Program and its origin. GPLv3
+does not grant permission to use them, and nothing in this file grants such
+permission except as stated below.
+
+A Deployment may use the name and logo to identify an unmodified version of the
+Program, and to state that it is based on the Program, provided that Section 2.1
+is satisfied on its Front Page and that Sections 4 and 5 are satisfied.
+
+If you modify the Program and do not wish to satisfy those requirements, you
+shall rebrand the Deployment. The name and logo of the Program shall not then
+be used to identify it.
+
+This Section concerns the marks only. It does not limit any right granted to
+you by GPLv3 in respect of the copyright in the Program.
+
+
+7. GENERAL
+
+Sections 2 and 3 are additional terms permitted by Section 7(b) of GPLv3 and
+apply upon conveying the Program. Sections 4 and 5 are conditions of the
+permission granted in Section 6 to use the name and logo, and apply to a
+Deployment that relies on that permission. Nothing in this file restricts,
+modifies or supersedes any right granted by GPLv3; in the event of conflict,
+GPLv3 governs.

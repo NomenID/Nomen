@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>首页首屏（本地预览）</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/ui.css">
+  <link rel="stylesheet" href="/css/landing.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <a href="/" class="logo">
+        <img src="https://www.caellab.com/static/image/icon/logo.png" alt="CaelLab" class="logo-icon" width="32" height="32">
+        <span class="logo-text">Nomen</span>
+      </a>
+      <nav class="nav">
+        <a href="/login" class="nav-link">登录</a>
+        <a href="/register" class="btn btn-primary btn-sm">注册</a>
+        <button class="theme-toggle" onclick="toggleTheme()" aria-label="切换主题">
+          <span class="icon icon-sun"></span>
+          <span class="icon icon-moon"></span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main main--landing">
+    <div id="landing-app">
+      <script type="application/json" id="landing-props">
+      {
+        "loggedIn": false,
+        "apps": 9,
+        "urls": { "register": "/register", "login": "/login", "dashboard": "/dashboard", "settings": "/settings" }
+      }
+      </script>
+    </div>
+    <script type="module" src="/src/entries/landing.js"></script>
+  </main>
+
+  <script>
+    function toggleTheme() {
+      const root = document.documentElement
+      root.setAttribute('data-theme', root.getAttribute('data-theme') === 'light' ? 'dark' : 'light')
+    }
+  </script>
+</body>
+</html>

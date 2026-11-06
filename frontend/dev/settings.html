@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>设置（本地预览）</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/ui.css">
+</head>
+<body>
+  <main class="main main--landing">
+    <div id="settings-app" class="container">
+      <script type="application/json" id="settings-props">
+      {
+        "csrf": "dev-csrf",
+        "user": {
+          "username": "yunyun",
+          "email": "yunyun@caellab.com",
+          "displayName": "云云",
+          "bio": "虚舟实验室创始人",
+          "avatarUrl": "",
+          "birthDateDisplay": "2010年01月01日",
+          "genderDisplay": "男性",
+          "countryDisplay": "CN",
+          "createdAtDisplay": "2025-07-05 12:00",
+          "twoFactorPolicy": "new_device",
+          "quickLogin": true,
+          "contactVerified": true,
+          "assistLabel": "快速辅助验证方式",
+          "error": "",
+          "success": ""
+        },
+        "emails": [
+          { "id": 1, "email": "yunyun@caellab.com", "is_primary": true, "verified": true },
+          { "id": 2, "email": "backup@caellab-test.com", "is_primary": false, "verified": true }
+        ],
+        "maxEmails": 5,
+        "verifiedEmails": [
+          { "email": "yunyun@caellab.com", "is_primary": true },
+          { "email": "backup@caellab-test.com", "is_primary": false }
+        ],
+        "notifSettings": { "notify_system_important": true, "notify_system_general": true, "notify_system_interact": false },
+        "locales": [
+          { "slug": "zh-hans", "name": "简体中文", "english": "Simplified Chinese" },
+          { "slug": "en", "name": "English", "english": "English" }
+        ],
+        "currentLocale": "zh-hans",
+        "activeTokens": [
+          { "deviceId": "dev-1", "deviceName": "Chrome · Windows", "isCurrent": true, "meta": "IP: 1.2.3.4 · 首次: 2026-11-01 09:00 · 最近: 2026-11-04 22:00" },
+          { "deviceId": "dev-2", "deviceName": "Safari · iPhone", "isCurrent": false, "meta": "IP: 5.6.7.8 · 地点: 上海 · 首次: 2026-10-28 20:00 · 最近: 2026-11-03 21:00" }
+        ],
+        "trustedDevices": [
+          { "deviceId": "dev-1", "deviceName": "Chrome · Windows", "isCurrent": true, "meta": "IP: 1.2.3.4 · 信任至: 2027-01-30 09:00" },
+          { "deviceId": "dev-3", "deviceName": "Edge · 笔记本", "isCurrent": false, "meta": "IP: 9.9.9.9 · 信任至: 2026-12-15 10:00" }
+        ],
+        "urls": {
+          "avatar": "/settings/avatar",
+          "profile": "/settings/profile",
+          "password": "/settings/password",
+          "sendResetCode": "/settings/password/send-code",
+          "resetCode": "/settings/password/reset-code",
+          "revokeDevice": "/settings/devices/revoke",
+          "tempKeys": { "list": "/settings/temp-keys", "create": "/settings/temp-keys", "remove": "/settings/temp-keys/delete", "generate": "/settings/temp-keys/generate" }
+        }
+      }
+      </script>
+    </div>
+  </main>
+
+  <script type="module" src="/dev/mock-api.js"></script>
+  <script type="module" src="/src/entries/settings.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>

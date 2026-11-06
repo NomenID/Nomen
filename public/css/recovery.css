@@ -1,0 +1,136 @@
+/* 恢复申诉页的证明材料上传区（只在 /recovery 用到） */
+
+.rc-hint {
+    margin: 0 0 12px;
+    font-size: 13px;
+    line-height: 1.9;
+    color: var(--color-text-muted);
+}
+
+.rc-uploads {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.rc-uploads__add {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    width: 96px;
+    height: 96px;
+    padding: 0;
+    border: 1px dashed var(--color-border-hover);
+    border-radius: var(--color-radius);
+    background: var(--color-bg-secondary);
+    color: var(--color-text-muted);
+    font-family: inherit;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.rc-uploads__add:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+.rc-uploads__plus {
+    font-size: 26px;
+    line-height: 1;
+    font-weight: 300;
+}
+
+.rc-uploads__addtext {
+    font-size: 11px;
+}
+
+.rc-upload {
+    position: relative;
+    width: 96px;
+    height: 96px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--color-radius);
+    overflow: hidden;
+    background: var(--color-bg-tertiary);
+}
+
+.rc-upload--error {
+    border-color: var(--color-danger);
+}
+
+.rc-upload--busy {
+    opacity: 0.6;
+}
+
+.rc-upload__img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.rc-upload__meta {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 3px 5px;
+    font-size: 10px;
+    line-height: 1.4;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.55);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rc-upload__remove {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    font-size: 13px;
+    line-height: 20px;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.rc-upload__remove:hover {
+    background: var(--color-danger);
+}
+
+.rc-uploads__status {
+    margin-top: 10px;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--color-text-subtle);
+}
+
+.rc-uploads__status--error {
+    color: var(--color-danger);
+}
+
+.rc-uploads__status--ok {
+    color: var(--color-success);
+}
+
+@media (max-width: 480px) {
+    .rc-uploads__add,
+    .rc-upload {
+        width: 78px;
+        height: 78px;
+    }
+
+    .rc-uploads__addtext {
+        display: none;
+    }
+}

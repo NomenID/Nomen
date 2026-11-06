@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>家庭（本地预览）</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/ui.css">
+  <link rel="stylesheet" href="/css/family.css">
+</head>
+<body>
+  <main class="main main--landing">
+    <div id="family-app" class="container">
+      <script type="application/json" id="family-props">
+      {
+        "csrf": "dev-csrf",
+        "user": { "id": 1, "age": 16, "hasOwnEmail": true, "accountAgeOk": true, "claimPendingMasked": "" },
+        "membership": { "status": "active", "label": "已加入" },
+        "guardians": [
+          { "username": "parent_user", "email": "parent@qq.com", "user_id": 2, "relationship": "mother" }
+        ],
+        "groups": [],
+        "childrenByGroup": {},
+        "invitations": [],
+        "releaseCheck": { "ok": false, "reason": "not_old_enough" },
+        "releaseReasons": {
+          "not_old_enough": "还没到本地区可以独立使用的年龄",
+          "no_own_email": "要先绑定一个属于你自己的邮箱",
+          "not_claimed": "家长还没有加入",
+          "account_too_new": "账号创建还不满 180 天",
+          "already_released": "停止监护只能申请一次"
+        },
+        "consentAge": 16,
+        "minDays": 180,
+        "relationships": { "father": "爸爸", "mother": "妈妈", "other": "家长" },
+        "claimPending": "",
+        "resetChild": 0,
+        "error": "",
+        "success": ""
+      }
+      </script>
+    </div>
+  </main>
+
+  <script type="module" src="/dev/mock-api.js"></script>
+  <script type="module" src="/src/entries/family.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>

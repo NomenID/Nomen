@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>登录（本地预览）</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/ui.css">
+</head>
+<body>
+  <main class="main main--landing">
+    <div id="login-app" class="auth-container">
+      <script type="application/json" id="login-props">
+      {
+        "csrf": "dev-csrf",
+        "error": "",
+        "success": "",
+        "redirectTo": "/dashboard",
+        "requireCaptcha": false,
+        "failedMethods": [],
+        "triedLabels": {
+          "password": "密码登录",
+          "email_code": "邮箱验证码登录",
+          "biometric": "生物识别登录",
+          "temp_key": "临时密钥登录"
+        },
+        "initialUsername": "",
+        "initialEmail": "",
+        "urls": {
+          "sendCode": "/login/send-code",
+          "biometricOptions": "/biometric/auth/options",
+          "biometricVerify": "/biometric/auth/verify"
+        }
+      }
+      </script>
+    </div>
+  </main>
+
+  <script type="module" src="/dev/mock-api.js"></script>
+  <script type="module" src="/src/entries/login.js"></script>
+</body>
+</html>
