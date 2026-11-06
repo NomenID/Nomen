@@ -32,7 +32,7 @@
   `--check` 校验每个域每个语言键齐全、占位符一致。新增 t() 调用后先跑生成再补翻译，提交前 `--check` 必须全绿。
 - 站点语言设置：`config/installed.php` 的 `app.language_default`（默认语言）和
   `app.language_allow_switch`（关掉后固定默认语言，选择器、`?lang=`、账号偏好全停），
-  安装器第 3 步可以选；`.env` 的 `APP_LANGUAGE` 也能临时覆盖默认语言。
+  安装向导的「站点」一步可以选；`.env` 的 `APP_LANGUAGE` 也能临时覆盖默认语言。
 
 ## 什么要包，什么不包
 

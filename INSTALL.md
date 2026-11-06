@@ -35,12 +35,12 @@ Apache：`public/.htaccess` 已经带了规则，确认 `mod_rewrite` 开了、�
 
 1. 把代码放到站点目录（发布 zip 解压即可，`vendor/` 和前端产物都在里面）
 2. 浏览器打开站点，没装过会自动跳到 `/nomen-install/`
-3. 五步：环境检查 → 数据库 → 站点与管理员 → 扩展 → 安装
+3. 七步：环境检查 → 数据库 → 站点 → 管理员 → 扩展 → 邮件（先问要不要现在配）→ 确认
 4. 装完按页面提示收尾：
-   - PHP 能写 `config/` 时，`installed.php` 已经自己生成好了
+   - PHP 能写 `config/` 时，页面会显示「进入网站」和「用管理员账号登录」两个按钮，`installed.php` 已经自己生成好了
    - 不能写时，页面会给一份内容，下载成 `installed.php` 传到 `config/`
    - **把 `public/nomen-install/` 删掉或改名**——留着等于把安装页开放给所有人
-5. 打开站点，用刚建的管理员登录
+5. 之后从站点首页或 `/login` 都能进，管理员账号就是向导里填的那个
 
 ## 方式二：命令行
 
@@ -123,7 +123,7 @@ composer require geoip2/geoip2
 
 ## 插件与后台
 
-安装向导第 4 步可以勾选要启用的扩展，默认是 `open-platform`（开发者门户）和 `pages`（站内文档）。`geoip` 按需勾。装完还能直接改 `config/plugins.php`。
+安装向导的「扩展」一步可以勾选要启用的扩展，默认是 `open-platform`（开发者门户）和 `pages`（站内文档）。`geoip` 按需勾。装完还能直接改 `config/plugins.php`。
 
 - `php bin/nomen plugins list`：看插件状态和插件注册的命令。
 - `php bin/nomen plugins migrate`：跑插件自己的 `database/migrations`。
@@ -139,13 +139,13 @@ composer require geoip2/geoip2
 
 ## 语言
 
-- 网页向导第 3 步可以选**默认语言**（浏览器语言匹配不上时用的那个）和**是否允许用户自己切换**；命令行安装器同样会问。
+- 网页向导的「站点」一步可以选**默认语言**（浏览器语言匹配不上时用的那个）和**是否允许用户自己切换**；命令行安装器同样会问。
 - 两项都写进 `config/installed.php` 的 `app.language_default` / `app.language_allow_switch`，手改这两个键也一样。`language_allow_switch` 关掉后全站固定默认语言：语言选择器、`?lang=`、账号里的语言偏好全部停用。
 - 装完的站点想换默认语言，改 `installed.php` 里这两个键即可，不用重装。
 
 ## 可选功能
 
-下面两项**默认关闭**，安装向导第 3 步可以勾选；装完也能改 `config/installed.php` 的 `app.features`：
+下面两项**默认关闭**，安装向导的「扩展」一步可以勾选；装完也能改 `config/installed.php` 的 `app.features`：
 
 ```php
 'app' => [
