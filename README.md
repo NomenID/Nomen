@@ -31,7 +31,7 @@ Nomen 是一个自托管的账号中心：一台服务器跑一份，几个站�
 
 ## 安装
 
-发布包解压到站点目录，web root 指向 `public/`，浏览器打开站点会进入安装向导。也可以走命令行：
+发布包在 <https://dl.caellab.com/file/nomen/>，文件名带版本号。解压到站点目录，web root 指向 `public/`，浏览器打开站点会进入安装向导。也可以走命令行：
 
 ```bash
 php bin/nomen install
@@ -49,12 +49,14 @@ location / {
 
 ## 升级
 
+下载包覆盖文件（保留 `config/installed.php`、`.env`、`data/` 和上传目录），或者用 git 的 `git pull`，然后：
+
 ```bash
-git pull
 composer install --no-dev
-php bin/nomen migrate
-php bin/nomen plugins migrate
+php bin/nomen upgrade
 ```
+
+`upgrade` 跑核心迁移和插件迁移。要备份哪些、跑漏了会怎样，见 [INSTALL.md](INSTALL.md#升级)。
 
 ## 文档
 
