@@ -13,7 +13,8 @@ class Migrate
     {
         $root = dirname(__DIR__, 2);
 
-        if (!file_exists($root . '/.env')) {
+        // 与 Web 入口一致：.env 或 config/installed.php 任一在就算装过
+        if (!file_exists($root . '/.env') && !file_exists($root . '/config/installed.php')) {
             fwrite(STDERR, '还没装：先跑 php bin/nomen install' . PHP_EOL);
             return 1;
         }
