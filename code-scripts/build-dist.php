@@ -65,6 +65,10 @@ $walk = static function (string $dir, string $rel) use (&$walk, &$files, $skip):
         if ($name === '.' || $name === '..') {
             continue;
         }
+        // 插件是独立仓库，plugins/<slug>/.git 不是发布内容
+        if ($name === '.git') {
+            continue;
+        }
         $path = $rel === '' ? $name : $rel . '/' . $name;
         if (in_array($path, $skip, true)) {
             continue;
@@ -92,7 +96,7 @@ if ($zip->open($out, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
     exit(1);
 }
 foreach ($files as $rel) {
-    $zip->addFile($root . '/' . $rel, 'nomen/' . $rel);
+    $zip->addFile($root . '/' . $rel, $rel);
 }
 $zip->close();
 
