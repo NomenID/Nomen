@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Nomen</title>
+<style>
+    body { margin: 0; background: #0d1117; color: #e6edf3; font: 15px/1.7 system-ui, -apple-system, "Segoe UI", sans-serif; }
+    .wrap { max-width: 640px; margin: 0 auto; padding: 80px 24px; }
+    h1 { font-size: 20px; margin: 0 0 20px; font-weight: 600; }
+    p { color: #8b949e; }
+    code, pre { font: 13px/1.5 ui-monospace, Consolas, monospace; background: #161b22; border-radius: 6px; }
+    code { padding: 2px 6px; color: #e6edf3; }
+    pre { padding: 14px 16px; overflow: auto; color: #e6edf3; border: 1px solid #30363d; }
+    a { color: #58a6ff; }
+    .note { margin-top: 32px; padding-top: 20px; border-top: 1px solid #30363d; }
+</style>
+</head>
+<body>
+<div class="wrap">
+    <h1>这是项目目录，不是网站根目录</h1>
+    <p>web 服务器的 root 指到了 Nomen 的根目录。入口在 <code>public/</code>，把 root 改过去再刷新。</p>
+    <pre>nginx:  root /path/to/nomen/public;
+apache: DocumentRoot /path/to/nomen/public</pre>
+    <p>改完如果站点还没装，会自动跳到 <code>/nomen-install/</code> 的安装向导。</p>
+    <div class="note">
+        <p>root 改到 <code>public/</code> 之后，站点就正常了。根目录里的这个 <code>index.html</code> 只是个路标，可以删掉——<br>
+        要删的是项目根目录这个文件，<code>public/</code> 里的东西别动。</p>
+    </div>
+    <p>完整步骤见 <a href="INSTALL.md">INSTALL.md</a>。</p>
+</div>
+</body>
+</html>
