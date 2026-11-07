@@ -27,6 +27,7 @@ const props = defineProps({
   supportEmail: { type: String, default: '' },
   brandLogo: { type: String, default: '/assets/brand/nomen-icon.svg' },
   providers: { type: Array, default: () => [] },
+  passwordRegistration: { type: Boolean, default: true },
   urls: { type: Object, default: () => ({}) },
 })
 
@@ -71,14 +72,14 @@ function clamp(value, min, max) {
 const currentStep = ref(clamp(parseInt(old.current_step, 10) || 1, 1, totalSteps))
 
 const genders = [
-  { id: 'female', value: 'female', label: t('女性') },
-  { id: 'male', value: 'male', label: t('男性') },
-  { id: 'nonbinary', value: 'non-binary', label: t('非二元性别') },
-  { id: 'prefer-not', value: 'prefer-not-to-say', label: t('我宁愿不说') },
+  { id: 'female', value: 'female', label: t('Female') },
+  { id: 'male', value: 'male', label: t('Male') },
+  { id: 'nonbinary', value: 'non-binary', label: t('Non-binary') },
+  { id: 'prefer-not', value: 'prefer-not-to-say', label: t('Prefer not to say') },
 ]
 
 const usernameState = ref('')
-const usernameHint = ref(t('支持小写字母、数字和下划线，3-32个字符'))
+const usernameHint = ref(t('Lowercase letters, digits and underscore, 3-32 characters'))
 const usernameHintType = ref('')
 const usernameHintIcon = ref('bulb')
 const usernameStateIcon = computed(() => ({
@@ -107,18 +108,18 @@ watch(() => form.username, (value) => {
 
   if (!username) {
     usernameState.value = ''
-    setUsernameHint(t('支持小写字母、数字和下划线，3-32个字符'), '', 'bulb')
+    setUsernameHint(t('Lowercase letters, digits and underscore, 3-32 characters'), '', 'bulb')
     return
   }
 
   if (!/^[a-z0-9_]{3,32}$/.test(username)) {
     usernameState.value = 'bad'
-    setUsernameHint(t('用户名只能包含小写字母、数字和下划线，3-32个字符'), 'error')
+    setUsernameHint(t('Username: lowercase letters, digits, underscore; 3-32 characters'), 'error')
     return
   }
 
   usernameState.value = 'loading'
-  setUsernameHint(t('检查中...'))
+  setUsernameHint(t('Checking...'))
 
   usernameTimer = setTimeout(async () => {
     const controller = new AbortController()
@@ -137,7 +138,7 @@ watch(() => form.username, (value) => {
     } catch (err) {
       if (err.name === 'AbortError') return
       usernameState.value = ''
-      setUsernameHint(t('检查失败，请重试'), 'error')
+      setUsernameHint(t('Check failed, try again'), 'error')
     }
   }, 500)
 })
@@ -150,7 +151,7 @@ watch(() => form.password, (value) => {
   strength.value = passwordStrength(value)
 })
 
-const strengthText = computed(() => (strength.value.label ? t('密码强度：{:label}', { label: strength.value.label }) : t('密码强度')))
+const strengthText = computed(() => (strength.value.label ? t('Strength: {:label}', { label: strength.value.label }) : t('Password strength')))
 
 const passwordMatchState = computed(() => {
   if (!form.password_confirm) return ''
@@ -169,8 +170,8 @@ async function generatePassword() {
   const ok = await copyText(password)
   toast(
     ok
-      ? t('已生成强密码并复制。粘贴到密码管理器后，请清空剪贴板。')
-      : t('已生成强密码。请在密码框中全选复制，并注意清空剪贴板。'),
+      ? t('Strong password generated and copied. Paste it into your password manager, then clear the clipboard.')
+      : t('Strong password generated. Select and copy it in the field, and clear your clipboard afterwards.'),
     ok ? 'success' : 'warning',
     6000,
   )
@@ -268,24 +269,24 @@ const consentSourceText = computed(() => {
   const info = consentInfo.value
   if (!info) return ''
   if (!info.country) {
-    return t('平台默认把 {:age} 岁以下的注册视为需要家长同意', { age: info.age })
+    return t('The platform treats registrations under {:age} as requiring guardian consent.', { age: info.age })
   }
   const hasStatute = info.kind === 'statute' || info.kind === 'advisory'
   if (hasStatute) {
-    return t('你所在地区把 {:age} 岁以下的儿童视为需要家长同意（依据：{:label}{:suffix}）', {
+    return t('In your region, children under {:age} need parental consent (basis: {:label}{:suffix})', {
       age: info.age,
       label: info.label,
-      suffix: info.kind === 'advisory' ? t('，当地监管指引') : '',
+      suffix: info.kind === 'advisory' ? t(', local regulator guidance') : '',
     })
   }
-  return t('依据站点隐私政策，本地区按 {:age} 岁处理', { age: info.age })
+  return t('Under the site privacy policy, this region is handled as {:age}.', { age: info.age })
 })
 
 const consentSourceLink = computed(() => {
   const info = consentInfo.value
   if (!info) return null
-  if (info.url) return { href: info.url, text: t('官方来源 ↗') }
-  if (info.policy_url) return { href: info.policy_url, text: t('隐私权政策 ↗') }
+  if (info.url) return { href: info.url, text: t('Official source ↗') }
+  if (info.policy_url) return { href: info.policy_url, text: t('Privacy Policy ↗') }
   return null
 })
 
@@ -299,46 +300,46 @@ function validateCurrentStep() {
     case 'account': {
       const username = form.username.trim()
       if (!username) {
-        toast(t('请输入用户名'), 'warning')
+        toast(t('Enter a username'), 'warning')
         return false
       }
       if (!/^[a-zA-Z0-9_]{3,32}$/.test(username)) {
-        toast(t('用户名格式不正确'), 'error')
+        toast(t('Invalid username format'), 'error')
         return false
       }
       if (usernameState.value === 'bad') {
-        toast(t('用户名不可用'), 'error')
+        toast(t('Username unavailable'), 'error')
         return false
       }
       return true
     }
     case 'password':
       if (!form.password || form.password.length < 8) {
-        toast(t('密码至少需要8位'), 'warning')
+        toast(t('Password needs at least 8 characters'), 'warning')
         return false
       }
       if (!/[a-zA-Z]/.test(form.password) || !/[0-9]/.test(form.password)) {
-        toast(t('密码必须包含字母和数字'), 'warning')
+        toast(t('Password needs both letters and digits'), 'warning')
         return false
       }
       if (form.password !== form.password_confirm) {
-        toast(t('两次输入的密码不一致'), 'error')
+        toast(t('The passwords you entered don\'t match'), 'error')
         return false
       }
       return true
     case 'country':
       if (!form.country) {
-        toast(t('请选择国家/地区'), 'warning')
+        toast(t('Pick a country/region'), 'warning')
         return false
       }
       return true
     case 'profile':
       if (!form.birth_date) {
-        toast(t('请选择出生日期'), 'warning')
+        toast(t('Pick a date of birth'), 'warning')
         return false
       }
       if (!form.gender) {
-        toast(t('请选择性别'), 'warning')
+        toast(t('Pick a gender'), 'warning')
         return false
       }
       return true
@@ -376,23 +377,28 @@ onMounted(() => {
         <div class="auth-logo">
           <img :src="brandLogo" alt="" width="48" height="48">
         </div>
-        <h1>{{ t('注册 Nomen') }}</h1>
-        <p>{{ t('创建你的专属账户') }}</p>
+        <h1>{{ t('Sign up for Nomen') }}</h1>
+        <p>{{ t('Create your own account') }}</p>
       </div>
 
       <BaseAlert v-if="error" type="error" :message="error" />
 
-      <RegisterProgress :current="currentStep" :total="totalSteps" :from="progressFromStep" />
+      <RegisterProgress v-if="props.passwordRegistration" :current="currentStep" :total="totalSteps" :from="progressFromStep" />
 
-      <form method="POST" action="/register" class="auth-form" id="register-form" novalidate>
+      <div v-if="!props.passwordRegistration" class="register-oauth-only">
+        <p class="form-hint">{{ t('Password sign-in is turned off on this site.') }}</p>
+        <p class="form-hint">{{ t('Use one of the options below to create your account.') }}</p>
+      </div>
+
+      <form v-else method="POST" action="/register" class="auth-form" id="register-form" novalidate>
         <input type="hidden" name="_csrf" :value="csrf">
         <input type="hidden" name="current_step" :value="currentStep">
 
         <div :class="['form-step', { active: currentStep === 1 }]" id="step-1">
-          <StepHero icon="user" :title="t('给自己起个名字吧')" :desc="t('这将是你的唯一标识，其他用户会看到这个名字')" />
+          <StepHero icon="user" :title="t('Pick a name for yourself')" :desc="t('This is your unique ID — other users will see this name')" />
 
           <div class="form-group form-group--username">
-            <label for="username">{{ t('用户名') }}</label>
+            <label for="username">{{ t('Username') }}</label>
             <div class="input-wrapper input-wrapper--large">
               <input
                 id="username"
@@ -400,7 +406,7 @@ onMounted(() => {
                 type="text"
                 name="username"
                 required
-                :placeholder="t('输入你想要的用户名')"
+                :placeholder="t('Enter the username you want')"
                 pattern="[a-z0-9_]{3,32}"
               >
               <span class="input-status" id="username-status" :data-state="usernameState">
@@ -415,17 +421,17 @@ onMounted(() => {
         </div>
 
         <div :class="['form-step', { active: currentStep === 2 }]" id="step-2">
-          <StepHero icon="lock" :title="t('设置密码')" :desc="t('请设置一个安全的密码，保护你的账户')" />
+          <StepHero icon="lock" :title="t('Set a password')" :desc="t('Set a secure password to protect your account')" />
 
           <div class="form-group">
-            <label for="password">{{ t('密码') }}</label>
-            <p v-if="hasOldInput" class="form-hint form-hint--spaced">{{ t('出于安全考虑，密码不会保留在页面上，请重新输入一次') }}</p>
+            <label for="password">{{ t('Password') }}</label>
+            <p v-if="hasOldInput" class="form-hint form-hint--spaced">{{ t('For security, the password isn\'t kept on the page — enter it again') }}</p>
             <PasswordInput
               id="password"
               name="password"
               v-model="form.password"
               v-model:revealed="passwordRevealed"
-              :placeholder="t('至少8位，包含字母和数字')"
+              :placeholder="t('8+ characters, letters and digits')"
               minlength="8"
               required
             />
@@ -434,18 +440,18 @@ onMounted(() => {
                 <div class="pw-strength__fill" :style="{ width: strength.width, background: strength.color }"></div>
               </div>
               <span class="pw-strength__text" :style="{ color: strength.color }">{{ strengthText }}</span>
-              <button type="button" class="pw-gen" :title="t('生成一个随机强密码')" @mousedown.prevent @click="generatePassword">{{ t('生成') }}</button>
+              <button type="button" class="pw-gen" :title="t('Generate a strong random password')" @mousedown.prevent @click="generatePassword">{{ t('Generate') }}</button>
             </div>
           </div>
 
           <div class="form-group">
-            <label for="password_confirm">{{ t('确认密码') }}</label>
+            <label for="password_confirm">{{ t('Confirm password') }}</label>
             <PasswordInput
               id="password_confirm"
               name="password_confirm"
               v-model="form.password_confirm"
               v-model:revealed="confirmRevealed"
-              :placeholder="t('再次输入密码')"
+              :placeholder="t('Re-enter password')"
               required
               :show-toggle="false"
             >
@@ -459,25 +465,25 @@ onMounted(() => {
         </div>
 
         <div v-if="featureCountry" :class="['form-step', { active: currentStep === stepNo('country') }]" id="step-3">
-          <StepHero icon="globe" :title="t('你在哪？')" :desc="t('选择你所在的国家或地区')" />
+          <StepHero icon="globe" :title="t('Where are you?')" :desc="t('Select your country or region')" />
 
           <div class="form-group">
-            <label for="country-search">{{ t('国家 / 地区') }}</label>
+            <label for="country-search">{{ t('Country / Region') }}</label>
             <CountryPicker
               v-model="form.country"
               :countries="countries"
               @picked="onCountryPicked"
               @interacted="showCountryHint = false"
             />
-            <small v-if="showCountryHint" class="form-hint" id="country-hint">{{ t('已按你的网络位置填好，可以修改') }}</small>
+            <small v-if="showCountryHint" class="form-hint" id="country-hint">{{ t('Filled in from your network location — you can change it') }}</small>
           </div>
         </div>
 
         <div :class="['form-step', { active: currentStep === stepNo('profile') }]" id="step-4">
-          <StepHero icon="cake" :title="t('关于你')" :desc="t('告诉我们一些关于你的信息，这些信息将被保密')" />
+          <StepHero icon="cake" :title="t('About you')" :desc="t('Tell us a bit about yourself — this stays private')" />
 
           <div class="form-group">
-            <label for="birth_date">{{ t('出生日期') }}</label>
+            <label for="birth_date">{{ t('Date of birth') }}</label>
             <input
               id="birth_date"
               v-model="form.birth_date"
@@ -490,7 +496,7 @@ onMounted(() => {
           </div>
 
           <div class="form-group">
-            <label>{{ t('你的性别是什么？') }}</label>
+            <label>{{ t('What\'s your gender?') }}</label>
             <div class="gender-radio-group">
               <div v-for="option in genders" :key="option.id" class="gender-radio-row">
                 <input
@@ -508,10 +514,10 @@ onMounted(() => {
         </div>
 
         <div :class="['form-step', { active: currentStep === stepNo('email') }]" id="step-5">
-          <StepHero icon="mail" :title="t('验证邮箱')" :desc="t('用于接收重要通知和找回密码')" />
+          <StepHero icon="mail" :title="t('Verify email')" :desc="t('For important notifications and account recovery')" />
 
           <div class="form-group">
-            <label for="email" id="email-label">{{ isChild ? t('你自己的邮箱（可选）') : t('邮箱地址') }}</label>
+            <label for="email" id="email-label">{{ isChild ? t('Your own email (optional)') : t('Email addresses') }}</label>
             <input
               id="email"
               v-model="form.email"
@@ -520,23 +526,23 @@ onMounted(() => {
               placeholder="you@domain.com"
               :required="!isChild"
             >
-            <small class="form-hint" id="email-hint">{{ isChild ? t('有就填自己的；没有就留空，填下面的家长邮箱') : t('用于接收重要通知和找回密码') }}</small>
+            <small class="form-hint" id="email-hint">{{ isChild ? t('Use your own if you have one; otherwise leave empty and fill in the parent email below') : t('For important notifications and account recovery') }}</small>
           </div>
 
           <div v-if="featureGuardians && parentVisible" class="form-group" id="parent-email-group">
-            <label for="parent_email">{{ t('家长邮箱') }}</label>
+            <label for="parent_email">{{ t('Parent\'s email') }}</label>
             <input
               id="parent_email"
               v-model="form.parent_email"
               type="email"
               name="parent_email"
-              :placeholder="t('没有自己的邮箱就填家长的')"
+              :placeholder="t('No email of your own? Use a parent\'s')"
               :required="parentRequired"
             >
             <small class="form-hint">
-              {{ t('账号要用这个地址收验证邮件，家长点邮件里的确认链接后账号才能开始使用。') }}
-              {{ t('家长确认后也可以加入你的家庭，之后能帮你重置密码、临时锁定账号。') }}
-              {{ t('一个家长邮箱可以带多个孩子。') }}
+              {{ t('The account uses this address to receive verification email. The account can\'t be used until a parent clicks the confirmation link.') }}
+              {{ t('After confirming, the parent can also join your family and later reset your password or temporarily lock the account.') }}
+              {{ t('One parent\'s email can cover multiple children.') }}
             </small>
             <p v-if="isChild && consentInfo" class="consent-source" id="consent-source">
               {{ consentSourceText }} <a v-if="consentSourceLink" :href="consentSourceLink.href" target="_blank" rel="noopener noreferrer">{{ consentSourceLink.text }}</a>
@@ -544,7 +550,7 @@ onMounted(() => {
           </div>
 
           <div class="form-group">
-            <label>{{ t('验证码') }}</label>
+            <label>{{ t('Code') }}</label>
             <CaptchaInput v-model="form.captcha" :url="urls.captcha" />
           </div>
 
@@ -553,28 +559,28 @@ onMounted(() => {
               <label class="checkbox-label">
                 <input v-model="form.agree_terms" type="checkbox" name="agree_terms" value="1" required>
                 <span class="checkmark"></span>
-                <span>{{ t('我已阅读并同意《') }}<a v-if="props.privacyUrl" :href="props.privacyUrl" target="_blank">{{ t('隐私政策') }}</a><template v-else>{{ t('隐私政策') }}</template>{{ t('》') }}</span>
+                <span>{{ t('I have read and agree to the «') }}<a v-if="props.privacyUrl" :href="props.privacyUrl" target="_blank">{{ t('Privacy Policy') }}</a><template v-else>{{ t('Privacy Policy') }}</template>{{ t('»') }}</span>
               </label>
             </div>
             <div class="form-group form-group--inline">
               <label class="checkbox-label">
                 <input v-model="form.agree_service" type="checkbox" name="agree_service" value="1" required>
                 <span class="checkmark"></span>
-                <span>{{ t('我已阅读并同意《') }}<a v-if="props.termsUrl" :href="props.termsUrl" target="_blank">{{ t('服务协议') }}</a><template v-else>{{ t('服务协议') }}</template>{{ t('》') }}</span>
+                <span>{{ t('I have read and agree to the «') }}<a v-if="props.termsUrl" :href="props.termsUrl" target="_blank">{{ t('Terms of Service') }}</a><template v-else>{{ t('Terms of Service') }}</template>{{ t('»') }}</span>
               </label>
             </div>
           </div>
         </div>
 
         <div class="form-navigation">
-          <BaseButton v-if="currentStep > 1" id="btn-prev" variant="secondary" @click="prevStep">{{ t('上一步') }}</BaseButton>
-          <BaseButton v-if="currentStep < totalSteps" id="btn-next" @click="nextStep">{{ t('下一步') }}</BaseButton>
-          <BaseButton v-if="currentStep === totalSteps" id="btn-submit" type="submit" block>{{ t('完成注册') }}</BaseButton>
+          <BaseButton v-if="currentStep > 1" id="btn-prev" variant="secondary" @click="prevStep">{{ t('Previous') }}</BaseButton>
+          <BaseButton v-if="currentStep < totalSteps" id="btn-next" @click="nextStep">{{ t('Next') }}</BaseButton>
+          <BaseButton v-if="currentStep === totalSteps" id="btn-submit" type="submit" block>{{ t('Finish sign-up') }}</BaseButton>
         </div>
       </form>
 
       <div v-if="props.providers.length" class="auth-providers">
-        <p class="auth-providers__label">{{ t('或使用以下方式注册') }}</p>
+        <p class="auth-providers__label">{{ t('Or sign up with') }}</p>
         <div class="auth-providers__list">
           <a
             v-for="provider in props.providers"
@@ -589,9 +595,9 @@ onMounted(() => {
       </div>
 
       <div class="auth-footer">
-        <p>{{ t('已有账户？') }} <a href="/login">{{ t('登录') }}</a></p>
-        <p class="auth-footer__note">{{ t('邮箱被占用，或想找回账号？到') }}<a href="/login">{{ t('登录页') }}</a><template v-if="props.supportEmail">{{ t('用「邮箱验证码」登录已有账户；还是进不去就发邮件到') }} <a :href="'mailto:' + props.supportEmail">{{ props.supportEmail }}</a></template><template v-else>{{ t('用「邮箱验证码」登录已有账户') }}</template></p>
-        <p v-if="featureGuardians" class="auth-footer__note">{{ t('未满你所在地区的儿童年龄，或还在家庭里？登录后到') }}<a href="/family">{{ t('家庭') }}</a>{{ t('页面查看监护人与独立条件。') }}</p>
+        <p>{{ t('Already have an account?') }} <a href="/login">{{ t('Sign in') }}</a></p>
+        <p class="auth-footer__note">{{ t('Email taken or need to recover an account? Go to the ') }}<a href="/login">{{ t('sign-in page') }}</a><template v-if="props.supportEmail">{{ t(' and sign in with an email code. Still locked out? Email ') }} <a :href="'mailto:' + props.supportEmail">{{ props.supportEmail }}</a></template><template v-else>{{ t('Sign in to the existing account with an email code') }}</template></p>
+        <p v-if="featureGuardians" class="auth-footer__note">{{ t('Still below the child age for your region, or still in a family? After signing in, go to the ') }}<a href="/family">{{ t('Family') }}</a>{{ t(' page to see the supervision and independence requirements.') }}</p>
       </div>
     </div>
 </template>

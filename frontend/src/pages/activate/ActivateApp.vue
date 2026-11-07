@@ -26,7 +26,7 @@ const alertKey = ref(0)
 const countdownText = computed(() => {
   const m = Math.floor(cooldown.value / 60)
   const s = cooldown.value % 60
-  return (m > 0 ? m + t('分') : '') + s + t('秒后重试')
+  return (m > 0 ? m + t('min') : '') + s + t('s to retry')
 })
 
 const deleteForm = ref(null)
@@ -67,14 +67,14 @@ async function sendVerification() {
       body: body.toString(),
     })
     const data = await response.json()
-    showAlert(data.success ? 'success' : 'error', data.message || t('请求失败'))
+    showAlert(data.success ? 'success' : 'error', data.message || t('Request failed'))
     if (data.success) {
       startCooldown(60)
     } else if (data.retry_after) {
       startCooldown(data.retry_after)
     }
   } catch (err) {
-    showAlert('error', t('网络错误'))
+    showAlert('error', t('Network error'))
   } finally {
     sending.value = false
   }
@@ -83,17 +83,17 @@ async function sendVerification() {
 async function confirmDelete() {
   if (!window.Nomen || typeof window.Nomen.confirm !== 'function') return
 
-  const confirmed = await window.Nomen.confirm(t('注销账号'), t('确定要注销账号吗？此操作不可撤销，你的数据将被永久删除。'), {
-    confirmText: t('确认注销'),
-    cancelText: t('再想想'),
+  const confirmed = await window.Nomen.confirm(t('Delete account'), t('Really delete this account? This can\'t be undone and your data is gone for good.'), {
+    confirmText: t('Confirm account deletion'),
+    cancelText: t('Let me think'),
     danger: true,
     icon: 'trash',
   })
   if (!confirmed) return
 
-  const confirmedAgain = await window.Nomen.confirm(t('最后确认'), t('真的要删除吗？删除后无法恢复！'), {
-    confirmText: t('确定删除'),
-    cancelText: t('取消'),
+  const confirmedAgain = await window.Nomen.confirm(t('Final confirmation'), t('Really delete? This can\'t be undone!'), {
+    confirmText: t('Confirm delete'),
+    cancelText: t('Cancel'),
     danger: true,
     icon: 'warning',
   })
@@ -116,8 +116,8 @@ onBeforeUnmount(() => {
       <div class="auth-logo">
         <img :src="brandLogo" alt="" width="48" height="48">
       </div>
-      <h1>{{ t('邮箱验证') }}</h1>
-      <p>{{ usesGuardianAddress ? t('请家长确认这个邮箱') : t('请验证你的邮箱地址以激活账户') }}</p>
+      <h1>{{ t('Email verification') }}</h1>
+      <p>{{ usesGuardianAddress ? t('Ask a parent to confirm this email') : t('Verify your email address to activate your account') }}</p>
     </div>
 
     <div id="alert-container">
@@ -125,41 +125,41 @@ onBeforeUnmount(() => {
     </div>
 
     <div class="activate-info">
-      <p>{{ usesGuardianAddress ? t('确认邮件将发送至家长邮箱：') : t('验证邮件将发送至：') }}</p>
+      <p>{{ usesGuardianAddress ? t('The confirmation email goes to the parent\'s address: ') : t('The verification email goes to: ') }}</p>
       <p class="email-display">{{ email }}</p>
     </div>
 
     <form id="activate-form" class="auth-form" @submit.prevent="sendVerification">
       <input type="hidden" name="_csrf" :value="csrf">
       <button type="submit" id="send-btn" class="btn btn-primary btn-block" :disabled="sending || cooldown > 0">
-        <span v-show="cooldown <= 0" id="btn-text">{{ sending ? t('发送中...') : t('发送验证邮件') }}</span>
+        <span v-show="cooldown <= 0" id="btn-text">{{ sending ? t('Sending...') : t('Send verification email') }}</span>
         <span v-show="cooldown > 0" id="btn-countdown">{{ countdownText }}</span>
       </button>
     </form>
 
     <div class="activate-tips">
-      <p>{{ t('提示：') }}</p>
+      <p>{{ t('Tips:') }}</p>
       <ul>
         <template v-if="usesGuardianAddress">
-          <li>{{ t('家长点确认之前，账号还不能开始使用') }}</li>
-          <li>{{ t('请让家长检查收件箱和垃圾邮件文件夹') }}</li>
+          <li>{{ t('The account can\'t be used until a parent confirms') }}</li>
+          <li>{{ t('Ask the parent to check their inbox and spam folder') }}</li>
         </template>
-        <li v-else>{{ t('请检查收件箱和垃圾邮件文件夹') }}</li>
-        <li>{{ t('验证链接 24 小时内有效') }}</li>
-        <li>{{ t('每天最多发送 5 封验证邮件') }}</li>
+        <li v-else>{{ t('Check your inbox and spam folder') }}</li>
+        <li>{{ t('The link is valid for 24 hours') }}</li>
+        <li>{{ t('Up to 5 verification emails per day') }}</li>
       </ul>
     </div>
 
     <div class="activate-warning">
-      <p>{{ t('为了防止抢注他人邮箱和批量注册，若注册后超过') }} <strong>{{ t('7 天') }}</strong>{{ t('未进行激活，站点可能会释放您的账号和邮箱。') }}</p>
+      <p>{{ t('If an account is not activated within ') }} <strong>{{ t('7 days') }}</strong>{{ t('If the account is not activated, the site may release your account and email address.') }}</p>
     </div>
 
     <div class="auth-footer">
-      <p>{{ t('已验证？') }} <a href="/login">{{ t('重新登录') }}</a></p>
+      <p>{{ t('Already verified?') }} <a href="/login">{{ t('Sign in again') }}</a></p>
     </div>
 
     <div class="delete-account-section">
-      <button type="button" class="btn-link-danger" @click="confirmDelete">{{ t('不想要这个账号了？') }}</button>
+      <button type="button" class="btn-link-danger" @click="confirmDelete">{{ t('Don\'t want this account anymore?') }}</button>
       <form ref="deleteForm" method="POST" action="/activate/delete-account" style="display:none;">
         <input type="hidden" name="_csrf" :value="csrf">
       </form>

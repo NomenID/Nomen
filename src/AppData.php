@@ -142,9 +142,9 @@ final class AppData
         $verifiedEmails = array_values(array_filter($emails, static fn(array $row): bool => !empty($row['verified'])));
 
         $locationLabel = static function (array $row): string {
-            $meta = 'IP: ' . ($row['ip_address'] ?: t('未知'));
+            $meta = 'IP: ' . ($row['ip_address'] ?: t('Unknown'));
             if (!empty($row['location']) && $row['location'] !== '未知位置' && $row['location'] !== '本地') {
-                $meta .= t(' · 地点: ') . $row['location'];
+                $meta .= t(' · Location: ') . $row['location'];
             }
             return $meta;
         };
@@ -152,25 +152,25 @@ final class AppData
         $activeTokens = array_map(static function (array $token) use ($locationLabel): array {
             return [
                 'deviceId' => (string)$token['device_id'],
-                'deviceName' => (string)($token['device_name'] ?: t('未知设备')),
+                'deviceName' => (string)($token['device_name'] ?: t('Unknown device')),
                 'isCurrent' => $token['device_id'] === ($_COOKIE['caellab_device_id'] ?? ''),
                 'meta' => $locationLabel($token)
-                    . t(' · 首次: ') . date('Y-m-d H:i', strtotime((string)$token['first_seen_at']))
-                    . t(' · 最近: ') . date('Y-m-d H:i', strtotime((string)$token['last_seen_at'])),
+                    . t(' · First seen: ') . date('Y-m-d H:i', strtotime((string)$token['first_seen_at']))
+                    . t(' · Last seen: ') . date('Y-m-d H:i', strtotime((string)$token['last_seen_at'])),
             ];
         }, \Nomen\Controllers\DashboardController::activeTokensFor($userId));
 
         $currentDeviceId = $_COOKIE['caellab_device_id'] ?? '';
         $trustedDevices = array_map(static function (array $device) use ($locationLabel, $currentDeviceId): array {
             $meta = $locationLabel($device)
-                . t(' · 首次: ') . date('Y-m-d H:i', strtotime((string)$device['first_seen_at']))
-                . t(' · 最近: ') . date('Y-m-d H:i', strtotime((string)$device['last_seen_at']));
+                . t(' · First seen: ') . date('Y-m-d H:i', strtotime((string)$device['first_seen_at']))
+                . t(' · Last seen: ') . date('Y-m-d H:i', strtotime((string)$device['last_seen_at']));
             if (!empty($device['trusted_at'])) {
-                $meta .= t(' · 信任至: ') . date('Y-m-d H:i', strtotime($device['trusted_at'] . ' +90 days'));
+                $meta .= t(' · Trusted until: ') . date('Y-m-d H:i', strtotime($device['trusted_at'] . ' +90 days'));
             }
             return [
                 'deviceId' => (string)$device['device_id'],
-                'deviceName' => (string)($device['device_name'] ?: t('未知设备')),
+                'deviceName' => (string)($device['device_name'] ?: t('Unknown device')),
                 'isCurrent' => $device['device_id'] === $currentDeviceId,
                 'meta' => $meta,
             ];
@@ -186,9 +186,9 @@ final class AppData
                     'displayName' => (string)($user['display_name'] ?? ''),
                     'bio' => (string)($user['bio'] ?? ''),
                     'avatarUrl' => (string)(\Nomen\Controllers\DashboardController::avatarUrlForUser($userId) ?? ''),
-                    'birthDateDisplay' => $user['birth_date'] ? date(t('Y年m月d日'), strtotime((string)$user['birth_date'])) : t('未设置'),
+                    'birthDateDisplay' => $user['birth_date'] ? date(t('Y-m-d'), strtotime((string)$user['birth_date'])) : t('Not set'),
                     'genderDisplay' => t($genderDisplay),
-                    'countryDisplay' => (string)($user['country'] ?: t('未设置')),
+                    'countryDisplay' => (string)($user['country'] ?: t('Not set')),
                     'createdAtDisplay' => date('Y-m-d H:i', strtotime((string)$user['created_at'])),
                     'twoFactorPolicy' => (string)($user['two_factor_policy'] ?? 'new_device'),
                     'quickLogin' => !isset($user['quick_login']) || (int)$user['quick_login'] === 1,
@@ -350,7 +350,7 @@ final class AppData
                     return [
                         'id' => (int)$item['id'],
                         'category' => (string)$item['category'],
-                        'categoryLabel' => t(NotificationHelper::CATEGORY_LABELS[$item['category']] ?? '系统通知'),
+                        'categoryLabel' => t(NotificationHelper::CATEGORY_LABELS[$item['category']] ?? 'System notice'),
                         'title' => (string)$item['title'],
                         'excerpt' => $plain . (mb_strlen(strip_tags((string)$item['body']), 'UTF-8') > 80 ? '…' : ''),
                         'read' => !empty($item['read_at']),
@@ -383,7 +383,7 @@ final class AppData
                 'notification' => [
                     'id' => (int)$notification['id'],
                     'category' => (string)$notification['category'],
-                    'categoryLabel' => t(NotificationHelper::CATEGORY_LABELS[$notification['category']] ?? '系统通知'),
+                    'categoryLabel' => t(NotificationHelper::CATEGORY_LABELS[$notification['category']] ?? 'System notice'),
                     'title' => (string)$notification['title'],
                     'body' => (string)$notification['body'],
                     'link' => (string)($notification['link'] ?? ''),

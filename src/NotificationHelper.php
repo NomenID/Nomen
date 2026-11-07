@@ -30,9 +30,9 @@ class NotificationHelper
     ];
 
     public const CATEGORY_LABELS = [
-        self::TYPE_SYSTEM_IMPORTANT => '系统重要通知',
-        self::TYPE_SYSTEM_GENERAL   => '系统一般通知',
-        self::TYPE_SYSTEM_INTERACT  => '系统互动',
+        self::TYPE_SYSTEM_IMPORTANT => 'Important system notice',
+        self::TYPE_SYSTEM_GENERAL   => 'General system notice',
+        self::TYPE_SYSTEM_INTERACT  => 'System interaction',
     ];
 
     private static function db(): PDO

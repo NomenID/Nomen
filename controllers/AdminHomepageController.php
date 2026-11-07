@@ -10,16 +10,50 @@ class AdminHomepageController
     {
         Admin::requireAdmin();
 
+        $hidden = Homepage::hiddenLinks();
+        $defaultLinks = [];
+        foreach (Homepage::defaultLinks() as $link) {
+            $link['hidden'] = in_array($link['id'], $hidden, true);
+            $link['source'] = match ($link['id']) {
+                'docs'          => 'Pages 插件挂载',
+                'open_platform' => '开放平台插件挂载',
+                default         => '核心提供',
+            };
+            $defaultLinks[] = $link;
+        }
+
+        // 插件经 homepage.links 钩子加的条目 = 渲染结果里除默认与自定义之外的部分
+        $rendered = Homepage::links();
+        $own = [];
+        foreach ($defaultLinks as $link) {
+            if (!$link['hidden']) {
+                $own[] = $link['label'] . "\x1f" . $link['href'];
+            }
+        }
+        foreach (Homepage::customLinks() as $link) {
+            $own[] = $link['label'] . "\x1f" . $link['href'];
+        }
+        $pluginLinks = [];
+        foreach ($rendered as $link) {
+            $key = (string)($link['label'] ?? '') . "\x1f" . (string)($link['href'] ?? '');
+            if (!in_array($key, $own, true)) {
+                $pluginLinks[] = ['label' => (string)($link['label'] ?? ''), 'href' => (string)($link['href'] ?? ''), 'by' => (string)($link['by'] ?? '')];
+            }
+        }
+
         Response::json([
-            'success'   => true,
-            'settings'  => Homepage::settings(),
-            'modes'     => [
+            'success'       => true,
+            'settings'      => Homepage::settings(),
+            'modes'         => [
                 ['value' => 'default', 'label' => '默认首页', 'hint' => '标题、副标题和按钮，版式由皮肤提供'],
                 ['value' => 'page', 'label' => '指定页面', 'hint' => '用 Pages 里的一篇文档当首页，适合公告或介绍'],
                 ['value' => 'template', 'label' => '自定义模板', 'hint' => '在 config 下放 home-xxx.php，自己写 HTML'],
             ],
-            'pages'     => Homepage::availablePages(),
-            'templates' => Homepage::templateOptions(),
+            'pages'         => Homepage::availablePages(),
+            'templates'     => Homepage::templateOptions(),
+            'default_links' => $defaultLinks,
+            'custom_links'  => Homepage::customLinks(),
+            'plugin_links'  => $pluginLinks,
         ]);
     }
 
@@ -70,7 +104,41 @@ class AdminHomepageController
 
         $text = static fn(string $value, int $max): string => mb_substr(trim($value), 0, $max);
 
+        // 默认链接的隐藏名单：只认这三个 id，其余忽略
+        $hiddenInput = json_decode((string)($_POST['hidden_links'] ?? '[]'), true);
+        $hidden = [];
+        if (is_array($hiddenInput)) {
+            foreach ($hiddenInput as $id) {
+                if (in_array((string)$id, ['docs', 'open_platform', 'version'], true)) {
+                    $hidden[] = (string)$id;
+                }
+            }
+        }
+
+        // 自定义链接：整行为空跳过，半空或地址不合法整单打回
+        $linksInput = json_decode((string)($_POST['links_json'] ?? '[]'), true);
+        $custom = [];
+        if (is_array($linksInput)) {
+            foreach ($linksInput as $row) {
+                if (!is_array($row) || count($custom) >= 20) {
+                    continue;
+                }
+                $label = trim((string)($row['label'] ?? ''));
+                $hrefValue = trim((string)($row['href'] ?? ''));
+                if ($label === '' && $hrefValue === '') {
+                    continue;
+                }
+                $href = $url($hrefValue);
+                if ($label === '' || $href === null || $href === '') {
+                    Response::json(['success' => false, 'message' => '自定义链接每条都要有名称，地址要填站内路径（/ 开头）或完整 http(s) 地址'], 422);
+                }
+                $custom[] = ['label' => $text($label, 40), 'href' => $href];
+            }
+        }
+
         $values = [
+            'homepage.hidden_links' => json_encode($hidden, JSON_UNESCAPED_UNICODE),
+            'homepage.links_json'   => json_encode($custom, JSON_UNESCAPED_UNICODE),
             'homepage.mode'            => $mode,
             'homepage.page_slug'       => $mode === 'page' ? $pageSlug : '',
             'homepage.template'        => $mode === 'template' ? basename($template) : '',

@@ -15,7 +15,7 @@ $brand = \Nomen\Src\Brand::all();
     <title><?= htmlspecialchars($brand['name']) ?> 管理后台</title>
     <link rel="stylesheet" href="/css/style.css?v=r8n4v2kq">
     <link rel="stylesheet" href="/css/ui.css?v=woimt5tg">
-    <link rel="stylesheet" href="/css/admin.css?v=p7k2m9x4">
+    <link rel="stylesheet" href="/css/admin.css?v=yt1qpv0b">
     <?php foreach (\Nomen\Src\Plugins::styles() as $href): ?>
         <link rel="stylesheet" href="<?= htmlspecialchars($href) ?>">
     <?php endforeach; ?>
@@ -30,6 +30,7 @@ $brand = \Nomen\Src\Brand::all();
             }
         })();
     </script>
+    <script src="<?= \Nomen\Src\I18n::catalogUrl('zh-hans') ?>"></script>
     <?= \Nomen\Src\Hooks::filter('layout.head', '', 'admin') ?>
 </head>
 <body class="admin-body">

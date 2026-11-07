@@ -54,7 +54,7 @@ const denyUrl = computed(() => (
   + '&redirect_uri=' + encodeURIComponent(props.redirectUri)
 ))
 
-const autoText = ref(t('正在为 {:name} 授权…', { name: props.client.name }))
+const autoText = ref(t('Authorizing {:name}…', { name: props.client.name }))
 let autoTimer = null
 let progressEl = null
 
@@ -63,8 +63,8 @@ function scopeIcon(scope) {
 }
 
 function scopeLabel(scope) {
-  if (scope === 'profile') return t('用户名、昵称、头像')
-  if (scope === 'email') return t('已验证邮箱')
+  if (scope === 'profile') return t('username, display name, avatar')
+  if (scope === 'email') return t('Verified email')
   return props.scopeDescriptions[scope] ? t(props.scopeDescriptions[scope]) : scope
 }
 
@@ -83,15 +83,15 @@ function confirmModalContent(appName, scopes) {
     + '<div class="nomen-confirm-scopes">'
     + scopes.map((scope) => '<span class="nomen-confirm-scope-tag"><span class="icon icon-user"></span> ' + escapeHtml(scope) + '</span>').join('')
     + '</div>'
-    + '<p class="nomen-modal-box__desc">' + t('授权后，该应用将可以访问以上信息。<br>您可以随时在仪表盘中撤销授权。') + '</p>'
+    + '<p class="nomen-modal-box__desc">' + t('After authorizing, the app can access the information above.<br>You can revoke it any time from your dashboard.') + '</p>'
 }
 
 function showConfirmModal(appName, scopes) {
   if (!window.Nomen || typeof window.Nomen.confirm !== 'function') return Promise.resolve(true)
-  return window.Nomen.confirm(t('确认授权'), '', {
+  return window.Nomen.confirm(t('Confirm authorization'), '', {
     icon: 'lock',
     variant: 'confirm',
-    confirmText: t('确认授权'),
+    confirmText: t('Confirm authorization'),
     content: confirmModalContent(appName, scopes),
   })
 }
@@ -129,7 +129,7 @@ onMounted(() => {
 
   autoTimer = setTimeout(() => {
     progressEl.classList.add('nomen-top-progress--active')
-    autoText.value = t('授权完成，正在返回 {:name}…', { name: props.client.name })
+    autoText.value = t('Authorized — returning to {:name}…', { name: props.client.name })
     formEl.value?.submit()
   }, 1200)
 })
@@ -152,7 +152,7 @@ onBeforeUnmount(() => {
         <div class="authorize-app-info">
           <h2>
             {{ client.name }}
-            <span v-if="isFirstParty" class="authorize-first-party">{{ t('官方应用') }}</span>
+            <span v-if="isFirstParty" class="authorize-first-party">{{ t('Official app') }}</span>
           </h2>
           <span v-if="client.developer_name" class="authorize-developer">by {{ client.developer_name }}</span>
           <a v-if="client.homepage_url" :href="client.homepage_url" target="_blank" rel="noopener" class="authorize-url">{{ client.homepage_url }}</a>
@@ -168,7 +168,7 @@ onBeforeUnmount(() => {
         <span class="authorize-user-name">{{ user.display_name || user.username }}</span>
       </div>
 
-      <p class="authorize-desc"><strong>{{ client.name }}</strong> {{ t('请求访问您的 Nomen 账户：') }}</p>
+      <p class="authorize-desc"><strong>{{ client.name }}</strong> {{ t('wants to access your Nomen account:') }}</p>
 
       <form
         ref="formEl"
@@ -192,7 +192,7 @@ onBeforeUnmount(() => {
               <li v-for="item in requestedScopeList" :key="item" class="scope-item">
                 <span :class="['scope-icon', 'icon', 'icon-' + scopeIcon(item)]"></span>
                 <span class="scope-name">{{ scopeLabel(item) }}</span>
-                <span class="scope-hint scope-hint--granted">{{ t('已授予') }}</span>
+                <span class="scope-hint scope-hint--granted">{{ t('Granted') }}</span>
               </li>
             </ul>
           </div>
@@ -203,7 +203,7 @@ onBeforeUnmount(() => {
               <path class="authorize-check__mark" d="M14.5 27 L22.5 35.5 L38 19"></path>
             </svg>
             <p class="authorize-auto-text" id="authorizeAutoText">{{ autoText }}</p>
-            <p class="authorize-auto-hint">{{ t('不想每次自动授权？可在') }}<a href="/settings">{{ t('设置') }}</a>{{ t('中关闭「Nomen启航计划项目快速中央登录」') }}</p>
+            <p class="authorize-auto-hint">{{ t('Don\'t want to authorize every time? Open ') }}<a href="/settings">{{ t('Settings') }}</a>{{ t(' and turn off “Nomen Launch Plan quick central sign-in”') }}</p>
           </div>
         </template>
 
@@ -214,7 +214,7 @@ onBeforeUnmount(() => {
                 <li v-if="item === 'openid'" class="scope-item">
                   <span class="scope-icon icon icon-fingerprint"></span>
                   <span class="scope-name">{{ scopeLabel(item) }}</span>
-                  <span class="scope-hint scope-hint--required">{{ t('必需') }}</span>
+                  <span class="scope-hint scope-hint--required">{{ t('Required') }}</span>
                 </li>
 
                 <li v-else-if="item === 'profile'" class="scope-item scope-item--has-checkbox" :class="{ denied: !checked.profile }">
@@ -222,9 +222,9 @@ onBeforeUnmount(() => {
                     <input v-model="checked.profile" type="checkbox" name="scopes[]" value="profile">
                     <span class="checkmark"></span>
                     <span class="scope-icon icon icon-user"></span>
-                    <span class="scope-name">{{ t('用户名、昵称、头像') }}</span>
+                    <span class="scope-name">{{ t('username, display name, avatar') }}</span>
                   </label>
-                  <span class="scope-risk scope-risk--low"><span class="icon icon-info"></span> {{ t('低危权限：将授予该应用访问您的用户名、昵称和头像') }}</span>
+                  <span class="scope-risk scope-risk--low"><span class="icon icon-info"></span> {{ t('Low risk: lets the app access your username, display name and avatar') }}</span>
                 </li>
 
                 <li v-else-if="item === 'email'" class="scope-item scope-item--has-checkbox scope-item--medium-risk" :class="{ denied: !checked.email }">
@@ -232,9 +232,9 @@ onBeforeUnmount(() => {
                     <input v-model="checked.email" type="checkbox" name="scopes[]" value="email">
                     <span class="checkmark"></span>
                     <span class="scope-icon icon icon-mail"></span>
-                    <span class="scope-name">{{ t('已验证邮箱') }}</span>
+                    <span class="scope-name">{{ t('Verified email') }}</span>
                   </label>
-                  <span class="scope-risk scope-risk--medium"><span class="icon icon-warning"></span> {{ t('中危权限：将授予该应用访问您已验证的邮箱地址') }}</span>
+                  <span class="scope-risk scope-risk--medium"><span class="icon icon-warning"></span> {{ t('Medium risk: lets the app access your verified email address') }}</span>
                 </li>
 
                 <li v-else class="scope-item">
@@ -246,15 +246,15 @@ onBeforeUnmount(() => {
           </div>
 
           <div class="authorize-buttons">
-            <a :href="denyUrl" class="btn btn-secondary">{{ t('拒绝') }}</a>
-            <button type="submit" name="action" value="allow" class="btn btn-primary">{{ t('授权') }}</button>
+            <a :href="denyUrl" class="btn btn-secondary">{{ t('Deny') }}</a>
+            <button type="submit" name="action" value="allow" class="btn btn-primary">{{ t('Authorize') }}</button>
           </div>
         </template>
       </form>
     </div>
 
     <div class="authorize-footer">
-      <p>{{ t('授权即表示您同意将您的 Nomen 信息共享给此应用。您可以随时在') }}<a href="/dashboard">{{ t('仪表盘') }}</a>{{ t('中撤销授权。') }}</p>
+      <p>{{ t('By authorizing, you agree to share your Nomen information with this app. You can revoke access at any time from your ') }}<a href="/dashboard">{{ t('Dashboard') }}</a>{{ t(' at any time.') }}</p>
     </div>
   </div>
 </template>

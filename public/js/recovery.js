@@ -50,8 +50,8 @@
         if (!counter || !description) return;
         var n = description.value.length;
         counter.textContent = n >= MIN_DESCRIPTION
-            ? t('{:n} / 2000 字', { n: n })
-            : t('{:n} / 2000 字（至少 {:min} 字，还差 {:lack} 字）', { n: n, min: MIN_DESCRIPTION, lack: MIN_DESCRIPTION - n });
+            ? t('{:n} / 2000 characters', { n: n })
+            : t('{:n} / 2000 characters (at least {:min}; {:lack} to go)', { n: n, min: MIN_DESCRIPTION, lack: MIN_DESCRIPTION - n });
         counter.style.color = n > 0 && n < MIN_DESCRIPTION ? 'var(--color-warning)' : '';
     }
 
@@ -81,11 +81,11 @@
     function validateStep(step) {
         if (step === 1) {
             if (!birthDate.value) {
-                Nomen.alert(t('还差一点'), t('请选择出生日期'));
+                Nomen.alert(t('Almost there'), t('Pick a date of birth'));
                 return false;
             }
             if (!selectedGender()) {
-                Nomen.alert(t('还差一点'), t('请选择性别'));
+                Nomen.alert(t('Almost there'), t('Pick a gender'));
                 return false;
             }
             return true;
@@ -94,17 +94,17 @@
         if (step === 2) {
             var text = description.value.trim();
             if (!text) {
-                Nomen.alert(t('还差一点'), t('请填写申诉描述与账号归属证明'));
+                Nomen.alert(t('Almost there'), t('Please fill in the description and proof of account ownership'));
                 return false;
             }
             if (text.length > 2000) {
-                Nomen.alert(t('内容过长'), t('申诉描述不能超过 2000 字'));
+                Nomen.alert(t('Too long'), t('The description can\'t exceed 2000 characters'));
                 return false;
             }
             if (text.length < MIN_DESCRIPTION) {
                 Nomen.alert(
-                    t('请写得更具体一些'),
-                    t('请至少填写 {:n} 个字。尽量写出注册邮箱、常用登录地点、授权过的应用这类只有账号本人知道的信息，这些是审核判断账号归属的主要依据。', { n: MIN_DESCRIPTION })
+                    t('Please be more specific'),
+                    t('At least {:n} characters. Include things only the owner would know — the sign-up email, usual sign-in locations, authorized apps. This is the main basis for ownership review.', { n: MIN_DESCRIPTION })
                 );
                 return false;
             }
@@ -114,11 +114,11 @@
         if (step === 3) {
             var contact = selectedContact();
             if (!contact) {
-                Nomen.alert(t('还差一点'), t('请选择收信邮箱'));
+                Nomen.alert(t('Almost there'), t('Pick a mailbox'));
                 return false;
             }
             if (contact === 'temp' && !isEmail(tempEmail.value.trim())) {
-                Nomen.alert(t('邮箱有误'), t('请输入有效的临时邮箱地址'));
+                Nomen.alert(t('Email looks wrong'), t('Enter a valid temporary email address'));
                 return false;
             }
             return true;
@@ -181,7 +181,7 @@
         var total = items.reduce(function (sum, item) { return sum + (item.size || 0); }, 0);
         var compressed = items.filter(function (item) { return item.compressed; }).length;
         setStatus(
-            t('已选 {:n} / {:max} 张，共 {:size}{:comp}', { n: items.length, max: MAX_FILES, size: formatSize(total), comp: compressed ? t('（其中 {:n} 张已自动压缩）', { n: compressed }) : '' })
+            t('Selected {:n} / {:max}, {:size}{:comp} total', { n: items.length, max: MAX_FILES, size: formatSize(total), comp: compressed ? t('({:n} auto-compressed)', { n: compressed }) : '' })
         );
     }
 
@@ -197,25 +197,25 @@
 
             var img = document.createElement('img');
             img.className = 'rc-upload__img';
-            img.alt = t('证明材料预览');
+            img.alt = t('Evidence preview');
             if (item.url) img.src = item.url;
             tile.appendChild(img);
 
             var meta = document.createElement('div');
             meta.className = 'rc-upload__meta';
             if (item.state === 'uploading') {
-                meta.textContent = t('上传中…');
+                meta.textContent = t('Uploading…');
             } else if (item.state === 'error') {
-                meta.textContent = t('上传失败');
+                meta.textContent = t('Upload failed');
             } else {
-                meta.textContent = formatSize(item.size) + (item.compressed ? t(' ·已压缩') : '');
+                meta.textContent = formatSize(item.size) + (item.compressed ? t(' · compressed') : '');
             }
             tile.appendChild(meta);
 
             var remove = document.createElement('button');
             remove.type = 'button';
             remove.className = 'rc-upload__remove';
-            remove.setAttribute('aria-label', t('移除这张图片'));
+            remove.setAttribute('aria-label', t('Remove this image'));
             remove.textContent = '×';
             remove.addEventListener('click', function () { removeItem(item.id); });
             tile.appendChild(remove);
@@ -249,7 +249,7 @@
             img.onload = function () { resolve({ img: img, url: url }); };
             img.onerror = function () {
                 URL.revokeObjectURL(url);
-                reject(new Error(t('这张图片解不开，换个格式再试')));
+                reject(new Error(t('Can\'t decode this image — try another format')));
             };
             img.src = url;
         });
@@ -286,7 +286,7 @@
                 if (blob) {
                     resolve(blob);
                 } else {
-                    reject(new Error(t('浏览器压缩失败')));
+                    reject(new Error(t('In-browser compression failed')));
                 }
             }, type, quality);
         });
@@ -328,20 +328,20 @@
 
         var skippedType = incoming.length - usable.length;
         if (skippedType > 0) {
-            Nomen.alert(t('格式不支持'), t('只接受 PNG / JPG / WebP 图片，已忽略 {:n} 个文件。', { n: skippedType }));
+            Nomen.alert(t('Format not supported'), t('Only PNG / JPG / WebP accepted — skipped {:n} file(s).', { n: skippedType }));
         }
         if (!usable.length) return;
 
         var room = MAX_FILES - items.length;
         if (room <= 0) {
-            Nomen.alert(t('张数已达上限'), t('最多只能上传 {:n} 张证明材料。', { n: MAX_FILES }));
+            Nomen.alert(t('Image limit reached'), t('Up to {:n} evidence images.', { n: MAX_FILES }));
             return;
         }
 
         var overflow = usable.length - room;
         if (overflow > 0) {
             usable = usable.slice(0, room);
-            Nomen.alert(t('超出张数上限'), t('最多 {:max} 张，已忽略多出的 {:n} 个文件。', { max: MAX_FILES, n: overflow }));
+            Nomen.alert(t('Too many images'), t('At most {:max} images — skipped the extra {:n}.', { max: MAX_FILES, n: overflow }));
         }
 
         for (var i = 0; i < usable.length; i++) {
@@ -360,7 +360,7 @@
             renderUploads();
 
             if (file.size > MAX_BYTES) {
-                setStatus(t('第 {:n} 张超过 1 MB，正在压缩…', { n: items.length }));
+                setStatus(t('Image {:n} is over 1 MB, compressing…', { n: items.length }));
                 try {
                     var compressed = await compressImage(file);
                     item.blob = compressed;
@@ -368,7 +368,7 @@
                     item.compressed = true;
                     if (compressed.size > MAX_BYTES) {
                         item.state = 'error';
-                        setStatus(t('有一张压缩后仍超过 1 MB，请先删掉换一张'), 'error');
+                        setStatus(t('One image is still over 1 MB after compression — remove it and pick another'), 'error');
                     }
                 } catch (err) {
                     item.state = 'error';
@@ -407,9 +407,9 @@
                 }
                 // 拿不到 JSON（例如 nginx 413 / PHP 致命错误返回的错误页）：
                 // 把状态码带出来，别只说「请重试」让人无从下手
-                reject(new Error(t('服务器返回了 {:code}，图片没能上传', { code: xhr.status })));
+                reject(new Error(t('Server returned {:code} — the image didn\'t upload', { code: xhr.status })));
             };
-            xhr.onerror = function () { reject(new Error(t('网络错误，图片没能上传'))); };
+            xhr.onerror = function () { reject(new Error(t('Network error — the image didn\'t upload'))); };
             xhr.send(data);
         });
     }
@@ -425,7 +425,7 @@
             var item = remaining[i];
             item.state = 'uploading';
             renderUploads();
-            setStatus(t('正在上传第 {:a} / {:b} 张证明材料…', { a: i + 1, b: remaining.length }));
+            setStatus(t('Uploading evidence image {:a} / {:b}…', { a: i + 1, b: remaining.length }));
 
             item.token = await uploadOne(item, csrf);
             item.state = 'done';
@@ -443,12 +443,12 @@
 
     function lockSubmit(text) {
         submitBtn.disabled = true;
-        submitBtn.textContent = text || t('提交中…');
+        submitBtn.textContent = text || t('Submitting…');
     }
 
     function releaseSubmit() {
         submitBtn.disabled = false;
-        submitBtn.textContent = t('提交申诉');
+        submitBtn.textContent = t('Submit request');
     }
 
     // ========== 绑定 ==========
@@ -471,7 +471,7 @@
         var broken = items.filter(function (item) { return item.state === 'error'; });
         if (broken.length) {
             event.preventDefault();
-            Nomen.alert(t('有图片没准备好'), t('请先移除标记为「上传失败」的图片，或重新添加后再提交。'));
+            Nomen.alert(t('Some images aren\'t ready'), t('Remove the images marked as failed first, or add them again, then submit.'));
             return;
         }
 
@@ -483,7 +483,7 @@
         // 有图：拦下这次提交，先把图传完再真正提交
         event.preventDefault();
         uploading = true;
-        lockSubmit(t('正在上传图片…'));
+        lockSubmit(t('Uploading images…'));
 
         uploadAll().then(function () {
             uploading = false;
@@ -495,8 +495,8 @@
             uploading = false;
             releaseSubmit();
             renderUploads();
-            setStatus(err.message + t(' —— 图片已保留，可以重试提交，或删掉问题图片再提交。'), 'error');
-            Nomen.alert(t('图片上传失败'), err.message + t('。\n\n图片还留在这里：您可以再点一次「提交申诉」重试，或者把出问题的图删掉再提交。'));
+            setStatus(err.message + t(' — your images are kept. You can submit again, or remove the problem images first.'), 'error');
+            Nomen.alert(t('Image upload failed'), err.message + t('\n\nYour images are kept: you can press Submit again to retry, or remove the problem images first.'));
         });
     });
 

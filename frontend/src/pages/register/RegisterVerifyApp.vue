@@ -49,8 +49,8 @@ onBeforeUnmount(() => {
       <div class="auth-logo">
         <img :src="brandLogo" alt="" width="48" height="48">
       </div>
-      <h1>{{ t('这个邮箱已经被占用了') }}</h1>
-      <p>{{ t('验证一下邮箱，就能接着完成注册') }}</p>
+      <h1>{{ t('This email is already taken') }}</h1>
+      <p>{{ t('Verify your email to finish signing up') }}</p>
     </div>
 
     <div id="alert-container">
@@ -59,13 +59,13 @@ onBeforeUnmount(() => {
     </div>
 
     <div class="claim-note">
-      <p>{{ t('你好，欢迎使用 Nomen。') }}</p>
-      <p>{{ t('这个邮箱此前已经有人（或机器人）注册过，但那个账户一直没有完成邮箱验证，属于未正式激活的状态。') }}</p>
-      <p>{{ t('请先完成邮箱验证：输入我们刚发到你邮箱的 6 位验证码。验证通过后，系统会自动清理掉那个未验证的账户，并直接用你刚才填写的信息注册并激活现在这个账户。') }}</p>
+      <p>{{ t('Hi, welcome to Nomen.') }}</p>
+      <p>{{ t('This email was registered before (by a person or a bot), but that account never verified the address, so it was never properly activated.') }}</p>
+      <p>{{ t('Verify your email first: enter the 6-digit code we just sent you. Once verified, we\'ll remove the unverified account and register and activate this one with the details you just entered.') }}</p>
     </div>
 
     <div class="activate-info">
-      <p>{{ isMinor ? t('验证码已发送至家长邮箱：') : t('验证码已发送至：') }}</p>
+      <p>{{ isMinor ? t('The code was sent to the parent\'s address: ') : t('The code was sent to: ') }}</p>
       <p class="email-display">{{ maskedEmail }}</p>
     </div>
 
@@ -74,7 +74,7 @@ onBeforeUnmount(() => {
       <input type="hidden" name="email" :value="email">
 
       <div class="form-group">
-        <label for="code">{{ t('6 位验证码') }}</label>
+        <label for="code">{{ t('6-digit code') }}</label>
         <input
           id="code"
           type="text"
@@ -90,28 +90,28 @@ onBeforeUnmount(() => {
         >
       </div>
 
-      <button type="submit" class="btn btn-primary btn-block">{{ t('验证并完成注册') }}</button>
+      <button type="submit" class="btn btn-primary btn-block">{{ t('Verify and finish') }}</button>
     </form>
 
     <form id="resend-form" method="POST" action="/register/verify/resend" class="claim-resend-form">
       <input type="hidden" name="_csrf" :value="csrf">
       <input type="hidden" name="email" :value="email">
       <button type="submit" id="resend-btn" class="btn btn-secondary btn-block" :disabled="left > 0">
-        <span id="resend-text">{{ left > 0 ? t('重新发送（{:n} 秒）', { n: left }) : t('重新发送验证码') }}</span>
+        <span id="resend-text">{{ left > 0 ? t('Resend (in {:n}s)', { n: left }) : t('Resend code') }}</span>
       </button>
     </form>
 
     <div class="activate-tips">
-      <p>{{ t('提示：') }}</p>
+      <p>{{ t('Tips:') }}</p>
       <ul>
-        <li>{{ t('请检查收件箱和垃圾邮件文件夹') }}</li>
-        <li>{{ t('验证码 10 分钟内有效') }}</li>
-        <li v-if="isMinor">{{ t('验证码发到了家长邮箱，记得通知家长查收') }}</li>
+        <li>{{ t('Check your inbox and spam folder') }}</li>
+        <li>{{ t('The code is valid for 10 minutes') }}</li>
+        <li v-if="isMinor">{{ t('The code went to the parent\'s email — remind them to check') }}</li>
       </ul>
     </div>
 
     <div class="auth-footer">
-      <p>{{ t('想换个邮箱？') }} <a href="/register">{{ t('返回注册') }}</a></p>
+      <p>{{ t('Want a different email?') }} <a href="/register">{{ t('Back to sign-up') }}</a></p>
     </div>
   </div>
 </template>

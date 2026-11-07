@@ -27,9 +27,11 @@ provide('initialPage', { ...props.page, consumed: false })
 
 const router = useRouter()
 
+const siteName = props.brand?.name || 'Nomen'
+
 router.afterEach((to) => {
   const title = to.meta?.title
-  document.title = title && title !== 'Nomen' ? `${title} - Nomen` : 'Nomen'
+  document.title = title && title !== siteName ? `${title} - ${siteName}` : siteName
 })
 </script>
 

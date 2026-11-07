@@ -16,6 +16,15 @@ const data = ref(null)
 const editing = ref(false)
 const editingHasSecret = ref(false)
 const busyId = ref(0)
+const methodBusy = ref('')
+
+const methodRows = [
+  { key: 'password', label: '密码登录', desc: '用户名/邮箱 + 密码；关掉后注册页的密码注册一并停用' },
+  { key: 'email_code', label: '邮箱验证码登录', desc: '需要已配置邮件发送' },
+  { key: 'biometric', label: '生物识别（Passkey）', desc: '设备指纹 / 面容 / Windows Hello' },
+  { key: 'temp_key', label: '临时密钥', desc: '/fast-pass 应急通道' },
+  { key: 'oauth', label: '第三方登录', desc: '总开关；单个提供方仍可单独启停' },
+]
 
 const emptyForm = () => ({
   id: 0,
@@ -138,6 +147,24 @@ async function copy(value, label) {
   window.Nomen.toast(ok ? `${label}已复制` : '复制失败，请手动选中', ok ? 'success' : 'error')
 }
 
+async function toggleMethod(row) {
+  methodBusy.value = row.key
+  try {
+    const result = await apiPost('/admin/identities/toggle-method', {
+      method: row.key,
+      on: data.value.methods[row.key] ? '0' : '1',
+    })
+    if (result.success) {
+      data.value.methods = result.methods
+      window.Nomen.toast(result.message, 'success')
+    } else {
+      window.Nomen.toast(result.message || '操作失败', 'error')
+    }
+  } finally {
+    methodBusy.value = ''
+  }
+}
+
 onMounted(load)
 </script>
 
@@ -151,6 +178,32 @@ onMounted(load)
     <div v-else-if="loading" class="a-loading">加载中…</div>
 
     <template v-else-if="data">
+      <AdminCard
+        title="登录开关"
+        description="五类登录方式的总开关。全部关掉会被拒绝；真被锁在外面时，在服务器上运行 php bin/nomen auth:reset 恢复全部开启。"
+      >
+        <div class="a-table-wrap">
+          <table class="a-table">
+            <thead><tr><th>方式</th><th>说明</th><th>状态</th><th class="a-td-actions">操作</th></tr></thead>
+            <tbody>
+              <tr v-for="row in methodRows" :key="row.key">
+                <td class="a-strong">{{ row.label }}</td>
+                <td>{{ row.desc }}</td>
+                <td>
+                  <AdminBadge :tone="data.methods[row.key] ? 'success' : 'muted'">{{ data.methods[row.key] ? '开启' : '关闭' }}</AdminBadge>
+                </td>
+                <td class="a-td-actions">
+                  <button class="a-btn a-btn--ghost a-btn--sm" type="button" :disabled="methodBusy === row.key" @click="toggleMethod(row)">
+                    {{ data.methods[row.key] ? '关闭' : '开启' }}
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="a-text a-text--muted" style="margin-top:10px">第三方登录的按钮还要求至少有一个已启用的提供方；每个提供方可以在下面单独启停。</p>
+      </AdminCard>
+
       <AdminCard v-if="editing" :title="form.id > 0 ? '编辑登录方式' : '添加登录方式'">
         <form class="a-form" @submit.prevent="save">
           <div class="a-form__row">

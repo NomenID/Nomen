@@ -66,9 +66,9 @@ function toggleTheme() {
 }
 
 async function logout() {
-  const confirmed = await window.Nomen.confirm(t('退出登录'), t('确定要退出当前账号吗？'), {
-    confirmText: t('退出'),
-    cancelText: t('取消'),
+  const confirmed = await window.Nomen.confirm(t('Sign out'), t('Sign out of this account?'), {
+    confirmText: t('Sign out'),
+    cancelText: t('Cancel'),
   })
   if (confirmed) window.location.href = '/logout'
 }
@@ -89,7 +89,7 @@ function checkNotifPopup() {
 
   const unread = viewer.unreadCount
   const text = unread > 1
-    ? t('你有 {:n} 条新消息\n最新：{:title}', { n: unread, title: latest.title })
+    ? t('You have {:n} new messages\nLatest: {:title}', { n: unread, title: latest.title })
     : latest.title
   const toast = window.Nomen.toast(text, 'info', 10000)
   if (!toast) return
@@ -156,7 +156,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
       <button
         class="mobile-menu-btn"
         :class="{ active: drawerOpen }"
-        :aria-label="t('菜单')"
+        :aria-label="t('Menu')"
         :aria-expanded="drawerOpen"
         aria-controls="mobile-menu-drawer"
         @click.stop="toggleDrawer"
@@ -182,7 +182,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
           <img v-if="viewer.avatarUrl" :src="viewer.avatarUrl" alt="" class="nav-avatar">
           {{ viewer.username }}
         </span>
-        <button class="nav-link nav-link--danger" @click="logout">{{ t('退出') }}</button>
+        <button class="nav-link nav-link--danger" @click="logout">{{ t('Sign out') }}</button>
         <div class="lang-picker" :class="{ 'is-open': langOpen }" v-if="locales.length">
           <button
             class="lang-trigger"
@@ -197,9 +197,9 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
           </button>
           <div class="lang-panel" :hidden="!langOpen">
             <div class="lang-search">
-              <input ref="langSearchEl" v-model="langQuery" type="search" :placeholder="t('搜索语言')" autocomplete="off" :aria-label="t('搜索语言')">
+              <input ref="langSearchEl" v-model="langQuery" type="search" :placeholder="t('Search languages')" autocomplete="off" :aria-label="t('Search languages')">
             </div>
-            <ul class="lang-list" :aria-label="t('选择语言')">
+            <ul class="lang-list" :aria-label="t('Choose a language')">
               <li v-for="entry in filteredLocales" :key="entry.slug" :aria-current="entry.slug === currentLocale || undefined">
                 <a
                   :href="langHref(entry.slug)"
@@ -214,10 +214,10 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
                 </a>
               </li>
             </ul>
-            <p v-if="!filteredLocales.length" class="lang-empty">{{ t('没有找到语言') }}</p>
+            <p v-if="!filteredLocales.length" class="lang-empty">{{ t('No language found') }}</p>
           </div>
         </div>
-        <button class="theme-toggle" :title="t('切换主题')" :aria-label="t('切换亮色/暗色主题')" @click="toggleTheme">
+        <button class="theme-toggle" :title="t('Switch theme')" :aria-label="t('Toggle light / dark theme')" @click="toggleTheme">
           <span class="icon icon-sun"></span>
           <span class="icon icon-moon"></span>
         </button>
@@ -263,27 +263,27 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
         </template>
         <button type="button" class="mobile-menu-link mobile-menu-danger" @click="logout">
           <span class="icon icon-logout" aria-hidden="true"></span>
-          <span>{{ t('退出登录') }}</span>
+          <span>{{ t('Sign out') }}</span>
         </button>
 
         <div class="mobile-menu-divider"></div>
         <div class="mobile-theme-section">
-          <span class="mobile-theme-label">{{ t('主题') }}</span>
+          <span class="mobile-theme-label">{{ t('Theme') }}</span>
           <div class="mobile-theme-options">
             <button
               type="button"
               class="mobile-theme-btn"
               :class="{ active: currentTheme === 'light' }"
-              :title="t('亮色')"
-              :aria-label="t('亮色主题')"
+              :title="t('Light')"
+              :aria-label="t('Light theme')"
               @click="setTheme('light')"
             ><span class="icon icon-sun"></span></button>
             <button
               type="button"
               class="mobile-theme-btn"
               :class="{ active: currentTheme === 'dark' }"
-              :title="t('暗色')"
-              :aria-label="t('暗色主题')"
+              :title="t('Dark')"
+              :aria-label="t('Dark theme')"
               @click="setTheme('dark')"
             ><span class="icon icon-moon"></span></button>
           </div>
@@ -291,7 +291,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
 
         <div class="mobile-menu-divider"></div>
         <div class="mobile-lang-section">
-          <span class="mobile-theme-label">{{ t('语言') }}</span>
+          <span class="mobile-theme-label">{{ t('Language') }}</span>
           <div class="mobile-lang-options">
             <a
               v-for="entry in locales"

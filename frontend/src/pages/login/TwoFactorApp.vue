@@ -10,7 +10,7 @@ const props = defineProps({
   csrf: { type: String, default: '' },
   nonce: { type: String, default: '' },
   factors: { type: Object, default: () => ({}) },
-  firstLabel: { type: String, default: '第一步验证' },
+  firstLabel: { type: String, default: 'First step verification' },
   error: { type: String, default: '' },
   emailChoices: { type: Array, default: () => [] },
   brandLogo: { type: String, default: '/assets/brand/nomen-icon.svg' },
@@ -33,19 +33,19 @@ const primaryEmail = props.emailChoices.find((choice) => choice.is_primary) || p
 const emailTarget = ref(primaryEmail?.email || '')
 
 const verifyLabel = computed(() => {
-  if (!selected.value) return t('验证并登录')
+  if (!selected.value) return t('Verify and sign in')
   return {
-    password: t('验证密码'),
-    email_code: t('验证邮箱'),
-    totp: t('验证动态码'),
-    recovery_code: t('验证恢复码'),
-  }[selected.value] || t('验证')
+    password: t('Verify password'),
+    email_code: t('Verify email'),
+    totp: t('Verify dynamic code'),
+    recovery_code: t('Verify recovery code'),
+  }[selected.value] || t('Verify')
 })
 
 const sendText = computed(() => {
-  if (sending.value) return t('发送中...')
-  if (countdown.value > 0) return t('重新发送({:n}s)', { n: countdown.value })
-  return t('发送验证码')
+  if (sending.value) return t('Sending...')
+  if (countdown.value > 0) return t('Resend ({:n}s)', { n: countdown.value })
+  return t('Send code')
 })
 
 function startCountdown() {
@@ -87,7 +87,7 @@ async function sendCode() {
     }
     toast(data.message, 'error')
   } catch (err) {
-    toast(t('网络错误'), 'error')
+    toast(t('Network error'), 'error')
   } finally {
     sending.value = false
   }
@@ -95,13 +95,13 @@ async function sendCode() {
 
 async function verify() {
   if (!selected.value) {
-    toast(t('请选择验证方式'), 'warning')
+    toast(t('Pick a verification method'), 'warning')
     return
   }
 
   const value = String(values[selected.value] || '').trim()
   if (!value) {
-    toast(t('请输入验证信息'), 'warning')
+    toast(t('Enter the verification value'), 'warning')
     return
   }
 
@@ -125,13 +125,13 @@ async function verify() {
     })
     const data = await response.json()
     if (data.success) {
-      toast(t('验证通过'), 'success')
+      toast(t('Verification passed'), 'success')
       window.location.href = data.redirect || '/dashboard'
       return
     }
     toast(data.message, 'error')
   } catch (err) {
-    toast(t('网络错误'), 'error')
+    toast(t('Network error'), 'error')
   } finally {
     verifying.value = false
   }
@@ -148,8 +148,8 @@ onBeforeUnmount(() => {
       <div class="auth-logo">
         <img :src="brandLogo" alt="" width="48" height="48">
       </div>
-      <h1>{{ t('两步验证') }}</h1>
-      <p>{{ t(firstLabel) }}{{ t('已通过，请再选择一种方式确认是你本人') }}</p>
+      <h1>{{ t('Two-step verification') }}</h1>
+      <p>{{ t(firstLabel) }}{{ t(' passed. Now choose another method to confirm it\'s you') }}</p>
     </div>
 
     <BaseAlert v-if="error" type="error" :message="error" />
@@ -159,7 +159,7 @@ onBeforeUnmount(() => {
       <input type="hidden" name="nonce" :value="nonce">
 
       <div class="form-group">
-        <label>{{ t('选择验证方式') }}</label>
+        <label>{{ t('Choose a verification method') }}</label>
         <div class="factor-select">
           <label
             v-for="(factor, type) in factors"
@@ -213,9 +213,9 @@ onBeforeUnmount(() => {
 
         <template v-if="type === 'email_code' && emailChoices.length > 1">
           <select id="twofa-email-target" v-model="emailTarget" class="email-target-select">
-            <option v-for="choice in emailChoices" :key="choice.email" :value="choice.email">{{ choice.email }}{{ choice.is_primary ? t('（首选）') : '' }}</option>
+            <option v-for="choice in emailChoices" :key="choice.email" :value="choice.email">{{ choice.email }}{{ choice.is_primary ? t('(primary)') : '' }}</option>
           </select>
-          <p class="form-hint">{{ t('验证码发到上面这个邮箱，可以在下拉里换一个') }}</p>
+          <p class="form-hint">{{ t('The code goes to the address above — switch it in the dropdown') }}</p>
         </template>
       </div>
 
@@ -228,8 +228,8 @@ onBeforeUnmount(() => {
       >{{ verifyLabel }}</button>
 
       <div class="auth-footer">
-        <p><a href="/logout">{{ t('取消并返回登录') }}</a></p>
-        <p><a href="/recovery">{{ t('我无法登录，联系支持团队') }}</a></p>
+        <p><a href="/logout">{{ t('Cancel and go back to sign-in') }}</a></p>
+        <p><a href="/recovery">{{ t('I can\'t sign in. Contact support.') }}</a></p>
       </div>
     </form>
   </div>

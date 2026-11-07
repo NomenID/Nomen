@@ -61,23 +61,33 @@ export function rememberedAccount() {
   return readJson(ID_KEY, null)
 }
 
+function firstAvailable(available) {
+  for (const method of ORDER) {
+    if (available(method)) return method
+  }
+  return null
+}
+
 export function recommendMethod(available) {
+  const fallback = firstAvailable(available)
+  if (!fallback) return null
+
   const id = rememberedAccount()
-  if (!id || !id.u) return 'password'
+  if (!id || !id.u) return fallback
 
   const hist = readJson(HIST_KEY, [])
-  if (!Array.isArray(hist)) return 'password'
+  if (!Array.isArray(hist)) return fallback
 
   const mine = []
   for (const h of hist) {
     if (h && (h.u === id.u || (id.e && h.e === id.e))) mine.push(h.m)
   }
-  if (mine.length < 2) return 'password'
+  if (mine.length < 2) return fallback
 
   const last = mine[mine.length - 1]
-  if (mine[mine.length - 2] !== last) return 'password'
+  if (mine[mine.length - 2] !== last) return fallback
 
-  return available(last) ? last : 'password'
+  return available(last) ? last : fallback
 }
 
 export function pickLoginMethod(tried, preferred, available) {
@@ -86,5 +96,5 @@ export function pickLoginMethod(tried, preferred, available) {
   for (const method of ORDER) {
     if (!tried[method] && available(method)) return method
   }
-  return 'password'
+  return firstAvailable(available)
 }

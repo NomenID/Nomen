@@ -18,21 +18,21 @@ const urls = {
 }
 
 const features = [
-  { title: t('统一登录'), text: t('一个账号登录接入的应用。') },
-  { title: t('多因素验证'), text: t('TOTP、邮件验证码、恢复码和通行密钥。') },
-  { title: t('账号恢复'), text: t('提交申诉，管理员审核后发一次性登录链接。') },
-  { title: t('开放平台'), text: t('开发者注册并创建应用，管理员也能在后台直接建。') },
+  { title: t('Unified sign-in'), text: t('One account for every connected app.') },
+  { title: t('Multi-factor authentication'), text: t('TOTP, email codes, recovery codes and passkeys.') },
+  { title: t('Account recovery'), text: t('Submit a request; an admin reviews it and sends a one-time sign-in link.') },
+  { title: t('Open Platform'), text: t('Developers can register and create apps; admins can also create them in the backend.') },
 ]
 
 const docsBase = (props.docsBase || '').replace(/\/$/, '')
 
 const links = docsBase
   ? [
-      { label: t('安装与升级'), href: docsBase + '/install' },
-      { label: t('应用接入'), href: docsBase + '/oauth' },
-      { label: t('插件'), href: docsBase + '/plugins' },
-      { label: t('皮肤'), href: docsBase + '/skins' },
-      { label: t('源码'), href: docsBase + '/source' },
+      { label: t('Install and upgrade'), href: docsBase + '/install' },
+      { label: t('Integrations'), href: docsBase + '/oauth' },
+      { label: t('Plugins'), href: docsBase + '/plugins' },
+      { label: t('Skins'), href: docsBase + '/skins' },
+      { label: t('Source code'), href: docsBase + '/source' },
     ]
   : []
 </script>
@@ -74,23 +74,23 @@ const links = docsBase
 
     <div class="np-hero__inner">
       <h1 class="np-hero__title">{{ props.brand }}</h1>
-      <p class="np-hero__line">{{ t('自由的账号星系') }}</p>
+      <p class="np-hero__line">{{ t('A galaxy of free accounts') }}</p>
 
       <div class="np-hero__actions">
         <template v-if="props.loggedIn">
-          <a class="btn btn-primary btn-lg" :href="urls.dashboard">{{ t('进入控制台') }}</a>
-          <a class="btn btn-ghost btn-lg" :href="urls.settings">{{ t('账户设置') }}</a>
+          <a class="btn btn-primary btn-lg" :href="urls.dashboard">{{ t('Open console') }}</a>
+          <a class="btn btn-ghost btn-lg" :href="urls.settings">{{ t('Account settings') }}</a>
         </template>
         <template v-else>
-          <a class="btn btn-primary btn-lg" :href="urls.register">{{ t('创建账号') }}</a>
-          <a class="btn btn-ghost btn-lg" :href="urls.login">{{ t('登录') }}</a>
+          <a class="btn btn-primary btn-lg" :href="urls.register">{{ t('Create account') }}</a>
+          <a class="btn btn-ghost btn-lg" :href="urls.login">{{ t('Sign in') }}</a>
         </template>
       </div>
     </div>
   </section>
 
   <section class="np-section">
-    <h2>{{ t('能做什么') }}</h2>
+    <h2>{{ t('What it does') }}</h2>
     <dl class="np-features">
       <div v-for="feature in features" :key="feature.title" class="np-feature">
         <dt>{{ feature.title }}</dt>
@@ -100,7 +100,7 @@ const links = docsBase
   </section>
 
   <section v-if="links.length" class="np-section">
-    <h2>{{ t('文档') }}</h2>
+    <h2>{{ t('Docs') }}</h2>
     <ul class="np-links">
       <li v-for="link in links" :key="link.href">
         <a :href="link.href">{{ link.label }}</a>

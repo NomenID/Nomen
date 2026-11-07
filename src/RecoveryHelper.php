@@ -27,17 +27,17 @@ class RecoveryHelper
      * （2026-10-09 用户定的，别凭"哪个更安全"自己调回去）。
      */
     public const METHODS = [
-        'password'      => ['label' => '密码'],
-        'email'         => ['label' => '邮箱'],
-        'recovery_code' => ['label' => '恢复码'],
-        'totp'          => ['label' => '验证器 APP'],
+        'password'      => ['label' => 'Password'],
+        'email'         => ['label' => 'Email'],
+        'recovery_code' => ['label' => 'Recovery codes'],
+        'totp'          => ['label' => 'Authenticator app'],
     ];
 
     /** 不计入数量的辅助手段，展示时单独一组 */
-    public const ASSIST_LABEL = '快速辅助验证方式';
+    public const ASSIST_LABEL = 'Quick assist verification methods';
 
     public const ASSIST_METHODS = [
-        'biometric' => ['label' => '生物识别', 'on' => '已绑定', 'off' => '未绑定'],
+        'biometric' => ['label' => 'Biometric'],
     ];
 
     private static function db(): PDO

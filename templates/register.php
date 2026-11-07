@@ -2,7 +2,7 @@
 /** @var string|null $error */
 /** @var array $old */
 /** @var string $detectedCountry */
-$title = t('注册');
+$title = t('Sign up');
 $extraCss = '/css/register.css?v=83568981';
 
 $featureCountry = \Nomen\Src\Features::country();
@@ -43,6 +43,7 @@ $props = [
         'guardians' => $featureGuardians,
     ],
     'providers' => \Nomen\Src\IdentityProviders::publicList(),
+    'passwordRegistration' => (bool)($passwordRegistration ?? true),
     'privacyUrl' => (string)\Nomen\Src\Brand::get('privacy_url'),
     'termsUrl' => (string)\Nomen\Src\Brand::get('terms_url'),
     'supportEmail' => (string)\Nomen\Src\Brand::get('support_email'),
@@ -57,7 +58,7 @@ $props = [
 $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
 ?>
 <div id="register-app" class="auth-container">
-    <noscript><p class="form-hint"><?= t('注册需要开启 JavaScript。') ?></p></noscript>
+    <noscript><p class="form-hint"><?= t('Sign-up requires JavaScript.') ?></p></noscript>
     <script type="application/json" id="register-props"><?= json_encode($props, $jsonFlags) ?></script>
 </div>
 <?= \Nomen\Src\ViteAssets::entry('src/entries/register.js') ?>

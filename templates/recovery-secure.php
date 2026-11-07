@@ -10,15 +10,15 @@
  *  @var string|null $error
  *  @var string|null $success
  */
-$title = t('恢复账户访问权限');
+$title = t('Regain access to your account');
 
 $methodState = static fn(array $m): string => $m['present'] ? ($m['on'] ?? '已拥有') : ($m['off'] ?? '未设置');
 
 $mapMethod = static fn(array $m): array => [
     'label' => t($m['label']),
     'present' => (bool)($m['present'] ?? false),
-    'on' => t($m['on'] ?? '已拥有'),
-    'off' => t($m['off'] ?? '未设置'),
+    'on' => t($m['on'] ?? 'Set up'),
+    'off' => t($m['off'] ?? 'Not set'),
 ];
 
 $emailMethod = $methods['email'] ?? null;
@@ -50,7 +50,7 @@ $props = [
 $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
 ?>
 <div id="recovery-secure-app" class="container">
-    <noscript><p class="form-hint">安全修复页需要开启 JavaScript。</p></noscript>
+    <noscript><p class="form-hint"><?= t('This secure recovery page requires JavaScript.') ?></p></noscript>
     <script type="application/json" id="recovery-secure-props"><?= json_encode($props, $jsonFlags) ?></script>
 </div>
 <?= \Nomen\Src\ViteAssets::entry('src/entries/recovery-secure.js') ?>

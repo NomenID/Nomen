@@ -27,7 +27,7 @@ async function readAll() {
   markingAll.value = true
   try {
     const res = await apiPost('/notifications/read-all')
-    toast(res.message || t('已全部标记为已读'), res.success ? 'success' : 'error')
+    toast(res.message || t('All marked as read'), res.success ? 'success' : 'error')
     if (res.success) {
       data.value = {
         ...data.value,
@@ -37,7 +37,7 @@ async function readAll() {
       viewer.unreadCount = 0
     }
   } catch (err) {
-    toast(err.message || t('网络错误'), 'error')
+    toast(err.message || t('Network error'), 'error')
   } finally {
     markingAll.value = false
   }
@@ -53,17 +53,17 @@ function goPage(page) {
     <div class="dashboard">
       <div class="dashboard-header">
         <div>
-          <h1>{{ t('消息中心') }}</h1>
-          <p v-if="data.unreadCount > 0" class="text-muted">{{ t('{:count} 条未读', { count: data.unreadCount }) }}</p>
+          <h1>{{ t('Messages') }}</h1>
+          <p v-if="data.unreadCount > 0" class="text-muted">{{ t('{:count} unread', { count: data.unreadCount }) }}</p>
         </div>
-        <button type="button" class="btn btn-secondary" :disabled="data.unreadCount === 0 || markingAll" @click="readAll">{{ t('全部已读') }}</button>
+        <button type="button" class="btn btn-secondary" :disabled="data.unreadCount === 0 || markingAll" @click="readAll">{{ t('Mark all as read') }}</button>
       </div>
 
       <div v-if="!data.items.length" class="dashboard-section">
         <div class="empty-state">
           <div class="empty-state__icon"><span class="icon icon-inbox"></span></div>
-          <p>{{ t('暂无消息') }}</p>
-          <p class="text-muted">{{ t('系统通知和账号相关提醒会显示在这里') }}</p>
+          <p>{{ t('No messages') }}</p>
+          <p class="text-muted">{{ t('System notices and account alerts show up here') }}</p>
         </div>
       </div>
 
@@ -83,7 +83,7 @@ function goPage(page) {
               </div>
               <div class="notif-item__title">
                 {{ item.title }}
-                <span v-if="!item.read" class="notif-item__dot" :title="t('未读')"></span>
+                <span v-if="!item.read" class="notif-item__dot" :title="t('Unread')"></span>
               </div>
               <div class="notif-item__excerpt">{{ item.excerpt }}</div>
             </div>
@@ -92,12 +92,12 @@ function goPage(page) {
         </div>
 
         <div v-if="data.totalPages > 1" class="notif-pagination">
-          <button v-if="data.page > 1" type="button" class="btn btn-sm btn-secondary" @click="goPage(data.page - 1)">{{ t('上一页') }}</button>
-          <span class="text-muted">{{ t('第 {:page} / {:total} 页', { page: data.page, total: data.totalPages }) }}</span>
-          <button v-if="data.page < data.totalPages" type="button" class="btn btn-sm btn-secondary" @click="goPage(data.page + 1)">{{ t('下一页') }}</button>
+          <button v-if="data.page > 1" type="button" class="btn btn-sm btn-secondary" @click="goPage(data.page - 1)">{{ t('Previous') }}</button>
+          <span class="text-muted">{{ t('Page {:page} / {:total}', { page: data.page, total: data.totalPages }) }}</span>
+          <button v-if="data.page < data.totalPages" type="button" class="btn btn-sm btn-secondary" @click="goPage(data.page + 1)">{{ t('Next') }}</button>
         </div>
       </div>
     </div>
   </div>
-  <div v-else-if="loading" class="container"><p class="text-muted" style="padding:24px 0">{{ t('加载中...') }}</p></div>
+  <div v-else-if="loading" class="container"><p class="text-muted" style="padding:24px 0">{{ t('Loading...') }}</p></div>
 </template>

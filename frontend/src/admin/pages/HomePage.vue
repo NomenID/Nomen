@@ -5,6 +5,7 @@ import AdminPage from '../components/AdminPage.vue'
 import AdminCard from '../components/AdminCard.vue'
 import AdminField from '../components/AdminField.vue'
 import AdminAlert from '../components/AdminAlert.vue'
+import AdminBadge from '../components/AdminBadge.vue'
 
 const loading = ref(true)
 const saving = ref(false)
@@ -21,6 +22,8 @@ const form = reactive({
   primary_url: '',
   secondary_label: '',
   secondary_url: '',
+  hidden_links: [],
+  links: [],
 })
 
 async function load() {
@@ -29,6 +32,8 @@ async function load() {
   try {
     data.value = await apiGet('/api/admin/homepage')
     Object.assign(form, data.value.settings)
+    form.hidden_links = data.value.default_links.filter((link) => link.hidden).map((link) => link.id)
+    form.links = (data.value.custom_links || []).map((link) => ({ label: link.label, href: link.href }))
   } catch (err) {
     error.value = '首页设置加载失败'
   } finally {
@@ -39,12 +44,26 @@ async function load() {
 async function save() {
   saving.value = true
   try {
-    const result = await apiPost('/admin/homepage', { ...form })
+    const result = await apiPost('/admin/homepage', {
+      ...form,
+      hidden_links: JSON.stringify(form.hidden_links),
+      links_json: JSON.stringify(form.links),
+    })
     window.Nomen.toast(result.message, result.success ? 'success' : 'error')
     if (result.success) await load()
   } finally {
     saving.value = false
   }
+}
+
+function toggleDefaultLink(id, event) {
+  const hidden = new Set(form.hidden_links)
+  if (event.target.checked) {
+    hidden.delete(id)
+  } else {
+    hidden.add(id)
+  }
+  form.hidden_links = [...hidden]
 }
 
 onMounted(load)
@@ -126,6 +145,42 @@ onMounted(load)
               <input v-model="form.secondary_url" class="a-input" type="text" placeholder="/login">
             </AdminField>
           </div>
+        </div>
+      </AdminCard>
+
+      <AdminCard title="下方链接" description="按钮下面那一行小链接。默认三条可以单独隐藏，也可以加自己的；插件加的在这里只读。">
+        <div class="a-form">
+          <AdminField label="默认链接" hint="取消勾选就不显示；它们来自插件挂载和核心，改名请用下面的自定义链接代替">
+            <div class="home-links-defaults">
+              <label v-for="link in data.default_links" :key="link.id" class="a-check home-links-defaults__item">
+                <input type="checkbox" :checked="!form.hidden_links.includes(link.id)" @change="toggleDefaultLink(link.id, $event)">
+                <span>
+                  <strong>{{ link.label }}</strong>
+                  <span class="a-sub a-block">{{ link.href }}（{{ link.source }}）</span>
+                </span>
+              </label>
+            </div>
+          </AdminField>
+
+          <AdminField label="自定义链接" hint="最多 20 条，按添加顺序显示">
+            <div v-for="(link, index) in form.links" :key="index" class="a-form__row home-links-custom">
+              <input v-model="link.label" class="a-input" type="text" maxlength="40" placeholder="名称">
+              <input v-model="link.href" class="a-input" type="text" placeholder="/w 或 https://…">
+              <button class="a-btn a-btn--ghost" type="button" @click="form.links.splice(index, 1)">删除</button>
+            </div>
+            <button class="a-btn a-btn--ghost a-btn--sm" type="button" @click="form.links.push({ label: '', href: '' })">添加链接</button>
+          </AdminField>
+
+          <AdminField label="插件链接" hint="插件运行时加进来的，这里改不了">
+            <p v-if="!data.plugin_links.length" class="a-text a-text--muted">目前没有插件往这里加链接。</p>
+            <div v-else class="home-links-defaults">
+              <div v-for="(link, index) in data.plugin_links" :key="index" class="home-links-defaults__item">
+                <strong>{{ link.label }}</strong>
+                <span class="a-sub a-block a-mono">{{ link.href }}</span>
+                <AdminBadge tone="info">{{ link.by ? `由 ${link.by} 托管` : '由插件托管' }}</AdminBadge>
+              </div>
+            </div>
+          </AdminField>
         </div>
       </AdminCard>
 

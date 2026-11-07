@@ -16,7 +16,7 @@ class License
             return;
         }
 
-        $links = '<a href="/special/version">返回版本信息</a>';
+        $links = '<a href="/special/version">' . t('Back to version info') . '</a>';
         $notice = self::noticeUrl($type, $name);
         if ($notice !== null) {
             $links .= ' · <a href="' . self::esc($notice) . '">NOTICE</a>';
@@ -28,10 +28,10 @@ class License
 
         $meta = $item['license'] === ''
             ? ''
-            : '<p>' . self::esc(self::typeLabel($type)) . ' · ' . self::esc($item['license']) . '</p>';
+            : '<p>' . self::esc(t(self::typeLabel($type))) . ' · ' . self::esc($item['license']) . '</p>';
 
         Response::view('special', [
-            'title' => $item['name'] . ' 的许可协议',
+            'title' => t('{:name} license', ['name' => $item['name']]),
             'body' => '<p>' . $links . '</p>'
                 . $meta
                 . '<pre class="special-license">' . self::esc((string)file_get_contents($item['file'])) . '</pre>',
@@ -50,14 +50,14 @@ class License
             return;
         }
 
-        $links = '<a href="/special/version">返回版本信息</a>';
+        $links = '<a href="/special/version">' . t('Back to version info') . '</a>';
         $license = self::url($type, $name);
         if ($license !== null) {
-            $links .= ' · <a href="' . self::esc($license) . '">许可协议</a>';
+            $links .= ' · <a href="' . self::esc($license) . '">' . t('License') . '</a>';
         }
 
         Response::view('special', [
-            'title' => $item['name'] . ' 的 NOTICE',
+            'title' => t('{:name} NOTICE', ['name' => $item['name']]),
             'body' => '<p>' . $links . '</p>'
                 . '<pre class="special-license">' . self::esc((string)file_get_contents($file)) . '</pre>',
         ]);
@@ -74,10 +74,10 @@ class License
             return;
         }
 
-        $links = '<a href="/special/version">返回版本信息</a>';
+        $links = '<a href="/special/version">' . t('Back to version info') . '</a>';
         $license = self::url($type, $name);
         if ($license !== null) {
-            $links .= ' · <a href="' . self::esc($license) . '">许可协议</a>';
+            $links .= ' · <a href="' . self::esc($license) . '">' . t('License') . '</a>';
         }
 
         $text = (string)file_get_contents($item['readme']);
@@ -86,7 +86,7 @@ class License
             : '<pre class="special-license">' . self::esc($text) . '</pre>';
 
         Response::view('special', [
-            'title' => $item['name'] . ' 的说明',
+            'title' => t('About {:name}', ['name' => $item['name']]),
             'body' => '<p>' . $links . '</p>' . $body,
         ]);
     }

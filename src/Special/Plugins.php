@@ -12,14 +12,14 @@ class Plugins
         $loaded = PluginRegistry::loaded();
         $enabled = PluginRegistry::enabled();
 
-        $html = '<table class="table"><tr><th>插件</th><th>版本</th><th>状态</th></tr>';
+        $html = '<table class="table"><tr><th>' . t('Plugins') . '</th><th>' . t('Version') . '</th><th>' . t('Status') . '</th></tr>';
         foreach ($all as $slug => $manifest) {
             if (isset($loaded[$slug])) {
-                $status = '运行中';
+                $status = t('Running');
             } elseif (in_array($slug, $enabled, true)) {
-                $status = '启用失败（依赖不满足，见 error_log）';
+                $status = t('Failed to enable (dependencies missing — see error_log)');
             } else {
-                $status = '未启用';
+                $status = t('Not enabled');
             }
             $html .= '<tr><td>' . htmlspecialchars((string)$manifest['name'])
                 . '<br><span class="form-hint">' . htmlspecialchars(t((string)($manifest['description'] ?? ''))) . '</span></td>'
@@ -28,19 +28,18 @@ class Plugins
         }
         $html .= '</table>';
 
-        $html .= '<p class="form-hint">启用插件：把目录名加进 <code>config/plugins.php</code> 的 <code>enabled</code>。'
-            . 'GeoIP 还要先 <code>composer require geoip2/geoip2</code>，并下载数据文件。</p>';
+        $html .= '<p class="form-hint">' . t('To enable a plugin, add its directory name to <code>enabled</code> in <code>config/plugins.php</code>. GeoIP additionally needs <code>composer require geoip2/geoip2</code> and its data file.') . '</p>';
 
         $caps = [
-            ['gd', '登录验证码图片、申诉截图的缩略图', Captcha::available()],
-            ['fileinfo', '头像和应用图标的上传', function_exists('finfo_open')],
-            ['redis', '限流、多设备踢出（没有会降级）', extension_loaded('redis')],
+            ['gd', t('CAPTCHA images for sign-in, thumbnails for appeal screenshots'), Captcha::available()],
+            ['fileinfo', t('Avatar and app icon uploads'), function_exists('finfo_open')],
+            ['redis', t('Rate limiting, signing out other devices (degrades gracefully without it)'), extension_loaded('redis')],
         ];
 
-        $html .= '<h2>PHP 扩展</h2><table class="table"><tr><th>扩展</th><th>管什么</th><th>状态</th></tr>';
+        $html .= '<h2>' . t('PHP extensions') . '</h2><table class="table"><tr><th>' . t('Extension') . '</th><th>' . t('Used for') . '</th><th>' . t('Status') . '</th></tr>';
         foreach ($caps as [$ext, $what, $ok]) {
             $html .= '<tr><td>' . htmlspecialchars($ext) . '</td><td>' . htmlspecialchars($what) . '</td>'
-                . '<td>' . ($ok ? '有' : '没装') . '</td></tr>';
+                . '<td>' . ($ok ? t('Available') : t('Missing')) . '</td></tr>';
         }
         $html .= '</table>';
 

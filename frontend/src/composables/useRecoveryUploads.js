@@ -28,7 +28,7 @@ function loadImage(blob) {
     img.onload = () => resolve({ img, url })
     img.onerror = () => {
       URL.revokeObjectURL(url)
-      reject(new Error(t('这张图片解不开，换个格式再试')))
+      reject(new Error(t('Can\'t decode this image — try another format')))
     }
     img.src = url
   })
@@ -60,7 +60,7 @@ function encodeAt(img, scale, quality, type) {
 
     canvas.toBlob((blob) => {
       if (blob) resolve(blob)
-      else reject(new Error(t('浏览器压缩失败')))
+      else reject(new Error(t('In-browser compression failed')))
     }, type, quality)
   })
 }
@@ -112,7 +112,7 @@ export function useRecoveryUploads(uploadUrl) {
       return
     }
     setStatus(
-      t('已选 {:n} / {:max} 张，共 {:size}{:comp}', { n: items.value.length, max: MAX_FILES, size: formatSize(totalSize.value), comp: compressedCount.value ? t('（其中 {:n} 张已自动压缩）', { n: compressedCount.value }) : '' }),
+      t('Selected {:n} / {:max}, {:size}{:comp} total', { n: items.value.length, max: MAX_FILES, size: formatSize(totalSize.value), comp: compressedCount.value ? t('({:n} auto-compressed)', { n: compressedCount.value }) : '' }),
     )
   }
 
@@ -130,20 +130,20 @@ export function useRecoveryUploads(uploadUrl) {
 
     const skippedType = incoming.length - usable.length
     if (skippedType > 0) {
-      alertUser(t('格式不支持'), t('只接受 PNG / JPG / WebP 图片，已忽略 {:n} 个文件。', { n: skippedType }))
+      alertUser(t('Format not supported'), t('Only PNG / JPG / WebP accepted — skipped {:n} file(s).', { n: skippedType }))
     }
     if (!usable.length) return
 
     const room = MAX_FILES - items.value.length
     if (room <= 0) {
-      alertUser(t('张数已达上限'), t('最多只能上传 {:n} 张证明材料。', { n: MAX_FILES }))
+      alertUser(t('Image limit reached'), t('Up to {:n} evidence images.', { n: MAX_FILES }))
       return
     }
 
     const overflow = usable.length - room
     if (overflow > 0) {
       usable = usable.slice(0, room)
-      alertUser(t('超出张数上限'), t('最多 {:max} 张，已忽略多出的 {:n} 个文件。', { max: MAX_FILES, n: overflow }))
+      alertUser(t('Too many images'), t('At most {:max} images — skipped the extra {:n}.', { max: MAX_FILES, n: overflow }))
     }
 
     for (const file of usable) {
@@ -161,7 +161,7 @@ export function useRecoveryUploads(uploadUrl) {
       updateSummary()
 
       if (file.size > MAX_BYTES) {
-        setStatus(t('第 {:n} 张超过 1 MB，正在压缩…', { n: items.value.length }))
+        setStatus(t('Image {:n} is over 1 MB, compressing…', { n: items.value.length }))
         try {
           const compressed = await compressImage(file)
           item.blob = compressed
@@ -169,7 +169,7 @@ export function useRecoveryUploads(uploadUrl) {
           item.compressed = true
           if (compressed.size > MAX_BYTES) {
             item.state = 'error'
-            setStatus(t('有一张压缩后仍超过 1 MB，请先删掉换一张'), 'error')
+            setStatus(t('One image is still over 1 MB after compression — remove it and pick another'), 'error')
           }
         } catch (err) {
           item.state = 'error'
@@ -204,7 +204,7 @@ export function useRecoveryUploads(uploadUrl) {
 
     if (body && body.success && body.token) return body.token
     if (body && body.message) throw new Error(body.message)
-    throw new Error(t('服务器返回了 {:code}，图片没能上传', { code: response.status }))
+    throw new Error(t('Server returned {:code} — the image didn\'t upload', { code: response.status }))
   }
 
   async function uploadAll(csrf) {
@@ -215,7 +215,7 @@ export function useRecoveryUploads(uploadUrl) {
       for (let i = 0; i < remaining.length; i++) {
         const item = remaining[i]
         item.state = 'uploading'
-        setStatus(t('正在上传第 {:a} / {:b} 张证明材料…', { a: i + 1, b: remaining.length }))
+        setStatus(t('Uploading evidence image {:a} / {:b}…', { a: i + 1, b: remaining.length }))
         item.token = await uploadOne(item, csrf)
         item.state = 'done'
         updateSummary()

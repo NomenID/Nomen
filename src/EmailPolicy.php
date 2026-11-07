@@ -7,7 +7,7 @@ namespace Nomen\Src;
 class EmailPolicy
 {
     /** 被名单拦下时对外的唯一说法，不区分具体是哪个域名 */
-    public const REJECT_MESSAGE = 'Nomen不接受此域名下的邮箱。';
+    public const REJECT_MESSAGE = 'Nomen does not accept email addresses on this domain.';
 
     private static ?array $config = null;
 

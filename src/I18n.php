@@ -6,8 +6,8 @@ class I18n
     public const COOKIE = 'nomen_lang';
     /** 翻译缺失时的回退语言（与站点默认语言是两回事，那个在 config/app.php） */
     public const FALLBACK = 'en';
-    /** 翻译键语言；也是缺翻译时的最终兜底 */
-    public const SOURCE = 'zh-hans';
+    /** 母键语言 = 英文原句；也是缺翻译时的最终兜底 */
+    public const SOURCE = 'en';
 
     private static ?string $locale = null;
     /** @var array<string, array<string, string>> */
@@ -96,7 +96,7 @@ class I18n
     /**
      * 每个请求调一次。优先级：?lang 显式切换 > 登录账号的偏好 > cookie > 浏览器语言 > 站点默认语言。
      * 站长关掉切换（language_allow_switch）时整条链路都不走，固定默认语言。
-     * CLI（跑测试/脚本）固定简体中文，翻译键即中文原文，行为与多语言化之前一致。
+     * CLI（跑测试/脚本）固定站点默认语言，行为与多语言化之前一致。
      */
     public static function init(): void
     {
@@ -105,7 +105,7 @@ class I18n
         }
 
         if (PHP_SAPI === 'cli') {
-            self::$locale = self::SOURCE;
+            self::$locale = self::siteDefaultLocale();
             return;
         }
 
@@ -114,19 +114,10 @@ class I18n
             return;
         }
 
-        // 语言选择器点过来：显式动作优先级最高。落 cookie，登录态顺手写进账号。
+        // 语言选择器点过来：显式动作优先级最高。
         $param = (string)($_GET['lang'] ?? '');
         if ($param !== '' && self::isValid($param)) {
-            self::$locale = $param;
-            setcookie(self::COOKIE, $param, [
-                'expires' => time() + 31536000,
-                'path' => '/',
-                'samesite' => 'Lax',
-            ]);
-            $userId = Session::get('user_id');
-            if ($userId) {
-                self::persistUserLocale((int)$userId, $param);
-            }
+            self::applyChoice($param);
             return;
         }
 
@@ -143,6 +134,27 @@ class I18n
         }
 
         self::$locale = self::matchAcceptLanguage($_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '') ?? self::siteDefaultLocale();
+    }
+
+    /**
+     * 明确的语言选择动作（?lang= 参数、/special/lang 选择页共用）：
+     * 落 cookie，登录态顺手写进账号偏好。
+     */
+    public static function applyChoice(string $slug): void
+    {
+        if (!self::isValid($slug)) {
+            return;
+        }
+        self::$locale = $slug;
+        setcookie(self::COOKIE, $slug, [
+            'expires' => time() + 31536000,
+            'path' => '/',
+            'samesite' => 'Lax',
+        ]);
+        $userId = Session::get('user_id');
+        if ($userId) {
+            self::persistUserLocale((int)$userId, $slug);
+        }
     }
 
     private static function persistUserLocale(int $userId, string $slug): void
@@ -228,7 +240,7 @@ class I18n
 
     /**
      * 翻译。键就是简体中文原文；当前语言没有、en 也没有时原样返回键（永不白屏）。
-     * 插值：t('验证码将在 {:min} 分钟内有效', ['min' => 10])
+     * 插值：t('The code is valid for {:min} minutes', ['min' => 10])
      */
     public static function t(string $key, array $params = [], ?string $slug = null): string
     {

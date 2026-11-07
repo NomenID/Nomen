@@ -11,11 +11,11 @@ const { t } = useT()
 export const routes = [
   // dev harness 从 /dev/app.html 启动，把该路径重定向到仪表盘（生产环境不会命中）
   ...(import.meta.env.DEV ? [{ path: '/dev/app.html', redirect: '/dashboard' }] : []),
-  { path: '/dashboard', name: 'dashboard', component: DashboardPage, meta: { title: t('仪表盘') } },
-  { path: '/settings', name: 'settings', component: SettingsPage, meta: { title: t('设置') } },
-  { path: '/family', name: 'family', component: FamilyPage, meta: { title: t('家庭') } },
-  { path: '/notifications', name: 'notifications', component: NotificationsPage, meta: { title: t('消息中心') } },
-  { path: '/notifications/:id(\\d+)', name: 'notification-detail', component: NotificationDetailPage, meta: { title: t('消息详情') } },
+  { path: '/dashboard', name: 'dashboard', component: DashboardPage, meta: { title: t('Dashboard') } },
+  { path: '/settings', name: 'settings', component: SettingsPage, meta: { title: t('Settings') } },
+  { path: '/family', name: 'family', component: FamilyPage, meta: { title: t('Family') } },
+  { path: '/notifications', name: 'notifications', component: NotificationsPage, meta: { title: t('Messages') } },
+  { path: '/notifications/:id(\\d+)', name: 'notification-detail', component: NotificationDetailPage, meta: { title: t('Message detail') } },
 ]
 
 export function createAppRouter() {

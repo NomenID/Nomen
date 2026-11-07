@@ -99,17 +99,17 @@ class OAuthClients
 
         $errors = [];
         if (mb_strlen($name) < 2 || mb_strlen($name) > 128) {
-            $errors[] = t('应用名称需要 2-128 个字符');
+            $errors[] = t('App name needs 2-128 characters');
         }
         if ($homepage !== '' && !filter_var($homepage, FILTER_VALIDATE_URL)) {
-            $errors[] = t('主页 URL 格式不正确');
+            $errors[] = t('Invalid homepage URL');
         }
         if ($uris === []) {
-            $errors[] = t('至少填写一个回调 URL');
+            $errors[] = t('At least one callback URL is required');
         }
         foreach ($uris as $uri) {
             if (!filter_var($uri, FILTER_VALIDATE_URL)) {
-                $errors[] = t('回调 URL 格式不正确: ') . $uri;
+                $errors[] = t('Invalid callback URL: ') . $uri;
             }
         }
         if ($errors !== []) {

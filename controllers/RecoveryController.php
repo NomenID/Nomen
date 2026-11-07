@@ -51,7 +51,7 @@ class RecoveryController
 
         $ctx = $this->resolveContext();
         if (!$ctx) {
-            Session::flash('error', t('验证会话已过期，请重新登录后再申请恢复'));
+            Session::flash('error', t('Verification session expired — sign in again and request recovery'));
             Response::redirect('/login');
         }
 
@@ -62,7 +62,7 @@ class RecoveryController
         $config = self::config();
 
         Response::view('recovery', [
-            'title'  => '账号恢复申诉',
+            'title'  => 'Account recovery request',
             'ctx'    => $ctx,
             'genders' => self::GENDERS,
             'error'  => Session::getFlash('error'),
@@ -148,13 +148,13 @@ class RecoveryController
     public function submit(): void
     {
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            Session::flash('error', t('请求无效，请重试'));
+            Session::flash('error', t('Invalid request, try again'));
             Response::redirect('/recovery');
         }
 
         $ctx = $this->resolveContext();
         if (!$ctx) {
-            Session::flash('error', t('验证会话已过期，请重新登录后再申请恢复'));
+            Session::flash('error', t('Verification session expired — sign in again and request recovery'));
             Response::redirect('/login');
         }
 
@@ -170,7 +170,7 @@ class RecoveryController
             (int)($config['recovery_submit_window'] ?? 3600)
         );
         if (!$rate['allowed']) {
-            Session::flash('error', t('提交过于频繁，请 {:n} 秒后再试', ['n' => (int)$rate['retry_after']]));
+            Session::flash('error', t('Too many submissions — retry in {:n}s', ['n' => (int)$rate['retry_after']]));
             Response::redirect('/recovery');
         }
 
@@ -305,11 +305,11 @@ class RecoveryController
     public function upload(): void
     {
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            Response::json(['success' => false, 'message' => t('请求无效，请刷新页面后重试')]);
+            Response::json(['success' => false, 'message' => t('Invalid request — refresh the page and retry')]);
         }
 
         if (!$this->resolveContext()) {
-            Response::json(['success' => false, 'message' => t('验证会话已过期，请重新登录后再试')]);
+            Response::json(['success' => false, 'message' => t('Verification session expired — sign in again and retry')]);
         }
 
         $config = self::config();
@@ -320,24 +320,24 @@ class RecoveryController
             (int)($config['recovery_upload_window'] ?? 3600)
         );
         if (!$rate['allowed']) {
-            Response::json(['success' => false, 'message' => t('上传过于频繁，请稍后再试')]);
+            Response::json(['success' => false, 'message' => t('Too many uploads, try again later')]);
         }
 
         if (empty($_FILES['file']) || !is_array($_FILES['file'])) {
-            Response::json(['success' => false, 'message' => t('没有收到文件')]);
+            Response::json(['success' => false, 'message' => t('No file received')]);
         }
 
         $file = $_FILES['file'];
         $error = (int)($file['error'] ?? UPLOAD_ERR_NO_FILE);
         if ($error !== UPLOAD_ERR_OK) {
             $messages = [
-                UPLOAD_ERR_INI_SIZE   => t('图片超过了服务器允许的大小'),
-                UPLOAD_ERR_FORM_SIZE  => t('图片过大，请压缩后重试'),
-                UPLOAD_ERR_PARTIAL    => t('图片只上传了一部分，请重试'),
-                UPLOAD_ERR_NO_FILE    => t('没有选择图片'),
-                UPLOAD_ERR_NO_TMP_DIR => t('服务器缺少临时目录'),
-                UPLOAD_ERR_CANT_WRITE => t('服务器写入失败'),
-                UPLOAD_ERR_EXTENSION  => t('上传被服务器扩展中断'),
+                UPLOAD_ERR_INI_SIZE   => t('The image exceeds the server\'s size limit'),
+                UPLOAD_ERR_FORM_SIZE  => t('The image is too large — compress it and retry'),
+                UPLOAD_ERR_PARTIAL    => t('The image was only partially uploaded, try again'),
+                UPLOAD_ERR_NO_FILE    => t('No image selected'),
+                UPLOAD_ERR_NO_TMP_DIR => t('Server temp directory missing'),
+                UPLOAD_ERR_CANT_WRITE => t('Server failed to write the file'),
+                UPLOAD_ERR_EXTENSION  => t('Upload interrupted by a server extension'),
             ];
             Response::json(['success' => false, 'message' => t($messages[$error] ?? '上传失败，请重试')]);
         }
@@ -347,14 +347,14 @@ class RecoveryController
             Response::json([
                 'success' => false,
                 'too_large' => true,
-                'message' => t('单张图片不能超过 {:size}，请压缩后重试', ['size' => RecoveryHelper::formatBytes($maxBytes)]),
+                'message' => t('Each image can\'t exceed {:size}. Compress it and retry', ['size' => RecoveryHelper::formatBytes($maxBytes)]),
             ]);
         }
 
         $maxCount = (int)($config['recovery_attach_max_count'] ?? 5);
         $staged = $this->stagedUploads();
         if (count($staged) >= $maxCount) {
-            Response::json(['success' => false, 'message' => t('最多只能上传 {:n} 张图片', ['n' => $maxCount])]);
+            Response::json(['success' => false, 'message' => t('Up to {:n} images', ['n' => $maxCount])]);
         }
 
         // 真 MIME 校验：不信任扩展名，也不信任前端声明的 type
@@ -372,22 +372,22 @@ class RecoveryController
         $ext = RecoveryHelper::ATTACH_MIME_EXT[$mime ?? ''] ?? null;
 
         if ($ext === null || !is_array($info) || $imageMime !== $mime) {
-            Response::json(['success' => false, 'message' => t('只接受真正的 PNG / JPG / WebP 图片')]);
+            Response::json(['success' => false, 'message' => t('Only real PNG / JPG / WebP images are accepted')]);
         }
 
         if ($info[0] < 16 || $info[1] < 16 || $info[0] > 12000 || $info[1] > 12000) {
-            Response::json(['success' => false, 'message' => t('图片尺寸异常，请换一张')]);
+            Response::json(['success' => false, 'message' => t('The image has odd dimensions, try another one')]);
         }
 
         $token = bin2hex(random_bytes(16));
         $bucket = RecoveryHelper::tmpRoot() . '/' . substr(hash('sha256', session_id()), 0, 16);
         if (!is_dir($bucket) && !mkdir($bucket, 0755, true) && !is_dir($bucket)) {
-            Response::json(['success' => false, 'message' => t('服务器无法保存文件，请稍后重试')]);
+            Response::json(['success' => false, 'message' => t('Server couldn\'t save the file, try again later')]);
         }
 
         $dest = $bucket . '/' . $token . '.' . $ext;
         if (!move_uploaded_file($file['tmp_name'], $dest)) {
-            Response::json(['success' => false, 'message' => t('保存失败，请重试')]);
+            Response::json(['success' => false, 'message' => t('Save failed, try again')]);
         }
         @chmod($dest, 0644);
 
@@ -511,7 +511,7 @@ class RecoveryController
     public function sent(): void
     {
         Response::view('recovery-sent', [
-            'title'   => '申诉已提交',
+            'title'   => 'Request submitted',
             'contact' => Session::getFlash('recovery_contact'),
         ]);
     }
@@ -525,7 +525,7 @@ class RecoveryController
     {
         $token = (string)($_GET['token'] ?? '');
         if ($token === '' || strlen($token) > 200) {
-            $this->ticketFailed(t('恢复链接无效'));
+            $this->ticketFailed(t('Invalid recovery link'));
         }
 
         $hash = hash('sha512', $token);
@@ -539,7 +539,7 @@ class RecoveryController
         $request = $stmt->fetch();
 
         if (!$request) {
-            $this->ticketFailed(t('恢复链接无效、已过期或已被使用'));
+            $this->ticketFailed(t('Recovery link invalid, expired, or already used'));
         }
 
         $userId = (int)$request['user_id'];
@@ -548,7 +548,7 @@ class RecoveryController
         $user = $stmt->fetch();
 
         if (!$user || (int)$user['status'] !== 1) {
-            $this->ticketFailed(t('该账号当前不可用，请联系虚舟实验室支持团队'));
+            $this->ticketFailed(t('This account is currently unavailable — contact the CaelLab support team'));
         }
 
         $this->db->prepare(
@@ -582,7 +582,7 @@ class RecoveryController
 
     private function ticketFailed(string $message): void
     {
-        Session::flash('error', $message . t('；如仍需帮助，请联系 {:email}', ['email' => (self::config()['support_email'] ?? '')]));
+        Session::flash('error', $message . t('; if you still need help, contact {:email}', ['email' => (self::config()['support_email'] ?? '')]));
         Response::redirect('/login');
     }
 
@@ -601,7 +601,7 @@ class RecoveryController
         [$methods, $assistMethods, $count, $resetDone] = $this->progress($userId);
 
         Response::view('recovery-secure', [
-            'title'          => '恢复账户访问权限',
+            'title'          => 'Regain access to your account',
             'username'       => (string)Session::get('recovery_username', ''),
             'methods'        => $methods,
             'assistMethods'  => $assistMethods,
@@ -643,17 +643,17 @@ class RecoveryController
         }
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            Session::flash('error', t('请求无效，请重试'));
+            Session::flash('error', t('Invalid request, try again'));
             Response::redirect('/recovery/secure');
         }
 
         [, , $count, $resetDone] = $this->progress($userId);
         if (!$resetDone) {
-            Session::flash('error', t('请先修改密码，或添加 / 更换并验证一个邮箱'));
+            Session::flash('error', t('First change your password, or add / replace and verify an email'));
             Response::redirect('/recovery/secure');
         }
         if ($count < RecoveryHelper::MIN_LOGIN_METHODS) {
-            Session::flash('error', t('登录方式不足 {:n} 种，请再添加一种（验证器 APP 或恢复码）', ['n' => RecoveryHelper::MIN_LOGIN_METHODS]));
+            Session::flash('error', t('Only {:n} sign-in methods — add one more (authenticator app or recovery codes)', ['n' => RecoveryHelper::MIN_LOGIN_METHODS]));
             Response::redirect('/recovery/secure');
         }
 
@@ -700,16 +700,16 @@ class RecoveryController
     {
         $support = (string)(self::config()['support_email'] ?? '');
         $locale = I18n::locale();
-        $disclaimer = I18n::tIn($locale, '您之所以会收到此邮件，是因为有人在提交申诉时提供该地址作为联系电子邮件地址。如果您并未提交任何申诉，可以忽略此邮件。');
+        $disclaimer = I18n::tIn($locale, 'You received this email because someone provided this address as the contact email when submitting an appeal. If you did not submit any appeal, you can ignore this email.');
 
-        Email::send($contactEmail, 'Nomen - ' . I18n::tIn($locale, '已收到您的账号恢复申诉'), EmailTemplate::render([
-            'preheader' => '我们已收到您的 Nomen 恢复申诉',
-            'badge'     => ['text' => '账号恢复', 'tone' => 'general'],
-            'title'     => '已收到您的账号恢复申诉',
+        Email::send($contactEmail, 'Nomen - ' . I18n::tIn($locale, 'We received your account recovery request'), EmailTemplate::render([
+            'preheader' => 'We received your Nomen recovery request',
+            'badge'     => ['text' => 'Account recovery', 'tone' => 'general'],
+            'title'     => 'We received your account recovery request',
             'blocks'    => [
-                ['type' => 'paragraph', 'text' => '感谢您就恢复对您 Nomen 的访问权限一事与我们联系。'],
-                ['type' => 'paragraph', 'text' => '虚舟实验室(CaelLab) 会尽快审核您的申诉。大部分请求的审核用时为 2 个自然日，但某些请求可能需要更长的时间。'],
-                ['type' => 'paragraph', 'text' => '感谢您的耐心等待。'],
+                ['type' => 'paragraph', 'text' => 'Thank you for reaching out about regaining access to your Nomen.'],
+                ['type' => 'paragraph', 'text' => 'CaelLab will review your request as soon as possible. Most are reviewed within 2 business days; some take longer.'],
+                ['type' => 'paragraph', 'text' => 'Thank you for your patience.'],
                 ['type' => 'alert', 'tone' => 'info', 'text' => $disclaimer],
             ],
             'footnote'  => I18n::tIn($locale, '如对本次申诉有疑问，请联系 {:email}。', ['email' => htmlspecialchars($support, ENT_QUOTES, 'UTF-8')]),
@@ -895,10 +895,10 @@ class RecoveryController
 
         Email::send($to, 'Nomen - ' . $title, EmailTemplate::render([
             'preheader' => $preheader,
-            'badge'     => ['text' => '管理提醒', 'tone' => 'warning'],
+            'badge'     => ['text' => 'Admin digest', 'tone' => 'warning'],
             'title'     => $title,
             'blocks'    => $blocks,
-            'button'    => ['text' => '打开恢复工单', 'url' => EmailTemplate::url('/admin/recovery')],
+            'button'    => ['text' => 'Open recovery tickets', 'url' => EmailTemplate::url('/admin/recovery')],
         ]), $embedded);
     }
 
@@ -920,16 +920,16 @@ class RecoveryController
         }
 
         $locale = I18n::locale();
-        Email::send($user['email'], 'Nomen - ' . I18n::tIn($locale, '账号恢复完成'), EmailTemplate::render([
-            'preheader' => '你的 Nomen 账户已完成安全修复',
-            'badge'     => ['text' => '账号恢复', 'tone' => 'success'],
-            'title'     => '账号恢复完成',
+        Email::send($user['email'], 'Nomen - ' . I18n::tIn($locale, 'Account recovery complete'), EmailTemplate::render([
+            'preheader' => 'Your Nomen account has finished security repair',
+            'badge'     => ['text' => 'Account recovery', 'tone' => 'success'],
+            'title'     => 'Account recovery complete',
             'blocks'    => [
-                ['type' => 'paragraph', 'text' => '你的 Nomen 账户已完成安全修复，现在可以正常使用了。'],
-                ['type' => 'paragraph', 'text' => '为安全起见，我们已清除该账户在所有其他设备上的登录状态，并撤销了全部第三方应用授权。'],
+                ['type' => 'paragraph', 'text' => 'Your Nomen account has finished security repair and is ready to use.'],
+                ['type' => 'paragraph', 'text' => 'For safety we signed the account out of all other devices and revoked every third-party authorization.'],
                 ['type' => 'alert', 'tone' => 'warning', 'text' => I18n::tIn($locale, '如果这不是你本人操作，请立即修改密码并联系 {:support}。', ['support' => (self::config()['support_email'] ?? '')])],
             ],
-            'button'    => ['text' => '前往 Nomen', 'url' => EmailTemplate::url('/dashboard')],
+            'button'    => ['text' => 'Open Nomen', 'url' => EmailTemplate::url('/dashboard')],
         ], $locale));
     }
 
@@ -945,12 +945,12 @@ class RecoveryController
         $locale = I18n::emailLocale((int)$user['id']);
         Email::send($user['email'], 'Nomen - ' . I18n::tIn($locale, $title), EmailTemplate::render([
             'preheader' => $title,
-            'badge'     => ['text' => '安全提醒', 'tone' => 'important'],
+            'badge'     => ['text' => 'Security alert', 'tone' => 'important'],
             'title'     => $title,
             'blocks'    => [
                 ['type' => 'paragraph', 'text' => $body],
             ],
-            'button'    => ['text' => '前往 Nomen', 'url' => EmailTemplate::url('/settings')],
+            'button'    => ['text' => 'Open Nomen', 'url' => EmailTemplate::url('/settings')],
         ], $locale));
     }
 }

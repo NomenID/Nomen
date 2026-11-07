@@ -12,7 +12,7 @@
  * @var bool $isFirstParty 第一方应用（开发者 Id=1）
  * @var bool $quickLogin 第一方应用 + 用户开着快速登录：免逐项确认，自动授权
  */
-$title = t('授权应用');
+$title = t('Authorized apps');
 
 $props = [
     'csrf' => \Nomen\Src\Csrf::getToken(),
@@ -58,7 +58,7 @@ $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APO
                 </div>
             </div>
             <div class="authorize-body">
-                <p class="authorize-desc"><strong><?= htmlspecialchars($client['name']) ?></strong> <?= t('请求访问您的 Nomen 账户：') ?></p>
+                <p class="authorize-desc"><strong><?= htmlspecialchars($client['name']) ?></strong> <?= t('wants to access your Nomen account:') ?></p>
                 <form method="POST" action="/oauth/authorize" class="authorize-actions">
                     <?= \Nomen\Src\Csrf::field() ?>
                     <input type="hidden" name="client_id" value="<?= htmlspecialchars($clientId) ?>">
@@ -68,8 +68,8 @@ $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APO
                     <input type="hidden" name="response_type" value="<?= htmlspecialchars($responseType) ?>">
                     <input type="hidden" name="action" value="allow">
                     <div class="authorize-buttons">
-                        <a href="<?= htmlspecialchars($denyUrl) ?>" class="btn btn-secondary"><?= t('拒绝') ?></a>
-                        <button type="submit" class="btn btn-primary"><?= t('授权') ?></button>
+                        <a href="<?= htmlspecialchars($denyUrl) ?>" class="btn btn-secondary"><?= t('Deny') ?></a>
+                        <button type="submit" class="btn btn-primary"><?= t('Authorize') ?></button>
                     </div>
                 </form>
             </div>

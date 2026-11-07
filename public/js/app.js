@@ -5,7 +5,7 @@ function iconTag(name, extraClass) {
     return '<span class="icon icon-' + name + (extraClass ? ' ' + extraClass : '') + '"></span>';
 }
 
-// 多语言：词典由布局挂的 /i18n/{语言}.js 注入（window.NOMEN_I18N），键是简体中文原文。
+// 多语言：词典由布局挂的 /i18n/{语言}.js 注入（window.NOMEN_I18N），母键是英文原句。
 // 拿不到词典（管理后台）或词条缺失时原样返回键，页面永远不空白。
 function t(key, params) {
     var v = window.NOMEN_I18N ? window.NOMEN_I18N[key] : null;
@@ -43,13 +43,27 @@ function initLangPicker() {
     var options = picker.querySelectorAll('.lang-option');
     if (!trigger || !panel) return;
 
+    // 页面源码里选项不带 href（搜索引擎看不到 ?lang=）；面板打开时现场生成
+    function buildHrefs() {
+        options.forEach(function(opt) {
+            var slug = opt.getAttribute('data-lang-slug');
+            if (!slug || opt.hasAttribute('href')) return;
+            var params = new URLSearchParams(window.location.search);
+            params.set('lang', slug);
+            opt.setAttribute('href', window.location.pathname + '?' + params.toString() + window.location.hash);
+        });
+    }
+
     function close() {
         panel.hidden = true;
         trigger.setAttribute('aria-expanded', 'false');
+        picker.classList.remove('is-open');
     }
     function open() {
+        buildHrefs();
         panel.hidden = false;
         trigger.setAttribute('aria-expanded', 'true');
+        picker.classList.add('is-open');
         if (search) search.focus();
     }
     function filter(q) {
@@ -64,6 +78,7 @@ function initLangPicker() {
     }
 
     trigger.addEventListener('click', function(e) {
+        e.preventDefault();
         e.stopPropagation();
         if (panel.hidden) open(); else close();
     });
@@ -204,7 +219,7 @@ function initLangPicker() {
         toast.innerHTML =
             '<span class="nomen-toast__icon" aria-hidden="true">' + iconTag(TOAST_ICONS[type]) + '</span>' +
             '<span class="nomen-toast__message"></span>' +
-            '<button type="button" class="nomen-toast__close" aria-label="' + t('关闭') + '">' + iconTag('close') + '</button>' +
+            '<button type="button" class="nomen-toast__close" aria-label="' + t('Close') + '">' + iconTag('close') + '</button>' +
             '<div class="nomen-toast__progress"></div>';
         toast.querySelector('.nomen-toast__message').textContent = message == null ? '' : String(message);
         ensureToastContainer().appendChild(toast);
@@ -368,13 +383,13 @@ function initLangPicker() {
         opts = opts || {};
         return present({
             icon: opts.icon || 'info',
-            title: title || t('提示'),
+            title: title || t('Notice'),
             message: message,
             content: opts.content,
             variant: boxVariant(opts),
             cancelValue: true,
             buttons: [
-                makeButton(opts.confirmText || t('知道了'), 'nomen-modal-btn--primary', function() { settle(true); })
+                makeButton(opts.confirmText || t('Got it'), 'nomen-modal-btn--primary', function() { settle(true); })
             ]
         });
     }
@@ -382,7 +397,7 @@ function initLangPicker() {
     function showConfirm(title, message, opts) {
         opts = opts || {};
 
-        var confirmText = opts.confirmText || t('确定');
+        var confirmText = opts.confirmText || t('OK');
         var countdown = opts.countdown || 0;
         var timer = null;
 
@@ -395,13 +410,13 @@ function initLangPicker() {
 
         return present({
             icon: opts.icon || (opts.danger ? 'warning' : 'info'),
-            title: title || t('确认操作'),
+            title: title || t('Confirm'),
             message: message,
             content: opts.content,
             variant: boxVariant(opts),
             cancelValue: false,
             buttons: [
-                makeButton(opts.cancelText || t('取消'), 'nomen-modal-btn--ghost', function() { settle(false); }),
+                makeButton(opts.cancelText || t('Cancel'), 'nomen-modal-btn--ghost', function() { settle(false); }),
                 confirmBtn
             ],
             onOpen: countdown > 0 ? function() {
@@ -439,7 +454,7 @@ function initLangPicker() {
         field.className = 'nomen-modal-field';
         field.appendChild(input);
 
-        var confirmBtn = makeButton(opts.confirmText || t('确定'), confirmButtonClass(opts), function() {
+        var confirmBtn = makeButton(opts.confirmText || t('OK'), confirmButtonClass(opts), function() {
             var value = input.value.trim();
             if (opts.required !== false && !value) {
                 input.classList.add('nomen-modal-input--invalid');
@@ -461,13 +476,13 @@ function initLangPicker() {
 
         return present({
             icon: opts.icon || 'lock',
-            title: title || t('请输入'),
+            title: title || t('Enter'),
             message: message,
             content: field,
             variant: boxVariant(opts),
             cancelValue: null,
             buttons: [
-                makeButton(opts.cancelText || t('取消'), 'nomen-modal-btn--ghost', function() { settle(null); }),
+                makeButton(opts.cancelText || t('Cancel'), 'nomen-modal-btn--ghost', function() { settle(null); }),
                 confirmBtn
             ],
             onOpen: function() { input.focus(); input.select(); }
@@ -510,7 +525,7 @@ function initLangPicker() {
             var close = document.createElement('button');
             close.type = 'button';
             close.className = 'nomen-alert__close';
-            close.setAttribute('aria-label', t('关闭'));
+            close.setAttribute('aria-label', t('Close'));
             close.innerHTML = iconTag('close');
             close.addEventListener('click', function() { fadeOutAlert(el); });
             el.appendChild(close);
@@ -631,9 +646,9 @@ function initConfirmForms() {
     document.querySelectorAll('form[data-confirm]').forEach(function(form) {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
-            Nomen.confirm(form.dataset.confirmTitle || t('确认操作'), form.dataset.confirm, {
+            Nomen.confirm(form.dataset.confirmTitle || t('Confirm'), form.dataset.confirm, {
                 danger: 'confirmDanger' in form.dataset,
-                confirmText: form.dataset.confirmOk || t('确定')
+                confirmText: form.dataset.confirmOk || t('OK')
             }).then(function(ok) {
                 if (!ok) return;
                 if (form.dataset.soft === '1' && typeof window.__softSubmit === 'function') {
@@ -648,9 +663,9 @@ function initConfirmForms() {
 }
 
 function handleLogout() {
-    Nomen.confirm(t('退出登录'), t('确定要退出登录吗？'), {
-        confirmText: t('退出'),
-        cancelText: t('取消')
+    Nomen.confirm(t('Sign out'), t('Sign out?'), {
+        confirmText: t('Sign out'),
+        cancelText: t('Cancel')
     }).then(function(confirmed) {
         if (confirmed) {
             window.location.href = '/logout';
@@ -708,8 +723,8 @@ function initTwoFactorVerify() {
             }
 
             // 更新按钮文字
-            var labels = { password: t('验证密码'), email_code: t('验证邮箱'), totp: t('验证动态码'), recovery_code: t('验证恢复码') };
-            verifyBtn.textContent = labels[factor] || t('验证');
+            var labels = { password: t('Verify password'), email_code: t('Verify email'), totp: t('Verify dynamic code'), recovery_code: t('Verify recovery code') };
+            verifyBtn.textContent = labels[factor] || t('Verify');
             verifyBtn.disabled = false;
         });
     });
@@ -719,7 +734,7 @@ function initTwoFactorVerify() {
         sendBtn.addEventListener('click', function() {
             var self = this;
             self.disabled = true;
-            self.textContent = t('发送中...');
+            self.textContent = t('Sending...');
 
             var xhr = new XMLHttpRequest();
             xhr.open('POST', '/2fa/verify/send-code', true);
@@ -727,7 +742,7 @@ function initTwoFactorVerify() {
             xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
             xhr.onload = function() {
                 self.disabled = false;
-                self.textContent = t('发送验证码');
+                self.textContent = t('Send code');
                 try {
                     var data = JSON.parse(xhr.responseText);
                     if (data.success) {
@@ -736,25 +751,25 @@ function initTwoFactorVerify() {
                         var countdown = 60;
                         self.disabled = true;
                         var timer = setInterval(function() {
-                            self.textContent = t('重新发送({:n}s)', { n: countdown });
+                            self.textContent = t('Resend ({:n}s)', { n: countdown });
                             countdown--;
                             if (countdown < 0) {
                                 clearInterval(timer);
                                 self.disabled = false;
-                                self.textContent = t('发送验证码');
+                                self.textContent = t('Send code');
                             }
                         }, 1000);
                     } else {
                         showToast(data.message, 'error');
                     }
                 } catch(e) {
-                    showToast(t('发送失败'), 'error');
+                    showToast(t('Send failed'), 'error');
                 }
             };
             xhr.onerror = function() {
                 self.disabled = false;
-                self.textContent = t('发送验证码');
-                showToast(t('网络错误'), 'error');
+                self.textContent = t('Send code');
+                showToast(t('Network error'), 'error');
             };
             // 账号有多个邮箱时，页面上有一个收码邮箱下拉（默认首选）
             var target = document.getElementById('twofa-email-target');
@@ -767,7 +782,7 @@ function initTwoFactorVerify() {
     verifyBtn.addEventListener('click', function() {
         var factor = getSelectedFactor();
         if (!factor) {
-            showToast(t('请选择验证方式'), 'warning');
+            showToast(t('Pick a verification method'), 'warning');
             return;
         }
 
@@ -775,12 +790,12 @@ function initTwoFactorVerify() {
         var value = valueInput ? valueInput.value.trim() : '';
 
         if (!value) {
-            showToast(t('请输入验证信息'), 'warning');
+            showToast(t('Enter the verification value'), 'warning');
             return;
         }
 
         verifyBtn.disabled = true;
-        verifyBtn.textContent = t('验证中...');
+        verifyBtn.textContent = t('Verifying...');
 
         var xhr = new XMLHttpRequest();
         xhr.open('POST', '/2fa/verify', true);
@@ -788,23 +803,23 @@ function initTwoFactorVerify() {
         xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
         xhr.onload = function() {
             verifyBtn.disabled = false;
-            verifyBtn.textContent = t('验证');
+            verifyBtn.textContent = t('Verify');
             try {
                 var data = JSON.parse(xhr.responseText);
                 if (data.success) {
-                    showToast(t('验证通过'), 'success');
+                    showToast(t('Verification passed'), 'success');
                     window.location.href = data.redirect || '/dashboard';
                 } else {
                     showToast(data.message, 'error');
                 }
             } catch(e) {
-                showToast(t('请求失败'), 'error');
+                showToast(t('Request failed'), 'error');
             }
         };
         xhr.onerror = function() {
             verifyBtn.disabled = false;
-            verifyBtn.textContent = t('验证');
-            showToast(t('网络错误'), 'error');
+            verifyBtn.textContent = t('Verify');
+            showToast(t('Network error'), 'error');
         };
         xhr.send('_csrf=' + encodeURIComponent(getCsrfToken()) + '&nonce=' + encodeURIComponent(nonce) + '&factor_type=' + encodeURIComponent(factor) + '&factor_value=' + encodeURIComponent(value));
     });
@@ -860,7 +875,7 @@ function initSettingsTotp() {
                     var data = JSON.parse(xhr.responseText);
                     if (data.success) {
                         if (data.has_totp) {
-                            showToast(t('TOTP 已启用'), 'info');
+                            showToast(t('TOTP enabled'), 'info');
                             loadStatus();
                             return;
                         }
@@ -875,14 +890,14 @@ function initSettingsTotp() {
 
                         // 生成二维码（用 goQR API，不依赖任何 JS 库）
                         if (qrPlaceholder && data.uri) {
-                            qrPlaceholder.innerHTML = '<img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(data.uri) + '" alt="' + t('TOTP 二维码') + '" style="width:180px;height:180px;border-radius:8px;display:block;" onerror="this.style.display=\'none\';this.parentNode.innerHTML=\'<p style=font-size:13px;color:var(--color-text-subtle);>' + t('无法加载二维码，请手动输入下方密钥') + '</p>\'">';
+                            qrPlaceholder.innerHTML = '<img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(data.uri) + '" alt="' + t('TOTP QR code') + '" style="width:180px;height:180px;border-radius:8px;display:block;" onerror="this.style.display=\'none\';this.parentNode.innerHTML=\'<p style=font-size:13px;color:var(--color-text-subtle);>' + t('Couldn\'t load the QR code — enter the key below manually') + '</p>\'">';
                         }
                     }
                 } catch(e) {
-                    showToast(t('加载失败'), 'error');
+                    showToast(t('Load failed'), 'error');
                 }
             };
-            xhr.onerror = function() { showToast(t('网络错误'), 'error'); };
+            xhr.onerror = function() { showToast(t('Network error'), 'error'); };
             xhr.send();
         });
     }
@@ -892,12 +907,12 @@ function initSettingsTotp() {
         verifyBtn.addEventListener('click', function() {
             var code = verifyCodeInput ? verifyCodeInput.value.trim() : '';
             if (!code || code.length !== 6) {
-                showToast(t('请输入6位验证码'), 'warning');
+                showToast(t('Enter the 6-digit verification code'), 'warning');
                 return;
             }
 
             verifyBtn.disabled = true;
-            verifyBtn.textContent = t('验证中...');
+            verifyBtn.textContent = t('Verifying...');
 
             var xhr = new XMLHttpRequest();
             xhr.open('POST', '/2fa/totp/verify', true);
@@ -905,11 +920,11 @@ function initSettingsTotp() {
             xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
             xhr.onload = function() {
                 verifyBtn.disabled = false;
-                verifyBtn.textContent = t('验证并启用');
+                verifyBtn.textContent = t('Verify and enable');
                 try {
                     var data = JSON.parse(xhr.responseText);
                     if (data.success) {
-                        showToast(t('TOTP 已启用'), 'success');
+                        showToast(t('TOTP enabled'), 'success');
                         setupForm.style.display = 'none';
                         if (enableBtn) enableBtn.style.display = 'none';
                         if (disabledDiv) disabledDiv.style.display = 'none';
@@ -922,13 +937,13 @@ function initSettingsTotp() {
                         showToast(data.message, 'error');
                     }
                 } catch(e) {
-                    showToast(t('请求失败'), 'error');
+                    showToast(t('Request failed'), 'error');
                 }
             };
             xhr.onerror = function() {
                 verifyBtn.disabled = false;
-                verifyBtn.textContent = t('验证并启用');
-                showToast(t('网络错误'), 'error');
+                verifyBtn.textContent = t('Verify and enable');
+                showToast(t('Network error'), 'error');
             };
             xhr.send('_csrf=' + encodeURIComponent(getCsrf()) + '&code=' + encodeURIComponent(code));
         });
@@ -947,14 +962,14 @@ function initSettingsTotp() {
         // 恢复流程下后端已跳过密码校验，这里不能再用 required 把空输入挡死
         var disableRecoveryMode = disableBtn.dataset.recoveryMode === '1';
         disableBtn.addEventListener('click', function() {
-            Nomen.prompt(t('禁用 TOTP'), disableRecoveryMode
-                ? t('恢复流程中无需填写密码，直接确认即可：')
-                : t('请输入当前密码以确认禁用 TOTP 验证器：'), {
-                confirmText: t('确认禁用'),
-                cancelText: t('取消'),
+            Nomen.prompt(t('Disable TOTP'), disableRecoveryMode
+                ? t('No password needed in recovery mode — just confirm:')
+                : t('Enter the current password to disable TOTP:'), {
+                confirmText: t('Disable'),
+                cancelText: t('Cancel'),
                 danger: true,
                 inputType: 'password',
-                placeholder: disableRecoveryMode ? t('恢复流程中可留空') : t('当前密码'),
+                placeholder: disableRecoveryMode ? t('Can be left empty in recovery mode') : t('Current password'),
                 required: !disableRecoveryMode
             }).then(function(password) {
                 if (password === null) return;
@@ -967,7 +982,7 @@ function initSettingsTotp() {
                     try {
                         var data = JSON.parse(xhr.responseText);
                         if (data.success) {
-                            showToast(t('TOTP 已禁用'), 'success');
+                            showToast(t('TOTP disabled'), 'success');
                             loadStatus();
                             if (setupForm) setupForm.style.display = 'none';
                             if (enableBtn) enableBtn.style.display = 'inline-block';
@@ -975,10 +990,10 @@ function initSettingsTotp() {
                             showToast(data.message, 'error');
                         }
                     } catch(e) {
-                        showToast(t('请求失败'), 'error');
+                        showToast(t('Request failed'), 'error');
                     }
                 };
-                xhr.onerror = function() { showToast(t('网络错误'), 'error'); };
+                xhr.onerror = function() { showToast(t('Network error'), 'error'); };
                 xhr.send('_csrf=' + encodeURIComponent(getCsrf()) + '&password=' + encodeURIComponent(password));
             });
         });
@@ -1010,19 +1025,19 @@ function initSettingsRecoveryCodes() {
     }
 
     function deleteAllCodes(btn) {
-        Nomen.prompt(t('删除全部恢复码'), recoveryMode
-            ? t('恢复流程中无需填写密码，直接确认即可。删除后所有恢复码立即失效：')
-            : t('请输入当前密码以删除全部恢复码，删除后这些码立即失效：'), {
-            confirmText: t('删除'),
-            cancelText: t('取消'),
+        Nomen.prompt(t('Delete all recovery codes'), recoveryMode
+            ? t('No password needed in recovery mode — just confirm. All recovery codes are voided immediately:')
+            : t('Enter the current password to delete all recovery codes — they stop working immediately:'), {
+            confirmText: t('Delete'),
+            cancelText: t('Cancel'),
             danger: true,
             inputType: 'password',
-            placeholder: recoveryMode ? t('恢复流程中可留空') : t('当前密码'),
+            placeholder: recoveryMode ? t('Can be left empty in recovery mode') : t('Current password'),
             required: !recoveryMode
         }).then(function(password) {
             if (password === null) return;
             btn.disabled = true;
-            btn.textContent = t('删除中...');
+            btn.textContent = t('Deleting...');
 
             var xhr = new XMLHttpRequest();
             xhr.open('POST', '/2fa/recovery-codes/delete', true);
@@ -1032,25 +1047,25 @@ function initSettingsRecoveryCodes() {
                 var d;
                 try { d = JSON.parse(xhr.responseText); } catch (e) { d = {}; }
                 if (d.success) {
-                    showToast(d.message || t('恢复码已删除'), 'success');
+                    showToast(d.message || t('Recovery codes deleted'), 'success');
                     loadCodes();
                 } else {
-                    showToast(d.message || t('删除失败'), 'error');
+                    showToast(d.message || t('Delete failed'), 'error');
                     btn.disabled = false;
-                    btn.textContent = t('删除全部恢复码');
+                    btn.textContent = t('Delete all recovery codes');
                 }
             };
             xhr.onerror = function() {
-                showToast(t('网络错误'), 'error');
+                showToast(t('Network error'), 'error');
                 btn.disabled = false;
-                btn.textContent = t('删除全部恢复码');
+                btn.textContent = t('Delete all recovery codes');
             };
             xhr.send('_csrf=' + encodeURIComponent(getCsrf()) + '&password=' + encodeURIComponent(password));
         });
     }
 
     function loadCodes() {
-        listEl.innerHTML = '<p class="text-muted">' + t('加载中...') + '</p>';
+        listEl.innerHTML = '<p class="text-muted">' + t('Loading...') + '</p>';
         var xhr = new XMLHttpRequest();
         xhr.open('GET', '/2fa/recovery-codes', true);
         xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
@@ -1059,7 +1074,7 @@ function initSettingsRecoveryCodes() {
                 var data = JSON.parse(xhr.responseText);
                 if (data.success) {
                     if (!data.batches || data.batches.length === 0) {
-                        listEl.innerHTML = '<p class="text-muted">' + t('还没有生成过恢复码。生成后即使不启用验证器 APP，登录二验时也能选择「恢复码」验证。') + '</p>';
+                        listEl.innerHTML = '<p class="text-muted">' + t('No recovery codes yet. Once generated, they work on their own — you can pick “recovery code” during two-step verification even without TOTP.') + '</p>';
                         return;
                     }
                     var totalUnused = 0;
@@ -1067,8 +1082,8 @@ function initSettingsRecoveryCodes() {
                         totalUnused += parseInt(batch.unused_count, 10);
                     });
                     var status = totalUnused > 0
-                        ? '<p style="margin-bottom:12px;">' + iconTag('check', 'icon--success') + ' <span style="color:var(--color-success);font-weight:600;">' + t('恢复码已启用') + '</span>' + t('，剩余 {:n} 个未使用', { n: totalUnused }) + '</p>'
-                        : '<p style="margin-bottom:12px;">' + iconTag('warning', 'icon--warning') + ' <span style="color:var(--color-warning);font-weight:600;">' + t('恢复码已全部用完') + '</span>' + t('，登录验证将无法使用恢复码，建议重新生成') + '</p>';
+                        ? '<p style="margin-bottom:12px;">' + iconTag('check', 'icon--success') + ' <span style="color:var(--color-success);font-weight:600;">' + t('Recovery codes enabled') + '</span>' + t(', {:n} unused remaining', { n: totalUnused }) + '</p>'
+                        : '<p style="margin-bottom:12px;">' + iconTag('warning', 'icon--warning') + ' <span style="color:var(--color-warning);font-weight:600;">' + t('All recovery codes used up') + '</span>' + t('; sign-in verification can no longer use recovery codes — generate new ones') + '</p>';
                     var html = status;
                     data.batches.forEach(function(batch) {
                         var unused = parseInt(batch.unused_count, 10);
@@ -1076,31 +1091,31 @@ function initSettingsRecoveryCodes() {
                         var used = total - unused;
                         html += '<div class="recovery-batch">' +
                             '<div class="recovery-batch__header">' +
-                                '<span>' + t('批次 {:id}...', { id: batch.batch_id.slice(0, 8) }) + '</span>' +
+                                '<span>' + t('Batch {:id}...', { id: batch.batch_id.slice(0, 8) }) + '</span>' +
                                 '<span class="recovery-batch__count">' +
-                                    '<span style="color:var(--color-success);">' + t('{:n} 未使用', { n: unused }) + '</span>' +
-                                    ' / ' + t('{:n} 已使用', { n: used }) + '</span>' +
+                                    '<span style="color:var(--color-success);">' + t('{:n} unused', { n: unused }) + '</span>' +
+                                    ' / ' + t('{:n} used', { n: used }) + '</span>' +
                             '</div>' +
                             '<div style="font-size:12px;color:var(--color-text-subtle);">' +
-                                t('创建时间: ') + batch.created_at +
+                                t('Created: ') + batch.created_at +
                             '</div>' +
                         '</div>';
                     });
                     html += '<div style="margin-top:12px;">' +
-                        '<button type="button" class="btn btn-sm btn-danger-outline" id="recovery-codes-delete-btn">' + t('删除全部恢复码') + '</button>' +
+                        '<button type="button" class="btn btn-sm btn-danger-outline" id="recovery-codes-delete-btn">' + t('Delete all recovery codes') + '</button>' +
                     '</div>';
                     listEl.innerHTML = html;
                     var delBtn = document.getElementById('recovery-codes-delete-btn');
                     if (delBtn) delBtn.addEventListener('click', function() { deleteAllCodes(delBtn); });
                 } else {
-                    listEl.innerHTML = '<p class="text-muted">' + t('加载失败') + '</p>';
+                    listEl.innerHTML = '<p class="text-muted">' + t('Load failed') + '</p>';
                 }
             } catch(e) {
-                listEl.innerHTML = '<p class="text-muted">' + t('加载失败') + '</p>';
+                listEl.innerHTML = '<p class="text-muted">' + t('Load failed') + '</p>';
             }
         };
         xhr.onerror = function() {
-            listEl.innerHTML = '<p class="text-muted">' + t('网络错误') + '</p>';
+            listEl.innerHTML = '<p class="text-muted">' + t('Network error') + '</p>';
         };
         xhr.send();
     }
@@ -1125,12 +1140,12 @@ function initSettingsRecoveryCodes() {
         confirmGenBtn.addEventListener('click', function() {
             var password = passwordInput ? passwordInput.value : '';
             if (!password && !recoveryMode) {
-                showToast(t('请输入当前密码'), 'warning');
+                showToast(t('Enter the current password'), 'warning');
                 return;
             }
 
             confirmGenBtn.disabled = true;
-            confirmGenBtn.textContent = t('生成中...');
+            confirmGenBtn.textContent = t('Generating...');
 
             var xhr = new XMLHttpRequest();
             xhr.open('POST', '/2fa/recovery-codes/generate', true);
@@ -1138,25 +1153,25 @@ function initSettingsRecoveryCodes() {
             xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
             xhr.onload = function() {
                 confirmGenBtn.disabled = false;
-                confirmGenBtn.textContent = t('确认生成');
+                confirmGenBtn.textContent = t('Confirm generation');
                 try {
                     var data = JSON.parse(xhr.responseText);
                     if (data.success) {
                         displayRecoveryCodes(data.codes);
                         if (passwordForm) passwordForm.style.display = 'none';
                         if (passwordInput) passwordInput.value = '';
-                        showToast(data.message || t('恢复码已生成'), 'success');
+                        showToast(data.message || t('Recovery codes generated'), 'success');
                     } else {
                         showToast(data.message, 'error');
                     }
                 } catch(e) {
-                    showToast(t('请求失败'), 'error');
+                    showToast(t('Request failed'), 'error');
                 }
             };
             xhr.onerror = function() {
                 confirmGenBtn.disabled = false;
-                confirmGenBtn.textContent = t('确认生成');
-                showToast(t('网络错误'), 'error');
+                confirmGenBtn.textContent = t('Confirm generation');
+                showToast(t('Network error'), 'error');
             };
             xhr.send('_csrf=' + encodeURIComponent(getCsrf()) + '&password=' + encodeURIComponent(password));
         });
@@ -1246,18 +1261,18 @@ function initNotificationsPage() {
                         if (badge) badge.remove();
                     }
 
-                    showToast(data.message || t('已全部标记为已读'), 'success');
+                    showToast(data.message || t('All marked as read'), 'success');
                     return;
                 }
-                showToast(data.message || t('操作失败'), 'error');
+                showToast(data.message || t('Operation failed'), 'error');
             } catch(e) {
-                showToast(t('请求失败'), 'error');
+                showToast(t('Request failed'), 'error');
             }
             readAllBtn.disabled = false;
         };
         xhr.onerror = function() {
             readAllBtn.disabled = false;
-            showToast(t('网络错误'), 'error');
+            showToast(t('Network error'), 'error');
         };
         xhr.send('_csrf=' + encodeURIComponent(getCsrf()));
     });
@@ -1275,10 +1290,10 @@ function initNotifPopup() {
     if (!latestId || latestId <= lastSeen) return;
 
     var unread = parseInt(bell.dataset.notifUnread || '1', 10);
-    var title = bell.dataset.notifLatestTitle || t('新消息');
+    var title = bell.dataset.notifLatestTitle || t('New message');
     var link = bell.dataset.notifLatestLink || ('/notifications/' + latestId);
 
-    var text = unread > 1 ? t('你有 {:n} 条新消息\n最新：{:title}', { n: unread, title: title }) : title;
+    var text = unread > 1 ? t('You have {:n} new messages\nLatest: {:title}', { n: unread, title: title }) : title;
     var toast = showToast(text, 'info', 10000);
     if (!toast) return;
 
@@ -1483,9 +1498,9 @@ function initAppClientTypeGuard() {
         radio.addEventListener('change', function() {
             if (this.value !== 'public' || original === 'public') return;
 
-            Nomen.confirm(t('改为公共客户端？'), t('公共客户端不校验 Client Secret，任何知道 Client ID 的人都能发起授权，只有确实拿不住密钥的应用才该选它。确认接入代码已实现 PKCE 再继续。'), {
+            Nomen.confirm(t('Switch to public client?'), t('Public clients don\'t check a Client Secret — anyone with the Client ID can start an authorization. Only pick this if your app truly cannot hold a secret, and make sure your integration implements PKCE first.'), {
                 danger: true,
-                confirmText: t('仍要改为公共客户端')
+                confirmText: t('Switch to public client anyway')
             }).then(function(ok) {
                 if (ok) {
                     original = 'public';
@@ -1548,10 +1563,10 @@ function passwordStrength(password) {
     if (/[0-9]/.test(password)) score++;
     if (/[^a-zA-Z0-9]/.test(password)) score++;
 
-    if (score <= 1) return { label: t('弱'), color: 'var(--color-danger)', width: '20%' };
-    if (score <= 2) return { label: t('中'), color: 'var(--color-warning)', width: '40%' };
-    if (score <= 3) return { label: t('强'), color: 'var(--color-info)', width: '70%' };
-    return { label: t('非常强'), color: 'var(--color-success)', width: '100%' };
+    if (score <= 1) return { label: t('Weak'), color: 'var(--color-danger)', width: '20%' };
+    if (score <= 2) return { label: t('Medium'), color: 'var(--color-warning)', width: '40%' };
+    if (score <= 3) return { label: t('Strong'), color: 'var(--color-info)', width: '70%' };
+    return { label: t('Very strong'), color: 'var(--color-success)', width: '100%' };
 }
 
 function copyText(text) {
@@ -1594,7 +1609,7 @@ function initPasswordTools() {
         var meter = document.createElement('div');
         meter.className = 'pw-strength';
         meter.innerHTML = '<div class="pw-strength__bar"><div class="pw-strength__fill"></div></div>' +
-                          '<span class="pw-strength__text">' + t('密码强度') + '</span>';
+                          '<span class="pw-strength__text">' + t('Password strength') + '</span>';
         wrap.parentElement.appendChild(meter);
         var fill = meter.querySelector('.pw-strength__fill');
         var text = meter.querySelector('.pw-strength__text');
@@ -1603,15 +1618,15 @@ function initPasswordTools() {
             var s = passwordStrength(input.value);
             fill.style.width = s.width;
             fill.style.background = s.color;
-            text.textContent = t('密码强度：{:label}', { label: s.label });
+            text.textContent = t('Strength: {:label}', { label: s.label });
             text.style.color = s.color;
         }
 
         var btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'pw-gen';
-        btn.textContent = t('生成');
-        btn.title = t('生成一个随机强密码');
+        btn.textContent = t('Generate');
+        btn.title = t('Generate a strong random password');
         // 不阻止的话按下按钮会先让密码框失焦，按钮随 :focus-within 消失、click 就永远不触发
         btn.addEventListener('mousedown', function(e) {
             e.preventDefault();
@@ -1631,8 +1646,8 @@ function initPasswordTools() {
 
             copyText(password).then(function(ok) {
                 Nomen.toast(ok
-                    ? t('已生成强密码并复制。粘贴到密码管理器后，请清空剪贴板。')
-                    : t('已生成强密码。请在密码框中全选复制，并注意清空剪贴板。'),
+                    ? t('Strong password generated and copied. Paste it into your password manager, then clear the clipboard.')
+                    : t('Strong password generated. Select and copy it in the field, and clear your clipboard afterwards.'),
                     ok ? 'success' : 'warning', 6000);
             });
         });
@@ -1660,7 +1675,7 @@ document.addEventListener('DOMContentLoaded', function() {
             var confirm = registerForm.querySelector('input[name="password_confirm"]');
             if (password && confirm && password.value !== confirm.value) {
                 e.preventDefault();
-                confirm.setCustomValidity(t('两次输入的密码不一致'));
+                confirm.setCustomValidity(t('The passwords you entered don\'t match'));
                 confirm.reportValidity();
             }
         });
@@ -1690,7 +1705,7 @@ function initAuthorizePage() {
         setTimeout(function() {
             progress.classList.add('nomen-top-progress--active');
             if (autoText) {
-                autoText.textContent = t('授权完成，正在返回 {:name}…', { name: form.dataset.appName || t('应用') });
+                autoText.textContent = t('Authorized — returning to {:name}…', { name: form.dataset.appName || t('apps') });
             }
             form.submit();
         }, 1200);
@@ -1735,7 +1750,7 @@ function initAuthorizePage() {
             else if (highItem) highRiskScopes.push(label);
         });
 
-        var appName = form.dataset.appName || t('该应用');
+        var appName = form.dataset.appName || t('the app');
 
         // 先弹中危确认，再弹高危确认
         if (mediumRiskScopes.length > 0) {
@@ -1860,10 +1875,10 @@ var NOMEN_LOGIN = {
 };
 
 var NOMEN_LOGIN_LABELS = {
-    password: t('密码登录'),
-    email_code: t('邮箱验证码登录'),
-    biometric: t('生物识别登录'),
-    temp_key: t('临时密钥登录')
+    password: t('Password'),
+    email_code: t('Email code'),
+    biometric: t('Biometric'),
+    temp_key: t('Temp key sign-in')
 };
 
 function fillIfEmpty(input, value) {
@@ -1890,7 +1905,7 @@ function parseJsonResponse(response) {
         try {
             return JSON.parse(text);
         } catch (e) {
-            throw new Error(t('服务器返回了 {:code}，请稍后重试', { code: response.status }));
+            throw new Error(t('Server returned {:code}, try again later', { code: response.status }));
         }
     });
 }
@@ -1950,7 +1965,7 @@ function initLoginPage() {
 
             var retry = document.createElement('span');
             retry.className = 'login-tried__retry';
-            retry.textContent = t('重试');
+            retry.textContent = t('Retry');
             btn.appendChild(retry);
 
             triedItems.appendChild(btn);
@@ -1985,8 +2000,8 @@ function initLoginPage() {
         });
 
         switchHint.textContent = allTried
-            ? t('这几种登录方式本次都没成功。如果都进不去，可以按页面下方的说明发起账号恢复。')
-            : t('已为你切换到「{:method}」，需要的话可以在下面「更多登录方式」里换回去。', { method: NOMEN_LOGIN_LABELS[method] || method });
+            ? t('None of these methods worked this time. If you\'re still locked out, start account recovery with the instructions at the bottom of the page.')
+            : t('Switched to “{:method}”. You can change it under More sign-in options below.', { method: NOMEN_LOGIN_LABELS[method] || method });
         switchHint.style.display = '';
     }
 
@@ -2068,8 +2083,8 @@ function initLoginPage() {
         row.appendChild(text);
 
         var tagText = mode === 'address'
-            ? (item.is_primary ? t('首选') : '')
-            : (item.as_primary ? t('主邮箱') : t('备选邮箱'));
+            ? (item.is_primary ? t('Primary') : '')
+            : (item.as_primary ? t('Primary') : t('Backup'));
         if (tagText) {
             var tag = document.createElement('span');
             tag.className = 'login-account-pick__tag';
@@ -2088,11 +2103,11 @@ function initLoginPage() {
 
         if (pickTip) {
             pickTip.textContent = mode === 'address'
-                ? t('这个账号绑了多个邮箱，请选择发到哪一个')
-                : t('这个邮箱对应多个账号，请选择要登录哪一个');
+                ? t('Several addresses are bound — pick one for the code')
+                : t('This address matches several accounts — pick one to sign in');
         }
         if (pickSwitch) {
-            pickSwitch.textContent = mode === 'address' ? t('换一个邮箱收码') : t('我需要另一个账号');
+            pickSwitch.textContent = mode === 'address' ? t('Use another address') : t('I need another account');
         }
 
         pickPrimary.innerHTML = '';
@@ -2132,8 +2147,8 @@ function initLoginPage() {
             pickList.hidden = !pickList.hidden;
             // 只改尾巴，别把「我需要另一个账号 / 换一个邮箱收码」那句写死回来
             pickSwitch.textContent = pickList.hidden
-                ? (pickMode === 'address' ? t('换一个邮箱收码') : t('我需要另一个账号'))
-                : t('收起');
+                ? (pickMode === 'address' ? t('Use another address') : t('I need another account'))
+                : t('Collapse');
         });
     }
 
@@ -2151,13 +2166,13 @@ function initLoginPage() {
 
     function sendCode(extra) {
         var email = emailInput.value.trim();
-        if (!email) { showToast(t('请输入邮箱或用户名'), 'warning'); return; }
+        if (!email) { showToast(t('Enter an email or username'), 'warning'); return; }
         // 邮箱，或者用户名（未成年账号没有自己的邮箱，用用户名收码）
         var identifierOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || /^[a-z0-9_]{3,32}$/.test(email);
-        if (!identifierOk) { showToast(t('请输入有效的邮箱地址或用户名'), 'warning'); return; }
+        if (!identifierOk) { showToast(t('Enter a valid email address or username'), 'warning'); return; }
 
         sendCodeBtn.disabled = true;
-        sendCodeBtn.textContent = t('发送中...');
+        sendCodeBtn.textContent = t('Sending...');
 
         var formData = new FormData();
         formData.append('email', email);
@@ -2183,11 +2198,11 @@ function initLoginPage() {
                 var countdown = 60;
                 var timer = setInterval(function() {
                     countdown--;
-                    sendCodeBtn.textContent = countdown + t('秒后重试');
+                    sendCodeBtn.textContent = countdown + t('s to retry');
                     if (countdown <= 0) {
                         clearInterval(timer);
                         sendCodeBtn.disabled = false;
-                        sendCodeBtn.textContent = t('发送验证码');
+                        sendCodeBtn.textContent = t('Send code');
                     }
                 }, 1000);
                 return;
@@ -2204,12 +2219,12 @@ function initLoginPage() {
                 showToast(data.message, 'error');
             }
             sendCodeBtn.disabled = false;
-            sendCodeBtn.textContent = t('发送验证码');
+            sendCodeBtn.textContent = t('Send code');
         })
         .catch(function() {
-            showToast(t('发送失败，请稍后重试'), 'error');
+            showToast(t('Send failed, try again later'), 'error');
             sendCodeBtn.disabled = false;
-            sendCodeBtn.textContent = t('发送验证码');
+            sendCodeBtn.textContent = t('Send code');
         });
     }
 
@@ -2233,7 +2248,7 @@ function initBiometricLogin(onFail) {
 
     function resetBtn() {
         btn.disabled = false;
-        if (btnText) btnText.textContent = t('使用本机生物识别登录');
+        if (btnText) btnText.textContent = t('Use this device\'s biometrics');
     }
 
     function setStatus(text) {
@@ -2256,7 +2271,7 @@ function initBiometricLogin(onFail) {
 
     btn.addEventListener('click', function() {
         if (!NOMEN_LOGIN.supported()) {
-            showToast(t('当前浏览器不支持生物识别登录'), 'warning');
+            showToast(t('This browser doesn\'t support biometric sign-in'), 'warning');
             return;
         }
 
@@ -2264,14 +2279,14 @@ function initBiometricLogin(onFail) {
         var optionsUrl = '/biometric/auth/options' + (identifier ? '?identifier=' + encodeURIComponent(identifier) : '');
 
         btn.disabled = true;
-        if (btnText) btnText.textContent = t('准备中...');
+        if (btnText) btnText.textContent = t('Preparing...');
         setStatus('');
 
         fetch(optionsUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
             .then(parseJsonResponse)
             .then(function(data) {
                 if (!data.success) {
-                    var err = new Error(data.message || t('无法开始生物识别验证'));
+                    var err = new Error(data.message || t('Couldn\'t start biometric verification'));
                     err.cldMessage = data.message || '';
                     throw err;
                 }
@@ -2284,8 +2299,8 @@ function initBiometricLogin(onFail) {
                     });
                 }
 
-                if (btnText) btnText.textContent = t('请完成生物识别验证...');
-                setStatus(t('正在调用系统生物识别（指纹 / 面容 / PIN）...'));
+                if (btnText) btnText.textContent = t('Complete the biometric verification...');
+                setStatus(t('Calling system biometrics (fingerprint / face / PIN)...'));
 
                 return navigator.credentials.get({ publicKey: options.publicKey });
             })
@@ -2337,12 +2352,12 @@ function initBiometricLogin(onFail) {
 
                 // 本机没有可用凭证时浏览器报 NotAllowedError：让他填上账号再试，先不当成失败
                 if (err && err.name === 'NotAllowedError') {
-                    setStatus(t('没有完成验证。如果本机没有绑定过该账号的通行密钥，可以在下面填上用户名或邮箱再试。'));
+                    setStatus(t('Verification didn\'t complete. If this device has no passkey for the account, enter the username or email below and retry.'));
                     revealManual();
                     return;
                 }
 
-                showToast(err && err.message ? err.message : t('生物识别登录失败，请重试'), 'error');
+                showToast(err && err.message ? err.message : t('Biometric sign-in failed, try again'), 'error');
 
                 if (err && err.cldMessage) {
                     setStatus(err.cldMessage);
@@ -2371,23 +2386,23 @@ function initActivatePage() {
     form.addEventListener('submit', function(e) {
         e.preventDefault();
         if (cooldown > 0) return;
-        btn.disabled = true; btnText.textContent = t('发送中...');
+        btn.disabled = true; btnText.textContent = t('Sending...');
         var xhr = new XMLHttpRequest();
         xhr.open('POST', '/activate/send', true);
         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
         xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
         xhr.onload = function() {
             var d; try { d = JSON.parse(xhr.responseText); } catch(ex) { d = {}; }
-            actAlert(d.success ? 'success' : 'error', d.message || t('请求失败'));
+            actAlert(d.success ? 'success' : 'error', d.message || t('Request failed'));
             if (d.success) actCool(60); else if (d.retry_after) actCool(d.retry_after);
-            else { btn.disabled = false; btnText.textContent = t('发送验证邮件'); }
+            else { btn.disabled = false; btnText.textContent = t('Send verification email'); }
         };
-        xhr.onerror = function() { actAlert('error',t('网络错误')); btn.disabled = false; btnText.textContent = t('发送验证邮件'); };
+        xhr.onerror = function() { actAlert('error',t('Network error')); btn.disabled = false; btnText.textContent = t('Send verification email'); };
         xhr.send('_csrf=' + encodeURIComponent(csrfToken));
     });
 
-    function actCool(s) { cooldown = s; btn.disabled = true; btnText.style.display = 'none'; btnCountdown.style.display = 'inline'; actTick(); timer = setInterval(function(){ cooldown--; if (cooldown <= 0) { clearInterval(timer); btn.disabled = false; btnText.style.display = 'inline'; btnCountdown.style.display = 'none'; btnText.textContent = t('发送验证邮件'); } else actTick(); }, 1000); }
-    function actTick() { var m = Math.floor(cooldown / 60), s = cooldown % 60; btnCountdown.textContent = (m > 0 ? m + t('分') : '') + s + t('秒后重试'); }
+    function actCool(s) { cooldown = s; btn.disabled = true; btnText.style.display = 'none'; btnCountdown.style.display = 'inline'; actTick(); timer = setInterval(function(){ cooldown--; if (cooldown <= 0) { clearInterval(timer); btn.disabled = false; btnText.style.display = 'inline'; btnCountdown.style.display = 'none'; btnText.textContent = t('Send verification email'); } else actTick(); }, 1000); }
+    function actTick() { var m = Math.floor(cooldown / 60), s = cooldown % 60; btnCountdown.textContent = (m > 0 ? m + t('min') : '') + s + t('s to retry'); }
     function actAlert(t, m) { Nomen.inlineAlert(alertContainer, t, m); }
 }
 
@@ -2434,7 +2449,7 @@ function initSettingsForms() {
             var label = btn ? btn.textContent : '';
             if (btn) {
                 btn.disabled = true;
-                btn.textContent = t('保存中...');
+                btn.textContent = t('Saving...');
             }
 
             fetch(form.getAttribute('action'), {
@@ -2445,11 +2460,11 @@ function initSettingsForms() {
             })
             .then(function(response) {
                 return response.json().catch(function() {
-                    throw new Error(t('服务器返回了 ') + response.status);
+                    throw new Error(t('Server returned ') + response.status);
                 });
             })
             .then(function(data) {
-                showToast(data.message || (data.success ? t('已保存') : t('保存失败')), data.success ? 'success' : 'error');
+                showToast(data.message || (data.success ? t('Saved') : t('Save failed')), data.success ? 'success' : 'error');
                 if (data.success && id === 'settings-password-form') {
                     form.reset();
                     form.querySelectorAll('input[data-pw-gen]').forEach(function(input) {
@@ -2458,7 +2473,7 @@ function initSettingsForms() {
                 }
             })
             .catch(function(err) {
-                showToast(err.message || t('网络错误'), 'error');
+                showToast(err.message || t('Network error'), 'error');
             })
             .finally(function() {
                 form.dataset.busy = '0';
@@ -2500,7 +2515,7 @@ function initFamilyPage() {
                 window.location.href = target.href;
                 return null;
             }
-            if (!response.ok) throw new Error(t('服务器返回了 ') + response.status);
+            if (!response.ok) throw new Error(t('Server returned ') + response.status);
             return response.text();
         })
         .then(function(html) {
@@ -2520,7 +2535,7 @@ function initFamilyPage() {
             Nomen.autoDismissAlerts(document);
         })
         .catch(function(err) {
-            showToast(err.message || t('网络错误'), 'error');
+            showToast(err.message || t('Network error'), 'error');
         })
         .finally(function() {
             form.dataset.busy = '0';
@@ -2568,10 +2583,10 @@ function initEmailSet() {
         })
         .then(function(response) {
             return response.json().then(function(data) { return { ok: response.ok, data: data }; })
-                .catch(function() { throw new Error(t('服务器返回了 ') + response.status); });
+                .catch(function() { throw new Error(t('Server returned ') + response.status); });
         })
         .then(function(res) { done(res.data); })
-        .catch(function(err) { showToast(err.message || t('网络错误'), 'error'); });
+        .catch(function(err) { showToast(err.message || t('Network error'), 'error'); });
     }
 
     // 服务端连最新列表一起返回，直接换掉这一块，不再整页刷新
@@ -2590,16 +2605,16 @@ function initEmailSet() {
 
             var email = document.getElementById('new_email').value.trim();
             var password = document.getElementById('email_add_password').value;
-            if (!email) { showToast(t('请输入邮箱地址'), 'warning'); return; }
-            if (!recoveryMode && !password) { showToast(t('请输入当前密码'), 'warning'); return; }
+            if (!email) { showToast(t('Enter an email address'), 'warning'); return; }
+            if (!recoveryMode && !password) { showToast(t('Enter the current password'), 'warning'); return; }
 
             var btn = document.getElementById('email-add-btn');
             btn.disabled = true;
-            btn.textContent = t('发送中...');
+            btn.textContent = t('Sending...');
 
             post('/settings/emails/add', { new_email: email, password: password }, function(data) {
                 btn.disabled = false;
-                btn.textContent = t('发送验证邮件');
+                btn.textContent = t('Send verification email');
                 showToast(data.message, data.success ? 'success' : 'error');
                 if (data.success) {
                     addForm.reset();
@@ -2632,15 +2647,15 @@ function initEmailSet() {
 
         var isRemove = action === 'remove';
         Nomen.prompt(
-            isRemove ? t('移除邮箱') : t('设为首选'),
+            isRemove ? t('Remove email') : t('Set as primary'),
             isRemove
-                ? t('移除 ') + addr + t(' 之后，这个地址就不能再用来登录了。')
-                : t('把 ') + addr + t(' 设为收信地址和登录首选邮箱。'),
+                ? t('Remove ') + addr + t(' After that, this address can no longer be used to sign in.')
+                : t('Set ') + addr + t(' as your contact address and primary sign-in email.'),
             {
                 inputType: 'password',
-                placeholder: recoveryMode ? t('恢复流程中可留空') : t('当前密码'),
+                placeholder: recoveryMode ? t('Can be left empty in recovery mode') : t('Current password'),
                 required: !recoveryMode,
-                confirmText: isRemove ? t('移除') : t('设为首选'),
+                confirmText: isRemove ? t('Remove') : t('Set as primary'),
                 danger: isRemove
             }
         ).then(function(password) {
@@ -2669,7 +2684,7 @@ function initSettingsResetPassword() {
 
     sendBtn.addEventListener('click', function() {
         if (cooldown > 0) return;
-        sendBtn.disabled = true; sendBtn.textContent = t('发送中...');
+        sendBtn.disabled = true; sendBtn.textContent = t('Sending...');
         var xhr = new XMLHttpRequest();
         xhr.open('POST', '/settings/password/send-code', true);
         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
@@ -2678,9 +2693,9 @@ function initSettingsResetPassword() {
             var d; try { d = JSON.parse(xhr.responseText); } catch(ex) { d = {}; }
             if (d.success) { sendBtn.textContent = d.message; sendBtn.disabled = false; showToast(d.message, 'success'); rpCool(60); }
             else if (d.retry_after) { rpCool(d.retry_after); showToast(d.message, 'error'); }
-            else { sendBtn.textContent = t('发送验证码'); sendBtn.disabled = false; showToast(d.message, 'error'); }
+            else { sendBtn.textContent = t('Send code'); sendBtn.disabled = false; showToast(d.message, 'error'); }
         };
-        xhr.onerror = function() { sendBtn.textContent = t('发送验证码'); sendBtn.disabled = false; showToast(t('网络错误'), 'error'); };
+        xhr.onerror = function() { sendBtn.textContent = t('Send code'); sendBtn.disabled = false; showToast(t('Network error'), 'error'); };
         // 账号有多个邮箱时，页面上有一个收码邮箱下拉（默认首选）
         var target = document.getElementById('reset_code_target');
         xhr.send('_csrf=' + encodeURIComponent(csrfToken) + (target ? '&send_to=' + encodeURIComponent(target.value) : ''));
@@ -2690,10 +2705,10 @@ function initSettingsResetPassword() {
         e.preventDefault();
         var code = document.getElementById('reset_code').value.trim();
         var np = document.getElementById('reset_new_password').value, cp = document.getElementById('reset_confirm_password').value;
-        if (!code || !np || !cp) { showToast(t('请填写所有字段'), 'warning'); return; }
-        if (np.length < 8 || !/[a-zA-Z]/.test(np) || !/[0-9]/.test(np)) { showToast(t('密码至少8位，含字母和数字'), 'warning'); return; }
-        if (np !== cp) { showToast(t('两次密码不一致'), 'warning'); return; }
-        resetBtn.disabled = true; resetBtn.textContent = t('重置中...');
+        if (!code || !np || !cp) { showToast(t('Please fill in all fields'), 'warning'); return; }
+        if (np.length < 8 || !/[a-zA-Z]/.test(np) || !/[0-9]/.test(np)) { showToast(t('8+ characters, letters and digits'), 'warning'); return; }
+        if (np !== cp) { showToast(t('The two passwords don\'t match'), 'warning'); return; }
+        resetBtn.disabled = true; resetBtn.textContent = t('Resetting...');
         var xhr = new XMLHttpRequest();
         xhr.open('POST', '/settings/password/reset-code', true);
         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
@@ -2704,17 +2719,17 @@ function initSettingsResetPassword() {
                 showToast(d.message, 'success');
                 form.reset();
             } else {
-                showToast(d.message || t('重置失败'), 'error');
+                showToast(d.message || t('Reset failed'), 'error');
             }
             resetBtn.disabled = false;
-            resetBtn.textContent = t('重置密码');
+            resetBtn.textContent = t('Reset password');
         };
-        xhr.onerror = function() { showToast(t('网络错误'), 'error'); resetBtn.disabled = false; resetBtn.textContent = t('重置密码'); };
+        xhr.onerror = function() { showToast(t('Network error'), 'error'); resetBtn.disabled = false; resetBtn.textContent = t('Reset password'); };
         xhr.send('_csrf=' + encodeURIComponent(csrfToken) + '&reset_code=' + encodeURIComponent(code) + '&new_password=' + encodeURIComponent(np) + '&confirm_password=' + encodeURIComponent(cp));
     });
 
-    function rpCool(s) { cooldown = s; sendBtn.disabled = true; rpTick(); timer = setInterval(function(){ cooldown--; if (cooldown <= 0) { clearInterval(timer); sendBtn.disabled = false; sendBtn.textContent = t('发送验证码'); } else rpTick(); }, 1000); }
-    function rpTick() { sendBtn.textContent = cooldown + t('秒后重试'); }
+    function rpCool(s) { cooldown = s; sendBtn.disabled = true; rpTick(); timer = setInterval(function(){ cooldown--; if (cooldown <= 0) { clearInterval(timer); sendBtn.disabled = false; sendBtn.textContent = t('Send code'); } else rpTick(); }, 1000); }
+    function rpTick() { sendBtn.textContent = cooldown + t('s to retry'); }
 }
 
 // ========== 图标 / 头像上传：SVG 先在浏览器里栅格化 ==========
@@ -2743,15 +2758,15 @@ function svgFileToPng(file, size) {
             URL.revokeObjectURL(url);
             try {
                 canvas.toBlob(function(blob) {
-                    if (blob) { resolve(blob); } else { reject(new Error(t('SVG 转换失败'))); }
+                    if (blob) { resolve(blob); } else { reject(new Error(t('SVG conversion failed'))); }
                 }, 'image/png');
             } catch (e) {
-                reject(new Error(t('SVG 转换失败')));
+                reject(new Error(t('SVG conversion failed')));
             }
         };
         img.onerror = function() {
             URL.revokeObjectURL(url);
-            reject(new Error(t('这个 SVG 读不出来')));
+            reject(new Error(t('Can\'t read this SVG')));
         };
         img.src = url;
     });
@@ -2774,10 +2789,10 @@ function initIconSvgConvert() {
                 var dt = new DataTransfer();
                 dt.items.add(png);
                 input.files = dt.files;
-                showToast(t('SVG 已转成 ') + SVG_PNG_SIZE + '×' + SVG_PNG_SIZE + t(' 的 PNG，保存后生效'), 'success');
+                showToast(t('SVG converted to ') + SVG_PNG_SIZE + '×' + SVG_PNG_SIZE + t(' PNG. Save to apply.'), 'success');
             }).catch(function() {
                 input.value = '';
-                showToast(t('这个 SVG 转不出来，请换成 PNG 或 JPG'), 'error');
+                showToast(t('Can\'t convert this SVG — try a PNG or JPG'), 'error');
             });
         });
     });
@@ -2796,7 +2811,7 @@ function initSettingsAvatar() {
     function useAvatarFile(file) {
         selectedFile = file; filenameSpan.textContent = selectedFile.name; uploadBtn.style.display = 'inline-block';
         var r = new FileReader();
-        r.onload = function(e) { preview.innerHTML = '<img src="' + e.target.result + '" alt="' + t('预览') + '" style="width:100%;height:100%;object-fit:cover;">'; };
+        r.onload = function(e) { preview.innerHTML = '<img src="' + e.target.result + '" alt="' + t('Preview') + '" style="width:100%;height:100%;object-fit:cover;">'; };
         r.readAsDataURL(selectedFile);
     }
     input.addEventListener('change', function() {
@@ -2806,15 +2821,15 @@ function initSettingsAvatar() {
 
         svgToPngFile(file, SVG_PNG_SIZE).then(function(png) {
             useAvatarFile(png);
-            showToast(t('SVG 已转成 ') + SVG_PNG_SIZE + '×' + SVG_PNG_SIZE + t(' 的 PNG'), 'success');
+            showToast(t('SVG converted to ') + SVG_PNG_SIZE + '×' + SVG_PNG_SIZE + t(' PNG'), 'success');
         }).catch(function() {
             input.value = '';
-            showToast(t('这个 SVG 转不出来，请换成 PNG 或 JPG'), 'error');
+            showToast(t('Can\'t convert this SVG — try a PNG or JPG'), 'error');
         });
     });
     uploadBtn.addEventListener('click', function() {
         if (!selectedFile) return;
-        uploadBtn.disabled = true; uploadBtn.textContent = t('上传中...');
+        uploadBtn.disabled = true; uploadBtn.textContent = t('Uploading...');
         var fd = new FormData(); fd.append('avatar', selectedFile); fd.append('_csrf', csrfToken);
         var xhr = new XMLHttpRequest();
         xhr.open('POST', '/settings/avatar', true);
@@ -2822,12 +2837,12 @@ function initSettingsAvatar() {
         xhr.onload = function() {
             var d; try { d = JSON.parse(xhr.responseText); } catch(ex) { d = {}; }
             if (d.success) {
-                preview.innerHTML = '<img src="' + d.avatar_url + '" alt="' + t('头像') + '" style="width:100%;height:100%;object-fit:cover;">';
+                preview.innerHTML = '<img src="' + d.avatar_url + '" alt="' + t('Avatar') + '" style="width:100%;height:100%;object-fit:cover;">';
                 showToast(d.message, 'success'); uploadBtn.style.display = 'none'; filenameSpan.textContent = ''; selectedFile = null; input.value = '';
             } else { showToast(d.message, 'error'); }
-            uploadBtn.disabled = false; uploadBtn.textContent = t('上传头像');
+            uploadBtn.disabled = false; uploadBtn.textContent = t('Upload avatar');
         };
-        xhr.onerror = function() { showToast(t('网络错误'), 'error'); uploadBtn.disabled = false; uploadBtn.textContent = t('上传头像'); };
+        xhr.onerror = function() { showToast(t('Network error'), 'error'); uploadBtn.disabled = false; uploadBtn.textContent = t('Upload avatar'); };
         xhr.send(fd);
     });
 }
@@ -2843,13 +2858,13 @@ function initSettingsDevices() {
     btns.forEach(function(btn) {
         btn.addEventListener('click', function() {
             var did = this.dataset.deviceId, dnm = this.dataset.deviceName;
-            Nomen.confirm(t('撤销设备信任'), t('确定要撤销设备 "{:name}" 的信任吗？该设备下次登录需要重新验证。', { name: dnm }), {
+            Nomen.confirm(t('Revoke device trust'), t('Revoke trust for device "{:name}"? It will need to verify again on its next sign-in.', { name: dnm }), {
                 danger: true,
-                confirmText: t('撤销'),
-                cancelText: t('取消')
+                confirmText: t('Revoke'),
+                cancelText: t('Cancel')
             }).then(function(confirmed) {
                 if (!confirmed) return;
-                btn.disabled = true; btn.textContent = t('撤销中...');
+                btn.disabled = true; btn.textContent = t('Revoking...');
                 var xhr = new XMLHttpRequest();
                 xhr.open('POST', '/settings/devices/revoke', true);
                 xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
@@ -2857,9 +2872,9 @@ function initSettingsDevices() {
                 xhr.onload = function() {
                     var d; try { d = JSON.parse(xhr.responseText); } catch(e) { d = {}; }
                     if (d.success) { showToast(d.message, 'success'); var i = btn.closest('.device-item'); if (i) i.remove(); }
-                    else { showToast(d.message, 'error'); btn.disabled = false; btn.textContent = t('撤销'); }
+                    else { showToast(d.message, 'error'); btn.disabled = false; btn.textContent = t('Revoke'); }
                 };
-                xhr.onerror = function() { showToast(t('网络错误'), 'error'); btn.disabled = false; btn.textContent = t('撤销'); };
+                xhr.onerror = function() { showToast(t('Network error'), 'error'); btn.disabled = false; btn.textContent = t('Revoke'); };
                 xhr.send('_csrf=' + encodeURIComponent(csrfToken) + '&device_id=' + encodeURIComponent(did));
             });
         });
@@ -2884,7 +2899,7 @@ function initSettingsTempKeys() {
     var csrfToken = document.querySelector('input[name="_csrf"]').value;
 
     function formatTime(ts) {
-        if (!ts) return t('从未使用');
+        if (!ts) return t('Never used');
         var d = new Date(ts.replace(' ', 'T') + 'Z');
         return d.toLocaleString(window.NOMEN_LANG || 'zh-Hans');
     }
@@ -2898,7 +2913,7 @@ function initSettingsTempKeys() {
             if (!d.success) return;
             list.innerHTML = '';
             if (!d.keys.length) {
-                list.innerHTML = '<p class="text-muted" style="padding:12px 0;">' + t('暂无临时密钥') + '</p>';
+                list.innerHTML = '<p class="text-muted" style="padding:12px 0;">' + t('No temp keys yet') + '</p>';
                 return;
             }
             d.keys.forEach(function(k) {
@@ -2908,13 +2923,13 @@ function initSettingsTempKeys() {
                 el.innerHTML = '<div class="device-item__info">' +
                     '<div class="device-item__name">' +
                     (isExpired ? '<span style="text-decoration:line-through;">' : '') +
-                    escapeHtml(k.label || t('未命名密钥')) +
+                    escapeHtml(k.label || t('Unnamed key')) +
                     (isExpired ? '</span>' : '') +
-                    (isExpired ? '<span class="badge" style="margin-left:8px;font-size:11px;background:#eee;color:#999;">' + t('已过期') + '</span>' : '') +
+                    (isExpired ? '<span class="badge" style="margin-left:8px;font-size:11px;background:#eee;color:#999;">' + t('Expired') + '</span>' : '') +
                     '</div>' +
-                    '<div class="device-item__meta">' + t('到期: ') + formatTime(k.expires_at) + t(' · 创建: ') + formatTime(k.created_at) + (k.last_used_at ? t(' · 上次使用: ') + formatTime(k.last_used_at) : '') + '</div>' +
+                    '<div class="device-item__meta">' + t('Expires: ') + formatTime(k.expires_at) + t(' · Created: ') + formatTime(k.created_at) + (k.last_used_at ? t(' · Last used: ') + formatTime(k.last_used_at) : '') + '</div>' +
                     '</div>' +
-                    '<button type="button" class="btn btn-sm btn-danger-outline" onclick="deleteTempKey(' + k.id + ', this)">' + t('删除') + '</button>';
+                    '<button type="button" class="btn btn-sm btn-danger-outline" onclick="deleteTempKey(' + k.id + ', this)">' + t('Delete') + '</button>';
                 list.appendChild(el);
             });
         };
@@ -2922,13 +2937,13 @@ function initSettingsTempKeys() {
     }
 
     window.deleteTempKey = function(id, btn) {
-        Nomen.confirm(t('删除临时密钥'), t('确定要删除此临时密钥吗？'), {
+        Nomen.confirm(t('Delete temp key'), t('Delete this temp key?'), {
             danger: true,
-            confirmText: t('删除'),
-            cancelText: t('取消')
+            confirmText: t('Delete'),
+            cancelText: t('Cancel')
         }).then(function(confirmed) {
             if (!confirmed) return;
-            btn.disabled = true; btn.textContent = t('删除中...');
+            btn.disabled = true; btn.textContent = t('Deleting...');
             var xhr = new XMLHttpRequest();
             xhr.open('POST', '/settings/temp-keys/delete', true);
             xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
@@ -2936,7 +2951,7 @@ function initSettingsTempKeys() {
             xhr.onload = function() {
                 var d; try { d = JSON.parse(xhr.responseText); } catch(e) { d = {}; }
                 if (d.success) { showToast(d.message, 'success'); loadKeys(); }
-                else { showToast(d.message, 'error'); btn.disabled = false; btn.textContent = t('删除'); }
+                else { showToast(d.message, 'error'); btn.disabled = false; btn.textContent = t('Delete'); }
             };
             xhr.send('_csrf=' + encodeURIComponent(csrfToken) + '&key_id=' + id);
         });
@@ -2983,8 +2998,8 @@ function initSettingsTempKeys() {
         var label = labelInput.value.trim();
         var value = valueInput.value.trim();
         var expires = expiresInput.value;
-        if (!label || !value || !expires) { showToast(t('请填写所有字段'), 'warning'); return; }
-        saveBtn.disabled = true; saveBtn.textContent = t('保存中...');
+        if (!label || !value || !expires) { showToast(t('Please fill in all fields'), 'warning'); return; }
+        saveBtn.disabled = true; saveBtn.textContent = t('Saving...');
         var xhr = new XMLHttpRequest();
         xhr.open('POST', '/settings/temp-keys', true);
         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
@@ -2993,7 +3008,7 @@ function initSettingsTempKeys() {
             var d; try { d = JSON.parse(xhr.responseText); } catch(e) { d = {}; }
             if (d.success) { showToast(d.message, 'success'); form.style.display = 'none'; container.style.display = 'block'; loadKeys(); }
             else { showToast(d.message, 'error'); }
-            saveBtn.disabled = false; saveBtn.textContent = t('保存');
+            saveBtn.disabled = false; saveBtn.textContent = t('Save');
         };
         xhr.send('_csrf=' + encodeURIComponent(csrfToken) + '&label=' + encodeURIComponent(label) + '&key_value=' + encodeURIComponent(value) + '&expires_at=' + encodeURIComponent(expires.replace('T', ' ')));
     });
@@ -3002,30 +3017,30 @@ function initSettingsTempKeys() {
 }
 
 function showConfirmModal(appName, scopes, callback) {
-    Nomen.confirm(t('确认授权'), '', {
+    Nomen.confirm(t('Confirm authorization'), '', {
         icon: 'lock',
         variant: 'confirm',
-        confirmText: t('确认授权'),
+        confirmText: t('Confirm authorization'),
         content:
             '<div class="nomen-confirm-app">' + escapeHtml(appName) + '</div>' +
             '<div class="nomen-confirm-scopes">' + scopes.map(function(s) {
                 return '<span class="nomen-confirm-scope-tag">' + iconTag('user') + ' ' + escapeHtml(s) + '</span>';
             }).join('') + '</div>' +
-            '<p class="nomen-modal-box__desc">' + t('授权后，该应用将可以访问以上信息。<br>您可以随时在仪表盘中撤销授权。') + '</p>'
+            '<p class="nomen-modal-box__desc">' + t('After authorizing, the app can access the information above.<br>You can revoke it any time from your dashboard.') + '</p>'
     }).then(callback);
 }
 
 function showRiskModal(items, callback) {
-    Nomen.confirm(t('确认授权以下敏感信息？'), '', {
+    Nomen.confirm(t('Authorize these sensitive items?'), '', {
         icon: 'warning',
         variant: 'risk',
         countdown: 5,
-        confirmText: t('确认授权'),
+        confirmText: t('Confirm authorization'),
         content:
             '<ul class="nomen-risk-list">' + items.map(function(i) {
                 return '<li>' + escapeHtml(i) + '</li>';
             }).join('') + '</ul>' +
-            '<p class="nomen-modal-box__desc">' + t('这些信息可能被用于识别或追踪您的身份，请谨慎授权。') + '</p>'
+            '<p class="nomen-modal-box__desc">' + t('These items could identify or track you — authorize with care.') + '</p>'
     }).then(callback);
 }
 
@@ -3089,21 +3104,21 @@ function initSettingsBiometrics() {
             if (!d.success) return;
             list.innerHTML = '';
             if (!d.credentials.length) {
-                list.innerHTML = '<p class="text-muted" style="padding:12px 0;">' + t('暂无生物识别凭证') + '</p>';
+                list.innerHTML = '<p class="text-muted" style="padding:12px 0;">' + t('No biometric credentials') + '</p>';
                 return;
             }
             d.credentials.forEach(function(c) {
                 var el = document.createElement('div');
                 el.className = 'device-item';
-                var typeText = c.device_type === 'platform' ? t('内置传感器（指纹/面容）') :
-                               c.device_type === 'usb_key' ? t('USB 安全密钥') :
-                               c.device_type === 'nfc_card' ? t('NFC 卡片') :
-                               c.device_type === 'ble_device' ? t('BLE 设备') : t('未知设备');
+                var typeText = c.device_type === 'platform' ? t('Built-in sensor (fingerprint / face)') :
+                               c.device_type === 'usb_key' ? t('USB security key') :
+                               c.device_type === 'nfc_card' ? t('NFC card') :
+                               c.device_type === 'ble_device' ? t('BLE device') : t('Unknown device');
                 el.innerHTML = '<div class="device-item__info">' +
                     '<div class="device-item__name">' + typeText + '</div>' +
-                    '<div class="device-item__meta">' + t('创建时间: ') + formatTime(c.created_at) + '</div>' +
+                    '<div class="device-item__meta">' + t('Created: ') + formatTime(c.created_at) + '</div>' +
                     '</div>' +
-                    '<button type="button" class="btn btn-sm btn-danger-outline" onclick="deleteBiometric(' + c.id + ', this)">' + t('删除') + '</button>';
+                    '<button type="button" class="btn btn-sm btn-danger-outline" onclick="deleteBiometric(' + c.id + ', this)">' + t('Delete') + '</button>';
                 list.appendChild(el);
             });
         };
@@ -3111,13 +3126,13 @@ function initSettingsBiometrics() {
     }
 
     window.deleteBiometric = function(id, btn) {
-        Nomen.confirm(t('删除生物识别'), t('确定要删除此生物识别凭证吗？删除后需要重新绑定才能使用生物识别登录。'), {
+        Nomen.confirm(t('Delete biometric'), t('Delete this biometric credential? You\'ll need to bind again before using biometric sign-in.'), {
             danger: true,
-            confirmText: t('删除'),
-            cancelText: t('取消')
+            confirmText: t('Delete'),
+            cancelText: t('Cancel')
         }).then(function(confirmed) {
             if (!confirmed) return;
-            btn.disabled = true; btn.textContent = t('删除中...');
+            btn.disabled = true; btn.textContent = t('Deleting...');
             var xhr = new XMLHttpRequest();
             xhr.open('POST', '/settings/biometrics/delete', true);
             xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
@@ -3125,7 +3140,7 @@ function initSettingsBiometrics() {
             xhr.onload = function() {
                 var d; try { d = JSON.parse(xhr.responseText); } catch(e) { d = {}; }
                 if (d.success) { showToast(d.message, 'success'); loadBiometrics(); }
-                else { showToast(d.message, 'error'); btn.disabled = false; btn.textContent = t('删除'); }
+                else { showToast(d.message, 'error'); btn.disabled = false; btn.textContent = t('Delete'); }
             };
             xhr.send('_csrf=' + encodeURIComponent(csrfToken) + '&id=' + id);
         });
@@ -3145,9 +3160,9 @@ function initSettingsBiometrics() {
 
     regBtn.addEventListener('click', function() {
         regBtn.disabled = true;
-        regBtn.textContent = t('准备中...');
+        regBtn.textContent = t('Preparing...');
         if (statusDiv) {
-            statusDiv.textContent = t('正在准备绑定...');
+            statusDiv.textContent = t('Preparing binding...');
             statusDiv.style.color = 'var(--color-text-subtle)';
         }
 
@@ -3157,8 +3172,8 @@ function initSettingsBiometrics() {
         xhr.onload = function() {
             var d; try { d = JSON.parse(xhr.responseText); } catch(e) { d = {}; }
             if (!d.success) {
-                showToast(d.message || t('获取选项失败'), 'error');
-                regBtn.disabled = false; regBtn.textContent = t('开始绑定');
+                showToast(d.message || t('Couldn\'t get options'), 'error');
+                regBtn.disabled = false; regBtn.textContent = t('Start binding');
                 return;
             }
 
@@ -3166,17 +3181,17 @@ function initSettingsBiometrics() {
             options.publicKey.challenge = base64urlDecode(options.publicKey.challenge);
             options.publicKey.user.id = base64urlDecode(options.publicKey.user.id);
 
-            regBtn.textContent = t('请完成生物识别验证...');
+            regBtn.textContent = t('Complete the biometric verification...');
             if (statusDiv) {
-                statusDiv.textContent = t('正在调用系统生物识别（指纹/面容/PIN）...');
+                statusDiv.textContent = t('Calling system biometrics (fingerprint/face/PIN)...');
                 statusDiv.style.color = 'var(--color-text-subtle)';
             }
 
             navigator.credentials.create({ publicKey: options.publicKey })
                 .then(function(credential) {
                     if (!credential) {
-                        showToast(t('绑定取消'), 'warning');
-                        regBtn.disabled = false; regBtn.textContent = t('开始绑定');
+                        showToast(t('Binding cancelled'), 'warning');
+                        regBtn.disabled = false; regBtn.textContent = t('Start binding');
                         if (statusDiv) statusDiv.textContent = '';
                         return;
                     }
@@ -3205,17 +3220,17 @@ function initSettingsBiometrics() {
                             container.style.display = 'block';
                             loadBiometrics();
                         } else {
-                            showToast(d2.message || t('绑定失败'), 'error');
+                            showToast(d2.message || t('Binding failed'), 'error');
                         }
-                        regBtn.disabled = false; regBtn.textContent = t('开始绑定');
+                        regBtn.disabled = false; regBtn.textContent = t('Start binding');
                         if (statusDiv) statusDiv.textContent = '';
                     };
                     xhr2.send(JSON.stringify(dataToSend));
                 })
                 .catch(function(err) {
                     console.error('Biometric registration error:', err);
-                    showToast(t('绑定失败: ') + (err.message || t('未知错误')), 'error');
-                    regBtn.disabled = false; regBtn.textContent = t('开始绑定');
+                    showToast(t('Binding failed: ') + (err.message || t('Unknown error')), 'error');
+                    regBtn.disabled = false; regBtn.textContent = t('Start binding');
                     if (statusDiv) statusDiv.textContent = '';
                 });
         };
@@ -3226,7 +3241,7 @@ function initSettingsBiometrics() {
 }
 
 function formatTime(ts) {
-    if (!ts) return t('未知');
+    if (!ts) return t('Unknown');
     var d = new Date(ts.replace(' ', 'T') + 'Z');
     return d.toLocaleString(window.NOMEN_LANG || 'zh-Hans');
 }

@@ -6,14 +6,14 @@
  * @var string|null $error
  * @var array       $emailChoices
  */
-$title = t('两步验证');
+$title = t('Two-step verification');
 
 $firstFactorLabels = [
-    'password'   => '密码',
-    'email_code' => '邮箱验证码',
-    'biometric'  => '生物识别',
+    'password'   => 'Password',
+    'email_code' => 'Email code',
+    'biometric'  => 'Biometric',
 ];
-$firstLabel = t($firstFactorLabels[$firstFactor ?? ''] ?? '第一步验证');
+$firstLabel = t($firstFactorLabels[$firstFactor ?? ''] ?? 'First step verification');
 
 $props = [
     'csrf' => \Nomen\Src\Csrf::getToken(),
@@ -35,7 +35,7 @@ $props = [
 $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
 ?>
 <div id="twofa-app" class="auth-container">
-    <noscript><p class="form-hint"><?= t('两步验证需要开启 JavaScript。') ?></p></noscript>
+    <noscript><p class="form-hint"><?= t('Two-step verification requires JavaScript.') ?></p></noscript>
     <script type="application/json" id="twofa-props"><?= json_encode($props, $jsonFlags) ?></script>
 </div>
 <?= \Nomen\Src\ViteAssets::entry('src/entries/twofa.js') ?>

@@ -22,7 +22,7 @@ if (!is_file(__DIR__ . '/../config/installed.php') && !is_file(__DIR__ . '/../.e
 // 多语言：先于一切输出，全局 t() 助手在这里定义
 require_once __DIR__ . '/../src/I18n.php';
 
-use Nomen\Src\{Router, Session, Response, Database, RecoveryHelper, FamilyHelper, Features, AppData, Nav, Admin, Plugins};
+use Nomen\Src\{Api, Router, Session, Response, Database, RecoveryHelper, FamilyHelper, Features, AppData, Nav, Admin, Plugins};
 use Nomen\Controllers\{AuthController, OAuthController, DashboardController, ApiController, ActivationController, BiometricController, TwoFactorController, NotificationController, RecoveryController, AdminController, AdminAppsController, AdminMountsController, AdminSettingsController, AdminHomepageController, AdminIdentityController, IdentityController, FamilyController, EmailController};
 
 // 全局安全响应头（HSTS 由 nginx 统一设置，此处不重复）
@@ -80,6 +80,10 @@ Admin::menu('settings', '/admin/settings', '设置', 70, '系统');
     'access' => 'admin',
     'handler' => [\Nomen\Src\Special\Plugins::class, 'render'],
 ]);
+\Nomen\Src\SpecialPages::add('lang', [
+    'title' => '语言',
+    'handler' => [\Nomen\Src\Special\Lang::class, 'render'],
+]);
 
 // 关键密钥健康检查：pepper 缺失会导致密码哈希强度被削弱
 $appConfig = require __DIR__ . '/../config/app.php';
@@ -91,9 +95,11 @@ if (str_starts_with((string)$appConfig['pepper'], 'change-me-to')) {
 $userId = Session::get('user_id');
 $currentUri = '/' . trim((string)parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
 $recoveryActive = $userId && RecoveryHelper::isActiveFor((int)$userId);
+// 站点 API 自己按 token 判权限，不能被页面的「去激活 / 去修复」重定向接管
+$isSiteApi = $currentUri === '/nomen-api' || str_starts_with($currentUri, '/nomen-api/');
 
 // 恢复模式自己有一套更严的闸（见下），两者叠加会让修复用的 POST 被这一步弹走
-if ($userId && !$recoveryActive) {
+if ($userId && !$recoveryActive && !$isSiteApi) {
     // 白名单：激活流程自己要用到的页面
     $whitelist = ['/activate', '/activate/send', '/activate/verify', '/activate/delete-account', '/logout', '/settings/emails/verify'];
 
@@ -118,7 +124,7 @@ if ($userId && !$recoveryActive) {
 
 // 恢复模式：安全修复完成前，除修复所需的接口外一律拉回修复页。
 // 只拦页面型 GET —— 修复动作本身是 POST/AJAX，拦了会把接口打残。
-if ($recoveryActive && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET') {
+if ($recoveryActive && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET' && !$isSiteApi) {
     $recoveryWhitelist = ['/recovery', '/recovery/secure', '/recovery/sent', '/recovery/ticket', '/activate', '/logout', '/captcha'];
 
     $isAllowed = in_array($currentUri, $recoveryWhitelist)
@@ -214,6 +220,7 @@ $router->post('/register/verify',        [AuthController::class, 'handleRegister
 $router->post('/register/verify/resend', [AuthController::class, 'resendRegisterVerifyCode']);
 $router->get('/api/check-username', [AuthController::class, 'checkUsername']);
 $router->get('/api/consent-age', [ApiController::class, 'consentAge']);
+$router->get('/api/version',     [ApiController::class, 'siteVersion']);
 $router->get('/logout',   [AuthController::class, 'logout']);
 
 // 第三方登录（GitHub / Google / Microsoft / CaelLabID / 自定义 OAuth2）
@@ -306,7 +313,7 @@ $router->get('/api/app/notifications/{id}', function ($id) {
     $userId = (int)Session::get('user_id');
     $data = AppData::notificationDetail($userId, (int)$id);
     if (!$data) {
-        Response::json(['ok' => false, 'message' => t('消息不存在')], 404);
+        Response::json(['ok' => false, 'message' => t('Message not found')], 404);
     }
     Response::json(['ok' => true] + AppData::shell($userId, $data));
 }, ['auth']);
@@ -340,6 +347,9 @@ if (Features::guardians()) {
 $router->get('/api/userinfo',   [ApiController::class, 'userinfo']);
 $router->get('/api/token-info', [ApiController::class, 'tokenInfo']);
 
+// 站点 API（MediaWiki 式）：/nomen-api?action=query&meta=siteinfo&format=json
+$router->any('/nomen-api', static fn() => Api::handle());
+
 // 账号恢复（申诉 → 一次性恢复链接 → 强制安全修复）
 $router->get('/recovery',                [RecoveryController::class, 'form']);
 $router->post('/recovery',               [RecoveryController::class, 'submit']);
@@ -359,6 +369,7 @@ $router->get('/admin/{path:.*}', function (string $path): void {
 }, ['admin']);
 
 $router->get('/api/admin/dashboard',        [AdminController::class, 'index'], ['admin']);
+$router->get('/api/admin/version',          [AdminController::class, 'version'], ['admin']);
 $router->get('/api/admin/users',            [AdminController::class, 'users'], ['admin']);
 $router->get('/api/admin/users/{id}',       [AdminController::class, 'userDetail'], ['admin']);
 $router->post('/admin/users/toggle-status', [AdminController::class, 'toggleStatus'], ['admin']);
@@ -388,6 +399,7 @@ $router->get('/api/admin/identities',       [AdminIdentityController::class, 'in
 $router->post('/admin/identities/save',     [AdminIdentityController::class, 'save'], ['admin']);
 $router->post('/admin/identities/delete',   [AdminIdentityController::class, 'delete'], ['admin']);
 $router->post('/admin/identities/toggle',   [AdminIdentityController::class, 'toggle'], ['admin']);
+$router->post('/admin/identities/toggle-method', [AdminIdentityController::class, 'toggleMethod'], ['admin']);
 
 // 开放平台
 

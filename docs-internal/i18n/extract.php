@@ -11,14 +11,16 @@
  * 运行时 I18n 本来就按「核心优先、扩展补缺」合并词典。只有核心没有的键才要求进自己的 i18n/。
  *
  * 用法（仓库根目录下）：
- *   php docs-internal/i18n/extract.php            生成各域的 zh-hans.json（键=中文原文）
- *   php docs-internal/i18n/extract.php --check    只检查不写：代码里的键 vs zh-hans.json、
- *                                                 每个域每个语言键是否齐全、占位符是否一致
+ *   php docs-internal/i18n/extract.php            生成各域的 en.json（母键=英文原句，en.json 即键的 identity）
+ *   php docs-internal/i18n/extract.php --check    只检查不写：代码里的键 vs en.json、
+ *                                                 每个域每个语言（含 zh-hans）键是否齐全、占位符是否一致
  *
  * 动态键扫不出 t('...') 字面量的，从这里补（核心域专用）：
  *   - EmailTemplate::render([...]) 里静态文案字段的值（render 内部按字段 tIn）
+ *   - $x('...') 的第一参（邮件闭包包装，键同样是英文原句）
  *   - AuthController::LOGIN_METHODS / LOGIN_METHOD_LABELS 的值
- *   - ActivityLog::ACTIONS / CATEGORIES 的值（模板里 t(actionLabel(...)) 动态取）
+ *   - ActivityLog::ACTIONS / CATEGORIES 的值（展示点 t(actionLabel(...)) 动态取）
+ *   - FamilyHelper::RELATIONSHIPS / RELEASE_REASONS 的值
  *   - TwoFactorController::getUserFactors 的 label / placeholder（JSON props 给 Vue）
  *   - RecoveryHelper::METHODS / ASSIST_METHODS 的 label 值、ASSIST_LABEL
  *   - config/app.php 的 scopes 描述
@@ -170,7 +172,7 @@ function collectDynamicKeys(string $root): array
             if (preg_match_all("/'(?:title|subtitle|preheader|footnote|text|label)'\s*=>\s*('(?:[^'\\\\]|\\\\.)*')/", $block, $m)) {
                 foreach ($m[1] as $raw) {
                     $k = unquote($raw);
-                    if ($k !== null && preg_match('/[\x{4e00}-\x{9fff}]/u', $k)) {
+                    if ($k !== null) {
                         addKey($keys, $k, 'EmailTemplate::render@' . basename($file));
                     }
                 }
@@ -251,23 +253,50 @@ function collectDynamicKeys(string $root): array
     }
 
     // 8) Vue 组件 defineProps 里的 label 类默认值：defineProps 会被提升到模块作用域，
-    //    那里不能调 t()，所以默认值保持中文键、在展示点 t(labelXxx)。不收集会被当成悬空键。
+    //    那里不能调 t()，所以默认值保持键原文、在展示点 t(labelXxx)。不收集会被当成悬空键。
     foreach (scanFiles($root, ['frontend/src'], ['vue'], []) as $file) {
         $code = file_get_contents($file);
         if ($code === false) continue;
         if (preg_match_all("/label\w*\s*:\s*\{[^}]*default\s*:\s*'((?:[^'\\\\]|\\\\.)*)'/", $code, $m)) {
             foreach ($m[1] as $raw) {
                 $k = unquote("'" . $raw . "'");
-                if ($k !== null && preg_match('/[\x{4e00}-\x{9fff}]/u', $k)) {
+                if ($k !== null) {
                     addKey($keys, $k, 'vue prop default@' . basename($file));
                 }
             }
         }
     }
 
-    // 9) t($var) 的兜底键（模板里 t($labels[...] ?? '第一步验证') 这类，字面量扫描收不到）
-    foreach (['第一步验证', '系统通知', '未设置'] as $k) {
+    // 9) t($var) 的兜底键（模板里 t($labels[...] ?? 'First step verification') 这类，字面量扫描收不到）
+    foreach (['First step verification', 'System notice', 'Not set'] as $k) {
         addKey($keys, $k, 'dynamic t() fallback');
+    }
+
+    // 10) FamilyHelper::RELATIONSHIPS / RELEASE_REASONS 的值（展示点 t(FamilyHelper::...) 动态取）
+    $fh = file_get_contents($root . '/src/FamilyHelper.php');
+    foreach (['RELATIONSHIPS', 'RELEASE_REASONS'] as $const) {
+        if (preg_match('/' . $const . '\s*=\s*\[(.*?)\];/s', $fh, $m)) {
+            if (preg_match_all("/=>\s*('(?:[^'\\\\]|\\\\.)*')/", $m[1], $labels)) {
+                foreach ($labels[1] as $raw) {
+                    $k = unquote($raw);
+                    if ($k) addKey($keys, $k, 'FamilyHelper::' . $const);
+                }
+            }
+        }
+    }
+
+    // 11) 邮件闭包 $x('...') 的第一参（控制器里 fn($k) => I18n::tIn(...) 的包装；AdminController 的恢复邮件也走它）
+    foreach (scanFiles($root, ['controllers', 'src'], ['php'], []) as $file) {
+        $code = file_get_contents($file);
+        if ($code === false || !str_contains($code, '$x(')) {
+            continue;
+        }
+        if (preg_match_all("/\\\$x\(\s*('(?:[^'\\\\]|\\\\.)*')/", $code, $m)) {
+            foreach ($m[1] as $raw) {
+                $k = unquote($raw);
+                if ($k) addKey($keys, $k, '$x@' . basename($file));
+            }
+        }
     }
 
     return $keys;
@@ -327,14 +356,14 @@ if ($checkOnly) {
         $domainKeys = $domain['keys'];
 
         if ($id === 'core') {
-            $existing = is_file($domain['dir'] . '/zh-hans.json')
-                ? (json_decode((string)file_get_contents($domain['dir'] . '/zh-hans.json'), true) ?: [])
+            $existing = is_file($domain['dir'] . '/en.json')
+                ? (json_decode((string)file_get_contents($domain['dir'] . '/en.json'), true) ?: [])
                 : [];
             foreach (array_diff(array_keys($existing), array_keys($domainKeys)) as $k) {
-                $problems[] = "[悬] 核心zh-hans 有、代码里扫不到（改文案了？确认后删）: {$k}";
+                $problems[] = "[悬] 核心en 有、代码里扫不到（改文案了？确认后删）: {$k}";
             }
             foreach (array_diff(array_keys($domainKeys), array_keys($existing)) as $k) {
-                $problems[] = "[缺] 代码里有、核心zh-hans 没有: {$k}  ({$domainKeys[$k]})";
+                $problems[] = "[缺] 代码里有、核心en 没有: {$k}  ({$domainKeys[$k]})";
             }
         }
 
@@ -381,7 +410,8 @@ foreach ($domains as $id => $domain) {
     if ($domain['keys'] === []) {
         continue;
     }
-    $zhFile = $domain['dir'] . '/zh-hans.json';
+    // en 是母键语言：en.json 即键的 identity 映射，其它语言（含 zh-hans）都是要维护的翻译
+    $zhFile = $domain['dir'] . '/en.json';
     if (!is_dir($domain['dir'])) {
         mkdir($domain['dir'], 0775, true);
     }
@@ -409,6 +439,6 @@ foreach ($domains as $id => $domain) {
         echo "  悬空键（代码里扫不到，确认后从这个域的所有语言文件里删）：\n    " . implode("\n    ", array_slice(array_values($stale), 0, 50)) . (count($stale) > 50 ? "\n    …" : '') . "\n";
     }
     if ($id === 'core' && ($added || $stale)) {
-        echo "  其它语言文件要跟上：新键补翻译、悬空键确认后全删。\n";
+        echo "  其它语言文件（含 zh-hans）要跟上：新键补翻译、悬空键确认后全删。\n";
     }
 }

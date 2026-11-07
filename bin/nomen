@@ -18,6 +18,9 @@ switch ($cmd) {
     case 'plugins':
         exit(Nomen\Src\Cli\Plugin::run(array_slice($args, 2)));
 
+    case 'auth:reset':
+        exit(Nomen\Src\Cli\AuthReset::run(array_slice($args, 2)));
+
     case 'help':
     case '--help':
     case '-h':
@@ -28,6 +31,7 @@ switch ($cmd) {
         echo '  plugins list     列出插件与启用状态', PHP_EOL;
         echo '  plugins migrate  跑插件自己的 database/migrations', PHP_EOL;
         echo '  plugins <命令>   跑插件注册的命令，plugins list 里能看到', PHP_EOL;
+        echo '  auth:reset       登录方式全关进不去后台时用：恢复默认（全部开启）', PHP_EOL;
         exit(0);
 
     default:

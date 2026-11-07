@@ -2,7 +2,7 @@
 /** @var string|null $error */
 /** @var string|null $success */
 /** @var string $redirect_to */
-$title = t('临时密钥登录');
+$title = t('Temp key sign-in');
 ?>
 
 <div class="auth-container">
@@ -11,8 +11,8 @@ $title = t('临时密钥登录');
             <div class="auth-logo">
                 <img src="<?= htmlspecialchars((string)\Nomen\Src\Brand::get('logo')) ?>" alt="" width="48" height="48">
             </div>
-            <h1><?= t('临时密钥登录') ?></h1>
-            <p><?= t('使用临时密钥快速登录，跳过新设备验证') ?></p>
+            <h1><?= t('Temp key sign-in') ?></h1>
+            <p><?= t('Use a temp key to sign in quickly and skip device verification') ?></p>
         </div>
 
         <?php if ($error): ?>
@@ -28,27 +28,27 @@ $title = t('临时密钥登录');
             <input type="hidden" name="redirect_to" value="<?= htmlspecialchars($redirect_to) ?>">
 
             <div class="form-group">
-                <label for="tempkey-username"><?= t('用户名或邮箱') ?></label>
+                <label for="tempkey-username"><?= t('Username or email') ?></label>
                 <input type="text" id="tempkey-username" name="username" required autofocus
-                       placeholder="<?= t('请输入用户名或邮箱地址') ?>">
+                       placeholder="<?= t('Enter a username or email address') ?>">
             </div>
 
             <div class="form-group">
-                <label for="tempkey-key"><?= t('临时密钥') ?></label>
+                <label for="tempkey-key"><?= t('Temp key') ?></label>
                 <input type="password" id="tempkey-key" name="temp_key" required
-                       placeholder="<?= t('请输入临时密钥') ?>">
+                       placeholder="<?= t('Enter the temp key') ?>">
             </div>
 
             <p style="font-size:12px;color:var(--color-text-subtle);margin-bottom:16px;line-height:1.6;">
-                <?= t('临时密钥仅用于跳过新设备验证（如在学校电脑上登录），不影响密码安全。') ?><br>
-                <?= t('可在账户设置中创建和管理临时密钥。') ?>
+                <?= t('Temp keys only skip new-device verification (e.g. on a school computer) and never affect your password.') ?><br>
+                <?= t('Create and manage temp keys in account settings.') ?>
             </p>
 
             <div class="form-group">
-                <label><?= t('验证码') ?></label>
+                <label><?= t('Code') ?></label>
                 <div class="input-with-button">
-                    <input type="text" name="captcha" required placeholder="<?= t('请输入验证码') ?>" maxlength="6" autocomplete="off" style="flex:1;">
-                    <img src="/captcha" alt="<?= t('验证码') ?>" onclick="this.src='/captcha?t='+Date.now()" style="height:38px;max-width:120px;cursor:pointer;border-radius:6px;" title="<?= t('点击刷新') ?>">
+                    <input type="text" name="captcha" required placeholder="<?= t('Enter the code') ?>" maxlength="6" autocomplete="off" style="flex:1;">
+                    <img src="/captcha" alt="<?= t('Code') ?>" onclick="this.src='/captcha?t='+Date.now()" style="height:38px;max-width:120px;cursor:pointer;border-radius:6px;" title="<?= t('Click to refresh') ?>">
                 </div>
             </div>
 
@@ -58,22 +58,22 @@ $title = t('临时密钥登录');
             ?>
             <?php if ($privacyUrl !== '' || $termsUrl !== ''): ?>
                 <p style="font-size:12px;color:var(--color-text-subtle);margin-bottom:12px;">
-                    <?= t('登录即代表同意') ?>
+                    <?= t('By signing in, you agree to the') ?>
                     <?php if ($privacyUrl !== ''): ?>
-                        <a href="<?= htmlspecialchars($privacyUrl) ?>" target="_blank"><?= t('隐私政策') ?></a>
+                        <a href="<?= htmlspecialchars($privacyUrl) ?>" target="_blank"><?= t('Privacy Policy') ?></a>
                     <?php endif; ?>
-                    <?php if ($privacyUrl !== '' && $termsUrl !== ''): ?><?= t('和') ?><?php endif; ?>
+                    <?php if ($privacyUrl !== '' && $termsUrl !== ''): ?><?= t('and') ?><?php endif; ?>
                     <?php if ($termsUrl !== ''): ?>
-                        <a href="<?= htmlspecialchars($termsUrl) ?>" target="_blank"><?= t('服务协议') ?></a>
+                        <a href="<?= htmlspecialchars($termsUrl) ?>" target="_blank"><?= t('Terms of Service') ?></a>
                     <?php endif; ?>
                 </p>
             <?php endif; ?>
 
-            <button type="submit" class="btn btn-primary btn-block"><?= t('登录') ?></button>
+            <button type="submit" class="btn btn-primary btn-block"><?= t('Sign in') ?></button>
         </form>
 
         <div class="auth-footer">
-            <p><a href="/login"><?= t('返回密码登录') ?></a></p>
+            <p><a href="/login"><?= t('Back to password sign-in') ?></a></p>
         </div>
     </div>
 </div>

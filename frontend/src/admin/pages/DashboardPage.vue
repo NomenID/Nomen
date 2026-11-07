@@ -10,6 +10,7 @@ import AdminEmpty from '../components/AdminEmpty.vue'
 const loading = ref(true)
 const error = ref('')
 const data = ref(null)
+const versionInfo = ref(null)
 
 async function load() {
   loading.value = true
@@ -23,7 +24,18 @@ async function load() {
   }
 }
 
-onMounted(load)
+async function loadVersion() {
+  try {
+    versionInfo.value = await apiGet('/api/admin/version')
+  } catch {
+    // GitHub 拉不到就只显示当前版本
+  }
+}
+
+onMounted(() => {
+  load()
+  loadVersion()
+})
 </script>
 
 <template>
@@ -82,7 +94,14 @@ onMounted(load)
           <AdminAlert v-if="data.plugins.missingExt.length" type="warning">
             缺 PHP 扩展 {{ data.plugins.missingExt.join('、') }}，相关功能会降级。
           </AdminAlert>
-          <p class="a-text a-text--muted">当前版本 {{ data.site?.version || '未知' }}</p>
+          <p class="a-text a-text--muted">
+            当前版本 {{ data.site?.version || '未知' }}
+            <template v-if="versionInfo?.latest">
+              · 最新正式版
+              <a class="a-link" :href="versionInfo.latest.url" target="_blank" rel="noopener">{{ versionInfo.latest.version }}</a>
+              <AdminBadge v-if="versionInfo.updateAvailable" tone="warning">有新版本</AdminBadge>
+            </template>
+          </p>
         </AdminCard>
       </div>
 

@@ -24,7 +24,7 @@ const props = defineProps({
   maxEmails: { type: Number, default: 5 },
   error: { type: String, default: '' },
   success: { type: String, default: '' },
-  assistLabel: { type: String, default: '快速辅助验证方式' },
+  assistLabel: { type: String, default: 'Quick assist verification methods' },
   emailMissing: { type: Boolean, default: false },
   urls: { type: Object, default: () => ({}) },
 })
@@ -50,13 +50,13 @@ async function savePassword() {
       headers: { 'X-Requested-With': 'XMLHttpRequest' },
     })
     const result = await response.json()
-    toast(result.message || (result.success ? t('已保存') : t('保存失败')), result.success ? 'success' : 'error')
+    toast(result.message || (result.success ? t('Saved') : t('Save failed')), result.success ? 'success' : 'error')
     if (result.success) {
       passwordForm.next = ''
       passwordForm.confirm = ''
     }
   } catch (err) {
-    toast(err.message || t('网络错误'), 'error')
+    toast(err.message || t('Network error'), 'error')
   } finally {
     passwordSaving.value = false
   }
@@ -77,31 +77,31 @@ onMounted(() => {
 
 <template>
   <div class="settings">
-    <h1>{{ t('恢复账户访问权限') }}</h1>
+    <h1>{{ t('Regain access to your account') }}</h1>
 
     <div class="nomen-alert nomen-alert--warning">
-      {{ t('您好 {:name}。您正在通过恢复流程登录。在完成下面的安全修复前，账户的其他页面暂不可用。', { name: username }) }}
+      {{ t('Hello {:name}. You\'re signing in through the recovery flow. Other pages stay unavailable until you finish the security repair below.', { name: username }) }}
     </div>
 
     <BaseAlert v-if="error" type="error" :message="error" />
     <BaseAlert v-if="success" type="success" :message="success" />
 
     <div class="settings-section" id="sec-recovery-progress">
-      <h2>{{ t('修复进度') }}</h2>
+      <h2>{{ t('Repair progress') }}</h2>
 
       <div class="recovery-check" :class="{ 'recovery-check--done': resetDone }">
         <span class="recovery-check__mark icon" :class="resetDone ? 'icon-check-square icon--success' : 'icon-square'"></span>
         <div>
-          <strong>{{ t('修改密码，或添加 / 更换并验证一个邮箱') }}</strong>
-          <p class="form-hint">{{ t('这大概率是让您此次无法登录的主要原因。修改密码当场生效；添加或更换邮箱需要到新邮箱点确认链接后才生效。') }}</p>
+          <strong>{{ t('Change your password, or add / replace and verify an email') }}</strong>
+          <p class="form-hint">{{ t('This is likely why you couldn\'t sign in. Password changes apply immediately; a new email takes effect after you click the link in that mailbox.') }}</p>
         </div>
       </div>
 
       <div class="recovery-check" :class="{ 'recovery-check--done': methodCount >= requiredCount }">
         <span class="recovery-check__mark icon" :class="methodCount >= requiredCount ? 'icon-check-square icon--success' : 'icon-square'"></span>
         <div>
-          <strong>{{ t('登录方式至少 {:required} 种（当前 {:current} 种）', { required: requiredCount, current: methodCount }) }}</strong>
-          <p class="form-hint">{{ t('账号仅剩 2 种登录方式时，必须再添加第 3 种，否则再次登录不上就只能再来一次申诉。') }}</p>
+          <strong>{{ t('At least {:required} sign-in methods (currently {:current})', { required: requiredCount, current: methodCount }) }}</strong>
+          <p class="form-hint">{{ t('With only 2 sign-in methods left you must add a third — otherwise the next lock-out means another recovery request.') }}</p>
         </div>
       </div>
 
@@ -113,11 +113,11 @@ onMounted(() => {
           :class="{ 'recovery-method--on': method.present }"
         >
           <span class="recovery-method__name">{{ method.label }}</span>
-          <span class="recovery-method__state">{{ method.present ? (method.on || t('已拥有')) : (method.off || t('未设置')) }}</span>
+          <span class="recovery-method__state">{{ method.present ? (method.on || t('Set up')) : (method.off || t('Not set')) }}</span>
         </span>
       </div>
 
-      <p class="form-hint" style="margin-top:16px;">{{ t('{:label}（不计入上面的数量）', { label: t(assistLabel) }) }}</p>
+      <p class="form-hint" style="margin-top:16px;">{{ t('{:label} (not counted above)', { label: t(assistLabel) }) }}</p>
       <div class="recovery-methods" style="margin-top:8px;">
         <span
           v-for="method in assistMethods"
@@ -126,77 +126,77 @@ onMounted(() => {
           :class="{ 'recovery-method--on': method.present }"
         >
           <span class="recovery-method__name">{{ method.label }}</span>
-          <span class="recovery-method__state">{{ method.present ? (method.on || t('已拥有')) : (method.off || t('未设置')) }}</span>
+          <span class="recovery-method__state">{{ method.present ? (method.on || t('Set up')) : (method.off || t('Not set')) }}</span>
         </span>
       </div>
 
       <form v-if="canFinish" method="POST" action="/recovery/secure/finish" style="margin-top:20px;">
         <input type="hidden" name="_csrf" :value="csrf">
-        <button type="submit" class="btn btn-primary">{{ t('完成修复并进入账户') }}</button>
+        <button type="submit" class="btn btn-primary">{{ t('Finish repair and enter account') }}</button>
       </form>
-      <p v-else class="form-hint" style="margin-top:16px;">{{ t('两条都打勾后，才会出现「完成修复」按钮。') }}</p>
+      <p v-else class="form-hint" style="margin-top:16px;">{{ t('The Finish button appears once both are done.') }}</p>
     </div>
 
     <div class="settings-section" id="sec-password">
-      <h2>{{ t('修改密码') }} <span class="form-hint" style="font-weight:400;">{{ t('（推荐，当场生效）') }}</span></h2>
+      <h2>{{ t('Change password') }} <span class="form-hint" style="font-weight:400;">{{ t('(recommended, instant)') }}</span></h2>
       <form class="settings-form" @submit.prevent="savePassword">
         <div class="form-group">
-          <label for="new_password">{{ t('新密码') }}</label>
+          <label for="new_password">{{ t('New password') }}</label>
           <div class="pw-wrap">
-            <input id="new_password" v-model="passwordForm.next" type="password" required minlength="8" :placeholder="t('至少8位，包含字母和数字')">
+            <input id="new_password" v-model="passwordForm.next" type="password" required minlength="8" :placeholder="t('8+ characters, letters and digits')">
           </div>
         </div>
         <div class="form-group">
-          <label for="confirm_password">{{ t('确认新密码') }}</label>
+          <label for="confirm_password">{{ t('Confirm new password') }}</label>
           <input id="confirm_password" v-model="passwordForm.confirm" type="password" required>
         </div>
-        <button type="submit" class="btn btn-primary" :disabled="passwordSaving">{{ passwordSaving ? t('保存中...') : t('修改密码') }}</button>
+        <button type="submit" class="btn btn-primary" :disabled="passwordSaving">{{ passwordSaving ? t('Saving...') : t('Change password') }}</button>
       </form>
     </div>
 
     <div class="settings-section" id="sec-emails">
-      <h2>{{ t('邮箱地址') }}</h2>
+      <h2>{{ t('Email addresses') }}</h2>
       <p class="form-hint" style="margin-bottom:16px;">
-        {{ t('添加一个属于你的邮箱，点邮件里的链接验证通过，就算完成了一项安全修复。账号还没有首选邮箱时，验证通过后它会自动成为首选。最多可以绑定 {:n} 个。', { n: maxEmails }) }}
+        {{ t('Add an email of your own and confirm it through the link in the email — that counts as one security repair. If the account has no primary email yet, the verified address becomes primary automatically. You can bind up to {:n}.', { n: maxEmails }) }}
       </p>
       <EmailSetSection :csrf="csrf" :emails="emails" :max-emails="maxEmails" recovery-mode />
     </div>
 
     <div class="settings-section">
-      <h2>{{ t('验证器 APP（TOTP）') }}</h2>
-      <p class="form-hint" style="margin-bottom:16px;">{{ t('使用 Google Authenticator、Authy 等 TOTP 应用生成6位动态验证码，作为双因素验证的第二要素') }}</p>
+      <h2>{{ t('Authenticator app (TOTP)') }}</h2>
+      <p class="form-hint" style="margin-bottom:16px;">{{ t('Generate 6-digit codes with a TOTP app like Google Authenticator or Authy as the second factor') }}</p>
       <TotpSection
         :csrf="csrf"
         recovery-mode
-        :label-enable="t('绑定验证器 APP')"
-        :label-disable="t('解绑验证器 APP')"
-        :label-enabled="t('验证器 APP 已绑定')"
-        :label-not-enabled="t('您尚未绑定验证器 APP')"
-        :label-verify="t('验证并绑定')"
+        :label-enable="t('Bind authenticator app')"
+        :label-disable="t('Unbind authenticator app')"
+        :label-enabled="t('Authenticator app bound')"
+        :label-not-enabled="t('No authenticator app bound yet')"
+        :label-verify="t('Verify and bind')"
       />
     </div>
 
     <div class="settings-section" id="sec-recovery">
-      <h2>{{ t('恢复码') }}</h2>
-      <p class="form-hint" style="margin-bottom:16px;">{{ t('恢复码是最后手段的验证方式，每个码只能用一次。生成后请立即抄写或打印保存。') }}</p>
+      <h2>{{ t('Recovery codes') }}</h2>
+      <p class="form-hint" style="margin-bottom:16px;">{{ t('Recovery codes are the last-resort method; each works once. Write them down or print them right away.') }}</p>
       <RecoveryCodesSection :csrf="csrf" recovery-mode />
     </div>
 
     <div class="settings-section">
-      <h2>{{ t('生物识别') }}</h2>
-      <p class="form-hint" style="margin-bottom:16px;">{{ t('绑定生物识别（如 Windows Hello、指纹、面容 ID）后可快速登录，属于{:label}、不计入登录方式数量。最多同时绑定5个设备', { label: t(assistLabel) }) }}</p>
+      <h2>{{ t('Biometric') }}</h2>
+      <p class="form-hint" style="margin-bottom:16px;">{{ t('Binding biometrics (like Windows Hello, fingerprint or Face ID) enables quick sign-in. It\'s one of your {:label} and doesn\'t count toward sign-in methods. Up to 5 devices at a time', { label: t(assistLabel) }) }}</p>
       <BiometricsSection :csrf="csrf" />
     </div>
 
     <div class="settings-section">
-      <h2>{{ t('需要帮助？') }}</h2>
+      <h2>{{ t('Need help?') }}</h2>
       <p class="form-hint">
         <template v-if="emailMissing">
-          {{ t('您的账户邮箱尚未完成验证，它暂时不能作为登录方式。建议绑定验证器 APP 或生成恢复码来凑满 {:n} 种。', { n: requiredCount }) }}
+          {{ t('Your account email isn\'t verified yet, so it can\'t be used as a sign-in method. Bind an authenticator app or generate recovery codes to reach {:n} methods.', { n: requiredCount }) }}
         </template>
-        {{ t('如果修复过程中遇到问题，请联系') }} <a :href="'mailto:' + supportEmail">{{ supportEmail }}</a>。
+        {{ t('If anything goes wrong during repair, contact') }} <a :href="'mailto:' + supportEmail">{{ supportEmail }}</a>。
       </p>
-      <p style="margin-top:16px;"><a href="/logout">{{ t('退出登录') }}</a></p>
+      <p style="margin-top:16px;"><a href="/logout">{{ t('Sign out') }}</a></p>
     </div>
   </div>
 </template>

@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{ActivityLog, AuthController, Csrf, Database, Hooks, IdentityAuth, IdentityProviders, Response, Session};
+use Nomen\Src\{ActivityLog, AuthController, Csrf, Database, Hooks, IdentityAuth, IdentityProviders, LoginMethods, Response, Session};
 use PDO;
 use Throwable;
 
@@ -12,9 +12,14 @@ class IdentityController
 {
     public function redirect(string $slug): void
     {
+        if (!LoginMethods::on('oauth')) {
+            Response::error(404, t('This sign-in method is not enabled'));
+            return;
+        }
+
         $provider = IdentityProviders::find($slug);
         if ($provider === null || (int)$provider['enabled'] !== 1) {
-            Response::error(404, '这个登录方式没有启用');
+            Response::error(404, t('This sign-in method is not enabled'));
             return;
         }
 
@@ -31,27 +36,27 @@ class IdentityController
         $pending = IdentityAuth::pending();
 
         if ($provider === null || (int)$provider['enabled'] !== 1) {
-            $this->fail('这个登录方式没有启用');
+            $this->fail(t('This sign-in method is not enabled'));
             return;
         }
         if ($pending === null || (string)$pending['provider'] !== (string)$provider['slug']) {
-            $this->fail('登录状态已失效，请重新发起');
+            $this->fail(t('Your session has expired — please start again'));
             return;
         }
 
         $state = (string)($_GET['state'] ?? '');
         if (!hash_equals((string)$pending['state'], $state)) {
-            $this->fail('状态校验失败，请重新发起');
+            $this->fail(t('State validation failed — please start again'));
             return;
         }
         if (isset($_GET['error'])) {
-            $this->fail('第三方登录被取消或拒绝：' . (string)($_GET['error_description'] ?? $_GET['error']));
+            $this->fail(t('Third-party sign-in was cancelled or denied: {:reason}', ['reason' => (string)($_GET['error_description'] ?? $_GET['error'])]));
             return;
         }
 
         $code = (string)($_GET['code'] ?? '');
         if ($code === '') {
-            $this->fail('回调里没有授权码');
+            $this->fail(t('No authorization code in the callback'));
             return;
         }
 
@@ -60,7 +65,7 @@ class IdentityController
             $profile = IdentityAuth::profile($provider, $token['access_token']);
         } catch (Throwable $e) {
             error_log('[identity] ' . $provider['slug'] . ' 登录失败: ' . $e->getMessage());
-            $this->fail('第三方登录失败：' . $e->getMessage());
+            $this->fail(t('Third-party sign-in failed: {:message}', ['message' => $e->getMessage()]));
             return;
         }
 
@@ -79,7 +84,7 @@ class IdentityController
         $redirectTo = $this->safeRedirect((string)($pending['redirect'] ?? '/dashboard'));
 
         if ((int)$user['status'] !== 1) {
-            $this->fail('这个账号已被停用');
+            $this->fail(t('This account has been disabled'));
             return;
         }
 
@@ -100,7 +105,7 @@ class IdentityController
             return;
         }
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            Response::json(['success' => false, 'message' => '请求无效，请重试'], 422);
+            Response::json(['success' => false, 'message' => t('Invalid request, try again')], 422);
         }
 
         $providerId = (int)($_POST['provider_id'] ?? 0);
@@ -110,11 +115,11 @@ class IdentityController
         $stmt->execute([':u' => $userId, ':p' => $providerId]);
         $identity = $stmt->fetch();
         if (!$identity) {
-            Response::json(['success' => false, 'message' => '没有绑定这个登录方式'], 404);
+            Response::json(['success' => false, 'message' => t('This sign-in method is not linked')], 404);
         }
 
         if (!$this->canRemoveIdentity($userId)) {
-            Response::json(['success' => false, 'message' => '这是你最后的登录方式，先验证邮箱或绑定另一种方式'], 422);
+            Response::json(['success' => false, 'message' => t('This is your only sign-in method — verify an email or link another one first')], 422);
         }
 
         $db->prepare('DELETE FROM user_identities WHERE user_id = :u AND provider_id = :p')
@@ -128,14 +133,14 @@ class IdentityController
             'summary'     => '解绑第三方登录方式',
         ]);
 
-        Response::json(['success' => true, 'message' => '已解绑']);
+        Response::json(['success' => true, 'message' => t('Unlinked')]);
     }
 
     private function linkToCurrentUser(array $provider, array $profile): void
     {
         $userId = (int)Session::get('user_id');
         if ($userId <= 0) {
-            $this->fail('登录状态已失效，请重新登录后再绑定');
+            $this->fail(t('Your session has expired — sign in again before linking'));
             return;
         }
 
@@ -147,7 +152,7 @@ class IdentityController
         $owner = (int)$stmt->fetchColumn();
 
         if ($owner > 0 && $owner !== $userId) {
-            $this->fail('这个第三方账号已经绑定到另一个账号了');
+            $this->fail(t('This third-party account is already linked to another account'));
             return;
         }
 
@@ -162,7 +167,7 @@ class IdentityController
             'summary'     => '绑定第三方登录：' . $provider['name'],
         ]);
 
-        Session::flash('success', '已绑定 ' . $provider['name'] . '，下次可以直接用它登录');
+        Session::flash('success', t('{:name} is now linked — you can use it to sign in next time', ['name' => $provider['name']]));
         Response::redirect('/settings');
     }
 
@@ -178,7 +183,7 @@ class IdentityController
         if ($identity) {
             $user = $this->userById((int)$identity['user_id']);
             if ($user === null) {
-                $this->fail('绑定的账号不存在了');
+                $this->fail(t('The linked account no longer exists'));
                 return null;
             }
             $this->saveIdentity((int)$user['id'], $provider, $profile);
@@ -239,7 +244,7 @@ class IdentityController
             ]);
         } catch (\PDOException $e) {
             error_log('[identity] 创建账号失败: ' . $e->getMessage());
-            $this->fail('这个邮箱已经被占用了，请先登录原账号再绑定');
+            $this->fail(t('This email is already taken — sign in to the original account before linking it'));
             return null;
         }
 

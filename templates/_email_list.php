@@ -16,29 +16,29 @@ $recoveryMode = $recoveryMode ?? false;
         <div class="email-item__main">
             <span class="email-item__addr"><?= htmlspecialchars((string)$row['email']) ?></span>
             <?php if (!empty($row['is_primary'])): ?>
-                <span class="badge badge--info"><?= t('首选') ?></span>
+                <span class="badge badge--info"><?= t('Primary') ?></span>
             <?php endif; ?>
             <?php if (!empty($row['verified'])): ?>
-                <span class="badge badge--success"><?= t('已验证') ?></span>
+                <span class="badge badge--success"><?= t('Verified') ?></span>
             <?php else: ?>
-                <span class="badge badge--warning"><?= t('待验证') ?></span>
+                <span class="badge badge--warning"><?= t('Pending') ?></span>
             <?php endif; ?>
         </div>
         <div class="email-item__actions">
             <?php if (empty($row['verified'])): ?>
-                <button type="button" class="btn btn-sm btn-secondary" data-email-action="resend"><?= t('重新发送验证邮件') ?></button>
+                <button type="button" class="btn btn-sm btn-secondary" data-email-action="resend"><?= t('Resend verification email') ?></button>
             <?php elseif (empty($row['is_primary'])): ?>
-                <button type="button" class="btn btn-sm btn-secondary" data-email-action="primary"><?= t('设为首选') ?></button>
+                <button type="button" class="btn btn-sm btn-secondary" data-email-action="primary"><?= t('Set as primary') ?></button>
             <?php endif; ?>
             <?php if (count($emails) > 1): ?>
-                <button type="button" class="btn btn-sm btn-danger-outline" data-email-action="remove"><?= t('移除') ?></button>
+                <button type="button" class="btn btn-sm btn-danger-outline" data-email-action="remove"><?= t('Remove') ?></button>
             <?php endif; ?>
         </div>
     </div>
     <?php endforeach; ?>
 
     <?php if (!$emails): ?>
-        <p class="text-muted" style="padding:8px 0;"><?= t('还没有绑定邮箱，现在收信走的是家长的邮箱。') ?></p>
+        <p class="text-muted" style="padding:8px 0;"><?= t('No email bound yet — notifications currently go to a parent\'s address.') ?></p>
     <?php endif; ?>
 </div>
 
@@ -46,20 +46,20 @@ $recoveryMode = $recoveryMode ?? false;
 <form id="email-add-form" method="POST" action="/settings/emails/add" class="settings-form" style="margin-top:16px;">
     <?= \Nomen\Src\Csrf::field() ?>
     <div class="form-group">
-        <label for="new_email"><?= t('添加邮箱') ?></label>
-        <input type="email" id="new_email" name="new_email" required placeholder="<?= t('请输入要添加的邮箱地址') ?>">
+        <label for="new_email"><?= t('Add email') ?></label>
+        <input type="email" id="new_email" name="new_email" required placeholder="<?= t('Enter the address to add') ?>">
     </div>
     <div class="form-group">
-        <label for="email_add_password"><?= t('当前密码') ?></label>
+        <label for="email_add_password"><?= t('Current password') ?></label>
         <input type="password" id="email_add_password" name="password" <?= $recoveryMode ? '' : 'required' ?>
-               placeholder="<?= $recoveryMode ? t('恢复流程中可留空') : t('输入当前密码以确认身份') ?>">
+               placeholder="<?= $recoveryMode ? t('Can be left empty in recovery mode') : t('Enter the current password to confirm it\'s you') ?>">
         <?php if ($recoveryMode): ?>
-            <p class="form-hint"><?= t('恢复流程中无需填写当前密码。') ?></p>
+            <p class="form-hint"><?= t('No current password needed in recovery mode.') ?></p>
         <?php endif; ?>
     </div>
-    <button type="submit" id="email-add-btn" class="btn btn-primary"><?= t('发送验证邮件') ?></button>
-    <small class="form-hint"><?= t('验证邮件会发到新邮箱，点里面的链接确认后才会生效') ?></small>
+    <button type="submit" id="email-add-btn" class="btn btn-primary"><?= t('Send verification email') ?></button>
+    <small class="form-hint"><?= t('The verification mail goes to the new address; the change applies after you click its link') ?></small>
 </form>
 <?php else: ?>
-    <p class="form-hint" style="margin-top:16px;"><?= t('已经绑满 {:max} 个邮箱，要加新的请先移除一个。', ['max' => (int)$maxEmails]) ?></p>
+    <p class="form-hint" style="margin-top:16px;"><?= t('You already have {:max} addresses. Remove one before adding another.', ['max' => (int)$maxEmails]) ?></p>
 <?php endif; ?>

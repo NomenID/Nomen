@@ -9,11 +9,11 @@ const { t } = useT()
 const props = defineProps({
   csrf: { type: String, default: '' },
   recoveryMode: { type: Boolean, default: false },
-  labelEnable: { type: String, default: '启用 TOTP' },
-  labelDisable: { type: String, default: '禁用 TOTP' },
-  labelEnabled: { type: String, default: 'TOTP 已启用' },
-  labelNotEnabled: { type: String, default: '您尚未启用 TOTP' },
-  labelVerify: { type: String, default: '验证并启用' },
+  labelEnable: { type: String, default: 'Enable TOTP' },
+  labelDisable: { type: String, default: 'Disable TOTP' },
+  labelEnabled: { type: String, default: 'TOTP enabled' },
+  labelNotEnabled: { type: String, default: 'TOTP isn\'t enabled yet' },
+  labelVerify: { type: String, default: 'Verify and enable' },
   urls: { type: Object, default: () => ({}) },
 })
 
@@ -52,11 +52,11 @@ async function startSetup() {
     const response = await fetch(urls.setup, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
     const data = await response.json()
     if (!data.success) {
-      toast(t('加载失败'), 'error')
+      toast(t('Load failed'), 'error')
       return
     }
     if (data.has_totp) {
-      toast(t('TOTP 已启用'), 'info')
+      toast(t('TOTP enabled'), 'info')
       loadStatus()
       return
     }
@@ -67,7 +67,7 @@ async function startSetup() {
       ? 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(data.uri)
       : ''
   } catch (err) {
-    toast(t('网络错误'), 'error')
+    toast(t('Network error'), 'error')
   } finally {
     setupLoading.value = false
   }
@@ -81,7 +81,7 @@ function cancelSetup() {
 async function verifySetup() {
   const value = code.value.trim()
   if (!value || value.length !== 6) {
-    toast(t('请输入6位验证码'), 'warning')
+    toast(t('Enter the 6-digit verification code'), 'warning')
     return
   }
 
@@ -100,7 +100,7 @@ async function verifySetup() {
     })
     const data = await response.json()
     if (data.success) {
-      toast(t('TOTP 已启用'), 'success')
+      toast(t('TOTP enabled'), 'success')
       setupOpen.value = false
       code.value = ''
       enabled.value = true
@@ -112,7 +112,7 @@ async function verifySetup() {
       toast(data.message, 'error')
     }
   } catch (err) {
-    toast(t('请求失败'), 'error')
+    toast(t('Request failed'), 'error')
   } finally {
     verifying.value = false
   }
@@ -121,14 +121,14 @@ async function verifySetup() {
 function disableTotp() {
   if (!window.Nomen || typeof window.Nomen.prompt !== 'function') return
 
-  window.Nomen.prompt(t('禁用 TOTP'), props.recoveryMode
-    ? t('恢复流程中无需填写密码，直接确认即可：')
-    : t('请输入当前密码以确认禁用 TOTP 验证器：'), {
-    confirmText: t('确认禁用'),
-    cancelText: t('取消'),
+  window.Nomen.prompt(t('Disable TOTP'), props.recoveryMode
+    ? t('No password needed in recovery mode — just confirm:')
+    : t('Enter the current password to disable TOTP:'), {
+    confirmText: t('Disable'),
+    cancelText: t('Cancel'),
     danger: true,
     inputType: 'password',
-    placeholder: props.recoveryMode ? t('恢复流程中可留空') : t('当前密码'),
+    placeholder: props.recoveryMode ? t('Can be left empty in recovery mode') : t('Current password'),
     required: !props.recoveryMode,
   }).then(async (password) => {
     if (password === null) return
@@ -147,14 +147,14 @@ function disableTotp() {
       })
       const data = await response.json()
       if (data.success) {
-        toast(t('TOTP 已禁用'), 'success')
+        toast(t('TOTP disabled'), 'success')
         enabled.value = false
         setupOpen.value = false
       } else {
         toast(data.message, 'error')
       }
     } catch (err) {
-      toast(t('网络错误'), 'error')
+      toast(t('Network error'), 'error')
     }
   })
 }
@@ -173,8 +173,8 @@ function disableTotp() {
 
     <div v-show="setupOpen" style="margin-top:16px;">
       <div class="form-group">
-        <label>{{ t('1. 在验证器应用中添加账户') }}</label>
-        <p class="form-hint">{{ t('手动输入密钥或使用应用扫描二维码：') }}</p>
+        <label>{{ t('1. Add the account in your authenticator app') }}</label>
+        <p class="form-hint">{{ t('Enter the key manually or scan the QR code:') }}</p>
         <div style="text-align:center;margin:16px 0;">
           <div
             style="width:180px;height:180px;margin:0 auto;background:var(--color-bg-tertiary);border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--color-text-subtle);font-size:13px;"
@@ -182,25 +182,25 @@ function disableTotp() {
             <img
               v-if="qrUrl && !qrFailed"
               :src="qrUrl"
-              :alt="t('TOTP 二维码')"
+              :alt="t('TOTP QR code')"
               style="width:180px;height:180px;border-radius:8px;display:block;"
               @error="qrFailed = true"
             >
-            <span v-else-if="qrFailed">{{ t('无法加载二维码，请手动输入下方密钥') }}</span>
-            <span v-else>{{ t('加载中...') }}</span>
+            <span v-else-if="qrFailed">{{ t('Couldn\'t load the QR code — enter the key below manually') }}</span>
+            <span v-else>{{ t('Loading...') }}</span>
           </div>
         </div>
         <div style="background:var(--color-bg-tertiary);border-radius:8px;padding:12px;text-align:center;font-family:var(--font-mono);font-size:14px;word-break:break-all;">{{ secret }}</div>
-        <p class="form-hint" style="margin-top:8px;text-align:center;">{{ t('密钥区分大小写，请完整输入') }}</p>
+        <p class="form-hint" style="margin-top:8px;text-align:center;">{{ t('The key is case-sensitive — enter it in full') }}</p>
       </div>
       <div class="form-group">
-        <label>{{ t('2. 输入验证器APP生成的6位验证码') }}</label>
+        <label>{{ t('2. Enter the 6-digit code from your authenticator app') }}</label>
         <div class="input-with-button">
-          <input v-model="code" type="text" :placeholder="t('请输入6位验证码')" maxlength="6" autocomplete="off">
-          <button type="button" class="btn btn-primary" :disabled="verifying" @click="verifySetup">{{ verifying ? t('验证中...') : t(labelVerify) }}</button>
+          <input v-model="code" type="text" :placeholder="t('Enter the 6-digit verification code')" maxlength="6" autocomplete="off">
+          <button type="button" class="btn btn-primary" :disabled="verifying" @click="verifySetup">{{ verifying ? t('Verifying...') : t(labelVerify) }}</button>
         </div>
       </div>
-      <button type="button" class="btn btn-sm btn-ghost" style="margin-top:8px;" @click="cancelSetup">{{ t('取消') }}</button>
+      <button type="button" class="btn btn-sm btn-ghost" style="margin-top:8px;" @click="cancelSetup">{{ t('Cancel') }}</button>
     </div>
   </div>
 </template>

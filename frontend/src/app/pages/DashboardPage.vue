@@ -18,9 +18,9 @@ const initial = inject('initialPage')
 const revoking = ref(false)
 
 async function revoke(auth) {
-  const confirmed = await window.Nomen.confirm(t('撤销授权'), t('撤销后该应用将无法访问您的信息。'), {
-    confirmText: t('撤销'),
-    cancelText: t('取消'),
+  const confirmed = await window.Nomen.confirm(t('Revoke authorization'), t('After revoking, this app can no longer access your information.'), {
+    confirmText: t('Revoke'),
+    cancelText: t('Cancel'),
     danger: true,
   })
   if (!confirmed) return
@@ -34,7 +34,7 @@ async function revoke(auth) {
       data.value = { ...data.value, authorizations: res.data.authorizations }
     }
   } catch (err) {
-    toast(err.message || t('网络错误'), 'error')
+    toast(err.message || t('Network error'), 'error')
   } finally {
     revoking.value = false
   }

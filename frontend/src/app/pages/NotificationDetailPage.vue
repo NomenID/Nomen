@@ -41,7 +41,7 @@ watch(() => route.params.id, (id, old) => {
   <div v-if="data" class="container">
     <div class="dashboard">
       <div class="notif-detail">
-        <RouterLink to="/notifications" class="notif-back">‹ {{ t('返回消息中心') }}</RouterLink>
+        <RouterLink to="/notifications" class="notif-back">‹ {{ t('Back to messages') }}</RouterLink>
 
         <div class="notif-detail__head">
           <span :class="['notif-item__category', 'notif-item__category--' + data.notification.category]">{{ data.notification.categoryLabel }}</span>
@@ -52,10 +52,10 @@ watch(() => route.params.id, (id, old) => {
 
         <div class="notif-detail__body">{{ data.notification.body }}</div>
 
-        <a v-if="data.notification.link" :href="data.notification.link" class="btn btn-primary">{{ data.notification.linkText || t('前往处理') }}</a>
+        <a v-if="data.notification.link" :href="data.notification.link" class="btn btn-primary">{{ data.notification.linkText || t('Take care of it') }}</a>
       </div>
     </div>
   </div>
-  <div v-else-if="notFound" class="container"><p class="text-muted" style="padding:24px 0">{{ t('消息不存在') }}</p></div>
-  <div v-else-if="loading" class="container"><p class="text-muted" style="padding:24px 0">{{ t('加载中...') }}</p></div>
+  <div v-else-if="notFound" class="container"><p class="text-muted" style="padding:24px 0">{{ t('Message not found') }}</p></div>
+  <div v-else-if="loading" class="container"><p class="text-muted" style="padding:24px 0">{{ t('Loading...') }}</p></div>
 </template>

@@ -8,6 +8,6 @@
 $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
 ?>
 <div id="app-root" class="app-root-host">
-    <noscript><p class="form-hint"><?= t('此页面需要开启 JavaScript。') ?></p></noscript>
+    <noscript><p class="form-hint"><?= t('This page requires JavaScript.') ?></p></noscript>
     <script type="application/json" id="app-props"><?= json_encode($appProps, $jsonFlags) ?></script>
 </div>

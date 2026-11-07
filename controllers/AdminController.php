@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{ActivityLog, Csrf, Database, Email, EmailTemplate, FamilyHelper, Features, Hooks, I18n, Plugins, RecoveryHelper, RedisClient, Response, Session, TextDiff, Upgrade};
+use Nomen\Src\{ActivityLog, Csrf, Database, Email, EmailTemplate, FamilyHelper, Features, Hooks, I18n, Plugins, RecoveryHelper, RedisClient, Response, Session, TextDiff, UpdateCheck, Upgrade};
 use PDO;
 
 /**
@@ -167,6 +167,24 @@ class AdminController
             error_log('[redis] 后台状态读取失败: ' . $e->getMessage());
             return ['ok' => false, 'error' => '读取状态失败：' . $e->getMessage()];
         }
+    }
+
+    /**
+     * GET /api/admin/version - 概览页「插件」卡异步查最新正式版。
+     * 拉不到只回 latest=null，前端只显示当前版本，不报错。
+     */
+    public function version(): void
+    {
+        $this->requireAdmin();
+
+        $current = (string)(self::config()['version'] ?? '');
+        $latest = UpdateCheck::latest();
+
+        Response::json([
+            'success'         => true,
+            'latest'          => $latest,
+            'updateAvailable' => $latest !== null && UpdateCheck::isNewer($latest['version'], $current),
+        ]);
     }
 
     // ========== 用户 ==========
@@ -617,8 +635,8 @@ class AdminController
             'filter'     => $filter,
             'pagination' => ['page' => $result['page'], 'pages' => $result['pages'], 'total' => $result['total']],
             'query'      => $query,
-            'categories' => ActivityLog::CATEGORIES,
-            'actions'    => ActivityLog::ACTIONS,
+            'categories' => array_map(static fn($v) => \Nomen\Src\I18n::tIn('zh-hans', $v), ActivityLog::CATEGORIES),
+            'actions'    => array_map(static fn($v) => \Nomen\Src\I18n::tIn('zh-hans', $v), ActivityLog::ACTIONS),
         ]);
     }
 
@@ -659,8 +677,8 @@ class AdminController
                 ActivityLog::actorLabel($row),
                 $row['actor_id'],
                 $row['actor_username'],
-                ActivityLog::categoryLabel((string)$row['category']),
-                ActivityLog::actionLabel((string)$row['action']),
+                \Nomen\Src\I18n::tIn('zh-hans', ActivityLog::categoryLabel((string)$row['category'])),
+                \Nomen\Src\I18n::tIn('zh-hans', ActivityLog::actionLabel((string)$row['action'])),
                 $row['action'],
                 $row['target_type'] ? self::targetTypeLabel((string)$row['target_type']) : '',
                 $row['target_id'],
@@ -695,9 +713,9 @@ class AdminController
                 'actor_label'      => ActivityLog::actorLabel($row),
                 'actor_url'        => self::actorUrl($row),
                 'category'         => (string)$row['category'],
-                'category_label'   => ActivityLog::categoryLabel((string)$row['category']),
+                'category_label'   => \Nomen\Src\I18n::tIn('zh-hans', ActivityLog::categoryLabel((string)$row['category'])),
                 'action'           => (string)$row['action'],
-                'action_label'     => ActivityLog::actionLabel((string)$row['action']),
+                'action_label'     => \Nomen\Src\I18n::tIn('zh-hans', ActivityLog::actionLabel((string)$row['action'])),
                 'target_type'      => (string)($row['target_type'] ?? ''),
                 'target_type_label' => ($row['target_type'] ?? '') !== '' ? self::targetTypeLabel((string)$row['target_type']) : '',
                 'target_id'        => (string)($row['target_id'] ?? ''),
@@ -1190,29 +1208,29 @@ class AdminController
         $username = (string)$request['username'];
         // 收件人是申请人（不是管理员）：按账号语言出。管理后台界面本身保持中文
         $x = fn(string $k, array $p = []): string => I18n::tIn(I18n::emailLocale((int)($request['user_id'] ?? 0)), $k, $p);
-        $disclaimer = $x('您之所以会收到此邮件，是因为有人在提交申诉时提供该地址作为联系电子邮件地址。如果您并未提交任何申诉，可以忽略此邮件。');
+        $disclaimer = $x('You received this email because someone provided this address as the contact email when submitting an appeal. If you did not submit any appeal, you can ignore this email.');
 
         if ($mode === 'reject') {
-            $title = $x('Nomen 账号恢复申诉处理结果');
+            $title = $x('Your Nomen account recovery appeal — result');
             $blocks = [
-                ['type' => 'paragraph', 'text' => $x('感谢您就恢复对您 Nomen 的访问权限一事与我们联系。')],
-                ['type' => 'paragraph', 'text' => $x('经审核，我们暂时无法通过本次申诉，因此未能为账户「{:name}」恢复访问权限。', ['name' => $username])],
-                ['type' => 'paragraph', 'text' => $x('如果您认为这是误判，或可以提供更多能证明账户归属的材料，欢迎直接回复本邮件或联系 {:support}。', ['support' => $support])],
+                ['type' => 'paragraph', 'text' => $x('Thank you for reaching out about regaining access to your Nomen.')],
+                ['type' => 'paragraph', 'text' => $x('After review, we could not approve this appeal for now, so access to the account “{:name}” has not been restored.', ['name' => $username])],
+                ['type' => 'paragraph', 'text' => $x('If you believe this was a mistake, or you can provide more material proving the account is yours, reply to this email directly or contact {:support}.', ['support' => $support])],
                 ['type' => 'alert', 'tone' => 'info', 'text' => $disclaimer],
             ];
             $button = null;
         } else {
             $url = EmailTemplate::url('/recovery/ticket?token=' . (string)$token);
             $days = max(1, (int)ceil(((int)($config['recovery_token_ttl'] ?? 604800)) / 86400));
-            $title = $x('Nomen 恢复用户申诉已通过');
+            $title = $x('Your Nomen account recovery appeal was approved');
 
             $blocks = [
-                ['type' => 'paragraph', 'text' => $x('您的 Nomen 恢复用户申诉已通过。')],
-                ['type' => 'paragraph', 'text' => $x('请在 {:days} 天内点击下方链接（仅使用 1 次）来直接登录账号。登录后系统会提示您，您必须先修改密码，或添加 / 更换并验证一个邮箱（这大概率是让您此次无法登录的主要原因）；并且如果账号仅剩 2 个登录方式，您必须根据提示添加第 3 个登录方式。', ['days' => $days])],
-                ['type' => 'alert', 'tone' => 'warning', 'text' => $x('该链接仅能使用 1 次，请勿转发给任何人。若链接已失效，请回复本邮件由我们重新签发。')],
+                ['type' => 'paragraph', 'text' => $x('Your Nomen account recovery appeal has been approved.')],
+                ['type' => 'paragraph', 'text' => $x('Within {:days} days, click the link below (usable once) to sign in directly. After signing in you will be asked to change your password, or to add, replace or verify an email (this is most likely why you could not sign in); and if the account has only 2 sign-in methods left, you will be asked to add a third.', ['days' => $days])],
+                ['type' => 'alert', 'tone' => 'warning', 'text' => $x('This link can be used once — do not forward it to anyone. If it has expired, reply to this email and we will issue a new one.')],
                 ['type' => 'alert', 'tone' => 'info', 'text' => $disclaimer],
             ];
-            $button = ['text' => $x('登录并修复账户'), 'url' => $url];
+            $button = ['text' => $x('Sign in and secure the account'), 'url' => $url];
         }
 
         // 审核结果连同恢复链接只发给「申请时留下的联系邮箱」。

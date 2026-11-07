@@ -11,11 +11,11 @@ class AdminMountsController
         $base = rtrim((string)Brand::get('base_url'), '/');
 
         $endpoints = [
-            ['label' => '授权', 'path' => '/oauth/authorize', 'description' => '浏览器跳转到这里，用户确认后带 code 回到回调地址'],
-            ['label' => '令牌', 'path' => '/oauth/token', 'description' => '用 code 换 access_token / refresh_token'],
-            ['label' => '用户信息', 'path' => '/api/userinfo', 'description' => '带 Bearer token 读取 sub、用户名、昵称、头像'],
-            ['label' => '令牌校验', 'path' => '/api/token-info', 'description' => '校验 token 是否有效'],
-            ['label' => '撤销', 'path' => '/oauth/revoke', 'description' => '撤销 access_token 或 refresh_token'],
+            ['label' => 'Authorize', 'path' => '/oauth/authorize', 'description' => '浏览器跳转到这里，用户确认后带 code 回到回调地址'],
+            ['label' => 'Token', 'path' => '/oauth/token', 'description' => '用 code 换 access_token / refresh_token'],
+            ['label' => 'User info', 'path' => '/api/userinfo', 'description' => '带 Bearer token 读取 sub、用户名、昵称、头像'],
+            ['label' => 'Token verification', 'path' => '/api/token-info', 'description' => '校验 token 是否有效'],
+            ['label' => 'Revoke', 'path' => '/oauth/revoke', 'description' => '撤销 access_token 或 refresh_token'],
         ];
 
         Response::json([

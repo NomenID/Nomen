@@ -31,7 +31,7 @@ class FamilyController
 
         // 真 SPA：壳只出挂载点 + props（AppData 与 /api/app 端点共用同一份构建）
         $appProps = AppData::shell((int)$user['id'], AppData::family((int)$user['id']));
-        Response::view('app-shell', ['appProps' => $appProps, 'title' => t('家庭')], 'app');
+        Response::view('app-shell', ['appProps' => $appProps, 'title' => t('Family')], 'app');
     }
 
     // ========== 家长侧：接受邀请 ==========
@@ -44,20 +44,20 @@ class FamilyController
 
         $email = FamilyHelper::normalizeEmail((string)$user['email']);
         if ($email === '') {
-            $this->back('你的账号还没有邮箱，请先到设置里绑定一个');
+            $this->back(t('Your account has no email yet — bind one in settings first'));
         }
         if (!FamilyHelper::claimableGroupsForEmail($email)) {
-            $this->back('没有找到发给这条邮箱的家庭邀请');
+            $this->back(t('No family invitation found for this address'));
         }
 
         $joined = FamilyHelper::claimByGuardianEmail($email, (int)$user['id']);
         if ($joined === 0) {
-            $this->back('加入失败，请稍后重试');
+            $this->back(t('Could not join — please try again later'));
         }
 
         $this->logClaimed($user, $email, $joined);
         $this->notifyChildren($user, $email);
-        $this->back('', '已加入 ' . $joined . ' 个家庭');
+        $this->back('', t('You have joined {:joined} families', ['joined' => $joined]));
     }
 
     /** 邀请发给了另一条邮箱（账号邮箱不是它）：用验证码证明那条邮箱是你的 */
@@ -68,26 +68,26 @@ class FamilyController
 
         $email = FamilyHelper::normalizeEmail((string)($_POST['guardian_email'] ?? ''));
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->back('请输入有效的邮箱地址');
+            $this->back(t('Enter a valid email address'));
         }
         if (EmailPolicy::isBlocked($email)) {
             $this->back(t(EmailPolicy::REJECT_MESSAGE));
         }
         if ($email === FamilyHelper::normalizeEmail((string)$user['email'])) {
-            $this->back('这条邮箱就是你账号的邮箱，直接用上面的「加入」按钮就行');
+            $this->back(t('This address is already on your account — just use the Join button above'));
         }
         if (!FamilyHelper::claimableGroupsForEmail($email)) {
-            $this->back('没有找到发给这条邮箱的家庭邀请');
+            $this->back(t('No family invitation found for this address'));
         }
 
         $rate = RateLimiter::check('family:claim:' . $user['id'], 5, 86400);
         if (!$rate['allowed']) {
-            $this->back('发送太频繁，请稍后重试');
+            $this->back(t('Sending too often — please try again later'));
         }
 
         $code = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
         if (!VerifyCode::issue(VerifyCode::FAMILY_CLAIM, (int)$user['id'], $code)) {
-            $this->back('服务暂时不可用，请稍后重试');
+            $this->back(t('Service temporarily unavailable, try again later'));
         }
 
         $locale = 'zh-hans'; // 收件人是被邀请的家长（未必有账号），保持中文
@@ -99,11 +99,11 @@ class FamilyController
             $locale
         );
         if (!Email::send($email, 'Nomen - ' . I18n::tIn($locale, '家庭邀请验证码'), $html)) {
-            $this->back('邮件发送失败，请稍后重试');
+            $this->back(t('Email failed to send, try again later'));
         }
 
         Session::set('family_claim_email', $email);
-        $this->back('', '验证码已发送至 ' . RecoveryHelper::maskEmail($email) . '，10 分钟内有效');
+        $this->back('', t('A code was sent to {:email} — valid for 10 minutes', ['email' => RecoveryHelper::maskEmail($email)]));
     }
 
     public function claimVerify(): void
@@ -113,38 +113,38 @@ class FamilyController
 
         $email = (string)Session::get('family_claim_email', '');
         if ($email === '') {
-            $this->back('请先获取验证码');
+            $this->back(t('Request a code first'));
         }
 
         $code = trim((string)($_POST['code'] ?? ''));
         switch (VerifyCode::check(VerifyCode::FAMILY_CLAIM, (int)$user['id'], $code)) {
             case 'unavailable':
-                $this->back('服务暂时不可用，请稍后重试');
+                $this->back(t('Service temporarily unavailable, try again later'));
                 return;
             case 'expired':
-                $this->back('验证码已过期，请重新获取');
+                $this->back(t('The code has expired — request a new one'));
                 return;
             case 'mismatch':
-                $this->back('验证码错误');
+                $this->back(t('Wrong code'));
                 return;
         }
         VerifyCode::clear(VerifyCode::FAMILY_CLAIM, (int)$user['id']);
 
         if (!FamilyHelper::claimableGroupsForEmail($email)) {
             Session::remove('family_claim_email');
-            $this->back('这条邀请已经有人接受了');
+            $this->back(t('This invitation has already been accepted'));
         }
 
         $joined = FamilyHelper::claimByGuardianEmail($email, (int)$user['id']);
         if ($joined === 0) {
             Session::remove('family_claim_email');
-            $this->back('加入失败，请稍后重试');
+            $this->back(t('Could not join — please try again later'));
         }
 
         Session::remove('family_claim_email');
         $this->logClaimed($user, $email, $joined);
         $this->notifyChildren($user, $email);
-        $this->back('', '已加入 ' . $joined . ' 个家庭');
+        $this->back('', t('You have joined {:joined} families', ['joined' => $joined]));
     }
 
     // ========== 家长侧：管理 ==========
@@ -158,13 +158,13 @@ class FamilyController
 
         $email = FamilyHelper::normalizeEmail((string)($_POST['guardian_email'] ?? ''));
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->back('请输入有效的邮箱地址');
+            $this->back(t('Enter a valid email address'));
         }
         if (EmailPolicy::isBlocked($email)) {
             $this->back(t(EmailPolicy::REJECT_MESSAGE));
         }
         if ($email === FamilyHelper::normalizeEmail((string)$user['email'])) {
-            $this->back('这已经是你自己的邮箱了');
+            $this->back(t('This is already your own email'));
         }
 
         $relationship = (string)($_POST['relationship'] ?? 'other');
@@ -183,7 +183,7 @@ class FamilyController
             'changes'  => ['new_member_id' => ['old' => null, 'new' => $memberId]],
         ]);
 
-        $this->back('', '已邀请 ' . $email . '。请让 TA 用这条邮箱注册或登录 Nomen，然后在「家庭」页面接受邀请。');
+        $this->back('', t('Invited {:email}. Ask them to sign up or sign in to Nomen with this address, then accept the invitation on the Family page.', ['email' => $email]));
     }
 
     public function childCreate(): void
@@ -200,24 +200,24 @@ class FamilyController
         $gender = (string)($_POST['gender'] ?? '');
 
         if (!preg_match('/^[a-z0-9_]{3,32}$/', $username)) {
-            $this->back('用户名只能包含小写字母、数字和下划线，3-32 个字符');
+            $this->back(t('Usernames may only contain lowercase letters, digits and underscores, 3–32 characters'));
         }
         if (strlen($password) < 8 || !preg_match('/[a-zA-Z]/', $password) || !preg_match('/[0-9]/', $password)) {
-            $this->back('密码至少 8 位，且必须包含字母和数字');
+            $this->back(t('Passwords need at least 8 characters, including both letters and digits'));
         }
         if ($password !== $passwordConfirm) {
-            $this->back('两次输入的密码不一致');
+            $this->back(t('The passwords you entered don\'t match'));
         }
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $birthDate)) {
-            $this->back('请填写有效的出生日期');
+            $this->back(t('Enter a valid date of birth'));
         }
         $parts = explode('-', $birthDate);
         if (!checkdate((int)$parts[1], (int)$parts[2], (int)$parts[0])
             || (int)$parts[0] < 1920 || (int)$parts[0] > (int)date('Y')) {
-            $this->back('请填写有效的出生日期');
+            $this->back(t('Enter a valid date of birth'));
         }
         if (!in_array($gender, self::GENDERS, true)) {
-            $this->back('请选择性别');
+            $this->back(t('Pick a gender'));
         }
 
         // 家长建的是未成年账号：到了可以自己注册的年龄就该自己去注册
@@ -225,18 +225,18 @@ class FamilyController
         $consentAge = FamilyHelper::consentAgeFor($country);
         $age = FamilyHelper::ageOf($birthDate);
         if ($age === null || $age >= $consentAge) {
-            $this->back('这个年龄已经可以自己注册账号了，让 TA 自己去注册页注册就行');
+            $this->back(t('At this age they can register an account on their own — have them use the sign-up page'));
         }
 
         $rate = RateLimiter::check('family:child:' . $user['id'], self::CHILD_CREATE_PER_DAY, 86400);
         if (!$rate['allowed']) {
-            $this->back('今天新建的孩子账号太多了，请明天再试');
+            $this->back(t('Too many child accounts were created today — please try again tomorrow'));
         }
 
         $stmt = $this->db->prepare('SELECT id FROM users WHERE username = :u LIMIT 1');
         $stmt->execute([':u' => $username]);
         if ($stmt->fetch()) {
-            $this->back('这个用户名已经被占用了，换一个吧');
+            $this->back(t('That username is taken — try another one'));
         }
 
         $config = require __DIR__ . '/../config/app.php';
@@ -257,7 +257,7 @@ class FamilyController
             ]);
             $childId = (int)$this->db->lastInsertId();
         } catch (\PDOException $e) {
-            $this->back('创建失败：用户名可能刚被占用，换一个再试');
+            $this->back(t('Creation failed — the username may have just been taken, try another one'));
         }
 
         FamilyHelper::addChildMember($groupId, $childId, FamilyHelper::MEMBER_ACTIVE, true);
@@ -289,7 +289,7 @@ class FamilyController
             ['link' => '/settings']
         );
 
-        $this->back('', '已创建孩子账号 ' . $username . '。把用户名和初始密码交给 TA，让 TA 登录后自己改密码。');
+        $this->back('', t('Child account {:username} created. Hand the username and initial password to them — they can change the password after signing in.', ['username' => $username]));
     }
 
     // ========== 家长侧：对孩子的两个操作 ==========
@@ -303,7 +303,7 @@ class FamilyController
         $lock = ($_POST['op'] ?? '') === 'lock';
         $member = FamilyHelper::childOfGuardian((int)$user['id'], $childId);
         if (!$member) {
-            $this->back('你没有权限管理这个账号');
+            $this->back(t('You do not have permission to manage this account'));
         }
 
         $this->db->prepare('UPDATE users SET status = :st WHERE id = :id')
@@ -326,7 +326,7 @@ class FamilyController
             'summary'  => ($lock ? '锁定' : '解锁') . '孩子账号',
         ]);
 
-        $this->back('', $lock ? '已锁定该账号，TA 会被立刻踢下线且无法登录。' : '已解锁该账号。');
+        $this->back('', $lock ? t('The account is locked — they are signed out immediately and cannot sign in.') : t('The account has been unlocked.'));;
     }
 
     public function childResetSend(): void
@@ -337,38 +337,38 @@ class FamilyController
         $childId = (int)($_POST['child_id'] ?? 0);
         $member = FamilyHelper::childOfGuardian((int)$user['id'], $childId);
         if (!$member) {
-            $this->back('你没有权限管理这个账号');
+            $this->back(t('You do not have permission to manage this account'));
         }
 
         $contact = FamilyHelper::contactEmail($user);
         if ($contact === null) {
-            $this->back('你的账号没有可用的收信地址');
+            $this->back(t('Your account has no usable contact address'));
         }
 
         $rate = RateLimiter::check('family:reset:' . $user['id'], 5, 86400);
         if (!$rate['allowed']) {
-            $this->back('发送太频繁，请稍后重试');
+            $this->back(t('Sending too often — please try again later'));
         }
 
         $code = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
         if (!VerifyCode::issue(VerifyCode::FAMILY_RESET, $childId, $code)) {
-            $this->back('服务暂时不可用，请稍后重试');
+            $this->back(t('Service temporarily unavailable, try again later'));
         }
 
         $locale = I18n::emailLocale((int)$user['id']);
         $html = $this->codeEmail(
             I18n::tIn($locale, '为孩子重置密码的验证码'),
-            I18n::tIn($locale, '重置孩子密码'),
+            I18n::tIn($locale, 'Reset child\'s password'),
             $code,
             I18n::tIn($locale, '验证码发到了你（家长）的邮箱上，用它在「家庭」页面给孩子设置新密码。'),
             $locale
         );
-        if (!Email::send($contact, 'Nomen - ' . I18n::tIn($locale, '重置孩子密码'), $html)) {
-            $this->back('邮件发送失败，请稍后重试');
+        if (!Email::send($contact, 'Nomen - ' . I18n::tIn($locale, 'Reset child\'s password'), $html)) {
+            $this->back(t('Email failed to send, try again later'));
         }
 
         Session::set('family_reset_child', $childId);
-        $this->back('', '验证码已发送至 ' . RecoveryHelper::maskEmail($contact) . '，10 分钟内有效');
+        $this->back('', t('A code was sent to {:email} — valid for 10 minutes', ['email' => RecoveryHelper::maskEmail($contact)]));
     }
 
     public function childResetVerify(): void
@@ -378,13 +378,13 @@ class FamilyController
 
         $childId = (int)Session::get('family_reset_child', 0);
         if ($childId === 0) {
-            $this->back('请先获取验证码');
+            $this->back(t('Request a code first'));
         }
 
         $member = FamilyHelper::childOfGuardian((int)$user['id'], $childId);
         if (!$member) {
             Session::remove('family_reset_child');
-            $this->back('你没有权限管理这个账号');
+            $this->back(t('You do not have permission to manage this account'));
         }
 
         $code = trim((string)($_POST['code'] ?? ''));
@@ -392,21 +392,21 @@ class FamilyController
         $confirm = (string)($_POST['confirm_password'] ?? '');
 
         if (strlen($password) < 8 || !preg_match('/[a-zA-Z]/', $password) || !preg_match('/[0-9]/', $password)) {
-            $this->back('新密码至少 8 位，且必须包含字母和数字');
+            $this->back(t('The new password needs at least 8 characters, including both letters and digits'));
         }
         if ($password !== $confirm) {
-            $this->back('两次输入的密码不一致');
+            $this->back(t('The passwords you entered don\'t match'));
         }
 
         switch (VerifyCode::check(VerifyCode::FAMILY_RESET, $childId, $code)) {
             case 'unavailable':
-                $this->back('服务暂时不可用，请稍后重试');
+                $this->back(t('Service temporarily unavailable, try again later'));
                 return;
             case 'expired':
-                $this->back('验证码已过期，请重新获取');
+                $this->back(t('The code has expired — request a new one'));
                 return;
             case 'mismatch':
-                $this->back('验证码错误');
+                $this->back(t('Wrong code'));
                 return;
         }
         VerifyCode::clear(VerifyCode::FAMILY_RESET, $childId);
@@ -440,7 +440,7 @@ class FamilyController
             ['link' => '/family']
         );
 
-        $this->back('', '已重置 ' . ($member['username'] ?? '') . ' 的密码，请把新密码告诉 TA。');
+        $this->back('', t('The password for {:username} has been reset — tell them the new password.', ['username' => (string)($member['username'] ?? '')]));
     }
 
     // ========== 孩子侧 ==========
@@ -453,23 +453,23 @@ class FamilyController
 
         $email = FamilyHelper::normalizeEmail((string)($_POST['guardian_email'] ?? ''));
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->back('请输入有效的邮箱地址');
+            $this->back(t('Enter a valid email address'));
         }
         if (EmailPolicy::isBlocked($email)) {
             $this->back(t(EmailPolicy::REJECT_MESSAGE));
         }
         if ($email === FamilyHelper::normalizeEmail((string)$user['email'])) {
-            $this->back('这是你自己的邮箱，家长邮箱要填 TA 的');
+            $this->back(t('This is your own email — for a parent, enter theirs'));
         }
 
         $rate = RateLimiter::check('family:invite:' . $user['id'], 5, 86400);
         if (!$rate['allowed']) {
-            $this->back('发送太频繁，请稍后重试');
+            $this->back(t('Sending too often — please try again later'));
         }
 
         $relationship = (string)($_POST['relationship'] ?? 'other');
         if (FamilyHelper::inviteGuardianForChild((int)$user['id'], $email, $relationship) === 0) {
-            $this->back('已经邀请过这条邮箱了，等 TA 确认就行');
+            $this->back(t('This address has already been invited — just wait for them to accept'));
         }
 
         ActivityLog::record([
@@ -488,21 +488,21 @@ class FamilyController
         $locale = 'zh-hans'; // 收件人是被邀请的家长（未必有账号），保持中文
         $x = fn(string $k, array $p = []): string => I18n::tIn($locale, $k, $p);
         $html = EmailTemplate::render([
-            'preheader' => $x('{:name} 邀请你成为 TA 的家长', ['name' => $user['username']]),
-            'badge'     => ['text' => '家长邀请', 'tone' => 'general'],
-            'title'     => $x('有孩子邀请你成为家长'),
-            'subtitle'  => $x('{:name} 邀请你成为 TA 的家长', ['name' => $user['username']]),
+            'preheader' => $x('{:name} invited you to be their parent', ['name' => $user['username']]),
+            'badge'     => ['text' => 'Parent invitation', 'tone' => 'general'],
+            'title'     => $x('A child invited you to be their parent'),
+            'subtitle'  => $x('{:name} invited you to be their parent', ['name' => $user['username']]),
             'blocks'    => [
-                ['type' => 'info', 'items' => [['label' => '孩子账号', 'value' => (string)$user['username']]]],
-                ['type' => 'paragraph', 'text' => $x('用这条邮箱注册或登录 Nomen，然后到「家庭」页面就能接受邀请。')],
-                ['type' => 'paragraph', 'muted' => true, 'text' => $x('加入后你能帮 TA 重置登录密码、临时锁定账号；看不到 TA 的密码，也读不到 TA 的消息。')],
-                ['type' => 'paragraph', 'muted' => true, 'text' => $x('如果不是你认识的账号，忽略这封邮件即可。')],
+                ['type' => 'info', 'items' => [['label' => 'Child account', 'value' => (string)$user['username']]]],
+                ['type' => 'paragraph', 'text' => $x('Sign up or sign in to Nomen with this email, then accept the invitation on the Family page.')],
+                ['type' => 'paragraph', 'muted' => true, 'text' => $x('After joining, you can reset their sign-in password and temporarily lock the account; you cannot see their password or read their messages.')],
+                ['type' => 'paragraph', 'muted' => true, 'text' => $x('If this is not an account you know, just ignore this email.')],
             ],
-            'button'    => ['text' => '打开 Nomen', 'url' => EmailTemplate::url('/family')],
+            'button'    => ['text' => 'Open Nomen', 'url' => EmailTemplate::url('/family')],
         ], $locale);
-        Email::send($email, 'Nomen - ' . $x('家长邀请'), $html);
+        Email::send($email, 'Nomen - ' . $x('Parent invitation'), $html);
 
-        $this->back('', '已给 ' . RecoveryHelper::maskEmail($email) . ' 发了邀请。TA 用这条邮箱注册或登录后，在「家庭」页面就能加入。');
+        $this->back('', t('An invitation was sent to {:email}. Once they sign up or sign in with this address, they can join from the Family page.', ['email' => RecoveryHelper::maskEmail($email)]));
     }
 
     /** 停止监护：满了本地区的独立使用年龄就能自己停 */
@@ -513,12 +513,12 @@ class FamilyController
 
         $check = FamilyHelper::canRelease($user);
         if (!$check['ok']) {
-            $this->back(FamilyHelper::RELEASE_REASONS[$check['reason']] ?? '现在还不能停止监护');
+            $this->back(t(FamilyHelper::RELEASE_REASONS[$check['reason']] ?? '现在还不能停止监护'));
         }
 
         $rate = RateLimiter::check('family:release:' . $user['id'], FamilyHelper::RELEASE_REQUESTS_PER_DAY, 86400);
         if (!$rate['allowed']) {
-            $this->back('操作太频繁，请明天再试');
+            $this->back(t('Too many attempts — please try again tomorrow'));
         }
 
         $guardians = FamilyHelper::guardianAccountsOfChild((int)$user['id']);
@@ -546,7 +546,7 @@ class FamilyController
             );
         }
 
-        $this->back('', '已停止监护。家长不能再重置你的密码或锁定你的账号；想退出家庭的话可以在本页操作。');
+        $this->back('', t('Supervision has ended. Parents can no longer reset your password or lock your account; you can leave the family on this page.'));
     }
 
     public function leave(): void
@@ -556,10 +556,10 @@ class FamilyController
 
         $membership = FamilyHelper::childMembership((int)$user['id']);
         if (!$membership) {
-            $this->back('你还没有加入任何家庭');
+            $this->back(t('You have not joined any family yet'));
         }
         if ($membership['status'] !== FamilyHelper::MEMBER_INDEPENDENT) {
-            $this->back('先停止监护，之后才能退出家庭');
+            $this->back(t('End supervision first — only then can you leave the family'));
         }
 
         $guardians = FamilyHelper::guardianAccountsOfChild((int)$user['id']);
@@ -586,7 +586,7 @@ class FamilyController
             );
         }
 
-        $this->back('', '已退出家庭。');
+        $this->back('', t('You have left the family.'));
     }
 
     // ========== 私有 ==========
@@ -626,7 +626,7 @@ class FamilyController
     private function checkCsrf(): void
     {
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            $this->back('请求无效，请重试');
+            $this->back(t('Invalid request, try again'));
         }
     }
 
@@ -638,7 +638,7 @@ class FamilyController
                 return $groupId;
             }
         }
-        $this->back('没有权限操作这个家庭');
+        $this->back(t('You do not have permission to manage this family'));
         return 0;
     }
 
@@ -651,7 +651,7 @@ class FamilyController
             $userId = (int)Session::get('user_id');
             Response::json([
                 'success' => $success !== '',
-                'message' => $success !== '' ? $success : ($error !== '' ? $error : t('已完成')),
+                'message' => $success !== '' ? $success : ($error !== '' ? $error : t('Done')),
                 'data' => AppData::family($userId)['data'],
             ]);
         }
@@ -712,13 +712,13 @@ class FamilyController
         $x = fn(string $k): string => I18n::tIn($locale, $k);
         return EmailTemplate::render([
             'preheader' => $title . '：' . $code,
-            'badge'     => ['text' => '验证码', 'tone' => 'general'],
+            'badge'     => ['text' => 'Verification code', 'tone' => 'general'],
             'title'     => $title,
             'subtitle'  => $label,
             'blocks'    => [
                 ['type' => 'info', 'items' => [
-                    ['label' => $x('验证码'), 'value' => $code],
-                    ['label' => $x('有效期'), 'value' => $x('10 分钟')],
+                    ['label' => $x('Code'), 'value' => $code],
+                    ['label' => $x('Valid for'), 'value' => $x('10 minutes')],
                 ]],
                 ['type' => 'paragraph', 'muted' => true, 'text' => $footnote],
             ],

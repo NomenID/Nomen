@@ -30,21 +30,21 @@ class OAuthController
 
         // 验证 response_type
         if ($responseType !== 'code') {
-            Response::error(400, t('不支持的 response_type，仅支持 code'));
+            Response::error(400, t('Unsupported response_type — only code is supported'));
             return;
         }
 
         // 验证 client_id + redirect_uri
         $client = $this->resolveClient($clientId, $redirectUri);
         if (!$client) {
-            Response::error(400, t('无效的 client_id，或 redirect_uri 未在应用注册时授权'));
+            Response::error(400, t('Invalid client_id, or the redirect_uri was not authorized when the app was registered'));
             return;
         }
 
         // PKCE：带了 code_challenge 就必须合法；应用被标记为强制 PKCE 时还必须带
         $pkce = $this->parsePkceParams();
         if ($this->pkceMandatory($client) && $pkce['challenge'] === null) {
-            Response::error(400, t('该应用已启用强制 PKCE，授权请求必须携带 code_challenge'));
+            Response::error(400, t('This app enforces PKCE — authorization requests must include a code_challenge'));
             return;
         }
 
@@ -224,7 +224,7 @@ class OAuthController
     public function handleAuthorize(): void
     {
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            Response::error(400, t('请求无效，请重试'));
+            Response::error(400, t('Invalid request, try again'));
             return;
         }
 
@@ -244,7 +244,7 @@ class OAuthController
         // 否则表单里可以被塞任意地址，授权码会直接发到攻击者手上
         $client = $this->resolveClient($clientId, $redirectUri);
         if (!$client) {
-            Response::error(400, t('无效的 client_id，或 redirect_uri 未在应用注册时授权'));
+            Response::error(400, t('Invalid client_id, or the redirect_uri was not authorized when the app was registered'));
             return;
         }
 
@@ -257,7 +257,7 @@ class OAuthController
         // 会话里存的必须是这个应用的请求：同一个浏览器先后打开两个授权页时后一个会覆盖前者，
         // 不认这一下的话，A 应用页面上的「授权」会把 B 应用申请到的 scope 发给 A
         if (!empty($oauthRequest['client_id']) && $oauthRequest['client_id'] !== $clientId) {
-            Response::error(400, t('授权请求已失效，请重新发起授权'));
+            Response::error(400, t('This authorization request has expired — start the authorization again'));
             return;
         }
 
@@ -266,7 +266,7 @@ class OAuthController
 
         // 兜底：强制 PKCE 的应用没拿到 challenge（旧页面表单、或将来新增的发码路径漏传）
         if ($this->pkceMandatory($client) && empty($codeChallenge)) {
-            Response::error(400, t('该应用已启用强制 PKCE，授权请求必须携带 code_challenge'));
+            Response::error(400, t('This app enforces PKCE — authorization requests must include a code_challenge'));
             return;
         }
 
@@ -344,7 +344,7 @@ class OAuthController
         $rateCheck = RateLimiter::check("oauth:token:{$ip}", 30, 60);
         if (!$rateCheck['allowed']) {
             header('Retry-After: ' . $rateCheck['retry_after']);
-            Response::json(['error' => 'rate_limited', 'error_description' => t('请求太频繁，请稍后重试')], 429);
+            Response::json(['error' => 'rate_limited', 'error_description' => t('Too many requests, try again later')], 429);
             return;
         }
 
@@ -365,7 +365,7 @@ class OAuthController
         // 验证客户端（支持明文和 hash 两种存储方式的兼容验证）
         $client = $this->getClient($clientId);
         if (!$client) {
-            Response::json(['error' => 'invalid_client', 'error_description' => t('客户端认证失败')], 401);
+            Response::json(['error' => 'invalid_client', 'error_description' => t('Client authentication failed')], 401);
             return;
         }
 
@@ -378,7 +378,7 @@ class OAuthController
                         || hash_equals(hash('sha256', $clientSecret), $storedSecret)
                         || hash_equals(hash($hashAlg, $clientSecret), $storedSecret);
             if (!$secretValid) {
-                Response::json(['error' => 'invalid_client', 'error_description' => t('客户端认证失败')], 401);
+                Response::json(['error' => 'invalid_client', 'error_description' => t('Client authentication failed')], 401);
                 return;
             }
         }
@@ -388,7 +388,7 @@ class OAuthController
         } elseif ($grantType === 'refresh_token') {
             $this->handleRefreshTokenGrant($refreshToken, $clientId);
         } else {
-            Response::json(['error' => 'unsupported_grant_type', 'error_description' => t('不支持的授权类型')], 400);
+            Response::json(['error' => 'unsupported_grant_type', 'error_description' => t('Unsupported grant type')], 400);
         }
     }
 
@@ -434,7 +434,7 @@ class OAuthController
         array $client
     ): void {
         if (!$code || !$redirectUri) {
-            Response::json(['error' => 'invalid_request', 'error_description' => t('缺少必要参数')], 400);
+            Response::json(['error' => 'invalid_request', 'error_description' => t('Missing required parameters')], 400);
             return;
         }
 
@@ -446,12 +446,12 @@ class OAuthController
         $authCode = $stmt->fetch();
 
         if (!$authCode) {
-            Response::json(['error' => 'invalid_grant', 'error_description' => t('授权码无效或已过期')], 400);
+            Response::json(['error' => 'invalid_grant', 'error_description' => t('Authorization code invalid or expired')], 400);
             return;
         }
 
         if ($authCode['redirect_uri'] !== $redirectUri) {
-            Response::json(['error' => 'invalid_grant', 'error_description' => t('redirect_uri 不匹配')], 400);
+            Response::json(['error' => 'invalid_grant', 'error_description' => t('redirect_uri mismatch')], 400);
             return;
         }
 
@@ -536,14 +536,14 @@ class OAuthController
     private function handleRefreshTokenGrant(string $refreshToken, string $clientId): void
     {
         if (!$refreshToken) {
-            Response::json(['error' => 'invalid_request', 'error_description' => t('缺少 refresh_token')], 400);
+            Response::json(['error' => 'invalid_request', 'error_description' => t('Missing refresh_token')], 400);
             return;
         }
 
         $refresh = $this->findTokenByHash($refreshToken, 'oauth_refresh_tokens');
 
         if (!$refresh || $refresh['client_id'] !== $clientId) {
-            Response::json(['error' => 'invalid_grant', 'error_description' => t('refresh_token 无效或已过期')], 400);
+            Response::json(['error' => 'invalid_grant', 'error_description' => t('refresh_token is invalid or expired')], 400);
             return;
         }
 
@@ -666,7 +666,7 @@ class OAuthController
             $stmt->execute([':id' => Session::get('temp_key_id')]);
             if (!$stmt->fetch()) {
                 Session::destroy();
-                Session::flash('error', t('临时密钥已过期或被撤销'));
+                Session::flash('error', t('Temp key expired or revoked'));
                 Response::redirect('/login');
             }
         }
@@ -781,13 +781,13 @@ class OAuthController
 
         // RFC 7636：code_challenge 是 43-128 位 unreserved 字符
         if (!preg_match('/^[A-Za-z0-9\-._~]{43,128}$/', $challenge)) {
-            Response::error(400, t('code_challenge 格式不正确（需为 43-128 位 unreserved 字符）'));
+            Response::error(400, t('Invalid code_challenge (must be 43-128 unreserved characters)'));
             return ['challenge' => null, 'method' => null];
         }
 
         // plain 相当于把 verifier 明文放进 URL，没有任何价值，只收 S256
         if ($method !== 'S256') {
-            Response::error(400, t('不支持的 code_challenge_method，本服务仅支持 S256'));
+            Response::error(400, t('Unsupported code_challenge_method — this service only supports S256'));
             return ['challenge' => null, 'method' => null];
         }
 
@@ -819,26 +819,26 @@ class OAuthController
         if ($challenge === '') {
             // 授权时就没带 challenge：强制 PKCE 的应用不该出现这种码，兜一道
             if ($this->pkceMandatory($client)) {
-                return ['invalid_grant', t('该应用必须使用 PKCE，但授权码未绑定 code_challenge')];
+                return ['invalid_grant', t('This app requires PKCE, but the authorization code has no code_challenge bound')];
             }
             return null;
         }
 
         if ($codeVerifier === '') {
-            return ['invalid_request', t('缺少 code_verifier')];
+            return ['invalid_request', t('Missing code_verifier')];
         }
 
         if (!preg_match('/^[A-Za-z0-9\-._~]{43,128}$/', $codeVerifier)) {
-            return ['invalid_grant', t('code_verifier 格式不正确')];
+            return ['invalid_grant', t('Invalid code_verifier format')];
         }
 
         if ($method !== 'S256') {
-            return ['invalid_grant', t('不支持的 code_challenge_method')];
+            return ['invalid_grant', t('Unsupported code_challenge_method')];
         }
 
         $computed = rtrim(strtr(base64_encode(hash('sha256', $codeVerifier, true)), '+/', '-_'), '=');
         if (!hash_equals($challenge, $computed)) {
-            return ['invalid_grant', t('code_verifier 校验失败')];
+            return ['invalid_grant', t('code_verifier verification failed')];
         }
 
         return null;

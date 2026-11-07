@@ -4,9 +4,13 @@
 /** @var string $redirect_to */
 /** @var bool $requireCaptcha 仅当该 IP 登录尝试过多时才要求图片验证码 */
 /** @var array<string,array{at:int,reason:string}> $failedMethods 本次会话里试过且没成功的方式 */
-$title = t('登录');
+/** @var array<string,bool> $methods 登录方式总开关（后台「登录方式」页） */
+$title = t('Sign in');
 $requireCaptcha = $requireCaptcha ?? false;
 $failedMethods = $failedMethods ?? [];
+$methods = array_merge([
+    'password' => true, 'email_code' => true, 'biometric' => true, 'temp_key' => true, 'oauth' => true,
+], (array)($methods ?? []));
 
 $props = [
     'csrf' => \Nomen\Src\Csrf::getToken(),
@@ -26,6 +30,7 @@ $props = [
     'mailEnabled' => \Nomen\Src\Email::isConfigured(),
     'brandLogo' => (string)\Nomen\Src\Brand::get('logo'),
     'providers' => \Nomen\Src\IdentityProviders::publicList(),
+    'methods' => $methods,
     'urls' => [
         'sendCode' => '/login/send-code',
         'biometricOptions' => '/biometric/auth/options',
@@ -42,8 +47,8 @@ $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APO
                 <div class="auth-logo">
                     <img src="<?= htmlspecialchars((string)\Nomen\Src\Brand::get('logo')) ?>" alt="" width="48" height="48">
                 </div>
-                <h1><?= t('登录 Nomen') ?></h1>
-                <p><?= t('使用您的 Nomen 账户继续') ?></p>
+                <h1><?= t('Sign in to Nomen') ?></h1>
+                <p><?= t('Continue with your Nomen account') ?></p>
             </div>
             <?php if ($error): ?>
                 <div class="nomen-alert nomen-alert--error"><?= htmlspecialchars($error) ?></div>
@@ -51,40 +56,44 @@ $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APO
             <?php if ($success): ?>
                 <div class="nomen-alert nomen-alert--success"><?= htmlspecialchars($success) ?></div>
             <?php endif; ?>
+            <?php if (!$methods['password']): ?>
+                <p class="form-hint"><?= t('Password sign-in is turned off on this site.') ?></p>
+            <?php else: ?>
             <form method="POST" action="/login" class="auth-form">
                 <?= \Nomen\Src\Csrf::field() ?>
                 <input type="hidden" name="redirect_to" value="<?= htmlspecialchars($redirect_to) ?>">
                 <div class="form-group">
-                    <label for="noscript-username"><?= t('用户名或邮箱') ?></label>
+                    <label for="noscript-username"><?= t('Username or email') ?></label>
                     <input type="text" id="noscript-username" name="username" required
-                           placeholder="<?= t('请输入用户名或邮箱地址') ?>"
+                           placeholder="<?= t('Enter a username or email address') ?>"
                            value="<?= htmlspecialchars($_GET['username'] ?? '') ?>">
                 </div>
                 <div class="form-group">
-                    <label for="noscript-password"><?= t('密码') ?></label>
+                    <label for="noscript-password"><?= t('Password') ?></label>
                     <input type="password" id="noscript-password" name="password" required
-                           autocomplete="current-password" placeholder="<?= t('请输入密码') ?>">
+                           autocomplete="current-password" placeholder="<?= t('Enter the password') ?>">
                 </div>
                 <div class="form-group form-group--inline">
                     <label class="checkbox-label">
                         <input type="checkbox" name="remember_me" value="1">
                         <span class="checkmark"></span>
-                        <span><?= t('记住我') ?></span>
+                        <span><?= t('Remember me') ?></span>
                     </label>
                 </div>
                 <?php if ($requireCaptcha): ?>
                 <div class="form-group">
-                    <label><?= t('图片验证码') ?></label>
+                    <label><?= t('CAPTCHA') ?></label>
                     <div class="input-with-button">
-                        <input type="text" name="captcha" required placeholder="<?= t('请输入验证码') ?>" maxlength="6" autocomplete="off">
-                        <img src="/captcha" alt="<?= t('验证码') ?>" class="captcha-img" title="<?= t('点击刷新') ?>">
+                        <input type="text" name="captcha" required placeholder="<?= t('Enter the code') ?>" maxlength="6" autocomplete="off">
+                        <img src="/captcha" alt="<?= t('Code') ?>" class="captcha-img" title="<?= t('Click to refresh') ?>">
                     </div>
                 </div>
                 <?php endif; ?>
-                <button type="submit" class="btn btn-primary btn-block"><?= t('登录') ?></button>
+                <button type="submit" class="btn btn-primary btn-block"><?= t('Sign in') ?></button>
             </form>
+            <?php endif; ?>
             <div class="auth-footer">
-                <p><a href="/register"><?= t('注册一个') ?></a> · <a href="/fast-pass"><?= t('临时密钥登录') ?></a></p>
+                <p><a href="/register"><?= t('Create one') ?></a><?php if ($methods['temp_key']): ?> · <a href="/fast-pass"><?= t('Temp key sign-in') ?></a><?php endif; ?></p>
             </div>
         </div>
     </noscript>

@@ -1,4 +1,4 @@
-// 多语言：词典由布局挂的 /i18n/{语言}.js 注入到 window.NOMEN_I18N（键是简体中文原文），
+// 多语言：词典由布局挂的 /i18n/{语言}.js 注入到 window.NOMEN_I18N（母键 = 英文原句），
 // 和 app.js 里的 t() 是同一套。词条缺失或没挂词典时原样返回键。
 export function useT() {
   const dict = () => (typeof window !== 'undefined' && window.NOMEN_I18N) || null

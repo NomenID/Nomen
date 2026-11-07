@@ -29,7 +29,7 @@ final class Brand
 
         $docs = Plugins::mountUrl('pages');
         if ($docs !== null) {
-            $links[] = ['label' => '文档', 'url' => $docs];
+            $links[] = ['label' => 'Docs', 'url' => $docs];
         }
 
         return $links;

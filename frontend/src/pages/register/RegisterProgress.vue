@@ -13,7 +13,7 @@ defineProps({
     <div
       class="register-progress__bar"
       role="progressbar"
-      :aria-label="t('注册进度')"
+      :aria-label="t('Registration progress')"
       :aria-valuemin="1"
       :aria-valuemax="total"
       :aria-valuenow="current"

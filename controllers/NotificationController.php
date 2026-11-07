@@ -23,7 +23,7 @@ class NotificationController
 
         // 真 SPA：壳只出挂载点 + props（AppData 与 /api/app 端点共用同一份构建）
         $appProps = AppData::shell($userId, AppData::notifications($userId, $page));
-        Response::view('app-shell', ['appProps' => $appProps, 'title' => t('消息中心')], 'app');
+        Response::view('app-shell', ['appProps' => $appProps, 'title' => t('Messages')], 'app');
     }
 
     public function show($id): void
@@ -33,35 +33,35 @@ class NotificationController
         $data = AppData::notificationDetail($userId, $id);
 
         if (!$data) {
-            Response::error(404, t('消息不存在'));
+            Response::error(404, t('Message not found'));
         }
 
         $appProps = AppData::shell($userId, $data);
-        Response::view('app-shell', ['appProps' => $appProps, 'title' => t('消息详情')], 'app');
+        Response::view('app-shell', ['appProps' => $appProps, 'title' => t('Message detail')], 'app');
     }
 
     public function readAll(): void
     {
         if (!\Nomen\Src\Csrf::validate($_POST['_csrf'] ?? null)) {
-            Response::json(['success' => false, 'message' => t('请求无效')]);
+            Response::json(['success' => false, 'message' => t('Invalid request')]);
         }
 
         $userId = (int)Session::get('user_id');
         NotificationHelper::markAllRead($userId);
 
-        Response::json(['success' => true, 'message' => t('全部已读')]);
+        Response::json(['success' => true, 'message' => t('Mark all as read')]);
     }
 
     public function readOne(): void
     {
         if (!\Nomen\Src\Csrf::validate($_POST['_csrf'] ?? null)) {
-            Response::json(['success' => false, 'message' => t('请求无效')]);
+            Response::json(['success' => false, 'message' => t('Invalid request')]);
         }
 
         $userId = (int)Session::get('user_id');
         $id = (int)($_POST['id'] ?? 0);
         if ($id <= 0) {
-            Response::json(['success' => false, 'message' => t('参数无效')]);
+            Response::json(['success' => false, 'message' => t('Invalid parameter')]);
         }
 
         NotificationHelper::markRead($userId, $id);

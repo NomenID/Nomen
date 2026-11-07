@@ -5257,6 +5257,7 @@ body.mobile-menu-open {
     border-radius: 999px;
     color: var(--color-text-muted);
     font-size: 12.5px;
+    text-decoration: none;
     cursor: pointer;
     transition: border-color 0.15s ease, color 0.15s ease;
 }
@@ -5345,6 +5346,20 @@ body.mobile-menu-open {
     text-align: center;
     font-size: 12px;
     color: var(--color-text-subtle);
+}
+.lang-list--page {
+    max-height: none;
+    max-width: 420px;
+    padding: 0;
+    margin: 16px 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--color-radius-lg);
+    background: var(--color-bg-secondary);
+    overflow: hidden;
+}
+.lang-list--page .lang-option {
+    padding: 10px 14px;
+    border-radius: 0;
 }
 
 /* 抽屉里的语言区（移动端导航整体收进抽屉，选择器本体在手机上不出现） */

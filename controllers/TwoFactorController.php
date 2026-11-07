@@ -78,7 +78,7 @@ class TwoFactorController
     {
         $pending = $this->loadPending();
         if (!$pending) {
-            Session::flash('error', t('验证会话已过期，请重新登录'));
+            Session::flash('error', t('Verification session expired — sign in again'));
             Response::redirect('/login');
         }
 
@@ -121,17 +121,17 @@ class TwoFactorController
     {
         $pending = $this->loadPending();
         if (!$pending) {
-            Response::json(['success' => false, 'message' => t('验证会话已过期，请重新登录')]);
+            Response::json(['success' => false, 'message' => t('Verification session expired — sign in again')]);
         }
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            Response::json(['success' => false, 'message' => t('请求无效')]);
+            Response::json(['success' => false, 'message' => t('Invalid request')]);
         }
 
         // 一次性 nonce，防止 pending 被复用
         $nonce = (string)($_POST['nonce'] ?? '');
         if ($nonce === '' || !hash_equals((string)($pending['nonce'] ?? ''), $nonce)) {
-            Response::json(['success' => false, 'message' => t('请求无效，请重新登录')]);
+            Response::json(['success' => false, 'message' => t('Invalid request — sign in again')]);
         }
 
         $userId = (int)$pending['user_id'];
@@ -139,7 +139,7 @@ class TwoFactorController
         // 6 位码 10 分钟可爆破，必须限流（失败也计数）
         $rate = RateLimiter::check("auth:2fa:{$userId}", 10, 600);
         if (!$rate['allowed']) {
-            Response::json(['success' => false, 'message' => t('验证尝试过于频繁，请 {:n} 秒后重试', ['n' => $rate['retry_after']])]);
+            Response::json(['success' => false, 'message' => t('Too many verification attempts — retry in {:n}s', ['n' => $rate['retry_after']])]);
         }
 
         $firstFactor  = $pending['first_factor'] ?? '';
@@ -147,18 +147,18 @@ class TwoFactorController
         $factorValue  = $_POST['factor_value'] ?? '';
 
         if (!$secondFactor || !$factorValue) {
-            Response::json(['success' => false, 'message' => t('请选择验证方式并输入验证信息')]);
+            Response::json(['success' => false, 'message' => t('Pick a verification method and enter the value')]);
         }
 
         if ($secondFactor === $firstFactor) {
-            Response::json(['success' => false, 'message' => t('不能使用与第一步相同的验证方式')]);
+            Response::json(['success' => false, 'message' => t('The second step must use a different method from the first')]);
         }
 
         // 只能选该账号真实拥有、且不同于第一因素的方式
         $factors = $this->getUserFactors($userId);
         unset($factors[$firstFactor]);
         if (!isset($factors[$secondFactor])) {
-            Response::json(['success' => false, 'message' => t('无效的验证方式')]);
+            Response::json(['success' => false, 'message' => t('Invalid verification method')]);
         }
 
         if (!$this->verifyFactor($userId, $secondFactor, $factorValue)) {
@@ -170,7 +170,7 @@ class TwoFactorController
                 'actor_username' => (string)($pending['username'] ?? ''),
                 'summary'  => '两步验证失败（方式：' . $secondFactor . '）',
             ]);
-            Response::json(['success' => false, 'message' => t('验证失败，请检查输入')]);
+            Response::json(['success' => false, 'message' => t('Verification failed — check your input')]);
         }
 
         // 用第二因素通过后，再确认一次账号当前状态
@@ -178,7 +178,7 @@ class TwoFactorController
         Session::remove('2fa_pending');
         if (!$user) {
             Session::destroy();
-            Response::json(['success' => false, 'message' => t('账户状态异常，请重新登录')]);
+            Response::json(['success' => false, 'message' => t('Account state looks off — sign in again')]);
         }
 
         // 设备信任：新设备才发通知、才记日志，every_login 场景只顺延信任期
@@ -217,11 +217,11 @@ class TwoFactorController
     {
         $pending = $this->loadPending();
         if (!$pending) {
-            Response::json(['success' => false, 'message' => t('验证会话已过期，请重新登录')]);
+            Response::json(['success' => false, 'message' => t('Verification session expired — sign in again')]);
         }
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            Response::json(['success' => false, 'message' => t('请求无效')]);
+            Response::json(['success' => false, 'message' => t('Invalid request')]);
         }
 
         $userId = (int)$pending['user_id'];
@@ -231,7 +231,7 @@ class TwoFactorController
         $factors = $this->getUserFactors($userId);
         unset($factors[$firstFactor]);
         if (!isset($factors['email_code'])) {
-            Response::json(['success' => false, 'message' => t('当前不可使用邮箱验证码验证')]);
+            Response::json(['success' => false, 'message' => t('Email code verification is unavailable right now')]);
         }
 
         $rateCheck = RateLimiter::checkEmailRate($userId);
@@ -243,21 +243,21 @@ class TwoFactorController
         $stmt->execute([':id' => $userId]);
         $user = $stmt->fetch();
         if (!$user) {
-            Response::json(['success' => false, 'message' => t('用户不存在')]);
+            Response::json(['success' => false, 'message' => t('User not found')]);
         }
 
         // 收信地址：这一步用户已经过了第一因素，可以让他在账号的多个邮箱里挑一个，
         // 没挑就发首选；未成年账号没有自己的地址，回退到监护人邮箱
         $contact = EmailSet::resolveRecipient($user, $_POST['send_to'] ?? null);
         if ($contact === null) {
-            Response::json(['success' => false, 'message' => t('账号没有可用的收信地址，请联系支持团队')]);
+            Response::json(['success' => false, 'message' => t('The account has no usable mailbox — contact support')]);
         }
 
         $code = str_pad((string)mt_rand(0, 999999), 6, '0', STR_PAD_LEFT);
 
         // 存二验专用的一套键，不复用登录码：否则该码可被拿去 /login/code 当第一因素用
         if (!VerifyCode::issue(VerifyCode::TWO_FACTOR, $userId, $code)) {
-            Response::json(['success' => false, 'message' => t('服务暂时不可用，请稍后重试')]);
+            Response::json(['success' => false, 'message' => t('Service temporarily unavailable, try again later')]);
         }
 
         $locale = I18n::locale();
@@ -265,9 +265,9 @@ class TwoFactorController
         $htmlBody = $this->getTwoFactorCodeEmailHtml($contact, $code, (string)$user['username'], $locale);
 
         if (Email::send($contact, $subject, $htmlBody)) {
-            Response::json(['success' => true, 'message' => t('验证码已发送（10分钟内有效）')]);
+            Response::json(['success' => true, 'message' => t('Code sent (valid for 10 minutes)')]);
         } else {
-            Response::json(['success' => false, 'message' => t('邮件发送失败')]);
+            Response::json(['success' => false, 'message' => t('Email failed to send')]);
         }
     }
 
@@ -280,7 +280,7 @@ class TwoFactorController
     {
         $userId = (int)Session::get('user_id');
         if (!$userId) {
-            Response::json(['success' => false, 'message' => t('未登录')]);
+            Response::json(['success' => false, 'message' => t('Not signed in')]);
         }
 
         // 检查是否已有TOTP
@@ -289,7 +289,7 @@ class TwoFactorController
         $existing = $stmt->fetch();
 
         if ($existing) {
-            Response::json(['success' => true, 'has_totp' => true, 'message' => t('已开启TOTP')]);
+            Response::json(['success' => true, 'has_totp' => true, 'message' => t('TOTP on')]);
         }
 
         // 生成新密钥
@@ -314,26 +314,26 @@ class TwoFactorController
     {
         $userId = (int)Session::get('user_id');
         if (!$userId) {
-            Response::json(['success' => false, 'message' => t('未登录')]);
+            Response::json(['success' => false, 'message' => t('Not signed in')]);
         }
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            Response::json(['success' => false, 'message' => t('请求无效')]);
+            Response::json(['success' => false, 'message' => t('Invalid request')]);
         }
 
         $code = trim($_POST['code'] ?? '');
         $secret = Session::get('totp_pending_secret');
 
         if (!$secret) {
-            Response::json(['success' => false, 'message' => t('请重新开始设置')]);
+            Response::json(['success' => false, 'message' => t('Please start setup again')]);
         }
 
         if (!preg_match('/^\d{6}$/', $code)) {
-            Response::json(['success' => false, 'message' => t('请输入6位验证码')]);
+            Response::json(['success' => false, 'message' => t('Enter the 6-digit verification code')]);
         }
 
         if (!TOTP::verify($secret, $code)) {
-            Response::json(['success' => false, 'message' => t('验证码错误，请重试')]);
+            Response::json(['success' => false, 'message' => t('Wrong code, try again')]);
         }
 
         // 验证通过，保存密钥
@@ -363,7 +363,7 @@ class TwoFactorController
 
         Response::json([
             'success' => true,
-            'message' => t('TOTP已启用'),
+            'message' => t('TOTP enabled'),
             'recovery_codes' => $recoveryCodes,
         ]);
     }
@@ -375,11 +375,11 @@ class TwoFactorController
     {
         $userId = (int)Session::get('user_id');
         if (!$userId) {
-            Response::json(['success' => false, 'message' => t('未登录')]);
+            Response::json(['success' => false, 'message' => t('Not signed in')]);
         }
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            Response::json(['success' => false, 'message' => t('请求无效')]);
+            Response::json(['success' => false, 'message' => t('Invalid request')]);
         }
 
         // 验证密码（恢复模式下旧密码正是问题所在，跳过）
@@ -393,7 +393,7 @@ class TwoFactorController
         if (!RecoveryHelper::isActiveFor($userId)
             && !password_verify($password . $pepper, $user['password_hash'])
             && !password_verify($password, $user['password_hash'])) {
-            Response::json(['success' => false, 'message' => t('密码错误')]);
+            Response::json(['success' => false, 'message' => t('Wrong password')]);
         }
 
         // 删除TOTP密钥
@@ -406,7 +406,7 @@ class TwoFactorController
             'summary'  => '解绑验证器 APP（TOTP）',
         ]);
 
-        Response::json(['success' => true, 'message' => t('TOTP已禁用')]);
+        Response::json(['success' => true, 'message' => t('TOTP disabled')]);
     }
 
     /**
@@ -416,7 +416,7 @@ class TwoFactorController
     {
         $userId = (int)Session::get('user_id');
         if (!$userId) {
-            Response::json(['success' => false, 'message' => t('未登录')]);
+            Response::json(['success' => false, 'message' => t('Not signed in')]);
         }
 
         $stmt = $this->db->prepare('SELECT verified FROM user_totp_secrets WHERE user_id = :u');
@@ -438,7 +438,7 @@ class TwoFactorController
     {
         $userId = (int)Session::get('user_id');
         if (!$userId) {
-            Response::json(['success' => false, 'message' => t('未登录')]);
+            Response::json(['success' => false, 'message' => t('Not signed in')]);
         }
 
         // 按批次分组
@@ -467,11 +467,11 @@ class TwoFactorController
     {
         $userId = (int)Session::get('user_id');
         if (!$userId) {
-            Response::json(['success' => false, 'message' => t('未登录')]);
+            Response::json(['success' => false, 'message' => t('Not signed in')]);
         }
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            Response::json(['success' => false, 'message' => t('请求无效')]);
+            Response::json(['success' => false, 'message' => t('Invalid request')]);
         }
 
         // 验证密码（恢复模式下旧密码正是问题所在，跳过）
@@ -485,7 +485,7 @@ class TwoFactorController
         if (!RecoveryHelper::isActiveFor($userId)
             && !password_verify($password . $pepper, $user['password_hash'])
             && !password_verify($password, $user['password_hash'])) {
-            Response::json(['success' => false, 'message' => t('密码错误')]);
+            Response::json(['success' => false, 'message' => t('Wrong password')]);
         }
 
         // 删除旧批次
@@ -525,7 +525,7 @@ class TwoFactorController
             'success' => true,
             'codes' => $codes,
             'batch_id' => $batchId,
-            'message' => t('恢复码已生成，请立即保存！这些码只显示一次。'),
+            'message' => t('Recovery codes generated — save them now! They\'re shown once.'),
         ]);
     }
 
@@ -536,11 +536,11 @@ class TwoFactorController
     {
         $userId = (int)Session::get('user_id');
         if (!$userId) {
-            Response::json(['success' => false, 'message' => t('未登录')]);
+            Response::json(['success' => false, 'message' => t('Not signed in')]);
         }
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            Response::json(['success' => false, 'message' => t('请求无效')]);
+            Response::json(['success' => false, 'message' => t('Invalid request')]);
         }
 
         // 验证密码（恢复模式下旧密码正是问题所在，跳过）
@@ -554,7 +554,7 @@ class TwoFactorController
         if (!RecoveryHelper::isActiveFor($userId)
             && !password_verify($password . $pepper, $user['password_hash'])
             && !password_verify($password, $user['password_hash'])) {
-            Response::json(['success' => false, 'message' => t('密码错误')]);
+            Response::json(['success' => false, 'message' => t('Wrong password')]);
         }
 
         $stmt = $this->db->prepare('DELETE FROM user_recovery_codes WHERE user_id = :u');
@@ -566,7 +566,7 @@ class TwoFactorController
             'summary'  => '删除全部恢复码',
         ]);
 
-        Response::json(['success' => true, 'message' => t('恢复码已删除')]);
+        Response::json(['success' => true, 'message' => t('Recovery codes deleted')]);
     }
 
     /**
@@ -584,16 +584,16 @@ class TwoFactorController
         }
 
         if (!$userId) {
-            Response::json(['success' => false, 'message' => t('未登录或会话已过期')]);
+            Response::json(['success' => false, 'message' => t('Not signed in or session expired')]);
         }
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            Response::json(['success' => false, 'message' => t('请求无效')]);
+            Response::json(['success' => false, 'message' => t('Invalid request')]);
         }
 
         $code = trim($_POST['code'] ?? '');
         if (!$code) {
-            Response::json(['success' => false, 'message' => t('请输入恢复码')]);
+            Response::json(['success' => false, 'message' => t('Enter a recovery code')]);
         }
 
         // 查找未使用的恢复码
@@ -621,11 +621,11 @@ class TwoFactorController
                     'target_id' => (int)$row['id'],
                     'summary'  => '使用恢复码通过验证',
                 ]);
-                Response::json(['success' => true, 'message' => t('恢复码验证通过')]);
+                Response::json(['success' => true, 'message' => t('Recovery code accepted')]);
             }
         }
 
-        Response::json(['success' => false, 'message' => t('恢复码无效或已被使用')]);
+        Response::json(['success' => false, 'message' => t('Recovery code invalid or already used')]);
     }
 
     // ========== 辅助方法 ==========
@@ -640,10 +640,10 @@ class TwoFactorController
         // 密码（总是可用）
         $factors['password'] = [
             'type' => 'password',
-            'label' => '账户密码',
+            'label' => 'Account password',
             'icon' => 'key',
             'input_type' => 'password',
-            'placeholder' => '请输入您的密码',
+            'placeholder' => 'Enter your password',
         ];
 
         // 邮箱验证码（账号有任意一个已验证邮箱、且站点配了 SMTP 才算）
@@ -655,10 +655,10 @@ class TwoFactorController
             if (($user && $user['email_verified']) || EmailSet::hasVerified($userId)) {
                 $factors['email_code'] = [
                     'type' => 'email_code',
-                    'label' => '邮箱验证码',
+                    'label' => 'Email code',
                     'icon' => 'mail',
                     'input_type' => 'text',
-                    'placeholder' => '请输入6位验证码',
+                    'placeholder' => 'Enter the 6-digit verification code',
                 ];
             }
         }
@@ -669,10 +669,10 @@ class TwoFactorController
         if ($stmt->fetch()) {
             $factors['totp'] = [
                 'type' => 'totp',
-                'label' => '验证器APP（TOTP）',
+                'label' => 'Authenticator app (TOTP)',
                 'icon' => 'phone',
                 'input_type' => 'text',
-                'placeholder' => '请输入6位动态码',
+                'placeholder' => 'Enter the 6-digit code',
             ];
         }
 
@@ -684,10 +684,10 @@ class TwoFactorController
         if ((int)$stmt->fetchColumn() > 0) {
             $factors['recovery_code'] = [
                 'type' => 'recovery_code',
-                'label' => '恢复码',
+                'label' => 'Recovery codes',
                 'icon' => 'refresh',
                 'input_type' => 'text',
-                'placeholder' => '请输入12位恢复码',
+                'placeholder' => 'Enter the 12-character recovery code',
             ];
         }
 
@@ -808,17 +808,17 @@ class TwoFactorController
         if ($username !== '') {
             $items[] = ['label' => '账号', 'value' => $username];
         }
-        $items[] = ['label' => '收信地址', 'value' => $contact];
+        $items[] = ['label' => 'Contact address', 'value' => $contact];
 
         return EmailTemplate::render([
             'preheader' => I18n::tIn($locale, '你的双因素验证码是 {:code}，10 分钟内有效', ['code' => $code]),
-            'badge'     => ['text' => '安全验证', 'tone' => 'general'],
-            'title'     => '双因素验证',
+            'badge'     => ['text' => 'Security verification', 'tone' => 'general'],
+            'title'     => 'Two-factor verification',
             'subtitle'  => $username !== '' ? I18n::tIn($locale, '账号 {:name} 的双因素验证码', ['name' => $username]) : I18n::tIn($locale, '输入验证码以完成身份确认'),
             'blocks'    => [
                 ['type' => 'info', 'items' => $items],
-                ['type' => 'code', 'label' => '验证码', 'value' => $code],
-                ['type' => 'alert', 'tone' => 'warning', 'text' => '此验证码 10 分钟内有效。如果不是你本人操作，请忽略此邮件。'],
+                ['type' => 'code', 'label' => 'Code', 'value' => $code],
+                ['type' => 'alert', 'tone' => 'warning', 'text' => 'The code is valid for 10 minutes. If this wasn\'t you, ignore this email.'],
             ],
         ], $locale);
     }

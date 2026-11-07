@@ -309,18 +309,18 @@ class EmailSet
     {
         $row = self::findRow($userId, $rowId);
         if ($row === null || empty($row['verified'])) {
-            return t('这个邮箱还没有验证，先点邮件里的链接确认');
+            return t('This address isn\'t verified yet — click the link in the email first');
         }
         if (!empty($row['is_primary'])) {
             return '';
         }
         if (self::primaryTakenByOther((string)$row['email'], $userId)) {
-            return t('这个邮箱已经是别的账号的主邮箱了，不能设为你账号的主邮箱');
+            return t('This address is already another account\'s primary and can\'t become yours');
         }
 
         $current = self::primaryRow($userId);
         if ($current !== null && self::secondaryTakenByOther((string)$current['email'], $userId)) {
-            return t('换不了：你现在的首选「{:email}」已经是别的账号的备选邮箱了，降成备选会撞车。先把那一边处理掉再试。', ['email' => $current['email']]);
+            return t('Can\'t switch: your current primary “{:email}” is already a backup address on another account, and demoting it would collide. Sort that side out first and retry.', ['email' => $current['email']]);
         }
 
         self::writePrimary($userId, $rowId, (string)$row['email']);
@@ -338,15 +338,15 @@ class EmailSet
     {
         $rows = self::all($userId);
         if (count($rows) <= 1) {
-            return t('至少要保留一个邮箱');
+            return t('Keep at least one address');
         }
 
         $target = self::findRow($userId, $rowId);
         if ($target === null) {
-            return t('这个邮箱不存在');
+            return t('This address doesn\'t exist');
         }
         if (!empty($target['verified']) && count(self::verified($userId)) <= 1) {
-            return t('这是你唯一已验证的邮箱，请先添加并验证另一个邮箱再移除它');
+            return t('This is your only verified address — add and verify another one before removing it');
         }
 
         // 删掉首选时要顺位提一个上来；提上去的那个得能占「主邮箱」位
@@ -363,7 +363,7 @@ class EmailSet
                 }
             }
             if ($promote === null && !empty($target['verified'])) {
-                return t('移除之后没有别的邮箱能当首选了（剩下的已验证邮箱已经是别人的主邮箱），先添加并验证一个新的再移除它');
+                return t('After removal nothing else could become primary (the remaining verified address is already another account\'s primary). Add and verify a new one first');
             }
         }
 

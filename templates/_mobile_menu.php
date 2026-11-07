@@ -39,8 +39,8 @@ $renderLinkInner = function (array $item): string {
             </div>
         <?php elseif ($menuAuthButtons): ?>
             <div class="mobile-menu-auth">
-                <a href="/login" class="btn btn-secondary"><?= t('登录') ?></a>
-                <a href="/register" class="btn btn-primary"><?= t('注册') ?></a>
+                <a href="/login" class="btn btn-secondary"><?= t('Sign in') ?></a>
+                <a href="/register" class="btn btn-primary"><?= t('Sign up') ?></a>
             </div>
         <?php endif; ?>
     </div>
@@ -57,29 +57,30 @@ $renderLinkInner = function (array $item): string {
 
         <div class="mobile-menu-divider"></div>
         <div class="mobile-theme-section">
-            <span class="mobile-theme-label"><?= t('主题') ?></span>
+            <span class="mobile-theme-label"><?= t('Theme') ?></span>
             <div class="mobile-theme-options">
-                <button type="button" class="mobile-theme-btn" data-theme-value="light" title="<?= t('亮色') ?>" aria-label="<?= t('亮色主题') ?>"><span class="icon icon-sun"></span></button>
-                <button type="button" class="mobile-theme-btn" data-theme-value="dark" title="<?= t('暗色') ?>" aria-label="<?= t('暗色主题') ?>"><span class="icon icon-moon"></span></button>
+                <button type="button" class="mobile-theme-btn" data-theme-value="light" title="<?= t('Light') ?>" aria-label="<?= t('Light theme') ?>"><span class="icon icon-sun"></span></button>
+                <button type="button" class="mobile-theme-btn" data-theme-value="dark" title="<?= t('Dark') ?>" aria-label="<?= t('Dark theme') ?>"><span class="icon icon-moon"></span></button>
             </div>
         </div>
 
         <div class="mobile-menu-divider"></div>
         <div class="mobile-lang-section">
-            <span class="mobile-theme-label"><?= t('语言') ?></span>
+            <span class="mobile-theme-label"><?= t('Language') ?></span>
             <div class="mobile-lang-options">
                 <?php
+                // 和头部选择器同一条路：只给 /special/lang 的入口，?lang= 不出现在页面源码里
                 $currentLang = \Nomen\Src\I18n::locale();
-                $langBasePath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
-                $langQueryBase = $_GET;
-                foreach (\Nomen\Src\I18n::registry() as $langEntry):
-                    $langQueryBase['lang'] = $langEntry['slug'];
-                    $langQs = http_build_query($langQueryBase);
+                $mobileLangUrl = '/special/lang';
+                $mobileReturnTo = (string)($_SERVER['REQUEST_URI'] ?? '');
+                if ($mobileReturnTo !== '' && $mobileReturnTo !== '/' && !str_starts_with($mobileReturnTo, '/special/lang')) {
+                    $mobileLangUrl .= '?rt=' . rawurlencode($mobileReturnTo);
+                }
                 ?>
-                <a href="<?= htmlspecialchars($langBasePath . '?' . $langQs) ?>"
-                   class="mobile-lang-btn<?= $langEntry['slug'] === $currentLang ? ' is-active' : '' ?>"
-                   lang="<?= htmlspecialchars($langEntry['code']) ?>"><?= htmlspecialchars($langEntry['name']) ?></a>
-                <?php endforeach; ?>
+                <a href="<?= htmlspecialchars($mobileLangUrl) ?>"
+                   class="mobile-lang-btn is-active"
+                   aria-label="<?= t('Choose a language') ?>"
+                   lang="<?= htmlspecialchars(\Nomen\Src\I18n::code($currentLang)) ?>"><?= htmlspecialchars(\Nomen\Src\I18n::entry($currentLang)['name']) ?> ›</a>
             </div>
         </div>
     </nav>

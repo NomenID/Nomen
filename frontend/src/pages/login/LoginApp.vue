@@ -27,6 +27,7 @@ const props = defineProps({
   mailEnabled: { type: Boolean, default: true },
   brandLogo: { type: String, default: '/assets/brand/nomen-icon.svg' },
   providers: { type: Array, default: () => [] },
+  methods: { type: Object, default: () => ({ password: true, email_code: true, biometric: true, temp_key: true, oauth: true }) },
   urls: { type: Object, default: () => ({}) },
 })
 
@@ -42,9 +43,17 @@ const remembered = rememberedAccount()
 const biometricSupported = ref(!!(window.PublicKeyCredential && navigator.credentials && navigator.credentials.get))
 
 function available(method) {
-  if (method === 'email_code') return props.mailEnabled
-  return method === 'biometric' ? biometricSupported.value : true
+  if (method === 'password') return props.methods.password
+  if (method === 'email_code') return props.methods.email_code && props.mailEnabled
+  if (method === 'biometric') return props.methods.biometric && biometricSupported.value
+  return true
 }
+
+const localMethods = ['password', 'email_code', 'biometric']
+const localAvailable = computed(() => localMethods.filter(available))
+const moreAvailable = computed(() =>
+  localAvailable.value.some((method) => method !== current.value) || props.methods.temp_key
+)
 
 const tried = reactive({})
 for (const method of props.failedMethods || []) tried[method] = true
@@ -75,7 +84,7 @@ let countdownTimer = null
 
 const biometricIdentifier = ref(remembered?.u || '')
 const biometricBusy = ref(false)
-const biometricBtnText = ref(t('使用本机生物识别登录'))
+const biometricBtnText = ref(t('Use this device\'s biometrics'))
 const biometricStatus = ref('')
 const biometricManual = ref(false)
 const biometricIdentifierEl = ref(null)
@@ -91,9 +100,9 @@ const pick = reactive({
 const triedMethods = computed(() => Object.keys(tried).filter((method) => method !== current.value))
 
 const sendCodeText = computed(() => {
-  if (sending.value) return t('发送中...')
-  if (countdown.value > 0) return t('{:n}秒后重试', { n: countdown.value })
-  return t('发送验证码')
+  if (sending.value) return t('Sending...')
+  if (countdown.value > 0) return t('Retry in {:n}s', { n: countdown.value })
+  return t('Send code')
 })
 
 function labelFor(method) {
@@ -103,12 +112,12 @@ function labelFor(method) {
 function announceSwitch(method) {
   const allTried = ['password', 'email_code', 'biometric'].every((m) => tried[m] || !available(m))
   switchHint.value = allTried
-    ? t('这几种登录方式本次都没成功。如果都进不去，可以按页面下方的说明发起账号恢复。')
-    : t('已为你切换到「{:method}」，需要的话可以在下面「更多登录方式」里换回去。', { method: labelFor(method) })
+    ? t('None of these methods worked this time. If you\'re still locked out, start account recovery with the instructions at the bottom of the page.')
+    : t('Switched to “{:method}”. You can change it under More sign-in options below.', { method: labelFor(method) })
 }
 
 function showMethod(method) {
-  if (!available(method)) method = 'password'
+  if (!available(method)) method = localAvailable.value[0] ?? null
   current.value = method
   moreOpen.value = false
   return method
@@ -149,8 +158,8 @@ function pickName(mode, item) {
 
 function tagFor(mode, item) {
   if (!item) return ''
-  if (mode === 'address') return item.is_primary ? t('首选') : ''
-  return item.as_primary ? t('主邮箱') : t('备选邮箱')
+  if (mode === 'address') return item.is_primary ? t('Primary') : ''
+  return item.as_primary ? t('Primary') : t('Backup')
 }
 
 function togglePickList() {
@@ -173,13 +182,13 @@ function startCountdown() {
 async function sendCode(extra = {}) {
   const identifier = form.email.trim()
   if (!identifier) {
-    toast(t('请输入邮箱或用户名'), 'warning')
+    toast(t('Enter an email or username'), 'warning')
     return
   }
 
   const identifierOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier) || /^[a-z0-9_]{3,32}$/.test(identifier)
   if (!identifierOk) {
-    toast(t('请输入有效的邮箱地址或用户名'), 'warning')
+    toast(t('Enter a valid email address or username'), 'warning')
     return
   }
 
@@ -219,7 +228,7 @@ async function sendCode(extra = {}) {
       toast(result.message, 'error')
     }
   } catch (err) {
-    toast(t('发送失败，请稍后重试'), 'error')
+    toast(t('Send failed, try again later'), 'error')
   } finally {
     sending.value = false
   }
@@ -241,7 +250,7 @@ function revealManual() {
 
 function resetBiometric() {
   biometricBusy.value = false
-  biometricBtnText.value = t('使用本机生物识别登录')
+  biometricBtnText.value = t('Use this device\'s biometrics')
   biometricStatus.value = ''
 }
 
@@ -252,7 +261,7 @@ function onBiometricFail() {
 
 async function biometricLogin() {
   if (!biometricSupported.value) {
-    toast(t('当前浏览器不支持生物识别登录'), 'warning')
+    toast(t('This browser doesn\'t support biometric sign-in'), 'warning')
     return
   }
   if (biometricBusy.value) return
@@ -261,14 +270,14 @@ async function biometricLogin() {
   const optionsUrl = urls.biometricOptions + (identifier ? '?identifier=' + encodeURIComponent(identifier) : '')
 
   biometricBusy.value = true
-  biometricBtnText.value = t('准备中...')
+  biometricBtnText.value = t('Preparing...')
   biometricStatus.value = ''
 
   try {
     const optionsResponse = await fetch(optionsUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
     const data = await parseJsonResponse(optionsResponse)
     if (!data.success) {
-      const error = new Error(data.message || t('无法开始生物识别验证'))
+      const error = new Error(data.message || t('Couldn\'t start biometric verification'))
       error.cldMessage = data.message || ''
       throw error
     }
@@ -281,8 +290,8 @@ async function biometricLogin() {
       })
     }
 
-    biometricBtnText.value = t('请完成生物识别验证...')
-    biometricStatus.value = t('正在调用系统生物识别（指纹 / 面容 / PIN）...')
+    biometricBtnText.value = t('Complete the biometric verification...')
+    biometricStatus.value = t('Calling system biometrics (fingerprint / face / PIN)...')
 
     const credential = await navigator.credentials.get({ publicKey: options.publicKey })
     if (!credential) throw new Error('cancelled')
@@ -325,12 +334,12 @@ async function biometricLogin() {
     if (error && error.message === 'cancelled') return
 
     if (error && error.name === 'NotAllowedError') {
-      biometricStatus.value = t('没有完成验证。如果本机没有绑定过该账号的通行密钥，可以在下面填上用户名或邮箱再试。')
+      biometricStatus.value = t('Verification didn\'t complete. If this device has no passkey for the account, enter the username or email below and retry.')
       revealManual()
       return
     }
 
-    toast(error && error.message ? error.message : t('生物识别登录失败，请重试'), 'error')
+    toast(error && error.message ? error.message : t('Biometric sign-in failed, try again'), 'error')
 
     if (error && error.cldMessage) {
       biometricStatus.value = error.cldMessage
@@ -356,8 +365,8 @@ onBeforeUnmount(() => {
       <div class="auth-logo">
         <img :src="brandLogo" alt="" width="48" height="48">
       </div>
-      <h1>{{ t('登录 Nomen') }}</h1>
-      <p>{{ t('使用您的 Nomen 账户继续') }}</p>
+      <h1>{{ t('Sign in to Nomen') }}</h1>
+      <p>{{ t('Continue with your Nomen account') }}</p>
     </div>
 
     <BaseAlert v-if="error" type="error" :message="error" />
@@ -365,25 +374,25 @@ onBeforeUnmount(() => {
 
     <p v-show="switchHint" class="login-switch-hint" id="login-switch-hint">{{ switchHint }}</p>
 
-    <div class="login-primary">
+    <div class="login-primary" v-show="current !== null">
       <form method="POST" action="/login" class="auth-form" id="password-form" v-show="current === 'password'">
         <input type="hidden" name="_csrf" :value="csrf">
         <input type="hidden" name="redirect_to" :value="redirectTo">
 
         <div class="form-group">
-          <label for="username">{{ t('用户名或邮箱') }}</label>
+          <label for="username">{{ t('Username or email') }}</label>
           <input
             id="username"
             v-model="form.username"
             type="text"
             name="username"
             required
-            :placeholder="t('请输入用户名或邮箱地址')"
+            :placeholder="t('Enter a username or email address')"
           >
         </div>
 
         <div class="form-group">
-          <label for="password">{{ t('密码') }}</label>
+          <label for="password">{{ t('Password') }}</label>
           <input
             id="password"
             v-model="form.password"
@@ -391,7 +400,7 @@ onBeforeUnmount(() => {
             name="password"
             required
             autocomplete="current-password"
-            :placeholder="t('请输入密码')"
+            :placeholder="t('Enter the password')"
           >
         </div>
 
@@ -399,21 +408,21 @@ onBeforeUnmount(() => {
           <label class="checkbox-label">
             <input v-model="form.rememberPassword" type="checkbox" name="remember_me" value="1">
             <span class="checkmark"></span>
-            <span>{{ t('记住我') }}</span>
+            <span>{{ t('Remember me') }}</span>
           </label>
         </div>
 
         <div v-if="requireCaptcha" class="form-group">
-          <label>{{ t('图片验证码') }}</label>
+          <label>{{ t('CAPTCHA') }}</label>
           <CaptchaInput
             v-model="form.captchaPassword"
             input-id="login-captcha"
             img-id="login-captcha-img"
           />
-          <p class="form-hint">{{ t('检测到登录尝试较多，请输入图片验证码') }}</p>
+          <p class="form-hint">{{ t('Too many sign-in attempts — enter the CAPTCHA') }}</p>
         </div>
 
-        <button type="submit" class="btn btn-primary btn-block">{{ t('登录') }}</button>
+        <button type="submit" class="btn btn-primary btn-block">{{ t('Sign in') }}</button>
       </form>
 
       <form method="POST" action="/login/code" class="auth-form" id="code-form" v-show="current === 'email_code'">
@@ -421,7 +430,7 @@ onBeforeUnmount(() => {
         <input type="hidden" name="redirect_to" :value="redirectTo">
 
         <div class="form-group">
-          <label for="email">{{ t('邮箱或用户名') }}</label>
+          <label for="email">{{ t('Email or username') }}</label>
           <input
             id="email"
             v-model="form.email"
@@ -429,15 +438,15 @@ onBeforeUnmount(() => {
             name="email"
             required
             autocomplete="username"
-            :placeholder="t('注册邮箱，或你的用户名')"
+            :placeholder="t('Sign-up email, or your username')"
             @input="onEmailInput"
           >
-          <p class="form-hint">{{ t('填哪个邮箱就发到哪个（账号绑定的邮箱都能用）；填用户名会让你选发到哪个邮箱，未成年账号会发到监护人邮箱') }}</p>
+          <p class="form-hint">{{ t('The code goes to whichever email you enter (any address bound to the account works). With a username you pick the mailbox; for child accounts it goes to the parent\'s email') }}</p>
         </div>
 
         <div v-show="pick.visible" class="login-account-pick" id="login-account-pick">
           <p class="login-account-pick__tip" id="login-account-pick-tip">
-            {{ pick.mode === 'address' ? t('这个账号绑了多个邮箱，请选择发到哪一个') : t('这个邮箱对应多个账号，请选择要登录哪一个') }}
+            {{ pick.mode === 'address' ? t('Several addresses are bound — pick one for the code') : t('This address matches several accounts — pick one to sign in') }}
           </p>
           <div id="login-account-pick-primary">
             <button
@@ -471,13 +480,13 @@ onBeforeUnmount(() => {
             id="login-account-pick-switch"
             @click="togglePickList"
           >
-            {{ pick.listOpen ? t('收起') : t('我需要另一个账号') }}
+            {{ pick.listOpen ? t('Collapse') : t('I need another account') }}
           </button>
         </div>
         <input type="hidden" name="account_id" id="login-code-account" :value="accountId">
 
         <div class="form-group">
-          <label for="code">{{ t('验证码') }}</label>
+          <label for="code">{{ t('Code') }}</label>
           <div class="input-with-button">
             <input
               id="code"
@@ -487,7 +496,7 @@ onBeforeUnmount(() => {
               required
               inputmode="numeric"
               autocomplete="one-time-code"
-              :placeholder="t('请输入6位验证码')"
+              :placeholder="t('Enter the 6-digit verification code')"
               maxlength="6"
             >
             <button
@@ -504,25 +513,25 @@ onBeforeUnmount(() => {
           <label class="checkbox-label">
             <input v-model="form.rememberCode" type="checkbox" name="remember_me" value="1">
             <span class="checkmark"></span>
-            <span>{{ t('记住我') }}</span>
+            <span>{{ t('Remember me') }}</span>
           </label>
         </div>
 
         <div v-if="requireCaptcha" class="form-group">
-          <label>{{ t('图片验证码') }}</label>
+          <label>{{ t('CAPTCHA') }}</label>
           <CaptchaInput
             v-model="form.captchaCode"
             input-id="code-captcha"
             img-id="code-captcha-img"
           />
-          <p class="form-hint">{{ t('检测到登录尝试较多，请输入图片验证码') }}</p>
+          <p class="form-hint">{{ t('Too many sign-in attempts — enter the CAPTCHA') }}</p>
         </div>
 
-        <button type="submit" class="btn btn-primary btn-block">{{ t('登录') }}</button>
+        <button type="submit" class="btn btn-primary btn-block">{{ t('Sign in') }}</button>
       </form>
 
       <form class="auth-form" id="biometric-form" v-show="current === 'biometric'">
-        <p class="login-biometric-tip">{{ t('用本机已绑定的指纹 / 面容 / Windows Hello 直接登录，不用输账号。') }}</p>
+        <p class="login-biometric-tip">{{ t('Sign in with the fingerprint / face / Windows Hello bound to this device — no need to enter an account.') }}</p>
 
         <button
           type="button"
@@ -538,17 +547,17 @@ onBeforeUnmount(() => {
 
         <div v-show="biometricManual" class="login-biometric-manual" id="biometric-manual">
           <div class="form-group">
-            <label for="biometric-identifier">{{ t('用户名或注册邮箱') }}</label>
+            <label for="biometric-identifier">{{ t('Username or sign-up email') }}</label>
             <input
               id="biometric-identifier"
               ref="biometricIdentifierEl"
               v-model="biometricIdentifier"
               type="text"
-              :placeholder="t('请输入用户名或注册邮箱')"
+              :placeholder="t('Enter your username or sign-up email')"
               autocomplete="username"
             >
           </div>
-          <p class="form-hint">{{ t('填上账号后，会按这个账号在本机已绑定的凭证来验证') }}</p>
+          <p class="form-hint">{{ t('Once you enter an account, verification uses the credentials bound to it on this device') }}</p>
         </div>
 
         <button
@@ -557,12 +566,12 @@ onBeforeUnmount(() => {
           class="login-link-btn"
           id="biometric-manual-toggle"
           @click="revealManual"
-        >{{ t('本机没找到凭证？手动输入用户名或邮箱') }}</button>
+        >{{ t('No credential on this device? Enter a username or email manually') }}</button>
       </form>
     </div>
 
     <div v-show="triedMethods.length" class="login-tried" id="login-tried">
-      <span class="login-tried__label">{{ t('本次已尝试：') }}</span>
+      <span class="login-tried__label">{{ t('Tried this time: ') }}</span>
       <span class="login-tried__items" id="login-tried-items">
         <button
           v-for="method in triedMethods"
@@ -570,11 +579,11 @@ onBeforeUnmount(() => {
           type="button"
           class="login-tried__item"
           @click="showMethod(method)"
-        >{{ labelFor(method) }}<span class="login-tried__retry">{{ t('重试') }}</span></button>
+        >{{ labelFor(method) }}<span class="login-tried__retry">{{ t('Retry') }}</span></button>
       </span>
     </div>
 
-    <div class="login-more">
+    <div v-if="moreAvailable" class="login-more">
       <button
         type="button"
         class="login-more__toggle"
@@ -582,17 +591,17 @@ onBeforeUnmount(() => {
         :aria-expanded="moreOpen"
         aria-controls="login-more-list"
         @click="moreOpen = !moreOpen"
-      >{{ t('更多登录方式') }}</button>
+      >{{ t('More sign-in options') }}</button>
       <div v-show="moreOpen" class="login-more__list" id="login-more-list">
-        <button v-show="current !== 'password'" type="button" class="login-more__item" @click="showMethod('password')">{{ t('密码登录') }}</button>
-        <button v-show="current !== 'email_code'" v-if="mailEnabled" type="button" class="login-more__item" @click="showMethod('email_code')">{{ t('邮箱验证码登录') }}</button>
-        <button v-if="biometricSupported" v-show="current !== 'biometric'" type="button" class="login-more__item" @click="showMethod('biometric')">{{ t('生物识别登录') }}</button>
-        <a class="login-more__item" href="/fast-pass">{{ t('临时密钥登录') }}</a>
+        <button v-if="props.methods.password" v-show="current !== 'password'" type="button" class="login-more__item" @click="showMethod('password')">{{ t('Password') }}</button>
+        <button v-show="current !== 'email_code'" v-if="props.methods.email_code && mailEnabled" type="button" class="login-more__item" @click="showMethod('email_code')">{{ t('Email code') }}</button>
+        <button v-if="props.methods.biometric && biometricSupported" v-show="current !== 'biometric'" type="button" class="login-more__item" @click="showMethod('biometric')">{{ t('Biometric') }}</button>
+        <a v-if="props.methods.temp_key" class="login-more__item" href="/fast-pass">{{ t('Temp key sign-in') }}</a>
       </div>
     </div>
 
-    <div v-if="props.providers.length" class="auth-providers">
-      <p class="auth-providers__label">{{ t('或使用以下方式登录') }}</p>
+    <div v-if="props.methods.oauth && props.providers.length" class="auth-providers">
+      <p class="auth-providers__label">{{ t('Or sign in with') }}</p>
       <div class="auth-providers__list">
         <a
           v-for="provider in props.providers"
@@ -608,24 +617,24 @@ onBeforeUnmount(() => {
 
     <div class="auth-legal" v-if="props.privacyUrl || props.termsUrl || props.developerGuidelinesUrl">
       <p v-if="props.privacyUrl || props.termsUrl">
-        {{ t('登录即代表同意') }}
-        <template v-if="props.privacyUrl"><a :href="props.privacyUrl" target="_blank">{{ t('隐私政策') }}</a></template>
-        <template v-if="props.privacyUrl && props.termsUrl">{{ t('和') }}</template>
-        <template v-if="props.termsUrl"><a :href="props.termsUrl" target="_blank">{{ t('服务协议') }}</a></template>
+        {{ t('By signing in, you agree to the') }}
+        <template v-if="props.privacyUrl"><a :href="props.privacyUrl" target="_blank">{{ t('Privacy Policy') }}</a></template>
+        <template v-if="props.privacyUrl && props.termsUrl">{{ t('and') }}</template>
+        <template v-if="props.termsUrl"><a :href="props.termsUrl" target="_blank">{{ t('Terms of Service') }}</a></template>
       </p>
       <p v-if="props.developerGuidelinesUrl">
-        {{ t('开发者接入时还需遵守') }}
-        <a :href="props.developerGuidelinesUrl" target="_blank">{{ t('开发者守则') }}</a>
+        {{ t('Developers must also follow the') }}
+        <a :href="props.developerGuidelinesUrl" target="_blank">{{ t('Developer Guidelines') }}</a>
       </p>
     </div>
 
     <div class="auth-footer">
-      <p>{{ t('还没有账户？') }} <a href="/register">{{ t('注册一个') }}</a></p>
+      <p>{{ t('Don\'t have an account?') }} <a href="/register">{{ t('Create one') }}</a></p>
       <p class="auth-footer__note">
-        {{ t('还记得其中任意一种验证方式？可以先用它通过第一步，进入两步验证页后即可发起在线恢复流程') }}
+        {{ t('Remember any one of your verification methods? Use it to pass the first step — once you reach the two-step verification page you can start online recovery') }}
       </p>
       <p class="auth-footer__note" v-if="props.supportEmail">
-        {{ t('遇到问题了？联系支持团队') }}
+        {{ t('Need help? Contact support.') }}
         <a :href="'mailto:' + props.supportEmail">{{ props.supportEmail }}</a>
       </p>
     </div>

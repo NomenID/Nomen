@@ -27,7 +27,7 @@ class DashboardController
 
         // 真 SPA：壳只出挂载点 + props（AppData 与 /api/app 端点共用同一份构建）
         $appProps = AppData::shell($userId, AppData::dashboard($userId));
-        Response::view('app-shell', ['appProps' => $appProps, 'title' => t('仪表盘')], 'app');
+        Response::view('app-shell', ['appProps' => $appProps, 'title' => t('Dashboard')], 'app');
     }
 
     /**
@@ -45,7 +45,7 @@ class DashboardController
 
         // 真 SPA：壳只出挂载点 + props（AppData 与 /api/app 端点共用同一份构建）
         $appProps = AppData::shell($userId, AppData::settings($userId));
-        Response::view('app-shell', ['appProps' => $appProps, 'title' => t('设置')], 'app');
+        Response::view('app-shell', ['appProps' => $appProps, 'title' => t('Settings')], 'app');
     }
 
     /**
@@ -57,8 +57,8 @@ class DashboardController
                   strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('请求无效，请重试')]);
-            Session::flash('error', t('请求无效，请重试'));
+            if ($isAjax) Response::json(['success' => false, 'message' => t('Invalid request, try again')]);
+            Session::flash('error', t('Invalid request, try again'));
             Response::redirect('/settings#sec-profile');
         }
 
@@ -86,9 +86,9 @@ class DashboardController
         ]);
 
         if ($isAjax) {
-            Response::json(['success' => true, 'message' => t('个人资料已更新')]);
+            Response::json(['success' => true, 'message' => t('Profile updated')]);
         }
-        Session::flash('success', t('个人资料已更新'));
+        Session::flash('success', t('Profile updated'));
         Response::redirect('/settings#sec-profile');
     }
 
@@ -103,8 +103,8 @@ class DashboardController
                   strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('请求无效，请重试')]);
-            Session::flash('error', t('请求无效，请重试'));
+            if ($isAjax) Response::json(['success' => false, 'message' => t('Invalid request, try again')]);
+            Session::flash('error', t('Invalid request, try again'));
             Response::redirect($fallback);
         }
 
@@ -115,20 +115,20 @@ class DashboardController
 
         // 恢复模式下旧密码正是「进不来」的原因，不要求提供
         if ((!$currentPassword && !$recoveryMode) || !$newPassword) {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('请填写所有字段')]);
-            Session::flash('error', t('请填写所有字段'));
+            if ($isAjax) Response::json(['success' => false, 'message' => t('Please fill in all fields')]);
+            Session::flash('error', t('Please fill in all fields'));
             Response::redirect($fallback);
         }
 
         if (strlen($newPassword) < 8 || !preg_match('/[a-zA-Z]/', $newPassword) || !preg_match('/[0-9]/', $newPassword)) {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('新密码至少8位，且必须包含字母和数字')]);
-            Session::flash('error', t('新密码至少8位，且必须包含字母和数字'));
+            if ($isAjax) Response::json(['success' => false, 'message' => t('New password needs 8+ characters with letters and digits')]);
+            Session::flash('error', t('New password needs 8+ characters with letters and digits'));
             Response::redirect($fallback);
         }
 
         if ($newPassword !== $confirmPassword) {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('两次输入的新密码不一致')]);
-            Session::flash('error', t('两次输入的新密码不一致'));
+            if ($isAjax) Response::json(['success' => false, 'message' => t('The two new passwords don\'t match')]);
+            Session::flash('error', t('The two new passwords don\'t match'));
             Response::redirect($fallback);
         }
 
@@ -143,16 +143,16 @@ class DashboardController
         if (!$recoveryMode
             && !password_verify($currentPasswordWithPepper, $user['password_hash'])
             && !password_verify($currentPassword, $user['password_hash'])) {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('当前密码错误')]);
-            Session::flash('error', t('当前密码错误'));
+            if ($isAjax) Response::json(['success' => false, 'message' => t('Wrong current password')]);
+            Session::flash('error', t('Wrong current password'));
             Response::redirect($fallback);
         }
 
         // 恢复模式下不校验旧密码，若允许改回原密码，恢复流程等于原地打转
         if (password_verify($newPassword . $pepper, $user['password_hash'])
             || password_verify($newPassword, $user['password_hash'])) {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('新密码不能与当前密码相同')]);
-            Session::flash('error', t('新密码不能与当前密码相同'));
+            if ($isAjax) Response::json(['success' => false, 'message' => t('New password must differ from the current one')]);
+            Session::flash('error', t('New password must differ from the current one'));
             Response::redirect($fallback);
         }
 
@@ -171,9 +171,9 @@ class DashboardController
         ]);
 
         if ($isAjax) {
-            Response::json(['success' => true, 'message' => t('密码已修改，其他设备已被登出')]);
+            Response::json(['success' => true, 'message' => t('Password changed, other devices signed out')]);
         }
-        Session::flash('success', t('密码已修改，其他设备已被登出'));
+        Session::flash('success', t('Password changed, other devices signed out'));
         Response::redirect($fallback);
     }
 
@@ -252,7 +252,7 @@ class DashboardController
     public function revokeAuthorization(string $clientId): void
     {
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            Session::flash('error', t('请求无效，请重试'));
+            Session::flash('error', t('Invalid request, try again'));
             Response::redirect('/dashboard');
         }
 
@@ -288,7 +288,7 @@ class DashboardController
             'summary'  => '撤销应用「' . $clientName . '」的授权',
         ]);
 
-        Session::flash('success', t('已撤销该应用的授权'));
+        Session::flash('success', t('App authorization revoked'));
 
         // 真 SPA：AJAX 撤销直接回 JSON + 最新授权列表，前端原地更新
         $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
@@ -297,7 +297,7 @@ class DashboardController
             $userId = (int)$userId;
             Response::json([
                 'success' => true,
-                'message' => t('已撤销该应用的授权'),
+                'message' => t('App authorization revoked'),
                 'data' => ['authorizations' => self::authorizationListFor($userId)],
             ]);
         }
@@ -364,7 +364,7 @@ class DashboardController
         return array_map(static function (array $row): array {
             return [
                 'id'          => (int)$row['id'],
-                'label'       => (string)($row['summary'] ?: ActivityLog::actionLabel((string)$row['action'])),
+                'label'       => (string)($row['summary'] ?: t(ActivityLog::actionLabel((string)$row['action']))),
                 'action'      => (string)$row['action'],
                 'icon'        => ActivityLog::iconFor((string)$row['category']),
                 'device_name' => (string)($row['device_name'] ?? ''),
@@ -383,23 +383,23 @@ class DashboardController
                   strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('请求无效')]);
-            Session::flash('error', t('请求无效'));
+            if ($isAjax) Response::json(['success' => false, 'message' => t('Invalid request')]);
+            Session::flash('error', t('Invalid request'));
             Response::redirect('/settings');
         }
 
         $deviceId = trim($_POST['device_id'] ?? '');
 
         if (!$deviceId) {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('缺少设备 ID')]);
-            Session::flash('error', t('缺少设备 ID'));
+            if ($isAjax) Response::json(['success' => false, 'message' => t('Missing device ID')]);
+            Session::flash('error', t('Missing device ID'));
             Response::redirect('/settings');
         }
 
         $currentDeviceId = $_COOKIE['caellab_device_id'] ?? '';
         if ($deviceId === $currentDeviceId) {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('不能撤销当前设备的信任')]);
-            Session::flash('error', t('不能撤销当前设备的信任'));
+            if ($isAjax) Response::json(['success' => false, 'message' => t('The current device can\'t be revoked')]);
+            Session::flash('error', t('The current device can\'t be revoked'));
             Response::redirect('/settings');
         }
 
@@ -424,7 +424,7 @@ class DashboardController
         $stmt->execute([':u' => $userId]);
 
         if ($isAjax) {
-            Response::json(['success' => true, 'message' => t('设备信任已撤销，相关 Token 已失效')]);
+            Response::json(['success' => true, 'message' => t('Device trust revoked, related Tokens invalidated')]);
         }
         ActivityLog::record([
             'action'   => 'device.revoke',
@@ -433,7 +433,7 @@ class DashboardController
             'target_name' => $deviceName,
             'summary'  => '移除设备「' . $deviceName . '」',
         ]);
-        Session::flash('success', t('设备信任已撤销，相关 Token 已失效'));
+        Session::flash('success', t('Device trust revoked, related Tokens invalidated'));
         Response::redirect('/settings');
     }
 
@@ -444,8 +444,8 @@ class DashboardController
                   strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('请求无效')]);
-            Session::flash('error', t('请求无效'));
+            if ($isAjax) Response::json(['success' => false, 'message' => t('Invalid request')]);
+            Session::flash('error', t('Invalid request'));
             Response::redirect('/settings');
         }
 
@@ -461,14 +461,14 @@ class DashboardController
         $this->db->prepare('UPDATE oauth_refresh_tokens SET revoked = 1 WHERE user_id = :u')->execute([':u' => $userId]);
 
         if ($isAjax) {
-            Response::json(['success' => true, 'message' => t('已撤销所有其他设备的信任，相关 Token 已失效')]);
+            Response::json(['success' => true, 'message' => t('All other devices revoked, related Tokens invalidated')]);
         }
         ActivityLog::record([
             'action'   => 'device.revoke_all',
             'category' => ActivityLog::CAT_DEVICE,
             'summary'  => '移除其他全部设备',
         ]);
-        Session::flash('success', t('已撤销所有其他设备的信任，相关 Token 已失效'));
+        Session::flash('success', t('All other devices revoked, related Tokens invalidated'));
         Response::redirect('/settings');
     }
 
@@ -482,15 +482,15 @@ class DashboardController
                   strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('请求无效')]);
-            Session::flash('error', t('请求无效'));
+            if ($isAjax) Response::json(['success' => false, 'message' => t('Invalid request')]);
+            Session::flash('error', t('Invalid request'));
             Response::redirect('/settings#sec-2fa');
         }
 
         $policy = $_POST['policy'] ?? '';
         if (!in_array($policy, ['new_device', 'every_login'], true)) {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('无效的策略选项')]);
-            Session::flash('error', t('无效的策略选项'));
+            if ($isAjax) Response::json(['success' => false, 'message' => t('Invalid policy option')]);
+            Session::flash('error', t('Invalid policy option'));
             Response::redirect('/settings#sec-2fa');
         }
 
@@ -505,7 +505,7 @@ class DashboardController
             $row = $stmt->fetch();
 
             if (!$row || (empty($row['email_verified']) && (int)$row['totp_count'] === 0)) {
-                $msg = '请先验证邮箱或启用验证器 APP，再开启「每次登录都验证」';
+                $msg = t('Verify an email or set up an authenticator app before turning on “Verify at every sign-in”');
                 if ($isAjax) Response::json(['success' => false, 'message' => $msg]);
                 Session::flash('error', $msg);
                 Response::redirect('/settings#sec-2fa');
@@ -531,9 +531,9 @@ class DashboardController
         ]);
 
         if ($isAjax) {
-            Response::json(['success' => true, 'message' => t('两步验证策略已更新')]);
+            Response::json(['success' => true, 'message' => t('Two-step verification policy updated')]);
         }
-        Session::flash('success', t('两步验证策略已更新'));
+        Session::flash('success', t('Two-step verification policy updated'));
         Response::redirect('/settings#sec-2fa');
     }
 
@@ -547,8 +547,8 @@ class DashboardController
                   strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('请求无效，请重试')]);
-            Session::flash('error', t('请求无效，请重试'));
+            if ($isAjax) Response::json(['success' => false, 'message' => t('Invalid request, try again')]);
+            Session::flash('error', t('Invalid request, try again'));
             Response::redirect('/settings#sec-quick-login');
             return;
         }
@@ -575,8 +575,8 @@ class DashboardController
         ]);
 
         $message = $enabled
-            ? 'Nomen启航计划项目快速中央登录已开启'
-            : 'Nomen启航计划项目快速中央登录已关闭，授权时将逐项确认';
+            ? t('Nomen Launch Plan quick central sign-in is on')
+            : t('Nomen Launch Plan quick central sign-in is off — each authorization will be confirmed individually');
         if ($isAjax) {
             Response::json(['success' => true, 'message' => $message]);
         }
@@ -594,15 +594,15 @@ class DashboardController
                   strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('请求无效，请重试')]);
-            Session::flash('error', t('请求无效，请重试'));
+            if ($isAjax) Response::json(['success' => false, 'message' => t('Invalid request, try again')]);
+            Session::flash('error', t('Invalid request, try again'));
             Response::redirect('/settings');
             return;
         }
 
         if (!I18n::switchingAllowed()) {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('这个站点没有开放语言切换')]);
-            Session::flash('error', t('这个站点没有开放语言切换'));
+            if ($isAjax) Response::json(['success' => false, 'message' => t('This site does not allow switching languages')]);
+            Session::flash('error', t('This site does not allow switching languages'));
             Response::redirect('/settings');
             return;
         }
@@ -610,8 +610,8 @@ class DashboardController
         $userId = (int)Session::get('user_id');
         $slug = (string)($_POST['locale'] ?? '');
         if (!I18n::isValid($slug)) {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('不支持的语言')]);
-            Session::flash('error', t('不支持的语言'));
+            if ($isAjax) Response::json(['success' => false, 'message' => t('Unsupported language')]);
+            Session::flash('error', t('Unsupported language'));
             Response::redirect('/settings');
             return;
         }
@@ -633,9 +633,9 @@ class DashboardController
         ]);
 
         if ($isAjax) {
-            Response::json(['success' => true, 'message' => t('语言已更新')]);
+            Response::json(['success' => true, 'message' => t('Language updated')]);
         }
-        Session::flash('success', t('语言已更新'));
+        Session::flash('success', t('Language updated'));
         Response::redirect('/settings');
     }
 
@@ -649,8 +649,8 @@ class DashboardController
                   strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('请求无效，请重试')]);
-            Session::flash('error', t('请求无效，请重试'));
+            if ($isAjax) Response::json(['success' => false, 'message' => t('Invalid request, try again')]);
+            Session::flash('error', t('Invalid request, try again'));
             Response::redirect('/settings');
             return;
         }
@@ -658,8 +658,8 @@ class DashboardController
         $userId = (int)Session::get('user_id');
         $slug = (string)($_POST['skin'] ?? '');
         if (!Skins::exists($slug)) {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('没有这个皮肤')]);
-            Session::flash('error', t('没有这个皮肤'));
+            if ($isAjax) Response::json(['success' => false, 'message' => t('Unknown skin')]);
+            Session::flash('error', t('Unknown skin'));
             Response::redirect('/settings');
             return;
         }
@@ -681,9 +681,9 @@ class DashboardController
         ]);
 
         if ($isAjax) {
-            Response::json(['success' => true, 'message' => t('外观已更新')]);
+            Response::json(['success' => true, 'message' => t('Appearance updated')]);
         }
-        Session::flash('success', t('外观已更新'));
+        Session::flash('success', t('Appearance updated'));
         Response::redirect('/settings');
     }
 
@@ -696,8 +696,8 @@ class DashboardController
                   strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('请求无效，请重试')]);
-            Session::flash('error', t('请求无效，请重试'));
+            if ($isAjax) Response::json(['success' => false, 'message' => t('Invalid request, try again')]);
+            Session::flash('error', t('Invalid request, try again'));
             Response::redirect('/settings#sec-notifications');
             return;
         }
@@ -724,9 +724,9 @@ class DashboardController
         ]);
 
         if ($isAjax) {
-            Response::json(['success' => true, 'message' => t('消息偏好已更新')]);
+            Response::json(['success' => true, 'message' => t('Notification preferences updated')]);
         }
-        Session::flash('success', t('消息偏好已更新'));
+        Session::flash('success', t('Notification preferences updated'));
         Response::redirect('/settings#sec-notifications');
     }
 
@@ -750,21 +750,21 @@ class DashboardController
         $email = EmailPolicy::normalize((string)($_POST['new_email'] ?? ''));
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->emailBack($isAjax, '邮箱格式不正确');
+            $this->emailBack($isAjax, t('Invalid email format'));
         }
         if (EmailPolicy::isBlocked($email)) {
             $this->emailBack($isAjax, t(EmailPolicy::REJECT_MESSAGE));
         }
         if (EmailSet::belongsTo($userId, $email)) {
-            $this->emailBack($isAjax, '这个邮箱已经在你的账号里了');
+            $this->emailBack($isAjax, t('This email is already on your account'));
         }
         if (EmailSet::count($userId) >= EmailSet::MAX) {
-            $this->emailBack($isAjax, '一个账号最多绑定 ' . EmailSet::MAX . ' 个邮箱');
+            $this->emailBack($isAjax, t('An account can bind at most {:max} email addresses', ['max' => EmailSet::MAX]));
         }
         // 加进来的是「备选」，所以只跟别人的备选位比 —— 别人的**主邮箱**是可以收作自己备选的
         // （一个地址最多一主一备，两个位各自唯一，见 EmailSet 类注释）
         if (EmailSet::secondaryTakenByOther($email, $userId)) {
-            $this->emailBack($isAjax, '这个邮箱已经是别的账号的备选邮箱了');
+            $this->emailBack($isAjax, t('This email is already a backup address on another account'));
         }
 
         $rateCheck = RateLimiter::checkEmailRate($userId);
@@ -774,7 +774,7 @@ class DashboardController
 
         $added = EmailSet::add($userId, $email);
         if ($added === null) {
-            $this->emailBack($isAjax, '添加失败，请稍后重试');
+            $this->emailBack($isAjax, t('Could not add — please try again later'));
         }
 
         ActivityLog::record([
@@ -787,10 +787,10 @@ class DashboardController
         ]);
 
         $locale = I18n::locale();
-        if (Email::send($email, 'Nomen - ' . I18n::tIn($locale, '邮箱验证'), $this->getEmailVerifyEmailHtml($email, $this->emailVerifyUrl($added['token']), $locale))) {
-            $this->emailBack($isAjax, '验证邮件已发送至 ' . $email . '，点里面的链接确认后才会生效', true);
+        if (Email::send($email, 'Nomen - ' . I18n::tIn($locale, 'Email verification'), $this->getEmailVerifyEmailHtml($email, $this->emailVerifyUrl($added['token']), $locale))) {
+            $this->emailBack($isAjax, t('A verification email was sent to {:email} — follow the link inside to confirm it', ['email' => $email]), true);
         }
-        $this->emailBack($isAjax, '验证邮件发送失败，请稍后重试');
+        $this->emailBack($isAjax, t('Could not send the verification email — please try again later'));
     }
 
     /**
@@ -809,10 +809,10 @@ class DashboardController
 
         $row = EmailSet::findRow($userId, (int)($_POST['email_id'] ?? 0));
         if ($row === null) {
-            $this->emailBack($isAjax, '这个邮箱不存在');
+            $this->emailBack($isAjax, t('This address doesn\'t exist'));
         }
         if (!empty($row['verified'])) {
-            $this->emailBack($isAjax, '这个邮箱已经验证过了', true);
+            $this->emailBack($isAjax, t('This email is already verified'), true);
         }
 
         $rateCheck = RateLimiter::checkEmailRate($userId);
@@ -832,10 +832,10 @@ class DashboardController
 
         $email = (string)$row['email'];
         $locale = I18n::locale();
-        if (Email::send($email, 'Nomen - ' . I18n::tIn($locale, '邮箱验证'), $this->getEmailVerifyEmailHtml($email, $this->emailVerifyUrl($token), $locale))) {
-            $this->emailBack($isAjax, '验证邮件已重新发送至 ' . $email, true);
+        if (Email::send($email, 'Nomen - ' . I18n::tIn($locale, 'Email verification'), $this->getEmailVerifyEmailHtml($email, $this->emailVerifyUrl($token), $locale))) {
+            $this->emailBack($isAjax, t('The verification email was sent again to {:email}', ['email' => $email]), true);
         }
-        $this->emailBack($isAjax, '验证邮件发送失败，请稍后重试');
+        $this->emailBack($isAjax, t('Could not send the verification email — please try again later'));
     }
 
     /**
@@ -854,10 +854,10 @@ class DashboardController
 
         $row = EmailSet::findRow($userId, (int)($_POST['email_id'] ?? 0));
         if ($row === null) {
-            $this->emailBack($isAjax, '这个邮箱不存在');
+            $this->emailBack($isAjax, t('This address doesn\'t exist'));
         }
         if (!empty($row['is_primary'])) {
-            $this->emailBack($isAjax, '这已经是首选邮箱了', true);
+            $this->emailBack($isAjax, t('This is already the primary email'), true);
         }
         $error = EmailSet::setPrimary($userId, (int)$row['id']);
         if ($error !== '') {
@@ -875,7 +875,7 @@ class DashboardController
             'summary'     => '首选邮箱更换为 ' . $email,
         ]);
 
-        $this->emailBack($isAjax, '首选邮箱已改为 ' . $email, true);
+        $this->emailBack($isAjax, t('Primary email changed to {:email}', ['email' => $email]), true);
     }
 
     /**
@@ -894,7 +894,7 @@ class DashboardController
 
         $row = EmailSet::findRow($userId, (int)($_POST['email_id'] ?? 0));
         if ($row === null) {
-            $this->emailBack($isAjax, '这个邮箱不存在');
+            $this->emailBack($isAjax, t('This address doesn\'t exist'));
         }
 
         $error = EmailSet::remove($userId, (int)$row['id']);
@@ -912,7 +912,7 @@ class DashboardController
             'summary'     => '移除邮箱 ' . $email,
         ]);
 
-        $this->emailBack($isAjax, '已移除 ' . $email, true);
+        $this->emailBack($isAjax, t('Removed {:email}', ['email' => $email]), true);
     }
 
     /**
@@ -922,7 +922,7 @@ class DashboardController
     private function emailActionGuard(array $user, bool $isAjax, bool $needPassword = true): bool
     {
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            $this->emailBack($isAjax, '请求无效，请重试');
+            $this->emailBack($isAjax, t('Invalid request, try again'));
         }
 
         if (!$needPassword || RecoveryHelper::isActiveFor((int)$user['id'])) {
@@ -936,7 +936,7 @@ class DashboardController
         if ($password === ''
             || (!password_verify($password . $pepper, (string)$user['password_hash'])
                 && !password_verify($password, (string)$user['password_hash']))) {
-            $this->emailBack($isAjax, '当前密码错误');
+            $this->emailBack($isAjax, t('Wrong current password'));
         }
 
         return true;
@@ -981,16 +981,16 @@ class DashboardController
     private function getEmailVerifyEmailHtml(string $email, string $verifyUrl, string $locale = 'zh-hans'): string
     {
         return EmailTemplate::render([
-            'preheader' => I18n::tIn($locale, '确认把邮箱 {:email} 加到你的 Nomen 账户上', ['email' => $email]),
-            'badge'     => ['text' => '账户安全', 'tone' => 'general'],
-            'title'     => '确认这个邮箱地址',
-            'subtitle'  => '确认后这个邮箱可以用来登录，也可以设为收信地址',
+            'preheader' => I18n::tIn($locale, 'Confirm adding {:email} to your Nomen account', ['email' => $email]),
+            'badge'     => ['text' => 'Account security', 'tone' => 'general'],
+            'title'     => 'Confirm this address',
+            'subtitle'  => 'After confirming, the address works for sign-in and can become your contact address',
             'blocks'    => [
-                ['type' => 'info', 'items' => [['label' => '新邮箱', 'value' => $email]]],
-                ['type' => 'link', 'label' => '确认链接', 'url' => $verifyUrl],
-                ['type' => 'alert', 'tone' => 'warning', 'text' => '此链接 24 小时内有效。如果不是你本人操作，请忽略此邮件，这个邮箱不会被加到任何账户上。'],
+                ['type' => 'info', 'items' => [['label' => 'New email', 'value' => $email]]],
+                ['type' => 'link', 'label' => 'Confirmation link', 'url' => $verifyUrl],
+                ['type' => 'alert', 'tone' => 'warning', 'text' => 'The link is valid for 24 hours. If this wasn\'t you, ignore this email — the address won\'t be added to any account.'],
             ],
-            'button'    => ['text' => '确认邮箱', 'url' => $verifyUrl],
+            'button'    => ['text' => 'Confirm email', 'url' => $verifyUrl],
         ], $locale);
     }
 
@@ -1015,7 +1015,7 @@ class DashboardController
             $stmt->execute([':id' => Session::get('temp_key_id')]);
             if (!$stmt->fetch()) {
                 Session::destroy();
-                Session::flash('error', t('临时密钥已过期或被撤销'));
+                Session::flash('error', t('Temp key expired or revoked'));
                 Response::redirect('/login');
             }
         }
@@ -1064,8 +1064,8 @@ class DashboardController
                   strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('请求无效')]);
-            Session::flash('error', t('请求无效'));
+            if ($isAjax) Response::json(['success' => false, 'message' => t('Invalid request')]);
+            Session::flash('error', t('Invalid request'));
             Response::redirect('/settings');
         }
 
@@ -1085,8 +1085,8 @@ class DashboardController
         // 有多个已验证邮箱时页面上可以挑一个收码（默认首选）
         $contact = EmailSet::resolveRecipient($user ?: [], $_POST['send_to'] ?? null);
         if ($contact === null) {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('账号没有可用的收信地址，请联系支持团队')]);
-            Session::flash('error', t('账号没有可用的收信地址，请联系支持团队（id@caellab.com）'));
+            if ($isAjax) Response::json(['success' => false, 'message' => t('The account has no usable mailbox — contact support')]);
+            Session::flash('error', t('The account has no usable mailbox — contact support (id@caellab.com)'));
             Response::redirect('/settings');
         }
 
@@ -1110,11 +1110,11 @@ class DashboardController
         $htmlBody = $this->getPasswordResetCodeEmailHtml((string)$contact, $code, $locale);
 
         if (Email::send($contact, $subject, $htmlBody)) {
-            if ($isAjax) Response::json(['success' => true, 'message' => t('验证码已发送，请查收（10分钟内有效）')]);
-            Session::flash('success', t('验证码已发送，请查收（10分钟内有效）'));
+            if ($isAjax) Response::json(['success' => true, 'message' => t('Code sent — check your inbox (valid for 10 minutes)')]);
+            Session::flash('success', t('Code sent — check your inbox (valid for 10 minutes)'));
         } else {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('邮件发送失败，请稍后重试')]);
-            Session::flash('error', t('邮件发送失败，请稍后重试'));
+            if ($isAjax) Response::json(['success' => false, 'message' => t('Email failed to send, try again later')]);
+            Session::flash('error', t('Email failed to send, try again later'));
         }
 
         Response::redirect('/settings');
@@ -1130,8 +1130,8 @@ class DashboardController
                   strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('请求无效')]);
-            Session::flash('error', t('请求无效'));
+            if ($isAjax) Response::json(['success' => false, 'message' => t('Invalid request')]);
+            Session::flash('error', t('Invalid request'));
             Response::redirect('/settings');
         }
 
@@ -1140,20 +1140,20 @@ class DashboardController
         $confirmPassword = $_POST['confirm_password'] ?? '';
 
         if (!$code || !$newPassword || !$confirmPassword) {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('请填写所有字段')]);
-            Session::flash('error', t('请填写所有字段'));
+            if ($isAjax) Response::json(['success' => false, 'message' => t('Please fill in all fields')]);
+            Session::flash('error', t('Please fill in all fields'));
             Response::redirect('/settings');
         }
 
         if (strlen($newPassword) < 8 || !preg_match('/[a-zA-Z]/', $newPassword) || !preg_match('/[0-9]/', $newPassword)) {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('新密码至少8位，且必须包含字母和数字')]);
-            Session::flash('error', t('新密码至少8位，且必须包含字母和数字'));
+            if ($isAjax) Response::json(['success' => false, 'message' => t('New password needs 8+ characters with letters and digits')]);
+            Session::flash('error', t('New password needs 8+ characters with letters and digits'));
             Response::redirect('/settings');
         }
 
         if ($newPassword !== $confirmPassword) {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('两次输入的新密码不一致')]);
-            Session::flash('error', t('两次输入的新密码不一致'));
+            if ($isAjax) Response::json(['success' => false, 'message' => t('The two new passwords don\'t match')]);
+            Session::flash('error', t('The two new passwords don\'t match'));
             Response::redirect('/settings');
         }
 
@@ -1166,15 +1166,15 @@ class DashboardController
 
         // 验证验证码
         if (!$user['password_reset_code'] || !hash_equals($user['password_reset_code'], $code)) {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('验证码错误')]);
-            Session::flash('error', t('验证码错误'));
+            if ($isAjax) Response::json(['success' => false, 'message' => t('Wrong code')]);
+            Session::flash('error', t('Wrong code'));
             Response::redirect('/settings');
         }
 
         // 检查是否过期
         if (strtotime($user['password_reset_code_expires_at']) < time()) {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('验证码已过期，请重新发送')]);
-            Session::flash('error', t('验证码已过期，请重新发送'));
+            if ($isAjax) Response::json(['success' => false, 'message' => t('The code expired — send a new one')]);
+            Session::flash('error', t('The code expired — send a new one'));
             Response::redirect('/settings');
         }
 
@@ -1184,8 +1184,8 @@ class DashboardController
 
         if (password_verify($newPassword . $pepper, $user['password_hash'])
             || password_verify($newPassword, $user['password_hash'])) {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('新密码不能与当前密码相同')]);
-            Session::flash('error', t('新密码不能与当前密码相同'));
+            if ($isAjax) Response::json(['success' => false, 'message' => t('New password must differ from the current one')]);
+            Session::flash('error', t('New password must differ from the current one'));
             Response::redirect('/settings');
         }
 
@@ -1205,8 +1205,8 @@ class DashboardController
             'summary'  => '使用邮箱验证码重置密码',
         ]);
 
-        if ($isAjax) Response::json(['success' => true, 'message' => t('密码已重置成功，其他设备已被登出')]);
-        Session::flash('success', t('密码已重置成功，其他设备已被登出'));
+        if ($isAjax) Response::json(['success' => true, 'message' => t('Password reset, other devices signed out')]);
+        Session::flash('success', t('Password reset, other devices signed out'));
         Response::redirect('/settings');
     }
 
@@ -1220,19 +1220,19 @@ class DashboardController
                   strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('请求无效')]);
+            if ($isAjax) Response::json(['success' => false, 'message' => t('Invalid request')]);
             Response::redirect('/settings');
         }
 
         if (empty($_FILES['avatar'])) {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('请选择要上传的头像')]);
+            if ($isAjax) Response::json(['success' => false, 'message' => t('Pick an avatar to upload')]);
             Response::redirect('/settings');
         }
 
         $filename = $this->processAvatarUpload($_FILES['avatar']);
 
         if ($filename === null) {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('头像上传失败，请检查文件格式和大小')]);
+            if ($isAjax) Response::json(['success' => false, 'message' => t('Avatar upload failed — check the file format and size')]);
             Response::redirect('/settings');
         }
 
@@ -1268,9 +1268,9 @@ class DashboardController
         ]);
 
         if ($isAjax) {
-            Response::json(['success' => true, 'message' => t('头像已更新'), 'avatar_url' => '/assets/avatars/' . $filename]);
+            Response::json(['success' => true, 'message' => t('Avatar updated'), 'avatar_url' => '/assets/avatars/' . $filename]);
         }
-        Session::flash('success', t('头像已更新'));
+        Session::flash('success', t('Avatar updated'));
         Response::redirect('/settings');
     }
 
@@ -1391,14 +1391,14 @@ class DashboardController
     private function getPasswordResetCodeEmailHtml(string $email, string $code, string $locale = 'zh-hans'): string
     {
         return EmailTemplate::render([
-            'preheader' => I18n::tIn($locale, '你的密码重置验证码是 {:code}，10 分钟内有效', ['code' => $code]),
-            'badge'     => ['text' => '安全验证', 'tone' => 'general'],
-            'title'     => '重置密码',
-            'subtitle'  => '使用验证码重置你的 Nomen 密码',
+            'preheader' => I18n::tIn($locale, 'Your Nomen password reset code is {:code}, valid for 10 minutes', ['code' => $code]),
+            'badge'     => ['text' => 'Security verification', 'tone' => 'general'],
+            'title'     => 'Reset password',
+            'subtitle'  => 'Reset your Nomen password with a code',
             'blocks'    => [
-                ['type' => 'info', 'items' => [['label' => '账户邮箱', 'value' => $email]]],
-                ['type' => 'code', 'label' => '验证码', 'value' => $code],
-                ['type' => 'alert', 'tone' => 'warning', 'text' => '此验证码 10 分钟内有效。如果不是你本人操作，请忽略此邮件，你的密码不会被修改。'],
+                ['type' => 'info', 'items' => [['label' => 'Account email', 'value' => $email]]],
+                ['type' => 'code', 'label' => 'Code', 'value' => $code],
+                ['type' => 'alert', 'tone' => 'warning', 'text' => 'The code is valid for 10 minutes. If this wasn\'t you, ignore this email — your password won\'t be changed.'],
             ],
         ], $locale);
     }
@@ -1431,7 +1431,7 @@ class DashboardController
                   strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
         if (!Csrf::validate($_POST['_csrf'] ?? '')) {
-            Response::json(['success' => false, 'message' => t('请求无效')]);
+            Response::json(['success' => false, 'message' => t('Invalid request')]);
         }
 
         $userId = (int)Session::get('user_id');
@@ -1440,32 +1440,32 @@ class DashboardController
         $expiresAt = trim($_POST['expires_at'] ?? '');
 
         if (!$label || !$keyValue || !$expiresAt) {
-            Response::json(['success' => false, 'message' => t('请填写所有字段')]);
+            Response::json(['success' => false, 'message' => t('Please fill in all fields')]);
         }
 
         if (!preg_match('/^[a-zA-Z0-9]{10,}$/', $keyValue)) {
-            Response::json(['success' => false, 'message' => t('临时密钥必须至少10位，且只包含字母和数字')]);
+            Response::json(['success' => false, 'message' => t('Temp keys need at least 10 characters, letters and digits only')]);
         }
 
         if (!preg_match('/[A-Z]/', $keyValue) || !preg_match('/[a-z]/', $keyValue) || !preg_match('/[0-9]/', $keyValue)) {
-            Response::json(['success' => false, 'message' => t('临时密钥必须包含大写字母、小写字母和数字')]);
+            Response::json(['success' => false, 'message' => t('Temp keys need upper case, lower case and digits')]);
         }
 
         $expiresAt = date('Y-m-d H:i:s', strtotime($expiresAt));
         if (!$expiresAt || $expiresAt === '1970-01-01 08:00:00') {
-            Response::json(['success' => false, 'message' => t('到期时间格式错误')]);
+            Response::json(['success' => false, 'message' => t('Invalid expiry format')]);
         }
 
         $stmt = $this->db->prepare('SELECT COUNT(*) AS cnt FROM user_temp_keys WHERE user_id = :u AND expires_at > NOW()');
         $stmt->execute([':u' => $userId]);
         $count = $stmt->fetch()['cnt'];
         if ($count >= 5) {
-            Response::json(['success' => false, 'message' => t('最多只能同时存在5个临时密钥')]);
+            Response::json(['success' => false, 'message' => t('At most 5 temp keys at a time')]);
         }
 
         $maxExpires = date('Y-m-d H:i:s', time() + 14 * 24 * 3600);
         if ($expiresAt > $maxExpires) {
-            Response::json(['success' => false, 'message' => t('临时密钥最长有效期为14天')]);
+            Response::json(['success' => false, 'message' => t('Temp keys last at most 14 days')]);
         }
 
         $keyHash = password_hash($keyValue, PASSWORD_ARGON2ID);
@@ -1484,20 +1484,20 @@ class DashboardController
             'summary'  => '创建临时密钥「' . $label . '」，' . $expiresAt . ' 到期',
         ]);
 
-        Response::json(['success' => true, 'message' => t('临时密钥已创建')]);
+        Response::json(['success' => true, 'message' => t('Temp key created')]);
     }
 
     public function deleteTempKey(): void
     {
         if (!Csrf::validate($_POST['_csrf'] ?? '')) {
-            Response::json(['success' => false, 'message' => t('请求无效')]);
+            Response::json(['success' => false, 'message' => t('Invalid request')]);
         }
 
         $userId = (int)Session::get('user_id');
         $keyId = (int)$_POST['key_id'] ?? 0;
 
         if (!$keyId) {
-            Response::json(['success' => false, 'message' => t('参数错误')]);
+            Response::json(['success' => false, 'message' => t('Parameter error')]);
         }
 
         $stmt = $this->db->prepare('SELECT label FROM user_temp_keys WHERE id = :id AND user_id = :u LIMIT 1');
@@ -1508,7 +1508,7 @@ class DashboardController
         $stmt->execute([':id' => $keyId, ':u' => $userId]);
 
         if ($stmt->rowCount() === 0) {
-            Response::json(['success' => false, 'message' => t('密钥不存在')]);
+            Response::json(['success' => false, 'message' => t('Key not found')]);
         }
 
         ActivityLog::record([
@@ -1520,7 +1520,7 @@ class DashboardController
             'summary'  => '删除临时密钥' . ($keyLabel !== '' ? '「' . $keyLabel . '」' : ''),
         ]);
 
-        Response::json(['success' => true, 'message' => t('临时密钥已删除')]);
+        Response::json(['success' => true, 'message' => t('Temp key deleted')]);
     }
 
     public function generateTempKey(): void
@@ -1555,21 +1555,21 @@ class DashboardController
                   strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
         if (!Csrf::validate($_POST['_csrf'] ?? '')) {
-            Response::json(['success' => false, 'message' => t('请求无效')]);
+            Response::json(['success' => false, 'message' => t('Invalid request')]);
         }
 
         $userId = (int)Session::get('user_id');
         $credentialId = (int)$_POST['id'] ?? 0;
 
         if (!$credentialId) {
-            Response::json(['success' => false, 'message' => t('参数错误')]);
+            Response::json(['success' => false, 'message' => t('Parameter error')]);
         }
 
         $stmt = $this->db->prepare('UPDATE user_biometrics SET revoked = 1 WHERE id = :id AND user_id = :u');
         $stmt->execute([':id' => $credentialId, ':u' => $userId]);
 
         if ($stmt->rowCount() === 0) {
-            Response::json(['success' => false, 'message' => t('凭证不存在')]);
+            Response::json(['success' => false, 'message' => t('Credential not found')]);
         }
 
         ActivityLog::record([
@@ -1580,6 +1580,6 @@ class DashboardController
             'summary'  => '删除生物识别凭证',
         ]);
 
-        Response::json(['success' => true, 'message' => t('生物识别凭证已删除')]);
+        Response::json(['success' => true, 'message' => t('Biometric credential deleted')]);
     }
 }

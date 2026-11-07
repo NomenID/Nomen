@@ -31,7 +31,7 @@ $feature = static function (string $envKey, string $configKey) use ($appConf): b
 return [
     // 基本信息
     'name'         => $brand['name'],
-    'version'      => '1.2.0',
+    'version'      => '1.3.0',
     'base_url'     => $brand['base_url'],
 
     // 安全
@@ -123,9 +123,9 @@ return [
 
     // 可用的 OAuth scopes
     'scopes' => [
-        'openid'  => '基本用户信息',
-        'profile' => '用户名、昵称、头像',
-        'email'   => '已验证邮箱',
+        'openid'  => 'Basic profile',
+        'profile' => 'username, display name, avatar',
+        'email'   => 'Verified email',
     ],
 
     'webauthn_origin' => $brand['base_url'],

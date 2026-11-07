@@ -41,7 +41,7 @@ function onInput(event) {
       v-if="showToggle"
       type="button"
       class="toggle-password"
-      :aria-label="revealed ? t('隐藏密码') : t('显示密码')"
+      :aria-label="revealed ? t('Hide password') : t('Show password')"
       @click="revealed = !revealed"
     >
       <span :class="['eye-icon', 'icon', revealed ? 'icon-eye-off' : 'icon-eye']"></span>

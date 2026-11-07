@@ -30,18 +30,18 @@ class Version
 
     private static function license(): string
     {
-        return '<h2>Nomen 许可协议</h2>'
-            . '<p>本站由 <a href="' . self::PROJECT_URL . '">Nomen</a> 驱动，版权所有 © 2025-'
-            . date('Y') . ' Yunyun。</p>'
-            . '<p>Nomen 是自由软件；你可以依据自由软件基金会发行的 GNU 通用公共许可协议第 3 版的条款，'
-            . '传播和/或修改本软件。</p>'
-            . '<p>Nomen 在分发时期望其有用，但对此<em>无任何担保</em>；更无隐含的'
-            . '<strong>可以销售</strong>或<strong>适合特定目的</strong>的担保。'
-            . '详情请见 GNU 通用公共许可协议。</p>'
-            . '<p>你应该已经收到本程序附带的 GNU 通用公共许可协议的副本；如果没有，可以在'
-            . '<a href="/special/version/core/nomen/license">本站阅读协议全文</a>。'
-            . '附加条款与声明见 <a href="/special/version/core/nomen/notice">NOTICE</a>，'
-            . '项目说明见 <a href="/special/version/core/nomen/readme">README</a>。</p>';
+        return '<h2>' . t('Nomen license') . '</h2>'
+            . '<p>' . t('This site is powered by {:link}. Copyright © 2025-{:year} Yunyun.', [
+                'link' => '<a href="' . self::PROJECT_URL . '">Nomen</a>',
+                'year' => date('Y'),
+            ]) . '</p>'
+            . '<p>' . t('Nomen is free software; you may redistribute and/or modify it under the terms of version 3 of the GNU General Public License as published by the Free Software Foundation.') . '</p>'
+            . '<p>' . t('Nomen is distributed in the hope that it will be useful, but with <em>no warranty</em>; without even the implied warranty of <strong>merchantability</strong> or <strong>fitness for a particular purpose</strong>. See the GNU General Public License for more details.') . '</p>'
+            . '<p>' . t('You should have received a copy of the GNU General Public License along with this program; if not, you can {:link}. Additional terms and notices are in the {:notice}, and project information is in the {:readme}.', [
+                'link' => '<a href="/special/version/core/nomen/license">' . t('read the full license on this site') . '</a>',
+                'notice' => '<a href="/special/version/core/nomen/notice">NOTICE</a>',
+                'readme' => '<a href="/special/version/core/nomen/readme">README</a>',
+            ]) . '</p>';
     }
 
     private static function software(array $config): string
@@ -70,15 +70,15 @@ class Version
             $mismatch = Upgrade::mismatch($db);
             if ($mismatch !== null) {
                 $rows[] = [
-                    '数据库结构',
-                    self::esc(($mismatch['db'] ?? '未记录') . '（与程序版本不一致，站点管理员需要运行升级）'),
+                    t('Database schema'),
+                    self::esc(($mismatch['db'] ?? t('Not recorded')) . t(' (differs from the application version — the site administrator needs to run the upgrade)')),
                 ];
             }
         } catch (\Throwable) {
-            $rows[] = ['数据库', '—'];
+            $rows[] = [t('Database'), '—'];
         }
 
-        return '<h2>安装的软件</h2>' . self::table(['产品', '版本'], $rows);
+        return '<h2>' . t('Installed software') . '</h2>' . self::table([t('Product'), t('Version')], $rows);
     }
 
     private static function entryPoints(array $config): string
@@ -86,11 +86,12 @@ class Version
         $base = rtrim((string)($config['base_url'] ?? ''), '/');
 
         $points = [
-            ['授权', '/oauth/authorize'],
-            ['令牌', '/oauth/token'],
-            ['用户信息', '/api/userinfo'],
-            ['令牌校验', '/api/token-info'],
-            ['撤销', '/oauth/revoke'],
+            [t('Authorize'), '/oauth/authorize'],
+            [t('Token'), '/oauth/token'],
+            [t('User info'), '/api/userinfo'],
+            [t('Token verification'), '/api/token-info'],
+            [t('Revoke'), '/oauth/revoke'],
+            [t('Site API'), '/nomen-api'],
         ];
 
         $rows = [];
@@ -102,7 +103,7 @@ class Version
             ];
         }
 
-        return '<h2>接入点 URL</h2>' . self::table(['接入点', 'URL'], $rows);
+        return '<h2>' . t('Endpoint URLs') . '</h2>' . self::table([t('Endpoint'), 'URL'], $rows);
     }
 
     private static function pluginMounts(): string
@@ -120,18 +121,18 @@ class Version
                 self::esc((string)$mount['plugin']),
                 self::esc((string)$mount['title']),
                 '<a href="' . self::esc($url) . '">' . self::esc($url) . '</a>',
-                ($mount['access'] ?? 'public') === 'admin' ? '仅管理员' : '公开',
+                ($mount['access'] ?? 'public') === 'admin' ? t('Admin only') : t('Public'),
             ];
         }
 
-        return '<h2>插件挂载点</h2>' . self::table(['插件', '名称', 'URL', '访问'], $rows);
+        return '<h2>' . t('Plugin mount points') . '</h2>' . self::table([t('Plugin'), t('Name'), 'URL', t('Access')], $rows);
     }
 
     private static function skins(): string
     {
         $skins = Skins::all();
         if ($skins === []) {
-            return '<h2>安装的皮肤</h2><p>当前未安装任何皮肤。</p>';
+            return '<h2>' . t('Installed skins') . '</h2><p>' . t('No skins are installed.') . '</p>';
         }
 
         $rows = [];
@@ -145,14 +146,14 @@ class Version
             ];
         }
 
-        return '<h2>安装的皮肤</h2>' . self::table(['皮肤', '版本', '许可协议', '描述', '作者'], $rows);
+        return '<h2>' . t('Installed skins') . '</h2>' . self::table([t('Skins'), t('Version'), t('License'), t('Description'), t('Authors')], $rows);
     }
 
     private static function plugins(): string
     {
         $plugins = Plugins::loaded();
         if ($plugins === []) {
-            return '<h2>安装的插件</h2><p>当前未安装任何插件。</p>';
+            return '<h2>' . t('Installed plugins') . '</h2><p>' . t('No plugins are installed.') . '</p>';
         }
 
         $rows = [];
@@ -168,9 +169,9 @@ class Version
             ];
         }
 
-        return '<h2>安装的插件</h2>'
-            . self::table(['插件', '版本', '许可协议', '描述', '作者'], $rows)
-            . '<p>插件由各自的作者维护，按各自的许可协议发布，不属于 Nomen 本体。</p>';
+        return '<h2>' . t('Installed plugins') . '</h2>'
+            . self::table([t('Plugins'), t('Version'), t('License'), t('Description'), t('Authors')], $rows)
+            . '<p>' . t('Plugins are maintained by their respective authors and released under their own licenses; they are not part of Nomen itself.') . '</p>';
     }
 
     private static function libraries(): string
@@ -178,17 +179,17 @@ class Version
         $html = '';
         $server = self::serverLibraries();
         if ($server !== []) {
-            $html .= '<h3>安装的服务器端库</h3>'
-                . self::table(['库', '版本', '许可协议', '描述', '作者'], $server);
+            $html .= '<h3>' . t('Installed server-side libraries') . '</h3>'
+                . self::table([t('Library'), t('Version'), t('License'), t('Description'), t('Authors')], $server);
         }
 
         $client = self::clientLibraries();
         if ($client !== []) {
-            $html .= '<h3>安装的客户端库</h3>'
-                . self::table(['库', '版本', '许可协议'], $client);
+            $html .= '<h3>' . t('Installed client-side libraries') . '</h3>'
+                . self::table([t('Library'), t('Version'), t('License')], $client);
         }
 
-        return $html === '' ? '' : '<h2>安装的库</h2>' . $html;
+        return $html === '' ? '' : '<h2>' . t('Installed libraries') . '</h2>' . $html;
     }
 
     private static function serverLibraries(): array
@@ -318,7 +319,7 @@ class Version
 
         $last = array_pop($list);
 
-        return implode('、', $list) . ' 和 ' . $last;
+        return implode(t(', '), $list) . t(' and {:last}', ['last' => $last]);
     }
 
     private static function esc(mixed $value): string

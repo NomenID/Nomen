@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{ActivityLog, Admin, Cache, Csrf, Email, Hooks, Response, Settings};
+use Nomen\Src\{ActivityLog, Admin, Brand, Cache, Csrf, Email, Hooks, Response, Settings};
 use PDOException;
 
 class AdminSettingsController
@@ -48,6 +48,8 @@ class AdminSettingsController
             'effectiveBackend' => Cache::driverName(),
             'mailConfigured'   => Email::isConfigured(),
             'settingsReady'    => Settings::ready(),
+            'apiEnabled'       => (string)Settings::get('api.nomen_api', '1') !== '0',
+            'apiEndpoint'      => rtrim((string)Brand::get('base_url'), '/') . '/nomen-api',
         ]));
     }
 
@@ -68,11 +70,16 @@ class AdminSettingsController
 
         $oldPolicy = (string)Settings::get('security.login_2fa', 'off');
         $oldBackend = (string)Settings::get('cache.backend', 'auto');
+        $oldApi = (string)Settings::get('api.nomen_api', '1');
+        $apiEnabled = array_key_exists('api_nomen', $_POST)
+            ? ((string)$_POST['api_nomen'] === '1' ? '1' : '0')
+            : ($oldApi === '1' ? '1' : '0');
 
         try {
             Settings::setMany([
                 'security.login_2fa' => $policy,
                 'cache.backend'      => $backend,
+                'api.nomen_api'      => $apiEnabled,
             ]);
         } catch (PDOException $e) {
             error_log('[settings] 保存失败: ' . $e->getMessage());
@@ -87,13 +94,13 @@ class AdminSettingsController
             'actor_username' => (string)$admin['username'],
             'summary'        => '修改站点设置',
             'changes'        => ActivityLog::diff(
-                ['login_2fa' => $oldPolicy, 'cache_backend' => $oldBackend],
-                ['login_2fa' => $policy, 'cache_backend' => $backend],
-                ['login_2fa', 'cache_backend']
+                ['login_2fa' => $oldPolicy, 'cache_backend' => $oldBackend, 'api_nomen' => $oldApi],
+                ['login_2fa' => $policy, 'cache_backend' => $backend, 'api_nomen' => $apiEnabled],
+                ['login_2fa', 'cache_backend', 'api_nomen']
             ),
         ]);
 
-        Hooks::run('admin.settings.saved', [$policy, $backend, (int)$admin['id']]);
+        Hooks::run('admin.settings.saved', [$policy, $backend, (int)$admin['id'], $apiEnabled]);
 
         Response::json(['success' => true, 'message' => '设置已保存，下次请求生效']);
     }

@@ -7,6 +7,6 @@ export async function parseJsonResponse(response) {
   try {
     return JSON.parse(text)
   } catch (err) {
-    throw new Error(t('服务器返回了 {:status}，请稍后重试', { status: response.status }))
+    throw new Error(t('Server returned {:status} — try again later', { status: response.status }))
   }
 }

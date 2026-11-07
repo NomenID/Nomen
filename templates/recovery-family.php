@@ -7,7 +7,7 @@
  * @var string $maskedGuardian
  * @var string|null $error
  */
-$title = t('账号由家长管理');
+$title = t('Managed by a parent');
 ?>
 
 <div class="auth-container">
@@ -16,12 +16,12 @@ $title = t('账号由家长管理');
             <div class="auth-logo">
                 <img src="<?= htmlspecialchars((string)\Nomen\Src\Brand::get('logo')) ?>" alt="" width="48" height="48">
             </div>
-            <h1><?= t('账号由家长管理') ?></h1>
-            <p><?= htmlspecialchars(t('{:name} 已经在家庭里', ['name' => $username])) ?></p>
+            <h1><?= t('Managed by a parent') ?></h1>
+            <p><?= htmlspecialchars(t('{:name} is already in the family', ['name' => $username])) ?></p>
         </div>
 
         <div class="nomen-alert nomen-alert--info">
-            <?= t('让家长帮你重置密码就行，比走申诉快得多。') ?>
+            <?= t('A parent can reset your password for you — much faster than a recovery request.') ?>
         </div>
 
         <?php if ($error): ?>
@@ -29,17 +29,17 @@ $title = t('账号由家长管理');
         <?php endif; ?>
 
         <p style="font-size:14px;line-height:1.9;color:var(--color-text-muted);">
-            <?= t('请让家长登录 Nomen，在「家庭」页面里把你的密码重置掉。') ?>
-            <?= t('家长用的邮箱是') ?> <strong style="color:var(--color-text);"><?= htmlspecialchars($maskedGuardian) ?></strong><?= t('。') ?>
+            <?= t('Ask a parent to sign in to Nomen and reset your password on the Family page.') ?>
+            <?= t('The parent\'s email is') ?> <strong style="color:var(--color-text);"><?= htmlspecialchars($maskedGuardian) ?></strong><?= t('.') ?>
         </p>
 
         <p style="font-size:14px;line-height:1.9;color:var(--color-text-muted);">
-            <?= t('家长也不方便操作的话，用那个邮箱发一封邮件到') ?>
-            <a href="mailto:id&#64;caellab.com">id&#64;caellab.com</a> <?= t('说明情况，我们会人工处理。') ?>
+            <?= t('If the parent can\'t do that either, send an email from that address to') ?>
+            <a href="mailto:id&#64;caellab.com">id&#64;caellab.com</a> <?= t('Explain the situation and we\'ll handle it manually.') ?>
         </p>
 
         <div class="auth-footer" style="margin-top:24px;">
-            <p><a href="/login"><?= t('返回登录') ?></a></p>
+            <p><a href="/login"><?= t('Back to sign-in') ?></a></p>
         </div>
     </div>
 </div>

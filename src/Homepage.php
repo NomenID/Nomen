@@ -71,21 +71,89 @@ final class Homepage
         ]);
     }
 
-    /** @return array<int, array{label: string, href: string}> */
+    /**
+     * 首页按钮下面那一行链接：默认三条（可在后台单独隐藏）→ 站长自定义 → 插件通过
+     * homepage.links 钩子追加的。插件条目带 by（插件显示名），后台编辑器里标「由 X 托管」。
+     *
+     * @return array<int, array{label: string, href: string, id?: string, by?: string}>
+     */
     public static function links(): array
+    {
+        $hidden = self::hiddenLinks();
+        $links = [];
+        foreach (self::defaultLinks() as $link) {
+            if (!in_array($link['id'], $hidden, true)) {
+                $links[] = $link;
+            }
+        }
+
+        foreach (self::customLinks() as $link) {
+            $links[] = $link;
+        }
+
+        return Hooks::filter('homepage.links', $links);
+    }
+
+    /** @return array<int, array{label: string, href: string, id: string}> */
+    public static function defaultLinks(): array
     {
         $links = [];
         $docs = Plugins::mountUrl('pages');
         if ($docs !== null) {
-            $links[] = ['label' => '文档', 'href' => $docs];
+            $links[] = ['id' => 'docs', 'label' => t('Docs'), 'href' => $docs];
         }
         $open = Plugins::mountUrl('open-platform');
         if ($open !== null) {
-            $links[] = ['label' => '开放平台', 'href' => $open];
+            $links[] = ['id' => 'open_platform', 'label' => t('Open Platform'), 'href' => $open];
         }
-        $links[] = ['label' => '版本信息', 'href' => '/special/version'];
+        $links[] = ['id' => 'version', 'label' => t('Version info'), 'href' => '/special/version'];
 
-        return Hooks::filter('homepage.links', $links);
+        return $links;
+    }
+
+    /** @return array<int, array{label: string, href: string}> */
+    public static function customLinks(): array
+    {
+        $raw = (string)Settings::get('homepage.links_json', '');
+        if ($raw === '') {
+            return [];
+        }
+
+        $data = json_decode($raw, true);
+        if (!is_array($data)) {
+            return [];
+        }
+
+        $out = [];
+        foreach ($data as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+            $label = trim((string)($row['label'] ?? ''));
+            $href = trim((string)($row['href'] ?? ''));
+            if ($label === '' || $href === '') {
+                continue;
+            }
+            $out[] = ['label' => $label, 'href' => $href];
+        }
+
+        return $out;
+    }
+
+    /** @return string[] 被站长隐藏的默认链接 id（docs / open_platform / version） */
+    public static function hiddenLinks(): array
+    {
+        $raw = (string)Settings::get('homepage.hidden_links', '');
+        if ($raw === '') {
+            return [];
+        }
+
+        $data = json_decode($raw, true);
+        if (!is_array($data)) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map('strval', $data)));
     }
 
     /** @return array{primary: array{label: string, href: string}, secondary: array{label: string, href: string}} */
@@ -95,11 +163,11 @@ final class Homepage
 
         return [
             'primary' => $loggedIn
-                ? ['label' => '进入控制台', 'href' => '/dashboard']
-                : ['label' => '创建账号', 'href' => '/register'],
+                ? ['label' => t('Open console'), 'href' => '/dashboard']
+                : ['label' => t('Create account'), 'href' => '/register'],
             'secondary' => $loggedIn
-                ? ['label' => '账户设置', 'href' => '/settings']
-                : ['label' => '登录', 'href' => '/login'],
+                ? ['label' => t('Account settings'), 'href' => '/settings']
+                : ['label' => t('Sign in'), 'href' => '/login'],
         ];
     }
 

@@ -40,22 +40,22 @@ class FamilyHelper
     public const RELEASE_REQUESTS_PER_DAY = 2;
 
     public const RELATIONSHIPS = [
-        'father' => '爸爸',
-        'mother' => '妈妈',
-        'other'  => '家长',
+        'father' => 'Father',
+        'mother' => 'Mother',
+        'other'  => 'Parent',
     ];
 
     /** 不能停止监护的原因，给界面用（说人话，别提"组""认领"这些内部词） */
     public const RELEASE_REASONS = [
         'ok'                 => '',
-        'not_in_family'      => '你还没有加入任何家庭',
-        'no_consent'         => '家长还没有加入你的家庭，现在没有监护可以停止',
-        'no_own_email'       => '先绑定一个属于你自己的邮箱（现在收信用的是家长邮箱）',
-        'group_unclaimed'    => '家长还没有加入你的家庭，现在没有监护可以停止',
-        'no_birth_date'      => '账号没有出生日期记录，无法判定年龄',
-        'too_young'          => '还没到本地区可以停止监护的年龄',
-        'account_too_new'    => '账号创建还不满 6 个月',
-        'already_independent'=> '监护已经停止了',
+        'not_in_family'      => 'You have not joined any family yet',
+        'no_consent'         => 'Your parent has not joined your family yet — there is no supervision to end',
+        'no_own_email'       => 'Bind an email of your own first (your contact address is currently a parent’s email)',
+        'group_unclaimed'    => 'Your parent has not joined your family yet — there is no supervision to end',
+        'no_birth_date'      => 'The account has no date of birth on record, so the age cannot be determined',
+        'too_young'          => 'Not yet old enough to end supervision in your region',
+        'account_too_new'    => 'The account was created less than 6 months ago',
+        'already_independent'=> 'Supervision has already ended',
     ];
 
     /** @var array<int, ?string> 同一请求内缓存联系邮箱，避免一封信查一次库 */
@@ -132,7 +132,7 @@ class FamilyHelper
     {
         $code = strtoupper(trim((string)$code));
         if ($code === '') {
-            return t('未填写');
+            return t('Not provided');
         }
         $entry = self::countries()[$code] ?? null;
         if ($entry === null) {
@@ -202,31 +202,31 @@ class FamilyHelper
         $x = fn(string $k, array $p = []): string => I18n::tIn($locale ?? I18n::locale(), $k, $p);
 
         if (in_array($info['kind'], ['statute', 'advisory'], true)) {
-            $label = (string)$info['label'] . ($info['kind'] === 'advisory' ? $x('（当地监管指引）') : '');
-            $blocks = [['type' => 'info', 'items' => [['label' => $x('法律依据'), 'value' => $label]]]];
+            $label = (string)$info['label'] . ($info['kind'] === 'advisory' ? $x('(local regulatory guidance)') : '');
+            $blocks = [['type' => 'info', 'items' => [['label' => $x('Legal basis'), 'value' => $label]]]];
 
             $note = trim((string)$info['note']);
             if ($note !== '' && !str_contains($note, 'pending official verification')) {
                 $blocks[] = ['type' => 'paragraph', 'muted' => true, 'text' => $note];
             }
             if (trim((string)$info['quote']) !== '') {
-                $blocks[] = ['type' => 'paragraph', 'muted' => true, 'text' => $x('条文原文：{:quote}', ['quote' => $info['quote']])];
+                $blocks[] = ['type' => 'paragraph', 'muted' => true, 'text' => $x('Quoted provision: {:quote}', ['quote' => $info['quote']])];
             }
             if (trim((string)$info['url']) !== '') {
-                $blocks[] = ['type' => 'link', 'label' => $x('官方来源'), 'url' => $info['url']];
+                $blocks[] = ['type' => 'link', 'label' => $x('Official source'), 'url' => $info['url']];
             }
             return $blocks;
         }
 
         $blocks = [
             ['type' => 'info', 'items' => [[
-                'label' => $x('法律依据'),
-                'value' => $x('依据站点隐私政策，本地区按 {:age} 岁处理', ['age' => $info['age']]),
+                'label' => $x('Legal basis'),
+                'value' => $x('Under the site privacy policy, this region is handled as {:age}.', ['age' => $info['age']]),
             ]]],
         ];
 
         if (trim((string)$info['policy_url']) !== '') {
-            $blocks[] = ['type' => 'link', 'label' => $x('隐私权政策'), 'url' => (string)$info['policy_url']];
+            $blocks[] = ['type' => 'link', 'label' => $x('Privacy policy'), 'url' => (string)$info['policy_url']];
         }
 
         return $blocks;
@@ -237,11 +237,11 @@ class FamilyHelper
     {
         $x = fn(string $k): string => I18n::tIn($locale ?? I18n::locale(), $k);
         return match ((string)$gender) {
-            'female'            => $x('女性'),
-            'male'              => $x('男性'),
-            'non-binary'        => $x('非二元性别'),
-            'prefer-not-to-say' => $x('不愿透露'),
-            default             => $x('未填写'),
+            'female'            => $x('Female'),
+            'male'              => $x('Male'),
+            'non-binary'        => $x('Non-binary'),
+            'prefer-not-to-say' => $x('Prefer not to say'),
+            default             => $x('Not provided'),
         };
     }
 
@@ -250,8 +250,8 @@ class FamilyHelper
     {
         $x = fn(string $k): string => I18n::tIn($locale ?? I18n::locale(), $k);
         return match ((string)$gender) {
-            'female' => $x('她'),
-            'male'   => $x('他'),
+            'female' => $x('She'),
+            'male'   => $x('He'),
             default  => 'TA',
         };
     }

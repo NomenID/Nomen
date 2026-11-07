@@ -42,20 +42,20 @@ document.getElementById('username').addEventListener('input', function(e) {
 
     if (!username) {
         setMark(status, '');
-        hint.innerHTML = '<span class="hint-icon icon icon-bulb"></span>' + t('支持小写字母、数字和下划线，3-32个字符');
+        hint.innerHTML = '<span class="hint-icon icon icon-bulb"></span>' + t('Lowercase letters, digits and underscore, 3-32 characters');
         hint.className = 'form-hint';
         return;
     }
 
     if (!/^[a-z0-9_]{3,32}$/.test(username)) {
         setMark(status, 'bad');
-        hint.innerHTML = t('用户名只能包含小写字母、数字和下划线，3-32个字符');
+        hint.innerHTML = t('Username: lowercase letters, digits, underscore; 3-32 characters');
         hint.className = 'form-hint error';
         return;
     }
 
     setMark(status, 'loading');
-    hint.innerHTML = t('检查中...');
+    hint.innerHTML = t('Checking...');
     hint.className = 'form-hint';
 
     usernameCheckTimer = setTimeout(() => {
@@ -74,7 +74,7 @@ document.getElementById('username').addEventListener('input', function(e) {
             })
             .catch(() => {
                 setMark(status, '');
-                hint.innerHTML = t('检查失败，请重试');
+                hint.innerHTML = t('Check failed, try again');
                 hint.className = 'form-hint error';
             });
     }, 500);
@@ -144,7 +144,7 @@ function initCountryPicker() {
         if (!matches.length) {
             var empty = document.createElement('li');
             empty.className = 'country-picker__empty';
-            empty.textContent = t('没找到这个国家/地区，试试英文名或国家码');
+            empty.textContent = t('No such country/region — try the English name or code');
             list.appendChild(empty);
             active = -1;
             return;
@@ -274,9 +274,9 @@ function renderConsentSource(info) {
     var hasStatute = info.kind === 'statute' || info.kind === 'advisory';
     var text;
     if (hasStatute) {
-        text = t('你所在地区把 {:age} 岁以下的儿童视为需要家长同意（依据：{:label}{:kind}）', { age: info.age, label: info.label, kind: info.kind === 'advisory' ? t('，当地监管指引') : '' });
+        text = t('In your region, children under {:age} need parental consent (basis: {:label}{:kind})', { age: info.age, label: info.label, kind: info.kind === 'advisory' ? t(', local regulator guidance') : '' });
     } else {
-        text = t('依据《虚舟实验室隐私权政策》，本地区按 {:age} 岁处理', { age: info.age });
+        text = t('Under the site privacy policy, this region is handled as {:age}.', { age: info.age });
     }
 
     el.textContent = text;
@@ -286,7 +286,7 @@ function renderConsentSource(info) {
         a.href = info.url;
         a.target = '_blank';
         a.rel = 'noopener noreferrer';
-        a.textContent = t('官方来源 ↗');
+        a.textContent = t('Official source ↗');
         el.appendChild(a);
     } else if (info.policy_url) {
         el.appendChild(document.createTextNode(' '));
@@ -294,7 +294,7 @@ function renderConsentSource(info) {
         p.href = info.policy_url;
         p.target = '_blank';
         p.rel = 'noopener noreferrer';
-        p.textContent = t('隐私权政策 ↗');
+        p.textContent = t('Privacy Policy ↗');
         el.appendChild(p);
     }
     el.hidden = false;
@@ -307,13 +307,13 @@ function applyConsentRule(isChild, info) {
     var parentGroup = document.getElementById('parent-email-group');
 
     if (isChild) {
-        emailLabel.textContent = t('你自己的邮箱（可选）');
-        emailHint.textContent = t('有就填自己的；没有就留空，填下面的家长邮箱');
+        emailLabel.textContent = t('Your own email (optional)');
+        emailHint.textContent = t('Use your own if you have one; otherwise leave empty and fill in the parent email below');
         emailInput.removeAttribute('required');
         parentGroup.style.display = 'block';
     } else {
-        emailLabel.textContent = t('邮箱地址');
-        emailHint.textContent = t('用于接收重要通知和找回密码');
+        emailLabel.textContent = t('Email addresses');
+        emailHint.textContent = t('For important notifications and account recovery');
         emailInput.setAttribute('required', '');
         parentGroup.style.display = 'none';
     }
@@ -435,16 +435,16 @@ function validateCurrentStep() {
         case 1:
             var username = document.getElementById('username').value.trim();
             if (!username) {
-                showToast(t('请输入用户名'), 'warning');
+                showToast(t('Enter a username'), 'warning');
                 return false;
             }
             if (!/^[a-zA-Z0-9_]{3,32}$/.test(username)) {
-                showToast(t('用户名格式不正确'), 'error');
+                showToast(t('Invalid username format'), 'error');
                 return false;
             }
             var usernameStatus = document.getElementById('username-status');
             if (usernameStatus.dataset.state === 'bad') {
-                showToast(t('用户名不可用'), 'error');
+                showToast(t('Username unavailable'), 'error');
                 return false;
             }
             return true;
@@ -454,15 +454,15 @@ function validateCurrentStep() {
             var passwordConfirm = document.getElementById('password_confirm').value;
 
             if (!password || password.length < 8) {
-                showToast(t('密码至少需要8位'), 'warning');
+                showToast(t('Password needs at least 8 characters'), 'warning');
                 return false;
             }
             if (!/[a-zA-Z]/.test(password) || !/[0-9]/.test(password)) {
-                showToast(t('密码必须包含字母和数字'), 'warning');
+                showToast(t('Password needs both letters and digits'), 'warning');
                 return false;
             }
             if (password !== passwordConfirm) {
-                showToast(t('两次输入的密码不一致'), 'error');
+                showToast(t('The passwords you entered don\'t match'), 'error');
                 return false;
             }
             return true;
@@ -470,7 +470,7 @@ function validateCurrentStep() {
         case 3:
             var country = document.getElementById('country').value;
             if (!country) {
-                showToast(t('请选择国家/地区'), 'warning');
+                showToast(t('Pick a country/region'), 'warning');
                 return false;
             }
             return true;
@@ -478,12 +478,12 @@ function validateCurrentStep() {
         case 4:
             var birthDate = document.getElementById('birth_date').value;
             if (!birthDate) {
-                showToast(t('请选择出生日期'), 'warning');
+                showToast(t('Pick a date of birth'), 'warning');
                 return false;
             }
             var gender = document.querySelector('input[name="gender"]:checked');
             if (!gender) {
-                showToast(t('请选择性别'), 'warning');
+                showToast(t('Pick a gender'), 'warning');
                 return false;
             }
             return true;
@@ -498,26 +498,26 @@ function validateCurrentStep() {
 
             if (ownEmail) {
                 if (!emailRe.test(ownEmail)) {
-                    showToast(t('请输入有效的邮箱地址'), 'warning');
+                    showToast(t('Enter a valid email address'), 'warning');
                     return false;
                 }
             } else {
                 if (!parentVisible) {
-                    showToast(t('请输入有效的邮箱地址'), 'warning');
+                    showToast(t('Enter a valid email address'), 'warning');
                     return false;
                 }
                 var parentEmail = document.getElementById('parent_email').value.trim();
                 if (!emailRe.test(parentEmail)) {
-                    showToast(t('填一个家长邮箱，我们才能把验证邮件发出去'), 'warning');
+                    showToast(t('Enter a parent\'s email so we can send the verification'), 'warning');
                     return false;
                 }
             }
             if (!captcha) {
-                showToast(t('请输入验证码'), 'warning');
+                showToast(t('Enter the code'), 'warning');
                 return false;
             }
             if (!agreeTerms || !agreeService) {
-                showToast(t('请同意隐私政策和服务协议'), 'warning');
+                showToast(t('Please agree to the Privacy Policy and Terms of Service'), 'warning');
                 return false;
             }
             return true;

@@ -2,17 +2,17 @@
 function confirmDelete() {
     console.log('[Activate] confirmDelete called');
     
-    Nomen.confirm(t('注销账号'), t('确定要注销账号吗？此操作不可撤销，你的数据将被永久删除。'), {
-        confirmText: t('确认注销'),
-        cancelText: t('再想想'),
+    Nomen.confirm(t('Delete account'), t('Really delete this account? This can\'t be undone and your data is gone for good.'), {
+        confirmText: t('Confirm account deletion'),
+        cancelText: t('Let me think'),
         danger: true,
         icon: 'trash'
     }).then(function(confirmed) {
         console.log('[Activate] First confirm:', confirmed);
         if (confirmed) {
-            Nomen.confirm(t('最后确认'), t('真的要删除吗？删除后无法恢复！'), {
-                confirmText: t('确定删除'),
-                cancelText: t('取消'),
+            Nomen.confirm(t('Final confirmation'), t('Really delete? This can\'t be undone!'), {
+                confirmText: t('Confirm delete'),
+                cancelText: t('Cancel'),
                 danger: true,
                 icon: 'warning'
             }).then(function(confirmed2) {

@@ -2,7 +2,7 @@
 namespace Nomen\Controllers;
 
 use InvalidArgumentException;
-use Nomen\Src\{ActivityLog, Admin, Csrf, IdentityProviders, Response};
+use Nomen\Src\{ActivityLog, Admin, Csrf, IdentityProviders, LoginMethods, Response, Settings};
 
 class AdminIdentityController
 {
@@ -20,9 +20,61 @@ class AdminIdentityController
         }, IdentityProviders::all());
 
         Response::json([
-            'success'   => true,
-            'providers' => $providers,
-            'presets'   => IdentityProviders::presets(),
+            'success'           => true,
+            'providers'         => $providers,
+            'presets'           => IdentityProviders::presets(),
+            'methods'           => LoginMethods::all(),
+            'providers_enabled' => count(IdentityProviders::all(true)),
+        ]);
+    }
+
+    public function toggleMethod(): void
+    {
+        $admin = Admin::requireAdmin();
+
+        if (!Csrf::validate($_POST['_csrf'] ?? null)) {
+            Response::json(['success' => false, 'message' => '请求无效，请重试'], 422);
+        }
+
+        $method = (string)($_POST['method'] ?? '');
+        if (!in_array($method, LoginMethods::METHODS, true)) {
+            Response::json(['success' => false, 'message' => '登录方式不存在'], 404);
+        }
+
+        $on = !empty($_POST['on']);
+        $next = LoginMethods::all();
+        $next[$method] = $on;
+
+        if (!LoginMethods::hasAvailableWay($next)) {
+            Response::json([
+                'success' => false,
+                'message' => '这样会没有任何可用的登录方式（第三方登录要算数，至少得有一个已启用的提供方）',
+            ], 422);
+        }
+
+        Settings::set('login.method_' . $method, $on ? '1' : '0');
+
+        $labels = [
+            'password'   => '密码登录',
+            'email_code' => '邮箱验证码登录',
+            'biometric'  => '生物识别登录',
+            'temp_key'   => '临时密钥登录',
+            'oauth'      => '第三方登录',
+        ];
+
+        ActivityLog::record([
+            'action'         => 'admin.login_method_toggle',
+            'category'       => ActivityLog::CAT_ADMIN,
+            'actor_type'     => 'admin',
+            'actor_id'       => (int)$admin['id'],
+            'actor_username' => (string)$admin['username'],
+            'summary'        => ($on ? '开启' : '关闭') . '登录方式：' . ($labels[$method] ?? $method),
+        ]);
+
+        Response::json([
+            'success' => true,
+            'message' => ($on ? '已开启' : '已关闭') . '：' . ($labels[$method] ?? $method),
+            'methods' => LoginMethods::all(),
         ]);
     }
 

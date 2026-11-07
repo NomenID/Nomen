@@ -7,7 +7,7 @@
  * @var int         $attachMax       最多几张证明材料
  * @var string      $attachMaxLabel  上限的可读写法（1 MB）
  */
-$title = t('账号恢复申诉');
+$title = t('Account recovery request');
 $extraCss = ['/css/register.css?v=83568981', '/css/recovery.css?v=66989184'];
 
 $old = $old ?? [];
@@ -39,7 +39,7 @@ $props = [
 $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
 ?>
 <div id="recovery-app" class="auth-container">
-    <noscript><p class="form-hint"><?= t('账号恢复申诉需要开启 JavaScript。') ?></p></noscript>
+    <noscript><p class="form-hint"><?= t('Account recovery requires JavaScript.') ?></p></noscript>
     <script type="application/json" id="recovery-props"><?= json_encode($props, $jsonFlags) ?></script>
 </div>
 <?= \Nomen\Src\ViteAssets::entry('src/entries/recovery.js') ?>

@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{Database, FamilyHelper, Features, Response, RateLimiter, Hooks};
+use Nomen\Src\{Database, FamilyHelper, Features, Response, RateLimiter, Hooks, Special\Version};
 use PDO;
 
 class ApiController
@@ -23,13 +23,13 @@ class ApiController
         $rateCheck = RateLimiter::check("api:userinfo:{$ip}", 60, 60);
         if (!$rateCheck['allowed']) {
             header('Retry-After: ' . $rateCheck['retry_after']);
-            Response::json(['error' => 'rate_limited', 'error_description' => t('请求太频繁，请稍后重试')], 429);
+            Response::json(['error' => 'rate_limited', 'error_description' => t('Too many requests, try again later')], 429);
             return;
         }
 
         $user = $this->authenticateToken();
         if (!$user) {
-            Response::json(['error' => 'unauthorized', 'error_description' => t('无效或过期的访问令牌')], 401);
+            Response::json(['error' => 'unauthorized', 'error_description' => t('Access token invalid or expired')], 401);
             return;
         }
 
@@ -75,13 +75,13 @@ class ApiController
         $rateCheck = RateLimiter::check("api:tokeninfo:{$ip}", 30, 60);
         if (!$rateCheck['allowed']) {
             header('Retry-After: ' . $rateCheck['retry_after']);
-            Response::json(['error' => 'rate_limited', 'error_description' => t('请求太频繁，请稍后重试')], 429);
+            Response::json(['error' => 'rate_limited', 'error_description' => t('Too many requests, try again later')], 429);
             return;
         }
 
         $token = $this->getTokenFromRequest();
         if (!$token) {
-            Response::json(['error' => 'invalid_request', 'error_description' => t('缺少访问令牌')], 400);
+            Response::json(['error' => 'invalid_request', 'error_description' => t('Missing access token')], 400);
             return;
         }
 
@@ -112,19 +112,19 @@ class ApiController
         $rateCheck = RateLimiter::check("api:consentage:{$ip}", 60, 60);
         if (!$rateCheck['allowed']) {
             header('Retry-After: ' . $rateCheck['retry_after']);
-            Response::json(['error' => 'rate_limited', 'error_description' => t('请求太频繁，请稍后重试')], 429);
+            Response::json(['error' => 'rate_limited', 'error_description' => t('Too many requests, try again later')], 429);
             return;
         }
 
         if (!Features::guardians()) {
-            Response::json(['error' => 'not_found', 'error_description' => t('这个功能没有开启')], 404);
+            Response::json(['error' => 'not_found', 'error_description' => t('This feature is not enabled.')], 404);
             return;
         }
 
         $code = strtoupper(trim((string)($_GET['country'] ?? '')));
         // 国家选择关掉时按平台默认年龄算，前端不带 country 也能问
         if (($code === '' && Features::country()) || ($code !== '' && !preg_match('/^[A-Z]{2}$/', $code))) {
-            Response::json(['error' => 'invalid_request', 'error_description' => t('缺少有效的 country 参数')], 400);
+            Response::json(['error' => 'invalid_request', 'error_description' => t('Missing valid country parameter')], 400);
             return;
         }
 
@@ -140,6 +140,28 @@ class ApiController
             'note'       => $info['note'],
             'url'        => $info['url'],
             'policy_url' => $info['policy_url'],
+        ]);
+    }
+
+    /**
+     * GET /api/version - 本站运行的 Nomen 版本（公开）。
+     * 官方站（nomen.caellab.com）发版即升级，其它实例把它当更新源查最新正式版。
+     */
+    public function siteVersion(): void
+    {
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+        $rateCheck = RateLimiter::check("api:version:{$ip}", 60, 60);
+        if (!$rateCheck['allowed']) {
+            header('Retry-After: ' . $rateCheck['retry_after']);
+            Response::json(['error' => 'rate_limited', 'error_description' => t('Too many requests, try again later')], 429);
+            return;
+        }
+
+        $config = require __DIR__ . '/../config/app.php';
+        Response::json([
+            'product' => 'Nomen',
+            'version' => (string)($config['version'] ?? ''),
+            'url'     => Version::PROJECT_URL,
         ]);
     }
 

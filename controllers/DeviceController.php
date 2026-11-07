@@ -149,7 +149,7 @@ class DeviceController
         $time = date('Y-m-d H:i:s');
 
         $locale = I18n::emailLocale((int)$user['id']);
-        $subject = 'Nomen - ' . I18n::tIn($locale, '新设备登录通知');
+        $subject = 'Nomen - ' . I18n::tIn($locale, 'New device sign-in');
         $htmlBody = self::getDeviceNotificationEmailHtml($user['username'], $deviceName, $ip, $location, $time, $locale);
 
         Email::send($contact, $subject, $htmlBody);
@@ -159,20 +159,20 @@ class DeviceController
     {
         return EmailTemplate::render([
             'preheader' => I18n::tIn($locale, '你的 Nomen 账户刚刚在{:device}上登录', ['device' => $device]),
-            'badge'     => ['text' => '安全提醒', 'tone' => 'important'],
-            'title'     => '新设备登录通知',
-            'subtitle'  => '你的 Nomen 账户有新设备登录',
+            'badge'     => ['text' => 'Security alert', 'tone' => 'important'],
+            'title'     => 'New device sign-in',
+            'subtitle'  => 'A new device signed in to your Nomen account',
             'blocks'    => [
                 ['type' => 'paragraph', 'text' => I18n::tIn($locale, '你好 {:name}，以下设备刚刚成功登录了你的账户：', ['name' => $username])],
                 ['type' => 'info', 'items' => [
-                    ['label' => '设备名称', 'value' => $device],
-                    ['label' => 'IP 地址', 'value' => $ip],
-                    ['label' => '地理位置', 'value' => $location],
-                    ['label' => '时间', 'value' => $time],
+                    ['label' => 'Device name', 'value' => $device],
+                    ['label' => 'IP address', 'value' => $ip],
+                    ['label' => 'Location', 'value' => $location],
+                    ['label' => 'Time', 'value' => $time],
                 ]],
-                ['type' => 'alert', 'tone' => 'danger', 'text' => '如果不是你本人操作，请立即修改密码，并在设置中撤销该设备的信任状态。'],
+                ['type' => 'alert', 'tone' => 'danger', 'text' => 'If this wasn\'t you, change your password immediately and revoke that device\'s trust in settings.'],
             ],
-            'button'    => ['text' => '查看登录设备', 'url' => EmailTemplate::url('/settings')],
+            'button'    => ['text' => 'View sign-in devices', 'url' => EmailTemplate::url('/settings')],
         ], $locale);
     }
 }

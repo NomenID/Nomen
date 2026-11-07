@@ -31,7 +31,7 @@ class Admin
     /** 站点导航里的后台入口文字；后台内部仍然固定中文。 */
     public static function label(): string
     {
-        return t('管理后台');
+        return t('Admin');
     }
 
     /**

@@ -34,16 +34,16 @@ function onInput(event) {
       :value="model"
       :required="required"
       :maxlength="maxlength"
-      :placeholder="t('输入验证码')"
+      :placeholder="t('Enter verification code')"
       autocomplete="off"
       @input="onInput"
     >
     <img
       :id="imgId"
       :src="src"
-      :alt="t('验证码')"
+      :alt="t('Code')"
       class="captcha-img"
-      :title="t('点击刷新')"
+      :title="t('Click to refresh')"
       @click="refresh"
     >
   </div>

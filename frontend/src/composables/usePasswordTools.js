@@ -44,10 +44,10 @@ export function passwordStrength(password) {
   if (/[0-9]/.test(password)) score++
   if (/[^a-zA-Z0-9]/.test(password)) score++
 
-  if (score <= 1) return { label: t('弱'), color: 'var(--color-danger)', width: '20%' }
-  if (score <= 2) return { label: t('中'), color: 'var(--color-warning)', width: '40%' }
-  if (score <= 3) return { label: t('强'), color: 'var(--color-info)', width: '70%' }
-  return { label: t('非常强'), color: 'var(--color-success)', width: '100%' }
+  if (score <= 1) return { label: t('Weak'), color: 'var(--color-danger)', width: '20%' }
+  if (score <= 2) return { label: t('Medium'), color: 'var(--color-warning)', width: '40%' }
+  if (score <= 3) return { label: t('Strong'), color: 'var(--color-info)', width: '70%' }
+  return { label: t('Very strong'), color: 'var(--color-success)', width: '100%' }
 }
 
 function copyTextFallback(text) {

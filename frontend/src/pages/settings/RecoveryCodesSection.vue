@@ -83,7 +83,7 @@ function cancelGenerate() {
 
 async function confirmGenerate() {
   if (!password.value && !props.recoveryMode) {
-    toast(t('请输入当前密码'), 'warning')
+    toast(t('Enter the current password'), 'warning')
     return
   }
 
@@ -106,13 +106,13 @@ async function confirmGenerate() {
       showCodes(data.codes || [])
       passwordFormOpen.value = false
       password.value = ''
-      toast(data.message || t('恢复码已生成'), 'success')
+      toast(data.message || t('Recovery codes generated'), 'success')
       loadCodes()
     } else {
       toast(data.message, 'error')
     }
   } catch (err) {
-    toast(t('请求失败'), 'error')
+    toast(t('Request failed'), 'error')
   } finally {
     generating.value = false
   }
@@ -138,14 +138,14 @@ function closeOutput() {
 async function deleteAll() {
   if (!window.Nomen || typeof window.Nomen.prompt !== 'function') return
 
-  window.Nomen.prompt(t('删除全部恢复码'), props.recoveryMode
-    ? t('恢复流程中无需填写密码，直接确认即可。删除后所有恢复码立即失效：')
-    : t('请输入当前密码以删除全部恢复码，删除后这些码立即失效：'), {
-    confirmText: t('删除'),
-    cancelText: t('取消'),
+  window.Nomen.prompt(t('Delete all recovery codes'), props.recoveryMode
+    ? t('No password needed in recovery mode — just confirm. All recovery codes are voided immediately:')
+    : t('Enter the current password to delete all recovery codes — they stop working immediately:'), {
+    confirmText: t('Delete'),
+    cancelText: t('Cancel'),
     danger: true,
     inputType: 'password',
-    placeholder: props.recoveryMode ? t('恢复流程中可留空') : t('当前密码'),
+    placeholder: props.recoveryMode ? t('Can be left empty in recovery mode') : t('Current password'),
     required: !props.recoveryMode,
   }).then(async (value) => {
     if (value === null) return
@@ -164,13 +164,13 @@ async function deleteAll() {
       })
       const data = await response.json()
       if (data.success) {
-        toast(data.message || t('恢复码已删除'), 'success')
+        toast(data.message || t('Recovery codes deleted'), 'success')
         loadCodes()
       } else {
-        toast(data.message || t('删除失败'), 'error')
+        toast(data.message || t('Delete failed'), 'error')
       }
     } catch (err) {
-      toast(t('网络错误'), 'error')
+      toast(t('Network error'), 'error')
     }
   })
 }
@@ -178,67 +178,67 @@ async function deleteAll() {
 
 <template>
   <div style="margin-bottom:16px;">
-    <p v-if="loading" class="text-muted">{{ t('加载中...') }}</p>
-    <p v-else-if="!batches.length" class="text-muted">{{ t('还没有生成过恢复码。生成后即使不启用验证器 APP，登录二验时也能选择「恢复码」验证。') }}</p>
+    <p v-if="loading" class="text-muted">{{ t('Loading...') }}</p>
+    <p v-else-if="!batches.length" class="text-muted">{{ t('No recovery codes yet. Once generated, they work on their own — you can pick “recovery code” during two-step verification even without TOTP.') }}</p>
     <template v-else>
       <p v-if="totalUnused() > 0" style="margin-bottom:12px;">
         <Icon name="check" extra="icon--success" />
-        <span style="color:var(--color-success);font-weight:600;">{{ t('恢复码已启用') }}</span>{{ t('，剩余 {:n} 个未使用', { n: totalUnused() }) }}
+        <span style="color:var(--color-success);font-weight:600;">{{ t('Recovery codes enabled') }}</span>{{ t(', {:n} unused remaining', { n: totalUnused() }) }}
       </p>
       <p v-else style="margin-bottom:12px;">
         <Icon name="warning" extra="icon--warning" />
-        <span style="color:var(--color-warning);font-weight:600;">{{ t('恢复码已全部用完') }}</span>{{ t('，登录验证将无法使用恢复码，建议重新生成') }}
+        <span style="color:var(--color-warning);font-weight:600;">{{ t('All recovery codes used up') }}</span>{{ t('; sign-in verification can no longer use recovery codes — generate new ones') }}
       </p>
 
       <div v-for="batch in batches" :key="batch.batch_id" class="recovery-batch">
         <div class="recovery-batch__header">
-          <span>{{ t('批次 {:id}...', { id: batch.batch_id.slice(0, 8) }) }}</span>
+          <span>{{ t('Batch {:id}...', { id: batch.batch_id.slice(0, 8) }) }}</span>
           <span class="recovery-batch__count">
-            <span style="color:var(--color-success);">{{ t('{:n} 未使用', { n: batch.unused }) }}</span>
-            / {{ t('{:n} 已使用', { n: batch.total - batch.unused }) }}
+            <span style="color:var(--color-success);">{{ t('{:n} unused', { n: batch.unused }) }}</span>
+            / {{ t('{:n} used', { n: batch.total - batch.unused }) }}
           </span>
         </div>
-        <div style="font-size:12px;color:var(--color-text-subtle);">{{ t('创建时间: {:time}', { time: batch.created_at }) }}</div>
+        <div style="font-size:12px;color:var(--color-text-subtle);">{{ t('Created: {:time}', { time: batch.created_at }) }}</div>
       </div>
 
       <div style="margin-top:12px;">
-        <button type="button" class="btn btn-sm btn-danger-outline" @click="deleteAll">{{ t('删除全部恢复码') }}</button>
+        <button type="button" class="btn btn-sm btn-danger-outline" @click="deleteAll">{{ t('Delete all recovery codes') }}</button>
       </div>
     </template>
   </div>
 
-  <button type="button" class="btn btn-secondary" @click="openGenerate">{{ t('生成新的恢复码') }}</button>
+  <button type="button" class="btn btn-secondary" @click="openGenerate">{{ t('Generate new recovery codes') }}</button>
 
   <div v-show="outputVisible" id="recovery-codes-output" style="margin-top:16px;">
     <div class="nomen-alert nomen-alert--warning" style="margin-bottom:16px;">
-      <Icon name="warning" extra="icon--warning" /> {{ t('恢复码只显示这一次！请立即保存到安全的地方 —— 建议打印下来或抄在纸上，不要只存在截图、聊天记录或网盘里。') }}
+      <Icon name="warning" extra="icon--warning" /> {{ t('These codes are shown once! Save them somewhere safe now — print them or write them down; don\'t rely on screenshots, chats or cloud drives.') }}
     </div>
     <div id="recovery-codes-new" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px;">
       <div v-for="(code, index) in newCodes" :key="index" class="recovery-code-item">{{ code }}</div>
     </div>
     <div style="display:flex;gap:8px;">
-      <button type="button" class="btn btn-sm btn-secondary" @click="printCodes"><Icon name="printer" /> {{ t('打印恢复码') }}</button>
-      <button type="button" class="btn btn-sm btn-secondary" @click="closeOutput">{{ t('我已保存，关闭') }}</button>
+      <button type="button" class="btn btn-sm btn-secondary" @click="printCodes"><Icon name="printer" /> {{ t('Print recovery codes') }}</button>
+      <button type="button" class="btn btn-sm btn-secondary" @click="closeOutput">{{ t('Saved, close') }}</button>
     </div>
   </div>
 
   <div v-show="passwordFormOpen" style="margin-top:16px;">
     <p class="form-hint" style="margin-bottom:12px;">
       {{ recoveryMode
-        ? t('恢复流程中无需填写密码，直接确认即可（此操作会使之前的恢复码全部失效）：')
-        : t('请输入当前密码以生成新的恢复码（此操作将使之前的恢复码全部失效）：') }}
+        ? t('No password needed in recovery mode — just confirm (this voids all previous recovery codes):')
+        : t('Enter the current password to generate new recovery codes (this voids all previous ones):') }}
     </p>
     <div class="form-group">
       <div class="input-with-button">
         <input
           v-model="password"
           type="password"
-          :placeholder="recoveryMode ? t('恢复流程中可留空') : t('请输入当前密码')"
+          :placeholder="recoveryMode ? t('Can be left empty in recovery mode') : t('Enter the current password')"
           autocomplete="current-password"
         >
-        <button type="button" class="btn btn-primary" :disabled="generating" @click="confirmGenerate">{{ generating ? t('生成中...') : t('确认生成') }}</button>
+        <button type="button" class="btn btn-primary" :disabled="generating" @click="confirmGenerate">{{ generating ? t('Generating...') : t('Confirm generation') }}</button>
       </div>
     </div>
-    <button type="button" class="btn btn-sm btn-ghost" @click="cancelGenerate">{{ t('取消') }}</button>
+    <button type="button" class="btn btn-sm btn-ghost" @click="cancelGenerate">{{ t('Cancel') }}</button>
   </div>
 </template>

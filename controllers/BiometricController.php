@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{ActivityLog, Database, Session, Csrf, Response, RateLimiter};
+use Nomen\Src\{ActivityLog, Database, Session, Csrf, Response, RateLimiter, LoginMethods};
 use Nomen\Controllers\DeviceController;
 use lbuchs\WebAuthn\WebAuthn;
 use PDO;
@@ -40,7 +40,7 @@ class BiometricController
 
         $userId = Session::get('user_id');
         if (!$userId) {
-            Response::json(['success' => false, 'message' => t('请先登录')], 401);
+            Response::json(['success' => false, 'message' => t('Sign in first')], 401);
             return;
         }
 
@@ -48,7 +48,7 @@ class BiometricController
         $stmt->execute([':id' => $userId]);
         $user = $stmt->fetch();
         if (!$user) {
-            Response::json(['success' => false, 'message' => t('用户不存在')], 404);
+            Response::json(['success' => false, 'message' => t('User not found')], 404);
             return;
         }
 
@@ -73,19 +73,19 @@ class BiometricController
 
         $userId = Session::get('user_id');
         if (!$userId) {
-            Response::json(['success' => false, 'message' => t('请先登录')], 401);
+            Response::json(['success' => false, 'message' => t('Sign in first')], 401);
             return;
         }
 
         $postData = json_decode(file_get_contents('php://input'), true);
         if (!$postData || !isset($postData['credential'])) {
-            Response::json(['success' => false, 'message' => t('缺少凭证数据')]);
+            Response::json(['success' => false, 'message' => t('Missing credential data')]);
             return;
         }
 
         $challenge = Session::get('webauthn_registration_challenge');
         if (!$challenge) {
-            Response::json(['success' => false, 'message' => t('挑战无效或已过期')]);
+            Response::json(['success' => false, 'message' => t('Challenge invalid or expired')]);
             return;
         }
         Session::remove('webauthn_registration_challenge');
@@ -113,7 +113,7 @@ class BiometricController
                 $stmt->execute([':uid' => $userId]);
                 $count = (int)$stmt->fetchColumn();
                 if ($count >= 5) {
-                    Response::json(['success' => false, 'message' => t('最多只能添加5个生物识别凭证')]);
+                    Response::json(['success' => false, 'message' => t('Up to 5 biometric credentials')]);
                     return;
                 }
 
@@ -136,18 +136,23 @@ class BiometricController
                     'summary'  => '绑定生物识别凭证（' . $this->detectDeviceType($transports) . '）',
                 ]);
 
-                Response::json(['success' => true, 'message' => t('生物识别绑定成功')]);
+                Response::json(['success' => true, 'message' => t('Biometric bound')]);
             } else {
-                Response::json(['success' => false, 'message' => t('验证失败')]);
+                Response::json(['success' => false, 'message' => t('Verification failed')]);
             }
         } catch (\Exception $e) {
-            Response::json(['success' => false, 'message' => t('验证失败: ') . $e->getMessage()]);
+            Response::json(['success' => false, 'message' => t('Verification failed: ') . $e->getMessage()]);
         }
     }
 
     public function authenticationOptions(): void
     {
         header('Content-Type: application/json; charset=utf-8');
+
+        if (!LoginMethods::on('biometric')) {
+            Response::json(['success' => false, 'message' => t('This sign-in method is not enabled')], 404);
+            return;
+        }
 
         // 不传 identifier = 无账号一键：不生成 allowCredentials，
         // 由系统选择器列出本机所有 id.caellab.com 的通行密钥。
@@ -176,7 +181,7 @@ class BiometricController
             $userIds = array_values(array_filter($userIds));
             if (!$userIds) {
                 // 文案不区分「账号不存在」和「没绑生物识别」，否则这里就是个账号枚举接口
-                Response::json(['success' => false, 'message' => t('该账号未绑定生物识别，请检查用户名或邮箱')]);
+                Response::json(['success' => false, 'message' => t('No biometrics bound to this account — check the username or email')]);
             }
             $userId = $userIds[0];
         }
@@ -192,7 +197,7 @@ class BiometricController
                 $credentialIds[] = base64_decode($cred['credential_id']);
             }
             if (!$credentialIds) {
-                Response::json(['success' => false, 'message' => t('该账号未绑定生物识别，可以先在账户设置里绑定')]);
+                Response::json(['success' => false, 'message' => t('No biometrics bound to this account — bind one in account settings first')]);
             }
         }
 
@@ -209,16 +214,21 @@ class BiometricController
     {
         header('Content-Type: application/json; charset=utf-8');
 
+        if (!LoginMethods::on('biometric')) {
+            Response::json(['success' => false, 'message' => t('This sign-in method is not enabled')], 404);
+            return;
+        }
+
         $postData = json_decode(file_get_contents('php://input'), true);
         if (!$postData || !isset($postData['credential']['id'])) {
-            Response::json(['success' => false, 'message' => t('缺少凭证数据')]);
+            Response::json(['success' => false, 'message' => t('Missing credential data')]);
         }
 
         $challenge = Session::get('webauthn_authentication_challenge');
         $expectedUserId = Session::get('webauthn_auth_user_id');
 
         if (!$challenge) {
-            Response::json(['success' => false, 'message' => t('挑战无效或已过期')]);
+            Response::json(['success' => false, 'message' => t('Challenge invalid or expired')]);
         }
 
         Session::remove('webauthn_authentication_challenge');
@@ -252,19 +262,19 @@ class BiometricController
         // 账号维度 + IP 维度都要限流：不带账号的请求谁都能发，只按账号限流拦不住
         $userRate = RateLimiter::check("auth:biometric:{$userId}", 10, 300);
         if (!$userRate['allowed']) {
-            Response::json(['success' => false, 'message' => t('尝试过于频繁，请 {:n} 秒后重试', ['n' => $userRate['retry_after']])]);
+            Response::json(['success' => false, 'message' => t('Too many attempts — retry in {:n}s', ['n' => $userRate['retry_after']])]);
         }
         $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
         $ipRate = RateLimiter::check("auth:biometric:ip:{$ip}", 20, 300);
         if (!$ipRate['allowed']) {
-            Response::json(['success' => false, 'message' => t('尝试过于频繁，请 {:n} 秒后重试', ['n' => $ipRate['retry_after']])]);
+            Response::json(['success' => false, 'message' => t('Too many attempts — retry in {:n}s', ['n' => $ipRate['retry_after']])]);
         }
 
         $stmt = $this->db->prepare('SELECT id, username, status, role, email_verified, two_factor_policy FROM users WHERE id = :id');
         $stmt->execute([':id' => $userId]);
         $user = $stmt->fetch();
         if (!$user || (int)$user['status'] !== 1) {
-            Response::json(['success' => false, 'message' => t('用户不存在或已禁用')]);
+            Response::json(['success' => false, 'message' => t('User not found or disabled')]);
         }
 
         try {
@@ -298,7 +308,7 @@ class BiometricController
         // 与密码 / 邮箱验证码登录走同一套两步验证判定
         Session::regenerate();
         if (AuthController::beginSecondFactorIfNeeded($user, 'biometric', $redirect, false)) {
-            Response::json(['success' => true, 'message' => t('需要完成两步验证'), 'redirect' => '/2fa/verify']);
+            Response::json(['success' => true, 'message' => t('Two-step verification required'), 'redirect' => '/2fa/verify']);
         }
 
         AuthController::finishLogin($user, $redirect, false, true, [], 'biometric');

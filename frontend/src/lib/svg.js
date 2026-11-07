@@ -27,15 +27,15 @@ function svgFileToPng(file, size) {
       try {
         canvas.toBlob((blob) => {
           if (blob) resolve(blob)
-          else reject(new Error(t('SVG 转换失败')))
+          else reject(new Error(t('SVG conversion failed')))
         }, 'image/png')
       } catch (err) {
-        reject(new Error(t('SVG 转换失败')))
+        reject(new Error(t('SVG conversion failed')))
       }
     }
     img.onerror = () => {
       URL.revokeObjectURL(url)
-      reject(new Error(t('这个 SVG 读不出来')))
+      reject(new Error(t('Can\'t read this SVG')))
     }
     img.src = url
   })

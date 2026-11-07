@@ -23,20 +23,20 @@ const list = ref([])
 const loading = ref(true)
 const formOpen = ref(false)
 const registering = ref(false)
-const registerText = ref(t('开始绑定'))
+const registerText = ref(t('Start binding'))
 const status = ref('')
 
 function deviceTypeText(type) {
   return {
-    platform: t('内置传感器（指纹/面容）'),
-    usb_key: t('USB 安全密钥'),
-    nfc_card: t('NFC 卡片'),
-    ble_device: t('BLE 设备'),
-  }[type] || t('未知设备')
+    platform: t('Built-in sensor (fingerprint / face)'),
+    usb_key: t('USB security key'),
+    nfc_card: t('NFC card'),
+    ble_device: t('BLE device'),
+  }[type] || t('Unknown device')
 }
 
 function formatTime(ts) {
-  if (!ts) return t('未知')
+  if (!ts) return t('Unknown')
   const date = new Date(String(ts).replace(' ', 'T') + 'Z')
   return date.toLocaleString(window.NOMEN_LANG || 'zh-Hans')
 }
@@ -69,10 +69,10 @@ function cancelForm() {
 async function removeItem(item) {
   if (!window.Nomen || typeof window.Nomen.confirm !== 'function') return
 
-  const confirmed = await window.Nomen.confirm(t('删除生物识别'), t('确定要删除此生物识别凭证吗？删除后需要重新绑定才能使用生物识别登录。'), {
+  const confirmed = await window.Nomen.confirm(t('Delete biometric'), t('Delete this biometric credential? You\'ll need to bind again before using biometric sign-in.'), {
     danger: true,
-    confirmText: t('删除'),
-    cancelText: t('取消'),
+    confirmText: t('Delete'),
+    cancelText: t('Cancel'),
   })
   if (!confirmed) return
 
@@ -96,22 +96,22 @@ async function removeItem(item) {
       toast(data.message, 'error')
     }
   } catch (err) {
-    toast(t('网络错误'), 'error')
+    toast(t('Network error'), 'error')
   }
 }
 
 async function register() {
   if (registering.value) return
   registering.value = true
-  registerText.value = t('准备中...')
-  status.value = t('正在准备绑定...')
+  registerText.value = t('Preparing...')
+  status.value = t('Preparing binding...')
 
   try {
     const optionsResponse = await fetch(urls.options, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
     const data = await optionsResponse.json()
     if (!data.success) {
-      toast(data.message || t('获取选项失败'), 'error')
-      registerText.value = t('开始绑定')
+      toast(data.message || t('Couldn\'t get options'), 'error')
+      registerText.value = t('Start binding')
       status.value = ''
       registering.value = false
       return
@@ -121,13 +121,13 @@ async function register() {
     options.publicKey.challenge = base64urlToBytes(options.publicKey.challenge)
     options.publicKey.user.id = base64urlToBytes(options.publicKey.user.id)
 
-    registerText.value = t('请完成生物识别验证...')
-    status.value = t('正在调用系统生物识别（指纹/面容/PIN）...')
+    registerText.value = t('Complete the biometric verification...')
+    status.value = t('Calling system biometrics (fingerprint/face/PIN)...')
 
     const credential = await navigator.credentials.create({ publicKey: options.publicKey })
     if (!credential) {
-      toast(t('绑定取消'), 'warning')
-      registerText.value = t('开始绑定')
+      toast(t('Binding cancelled'), 'warning')
+      registerText.value = t('Start binding')
       status.value = ''
       registering.value = false
       return
@@ -157,13 +157,13 @@ async function register() {
       formOpen.value = false
       loadList()
     } else {
-      toast(result.message || t('绑定失败'), 'error')
+      toast(result.message || t('Binding failed'), 'error')
     }
   } catch (err) {
-    toast(t('绑定失败: {:error}', { error: err.message || t('未知错误') }), 'error')
+    toast(t('Binding failed: {:error}', { error: err.message || t('Unknown error') }), 'error')
   } finally {
     registering.value = false
-    registerText.value = t('开始绑定')
+    registerText.value = t('Start binding')
     status.value = ''
   }
 }
@@ -172,27 +172,27 @@ async function register() {
 <template>
   <div style="margin-bottom:20px;">
     <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
-      <p v-if="loading" class="text-muted" style="padding:12px 0;">{{ t('加载中...') }}</p>
-      <p v-else-if="!list.length" class="text-muted" style="padding:12px 0;">{{ t('暂无生物识别凭证') }}</p>
+      <p v-if="loading" class="text-muted" style="padding:12px 0;">{{ t('Loading...') }}</p>
+      <p v-else-if="!list.length" class="text-muted" style="padding:12px 0;">{{ t('No biometric credentials') }}</p>
       <div v-for="item in list" :key="item.id" class="device-item">
         <div class="device-item__info">
           <div class="device-item__name">{{ deviceTypeText(item.device_type) }}</div>
-          <div class="device-item__meta">{{ t('创建时间: {:time}', { time: formatTime(item.created_at) }) }}</div>
+          <div class="device-item__meta">{{ t('Created: {:time}', { time: formatTime(item.created_at) }) }}</div>
         </div>
-        <button type="button" class="btn btn-sm btn-danger-outline" @click="removeItem(item)">{{ t('删除') }}</button>
+        <button type="button" class="btn btn-sm btn-danger-outline" @click="removeItem(item)">{{ t('Delete') }}</button>
       </div>
     </div>
-    <button v-if="supported" type="button" class="btn btn-secondary" @click="openForm">{{ t('添加生物识别') }}</button>
+    <button v-if="supported" type="button" class="btn btn-secondary" @click="openForm">{{ t('Add biometric') }}</button>
   </div>
 
   <div v-show="formOpen">
     <div class="form-group">
-      <label>{{ t('绑定生物识别') }}</label>
-      <p class="form-hint">{{ t('点击下方按钮后，系统将引导您完成设备生物识别验证（如指纹、面容等）') }}</p>
+      <label>{{ t('Bind biometrics') }}</label>
+      <p class="form-hint">{{ t('Press the button below and your device will walk you through biometric verification (fingerprint, face, etc.)') }}</p>
     </div>
     <div style="display:flex;gap:8px;">
       <button type="button" class="btn btn-primary" :disabled="registering" @click="register">{{ registerText }}</button>
-      <button type="button" class="btn btn-secondary" :disabled="registering" @click="cancelForm">{{ t('取消') }}</button>
+      <button type="button" class="btn btn-secondary" :disabled="registering" @click="cancelForm">{{ t('Cancel') }}</button>
     </div>
     <div style="margin-top:12px;font-size:13px;color:var(--color-text-subtle);">{{ status }}</div>
   </div>

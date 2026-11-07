@@ -203,7 +203,7 @@ function initLangPicker() {
         toast.innerHTML =
             '<span class="nomen-toast__icon" aria-hidden="true">' + iconTag(TOAST_ICONS[type]) + '</span>' +
             '<span class="nomen-toast__message"></span>' +
-            '<button type="button" class="nomen-toast__close" aria-label="' + t('关闭') + '">' + iconTag('close') + '</button>' +
+            '<button type="button" class="nomen-toast__close" aria-label="' + t('Close') + '">' + iconTag('close') + '</button>' +
             '<div class="nomen-toast__progress"></div>';
         toast.querySelector('.nomen-toast__message').textContent = message == null ? '' : String(message);
         ensureToastContainer().appendChild(toast);
@@ -367,13 +367,13 @@ function initLangPicker() {
         opts = opts || {};
         return present({
             icon: opts.icon || 'info',
-            title: title || t('提示'),
+            title: title || t('Notice'),
             message: message,
             content: opts.content,
             variant: boxVariant(opts),
             cancelValue: true,
             buttons: [
-                makeButton(opts.confirmText || t('知道了'), 'nomen-modal-btn--primary', function() { settle(true); })
+                makeButton(opts.confirmText || t('Got it'), 'nomen-modal-btn--primary', function() { settle(true); })
             ]
         });
     }
@@ -381,7 +381,7 @@ function initLangPicker() {
     function showConfirm(title, message, opts) {
         opts = opts || {};
 
-        var confirmText = opts.confirmText || t('确定');
+        var confirmText = opts.confirmText || t('OK');
         var countdown = opts.countdown || 0;
         var timer = null;
 
@@ -394,13 +394,13 @@ function initLangPicker() {
 
         return present({
             icon: opts.icon || (opts.danger ? 'warning' : 'info'),
-            title: title || t('确认操作'),
+            title: title || t('Confirm'),
             message: message,
             content: opts.content,
             variant: boxVariant(opts),
             cancelValue: false,
             buttons: [
-                makeButton(opts.cancelText || t('取消'), 'nomen-modal-btn--ghost', function() { settle(false); }),
+                makeButton(opts.cancelText || t('Cancel'), 'nomen-modal-btn--ghost', function() { settle(false); }),
                 confirmBtn
             ],
             onOpen: countdown > 0 ? function() {
@@ -438,7 +438,7 @@ function initLangPicker() {
         field.className = 'nomen-modal-field';
         field.appendChild(input);
 
-        var confirmBtn = makeButton(opts.confirmText || t('确定'), confirmButtonClass(opts), function() {
+        var confirmBtn = makeButton(opts.confirmText || t('OK'), confirmButtonClass(opts), function() {
             var value = input.value.trim();
             if (opts.required !== false && !value) {
                 input.classList.add('nomen-modal-input--invalid');
@@ -460,13 +460,13 @@ function initLangPicker() {
 
         return present({
             icon: opts.icon || 'lock',
-            title: title || t('请输入'),
+            title: title || t('Enter'),
             message: message,
             content: field,
             variant: boxVariant(opts),
             cancelValue: null,
             buttons: [
-                makeButton(opts.cancelText || t('取消'), 'nomen-modal-btn--ghost', function() { settle(null); }),
+                makeButton(opts.cancelText || t('Cancel'), 'nomen-modal-btn--ghost', function() { settle(null); }),
                 confirmBtn
             ],
             onOpen: function() { input.focus(); input.select(); }
@@ -509,7 +509,7 @@ function initLangPicker() {
             var close = document.createElement('button');
             close.type = 'button';
             close.className = 'nomen-alert__close';
-            close.setAttribute('aria-label', t('关闭'));
+            close.setAttribute('aria-label', t('Close'));
             close.innerHTML = iconTag('close');
             close.addEventListener('click', function() { fadeOutAlert(el); });
             el.appendChild(close);

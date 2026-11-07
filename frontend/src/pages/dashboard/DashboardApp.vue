@@ -41,19 +41,19 @@ function initialOf(name) {
           <p class="text-muted">@{{ user.username }}</p>
         </div>
       </div>
-      <a href="/settings" class="btn btn-secondary">{{ t('编辑资料') }}</a>
+      <a href="/settings" class="btn btn-secondary">{{ t('Edit profile') }}</a>
     </div>
 
     <BaseAlert v-if="success" type="success" :message="success" />
     <BaseAlert v-if="error" type="error" :message="error" />
 
     <div class="dashboard-section">
-      <h2>{{ t('已授权应用') }}</h2>
+      <h2>{{ t('Authorized apps') }}</h2>
 
       <div v-if="!authorizations.length" class="empty-state">
         <div class="empty-state__icon"><span class="icon icon-lock"></span></div>
-        <p>{{ t('您还没有授权任何第三方应用') }}</p>
-        <p class="text-muted">{{ t('当您使用 Nomen 登录其他应用时，它们会出现在这里') }}</p>
+        <p>{{ t('You haven\'t authorized any third-party apps yet') }}</p>
+        <p class="text-muted">{{ t('Apps you sign in to with Nomen will show up here') }}</p>
       </div>
 
       <div v-else class="app-list">
@@ -73,8 +73,8 @@ function initialOf(name) {
                 <a v-if="auth.homepage_url" :href="auth.homepage_url" target="_blank" rel="noopener">{{ auth.client_name }}</a>
                 <template v-else>{{ auth.client_name }}</template>
               </h3>
-              <p class="text-muted">{{ t('授权范围: ') + auth.scopes }}</p>
-              <p class="text-muted">{{ t('授权时间: ') + auth.updated_at }}</p>
+              <p class="text-muted">{{ t('Scopes: ') + auth.scopes }}</p>
+              <p class="text-muted">{{ t('Authorized: ') + auth.updated_at }}</p>
             </div>
           </div>
           <button
@@ -82,16 +82,16 @@ function initialOf(name) {
             class="btn btn-danger btn-sm"
             :disabled="revoking"
             @click="revokeHandler ? revokeHandler(auth) : null"
-          >{{ t('撤销授权') }}</button>
+          >{{ t('Revoke authorization') }}</button>
         </div>
       </div>
     </div>
 
     <div class="dashboard-section">
-      <h2>{{ t('最近活动') }}</h2>
+      <h2>{{ t('Recent activity') }}</h2>
 
       <div v-if="!recentActivity.length" class="empty-state">
-        <p>{{ t('暂无活动记录') }}</p>
+        <p>{{ t('No activity yet') }}</p>
       </div>
 
       <div v-else class="activity-list">

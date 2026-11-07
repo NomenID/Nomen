@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function render() {
         if (left > 0) {
             btn.disabled = true;
-            text.textContent = t('重新发送（{:n} 秒）', { n: left });
+            text.textContent = t('Resend (in {:n}s)', { n: left });
             return;
         }
         if (timer) {
@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function () {
             timer = null;
         }
         btn.disabled = false;
-        text.textContent = t('重新发送验证码');
+        text.textContent = t('Resend code');
     }
 
     render();

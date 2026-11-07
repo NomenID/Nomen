@@ -124,7 +124,7 @@ class EmailTemplate
                 . 'style="border-radius:8px;background:#0969da;">'
                 . '<a href="' . $e($button['url']) . '" target="_blank" class="nomen-btn__link" '
                 . 'style="display:inline-block;padding:13px 32px;font-size:15px;font-weight:600;color:#ffffff;'
-                . 'text-decoration:none;border-radius:8px;">' . $e($button['text'] ?? $t('前往处理')) . '</a>'
+                . 'text-decoration:none;border-radius:8px;">' . $e($button['text'] ?? $t('Take care of it')) . '</a>'
                 . '</td></tr></table>';
         }
 
@@ -215,10 +215,10 @@ class EmailTemplate
         <div class="nomen-brand" style="font-size:13px;color:#59636e;line-height:1.7;">
             <a href="{$e(self::site())}" target="_blank" style="color:#0969da;text-decoration:none;font-weight:600;">{$e((string)Brand::get('name'))}</a>
             &nbsp;·&nbsp;
-            <a href="{$e($prefsUrl)}" target="_blank" style="color:#0969da;text-decoration:none;">{$t('管理邮件通知偏好')}</a>
+            <a href="{$e($prefsUrl)}" target="_blank" style="color:#0969da;text-decoration:none;">{$t('Manage email notification preferences')}</a>
         </div>
         <div class="nomen-brand" style="font-size:12px;color:#8b949e;line-height:1.7;margin-top:8px;">
-            {$t('本邮件由系统自动发送，请勿直接回复')}
+            {$t('This email was sent automatically — do not reply directly.')}
         </div>
     </td></tr>
     </table>
@@ -321,9 +321,9 @@ HTML;
     {
         $locale = $locale ?? I18n::locale();
         $badges = [
-            NotificationHelper::TYPE_SYSTEM_IMPORTANT => ['text' => I18n::tIn($locale, '系统重要通知'), 'tone' => 'important'],
-            NotificationHelper::TYPE_SYSTEM_GENERAL   => ['text' => I18n::tIn($locale, '系统一般通知'), 'tone' => 'general'],
-            NotificationHelper::TYPE_SYSTEM_INTERACT  => ['text' => I18n::tIn($locale, '系统互动'), 'tone' => 'interact'],
+            NotificationHelper::TYPE_SYSTEM_IMPORTANT => ['text' => I18n::tIn($locale, 'Important system notice'), 'tone' => 'important'],
+            NotificationHelper::TYPE_SYSTEM_GENERAL   => ['text' => I18n::tIn($locale, 'General system notice'), 'tone' => 'general'],
+            NotificationHelper::TYPE_SYSTEM_INTERACT  => ['text' => I18n::tIn($locale, 'System interaction'), 'tone' => 'interact'],
         ];
 
         $blocks = [];
@@ -353,7 +353,7 @@ HTML;
             'badge'      => $badges[$category] ?? null,
             'title'      => $title,
             'blocks'     => $blocks,
-            'button'     => ['text' => I18n::tIn($locale, '前往 Nomen 处理'), 'url' => $url],
+            'button'     => ['text' => I18n::tIn($locale, 'Open in Nomen'), 'url' => $url],
             'prefs_url'  => self::site() . '/settings#sec-notifications',
         ], $locale);
     }

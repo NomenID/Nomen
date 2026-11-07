@@ -51,9 +51,9 @@ const unlinkedProviders = computed(() =>
 
 async function unlinkIdentity(item) {
   const ok = await window.Nomen.confirm(
-    t('解绑登录方式'),
-    t('解绑后不能再通过 {:name} 登录，确定继续？', { name: item.provider_name }),
-    { confirmText: t('解绑'), cancelText: t('取消') },
+    t('Unlink sign-in method'),
+    t('After unlinking, you can no longer sign in with {:name}. Continue?', { name: item.provider_name }),
+    { confirmText: t('Unlink'), cancelText: t('Cancel') },
   )
   if (!ok) return
   const body = new URLSearchParams()
@@ -65,12 +65,12 @@ async function unlinkIdentity(item) {
     credentials: 'same-origin',
     headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' },
   })
-  const result = await response.json().catch(() => ({ success: false, message: t('请求失败') }))
+  const result = await response.json().catch(() => ({ success: false, message: t('Request failed') }))
   if (result.success) {
     linkedIdentities.value = linkedIdentities.value.filter((row) => row.provider_id !== item.provider_id)
     toast(result.message, 'success')
   } else {
-    toast(result.message || t('解绑失败'), 'error')
+    toast(result.message || t('Unlink failed'), 'error')
   }
 }
 
@@ -116,10 +116,10 @@ async function onAvatarChange(event) {
   try {
     const png = await svgToPngFile(file, SVG_PNG_SIZE)
     useAvatarFile(png)
-    toast(t('SVG 已转成 {:n}×{:n} 的 PNG', { n: SVG_PNG_SIZE }), 'success')
+    toast(t('SVG converted to a {:n}×{:n} PNG', { n: SVG_PNG_SIZE }), 'success')
   } catch (err) {
     if (avatarInput.value) avatarInput.value.value = ''
-    toast(t('这个 SVG 转不出来，请换成 PNG 或 JPG'), 'error')
+    toast(t('Can\'t convert this SVG — try a PNG or JPG'), 'error')
   }
 }
 
@@ -153,7 +153,7 @@ async function uploadAvatar() {
       toast(result.message, 'error')
     }
   } catch (err) {
-    toast(t('网络错误'), 'error')
+    toast(t('Network error'), 'error')
   } finally {
     avatarUploading.value = false
   }
@@ -176,9 +176,9 @@ async function saveProfile() {
       headers: { 'X-Requested-With': 'XMLHttpRequest' },
     })
     const result = await response.json()
-    toast(result.message || (result.success ? t('已保存') : t('保存失败')), result.success ? 'success' : 'error')
+    toast(result.message || (result.success ? t('Saved') : t('Save failed')), result.success ? 'success' : 'error')
   } catch (err) {
-    toast(err.message || t('网络错误'), 'error')
+    toast(err.message || t('Network error'), 'error')
   } finally {
     profileSaving.value = false
   }
@@ -187,7 +187,7 @@ async function saveProfile() {
 // ---- 密码表单 ----
 const passwordSaving = ref(false)
 const passwordStrengthInfo = computed(() => passwordStrength(passwordForm.next))
-const passwordStrengthText = computed(() => (passwordForm.next ? t('密码强度：{:label}', { label: t(passwordStrengthInfo.value.label) }) : t('密码强度')))
+const passwordStrengthText = computed(() => (passwordForm.next ? t('Strength: {:label}', { label: t(passwordStrengthInfo.value.label) }) : t('Password strength')))
 
 async function generatePassword() {
   const password = generateStrongPassword(16)
@@ -196,8 +196,8 @@ async function generatePassword() {
   const ok = await copyText(password)
   toast(
     ok
-      ? t('已生成强密码并复制。粘贴到密码管理器后，请清空剪贴板。')
-      : t('已生成强密码。请在密码框中全选复制，并注意清空剪贴板。'),
+      ? t('Strong password generated and copied. Paste it into your password manager, then clear the clipboard.')
+      : t('Strong password generated. Select and copy it in the field, and clear your clipboard afterwards.'),
     ok ? 'success' : 'warning',
     6000,
   )
@@ -218,14 +218,14 @@ async function savePassword() {
       headers: { 'X-Requested-With': 'XMLHttpRequest' },
     })
     const result = await response.json()
-    toast(result.message || (result.success ? t('已保存') : t('保存失败')), result.success ? 'success' : 'error')
+    toast(result.message || (result.success ? t('Saved') : t('Save failed')), result.success ? 'success' : 'error')
     if (result.success) {
       passwordForm.current = ''
       passwordForm.next = ''
       passwordForm.confirm = ''
     }
   } catch (err) {
-    toast(err.message || t('网络错误'), 'error')
+    toast(err.message || t('Network error'), 'error')
   } finally {
     passwordSaving.value = false
   }
@@ -265,7 +265,7 @@ async function sendResetCode() {
       toast(result.message, 'error')
     }
   } catch (err) {
-    toast(t('网络错误'), 'error')
+    toast(t('Network error'), 'error')
   } finally {
     resetSending.value = false
   }
@@ -287,15 +287,15 @@ function startResetCooldown(seconds) {
 async function submitReset() {
   const code = resetForm.code.trim()
   if (!code || !resetForm.next || !resetForm.confirm) {
-    toast(t('请填写所有字段'), 'warning')
+    toast(t('Please fill in all fields'), 'warning')
     return
   }
   if (resetForm.next.length < 8 || !/[a-zA-Z]/.test(resetForm.next) || !/[0-9]/.test(resetForm.next)) {
-    toast(t('密码至少8位，含字母和数字'), 'warning')
+    toast(t('8+ characters, letters and digits'), 'warning')
     return
   }
   if (resetForm.next !== resetForm.confirm) {
-    toast(t('两次密码不一致'), 'warning')
+    toast(t('The two passwords don\'t match'), 'warning')
     return
   }
 
@@ -322,10 +322,10 @@ async function submitReset() {
       resetForm.next = ''
       resetForm.confirm = ''
     } else {
-      toast(result.message || t('重置失败'), 'error')
+      toast(result.message || t('Reset failed'), 'error')
     }
   } catch (err) {
-    toast(t('网络错误'), 'error')
+    toast(t('Network error'), 'error')
   } finally {
     resetSaving.value = false
   }
@@ -354,9 +354,9 @@ async function savePolicy() {
   policySaving.value = true
   try {
     const result = await postForm('/settings/two-factor/policy', { policy: policy.value })
-    toast(result.message || (result.success ? t('已保存') : t('保存失败')), result.success ? 'success' : 'error')
+    toast(result.message || (result.success ? t('Saved') : t('Save failed')), result.success ? 'success' : 'error')
   } catch (err) {
-    toast(t('网络错误'), 'error')
+    toast(t('Network error'), 'error')
   } finally {
     policySaving.value = false
   }
@@ -369,9 +369,9 @@ async function saveQuickLogin() {
   quickSaving.value = true
   try {
     const result = await postForm('/settings/quick-login', { quick_login: quickLogin.value })
-    toast(result.message || (result.success ? t('已保存') : t('保存失败')), result.success ? 'success' : 'error')
+    toast(result.message || (result.success ? t('Saved') : t('Save failed')), result.success ? 'success' : 'error')
   } catch (err) {
-    toast(t('网络错误'), 'error')
+    toast(t('Network error'), 'error')
   } finally {
     quickSaving.value = false
   }
@@ -388,9 +388,9 @@ async function saveNotif() {
       notify_system_general: notif.system_general ? '1' : '',
       notify_system_interact: notif.system_interact ? '1' : '',
     })
-    toast(result.message || (result.success ? t('已保存') : t('保存失败')), result.success ? 'success' : 'error')
+    toast(result.message || (result.success ? t('Saved') : t('Save failed')), result.success ? 'success' : 'error')
   } catch (err) {
-    toast(t('网络错误'), 'error')
+    toast(t('Network error'), 'error')
   } finally {
     notifSaving.value = false
   }
@@ -400,10 +400,10 @@ async function saveNotif() {
 async function revokeDevice(device) {
   if (!window.Nomen || typeof window.Nomen.confirm !== 'function') return
 
-  const confirmed = await window.Nomen.confirm(t('撤销设备信任'), t('确定要撤销设备 "{:name}" 的信任吗？该设备下次登录需要重新验证。', { name: device.deviceName }), {
+  const confirmed = await window.Nomen.confirm(t('Revoke device trust'), t('Revoke trust for device "{:name}"? It will need to verify again on its next sign-in.', { name: device.deviceName }), {
     danger: true,
-    confirmText: t('撤销'),
-    cancelText: t('取消'),
+    confirmText: t('Revoke'),
+    cancelText: t('Cancel'),
   })
   if (!confirmed) return
 
@@ -427,7 +427,7 @@ async function revokeDevice(device) {
       toast(result.message, 'error')
     }
   } catch (err) {
-    toast(t('网络错误'), 'error')
+    toast(t('Network error'), 'error')
   }
 }
 
@@ -445,151 +445,151 @@ onMounted(() => {
 
 <template>
   <div class="settings">
-    <h1>{{ t('账户设置') }}</h1>
+    <h1>{{ t('Account settings') }}</h1>
 
     <BaseAlert v-if="user.error" type="error" :message="user.error" />
     <BaseAlert v-if="user.success" type="success" :message="user.success" />
 
     <div class="settings-section" id="sec-avatar">
-      <h2>{{ t('头像') }}</h2>
+      <h2>{{ t('Avatar') }}</h2>
       <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
         <div
           style="width:80px;height:80px;border-radius:50%;overflow:hidden;flex-shrink:0;background:#e9ecef;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:600;color:#6c757d;"
         >
-          <img v-if="avatarUrl" :src="avatarUrl" :alt="t('头像')" style="width:100%;height:100%;object-fit:cover;">
+          <img v-if="avatarUrl" :src="avatarUrl" :alt="t('Avatar')" style="width:100%;height:100%;object-fit:cover;">
           <template v-else>{{ userInitial }}</template>
         </div>
         <div>
           <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
             <input ref="avatarInput" type="file" accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml" style="display:none;" @change="onAvatarChange">
-            <button type="button" class="btn btn-secondary" @click="avatarInput?.click()">{{ t('选择图片') }}</button>
-            <button v-show="avatarFile" type="button" class="btn btn-primary" :disabled="avatarUploading" @click="uploadAvatar">{{ avatarUploading ? t('上传中...') : t('上传头像') }}</button>
+            <button type="button" class="btn btn-secondary" @click="avatarInput?.click()">{{ t('Choose images') }}</button>
+            <button v-show="avatarFile" type="button" class="btn btn-primary" :disabled="avatarUploading" @click="uploadAvatar">{{ avatarUploading ? t('Uploading...') : t('Upload avatar') }}</button>
             <span class="text-muted" style="font-size:13px;">{{ avatarFileName }}</span>
           </div>
-          <small class="form-hint" style="margin-top:8px;">{{ t('支持 JPG、PNG、GIF、WebP、SVG，最大 2MB；SVG 会自动转成 135×135 PNG。头像将裁剪为 135×135 正方形') }}</small>
+          <small class="form-hint" style="margin-top:8px;">{{ t('JPG, PNG, GIF, WebP or SVG, up to 2MB; SVG is auto-converted to a 135×135 PNG. Avatars are cropped to a 135×135 square') }}</small>
         </div>
       </div>
     </div>
 
     <div class="settings-section" id="sec-profile">
-      <h2>{{ t('个人资料') }}</h2>
+      <h2>{{ t('Profile') }}</h2>
       <form class="settings-form" @submit.prevent="saveProfile">
         <div class="form-group">
-          <label>{{ t('用户名') }}</label>
+          <label>{{ t('Username') }}</label>
           <input type="text" :value="user.username" disabled class="input-disabled">
-          <small class="form-hint">{{ t('用户名无法修改') }}</small>
+          <small class="form-hint">{{ t('Username can\'t be changed') }}</small>
         </div>
         <div class="form-group">
-          <label>{{ t('首选邮箱') }}</label>
+          <label>{{ t('Primary email') }}</label>
           <template v-if="user.email">
             <input type="text" :value="user.email" disabled class="input-disabled">
-            <small class="form-hint">{{ t('发通知、找回账号都用它；要换在下面「邮箱地址」里设') }}</small>
+            <small class="form-hint">{{ t('Used for notifications and account recovery. Change it in Email addresses below') }}</small>
           </template>
           <template v-else>
-            <input type="text" :value="features.guardians ? t('未设置（收信走家长邮箱）') : t('未设置')" disabled class="input-disabled">
-            <small v-if="features.guardians" class="form-hint">{{ t('在下面「邮箱地址」里可以绑定一个属于你自己的邮箱') }}</small>
+            <input type="text" :value="features.guardians ? t('Not set (mail goes to a parent\'s address)') : t('Not set')" disabled class="input-disabled">
+            <small v-if="features.guardians" class="form-hint">{{ t('You can bind your own address in Email addresses below') }}</small>
           </template>
         </div>
         <div class="form-group">
-          <label>{{ t('出生日期') }}</label>
+          <label>{{ t('Date of birth') }}</label>
           <input type="text" :value="user.birthDateDisplay" disabled class="input-disabled">
         </div>
         <div class="form-group">
-          <label>{{ t('性别') }}</label>
+          <label>{{ t('Gender') }}</label>
           <input type="text" :value="user.genderDisplay" disabled class="input-disabled">
         </div>
         <div v-if="features.country" class="form-group">
-          <label>{{ t('国家 / 地区') }}</label>
+          <label>{{ t('Country / Region') }}</label>
           <input type="text" :value="user.countryDisplay" disabled class="input-disabled">
         </div>
         <div class="form-group">
-          <label for="display_name">{{ t('显示名称') }}</label>
-          <input id="display_name" v-model="profile.display_name" type="text" :placeholder="t('您希望显示的名称')">
+          <label for="display_name">{{ t('Display name') }}</label>
+          <input id="display_name" v-model="profile.display_name" type="text" :placeholder="t('Preferred display name')">
         </div>
         <div class="form-group">
-          <label for="bio">{{ t('个人简介') }}</label>
-          <textarea id="bio" v-model="profile.bio" rows="3" :placeholder="t('介绍一下自己')"></textarea>
+          <label for="bio">{{ t('Bio') }}</label>
+          <textarea id="bio" v-model="profile.bio" rows="3" :placeholder="t('Introduce yourself')"></textarea>
         </div>
-        <button type="submit" class="btn btn-primary" :disabled="profileSaving">{{ profileSaving ? t('保存中...') : t('保存修改') }}</button>
+        <button type="submit" class="btn btn-primary" :disabled="profileSaving">{{ profileSaving ? t('Saving...') : t('Save changes') }}</button>
       </form>
     </div>
 
     <div class="settings-section" id="sec-password">
-      <h2>{{ t('修改密码') }}</h2>
+      <h2>{{ t('Change password') }}</h2>
       <form class="settings-form" @submit.prevent="savePassword">
         <div class="form-group">
-          <label for="current_password">{{ t('当前密码') }}</label>
+          <label for="current_password">{{ t('Current password') }}</label>
           <input id="current_password" v-model="passwordForm.current" type="password" required>
         </div>
         <div class="form-group">
-          <label for="new_password">{{ t('新密码') }}</label>
+          <label for="new_password">{{ t('New password') }}</label>
           <div class="pw-wrap">
-            <input id="new_password" v-model="passwordForm.next" type="password" required minlength="8" :placeholder="t('至少8位，包含字母和数字')">
+            <input id="new_password" v-model="passwordForm.next" type="password" required minlength="8" :placeholder="t('8+ characters, letters and digits')">
           </div>
           <div class="pw-strength">
             <div class="pw-strength__bar">
               <div class="pw-strength__fill" :style="{ width: passwordStrengthInfo.width, background: passwordStrengthInfo.color }"></div>
             </div>
             <span class="pw-strength__text" :style="{ color: passwordStrengthInfo.color }">{{ passwordStrengthText }}</span>
-            <button type="button" class="pw-gen" :title="t('生成一个随机强密码')" @mousedown.prevent @click="generatePassword">{{ t('生成') }}</button>
+            <button type="button" class="pw-gen" :title="t('Generate a strong random password')" @mousedown.prevent @click="generatePassword">{{ t('Generate') }}</button>
           </div>
         </div>
         <div class="form-group">
-          <label for="confirm_password">{{ t('确认新密码') }}</label>
+          <label for="confirm_password">{{ t('Confirm new password') }}</label>
           <input id="confirm_password" v-model="passwordForm.confirm" type="password" required>
         </div>
-        <button type="submit" class="btn btn-primary" :disabled="passwordSaving">{{ passwordSaving ? t('保存中...') : t('修改密码') }}</button>
+        <button type="submit" class="btn btn-primary" :disabled="passwordSaving">{{ passwordSaving ? t('Saving...') : t('Change password') }}</button>
       </form>
     </div>
 
     <div class="settings-section" id="sec-reset-code">
-      <h2>{{ t('通过邮箱验证码重置密码') }}</h2>
-      <p class="form-hint" style="margin-bottom:16px;">{{ t('如果不记得当前密码，可以通过邮箱验证码重置密码') }}</p>
+      <h2>{{ t('Reset password via email code') }}</h2>
+      <p class="form-hint" style="margin-bottom:16px;">{{ t('Forgot the current password? Reset it with an email code') }}</p>
       <form class="settings-form" @submit.prevent="submitReset">
         <div v-if="verifiedEmails.length > 1" class="form-group">
-          <label for="reset_code_target">{{ t('收码邮箱') }}</label>
+          <label for="reset_code_target">{{ t('Code mailbox') }}</label>
           <select id="reset_code_target" v-model="resetForm.target" class="email-target-select">
-            <option v-for="choice in verifiedEmails" :key="choice.email" :value="choice.email">{{ choice.email }}{{ choice.is_primary ? t('（首选）') : '' }}</option>
+            <option v-for="choice in verifiedEmails" :key="choice.email" :value="choice.email">{{ choice.email }}{{ choice.is_primary ? t('(primary)') : '' }}</option>
           </select>
         </div>
         <div class="form-group">
-          <label>{{ t('验证码') }}</label>
+          <label>{{ t('Code') }}</label>
           <div class="input-with-button">
-            <input id="reset_code" v-model="resetForm.code" type="text" name="reset_code" required :placeholder="t('请输入6位验证码')" maxlength="6">
+            <input id="reset_code" v-model="resetForm.code" type="text" name="reset_code" required :placeholder="t('Enter the 6-digit verification code')" maxlength="6">
             <button type="button" id="send-reset-code-btn" class="btn btn-secondary" :disabled="resetSending || resetCooldown > 0" @click="sendResetCode">
-              {{ resetSending ? t('发送中...') : resetCooldown > 0 ? t('{:n}秒后重试', { n: resetCooldown }) : t('发送验证码') }}
+              {{ resetSending ? t('Sending...') : resetCooldown > 0 ? t('Retry in {:n}s', { n: resetCooldown }) : t('Send code') }}
             </button>
           </div>
         </div>
         <div class="form-group">
-          <label for="reset_new_password">{{ t('新密码') }}</label>
+          <label for="reset_new_password">{{ t('New password') }}</label>
           <div class="pw-wrap">
-            <input id="reset_new_password" v-model="resetForm.next" type="password" required minlength="8" :placeholder="t('至少8位，包含字母和数字')">
+            <input id="reset_new_password" v-model="resetForm.next" type="password" required minlength="8" :placeholder="t('8+ characters, letters and digits')">
           </div>
         </div>
         <div class="form-group">
-          <label for="reset_confirm_password">{{ t('确认新密码') }}</label>
+          <label for="reset_confirm_password">{{ t('Confirm new password') }}</label>
           <input id="reset_confirm_password" v-model="resetForm.confirm" type="password" required>
         </div>
-        <button type="submit" id="reset-btn" class="btn btn-primary" :disabled="resetSaving">{{ resetSaving ? t('重置中...') : t('重置密码') }}</button>
+        <button type="submit" id="reset-btn" class="btn btn-primary" :disabled="resetSaving">{{ resetSaving ? t('Resetting...') : t('Reset password') }}</button>
       </form>
     </div>
 
     <div class="settings-section" id="sec-emails">
-      <h2>{{ t('邮箱地址') }}</h2>
+      <h2>{{ t('Email addresses') }}</h2>
       <p v-if="!user.email && features.guardians" class="form-hint" style="margin-bottom:16px;">
-        {{ t('你现在的收信地址是家长的邮箱。绑定一个属于你自己的邮箱后，通知会发到这里；家里的事（家长、停止监护）都在') }}<a href="/family">{{ t('家庭') }}</a>{{ t('页面。') }}
+        {{ t('Your contact address is currently a parent\'s email. Once you link your own email, notifications go there; family matters (parents, ending supervision) are all on the ') }}<a href="/family">{{ t('Family') }}</a>{{ t(' page.') }}
       </p>
       <p class="form-hint" style="margin-bottom:16px;">
-        {{ t('最多可以绑定 {:n} 个邮箱。发通知、找回账号用的是「首选」那一个；登录时任何一个已验证的邮箱都能用。', { n: maxEmails }) }}
+        {{ t('You can bind up to {:n} emails. Notifications and account recovery use the primary one; any verified address works for signing in.', { n: maxEmails }) }}
       </p>
       <EmailSetSection :csrf="csrf" :emails="emails" :max-emails="maxEmails" />
     </div>
 
     <div class="settings-section" id="sec-identities">
-      <h2>{{ t('第三方登录') }}</h2>
+      <h2>{{ t('Third-party sign-in') }}</h2>
       <p class="form-hint" style="margin-bottom:16px;">
-        {{ t('绑定的账号可以直接用来登录；解绑前请确认还有别的登录方式。') }}
+        {{ t('Linked accounts can sign in directly. Make sure you have another sign-in method before unlinking.') }}
       </p>
 
       <div v-if="linkedIdentities.length" class="identity-list">
@@ -598,10 +598,10 @@ onMounted(() => {
             <strong>{{ item.provider_name }}</strong>
             <span class="text-muted">{{ item.display_name || item.email || '' }}</span>
           </div>
-          <button type="button" class="btn btn-danger btn-sm" @click="unlinkIdentity(item)">{{ t('解绑') }}</button>
+          <button type="button" class="btn btn-danger btn-sm" @click="unlinkIdentity(item)">{{ t('Unlink') }}</button>
         </div>
       </div>
-      <p v-else class="form-hint">{{ t('还没有绑定第三方账号。') }}</p>
+      <p v-else class="form-hint">{{ t('No third-party accounts linked yet.') }}</p>
 
       <div v-if="unlinkedProviders.length" class="identity-links">
         <a
@@ -609,197 +609,197 @@ onMounted(() => {
           :key="provider.slug"
           class="btn btn-secondary btn-sm"
           :href="`/auth/${provider.slug}/redirect?link=1`"
-        >{{ t('绑定 {:name}', { name: provider.name }) }}</a>
+        >{{ t('Link {:name}', { name: provider.name }) }}</a>
       </div>
     </div>
 
     <div class="settings-section settings-section--danger" id="sec-account">
-      <h2>{{ t('账户信息') }}</h2>
+      <h2>{{ t('Account info') }}</h2>
       <div class="info-grid">
         <div class="info-item">
-          <span class="info-label">{{ t('注册时间') }}</span>
+          <span class="info-label">{{ t('Registered at') }}</span>
           <span class="info-value">{{ user.createdAtDisplay }}</span>
         </div>
         <div class="info-item">
-          <span class="info-label">{{ t('收信地址') }}</span>
+          <span class="info-label">{{ t('Contact address') }}</span>
           <span class="info-value">
-            <span v-if="user.contactVerified" class="badge badge--success">{{ t('已验证') }}</span>
-            <span v-else class="badge badge--warning">{{ t('未验证') }}</span>
+            <span v-if="user.contactVerified" class="badge badge--success">{{ t('Verified') }}</span>
+            <span v-else class="badge badge--warning">{{ t('Unverified') }}</span>
           </span>
         </div>
       </div>
     </div>
 
     <div class="settings-section" id="sec-active-devices">
-      <h2>{{ t('活跃设备') }}</h2>
-      <p class="form-hint" style="margin-bottom:16px;">{{ t('近30天活跃的登录设备，可查看但无法撤销（撤销在下方所有设备中操作）') }}</p>
-      <p v-if="!activeTokens.length" class="text-muted" style="padding:12px 0;">{{ t('暂无活跃设备') }}</p>
+      <h2>{{ t('Active devices') }}</h2>
+      <p class="form-hint" style="margin-bottom:16px;">{{ t('Devices active in the last 30 days — view only; revoke under All devices below') }}</p>
+      <p v-if="!activeTokens.length" class="text-muted" style="padding:12px 0;">{{ t('No active devices') }}</p>
       <div v-else class="token-list">
         <div v-for="token in activeTokens" :key="token.deviceId" class="token-item">
           <div class="token-item__info">
             <div class="token-item__name">
               {{ token.deviceName }}
-              <span v-if="token.isCurrent" class="badge badge--info" style="margin-left:8px;font-size:11px;">{{ t('当前设备') }}</span>
+              <span v-if="token.isCurrent" class="badge badge--info" style="margin-left:8px;font-size:11px;">{{ t('Current device') }}</span>
             </div>
             <div class="token-item__meta">{{ token.meta }}</div>
           </div>
-          <span class="badge badge--success">{{ t('活跃') }}</span>
+          <span class="badge badge--success">{{ t('Active') }}</span>
         </div>
       </div>
     </div>
 
     <div class="settings-section" id="sec-temp-keys">
-      <h2>{{ t('临时密钥') }}</h2>
-      <p class="form-hint" style="margin-bottom:16px;">{{ t('临时密钥可用于在不信任的设备上登录（如学校电脑），登录时跳过设备验证。最长有效期14天，最多同时存在5个') }}</p>
+      <h2>{{ t('Temp key') }}</h2>
+      <p class="form-hint" style="margin-bottom:16px;">{{ t('Temp keys let you sign in on untrusted devices (like a school computer) and skip device verification. Valid up to 14 days, 5 at a time.') }}</p>
       <TempKeysSection :csrf="csrf" :urls="urls.tempKeys" />
     </div>
 
     <div class="settings-section" id="sec-2fa">
-      <h2>{{ t('两步验证') }}</h2>
-      <p class="form-hint" style="margin-bottom:16px;">{{ t('选择登录时何时要求第二步验证。默认只在未信任的新设备上验证') }}</p>
+      <h2>{{ t('Two-step verification') }}</h2>
+      <p class="form-hint" style="margin-bottom:16px;">{{ t('Choose when the second step is required. Default: only on untrusted new devices') }}</p>
       <form @submit.prevent="savePolicy">
         <div class="factor-select" style="margin-bottom:16px;">
           <label class="factor-option" :class="{ selected: policy === 'new_device' }">
             <input v-model="policy" type="radio" name="policy" value="new_device">
             <span class="factor-icon"><Icon name="monitor" /></span>
-            <span class="factor-label">{{ t('仅新设备验证（推荐）') }}</span>
+            <span class="factor-label">{{ t('New devices only (recommended)') }}</span>
           </label>
           <label class="factor-option" :class="{ selected: policy === 'every_login' }">
             <input v-model="policy" type="radio" name="policy" value="every_login">
             <span class="factor-icon"><Icon name="lock" /></span>
-            <span class="factor-label">{{ t('每次登录都验证') }}</span>
+            <span class="factor-label">{{ t('Verify every sign-in') }}</span>
           </label>
         </div>
-        <p class="form-hint" style="margin-bottom:12px;">{{ t('开启「每次登录都验证」前，需先验证邮箱或启用验证器 APP') }}</p>
-        <button type="submit" class="btn btn-primary" :disabled="policySaving">{{ policySaving ? t('保存中...') : t('保存策略') }}</button>
+        <p class="form-hint" style="margin-bottom:12px;">{{ t('Before “verify every time”, verify an email or enable an authenticator app first') }}</p>
+        <button type="submit" class="btn btn-primary" :disabled="policySaving">{{ policySaving ? t('Saving...') : t('Save policy') }}</button>
       </form>
     </div>
 
     <div class="settings-section" id="sec-locale" v-if="locales.length">
-      <h2>{{ t('界面语言') }}</h2>
-      <p class="form-hint" style="margin-bottom:16px;">{{ t('选择 Nomen 界面与系统邮件使用的语言。未登录的设备会跟随浏览器语言') }}</p>
+      <h2>{{ t('Interface language') }}</h2>
+      <p class="form-hint" style="margin-bottom:16px;">{{ t('Language for the interface and system emails. Signed-out devices follow the browser language') }}</p>
       <form method="POST" action="/settings/locale">
         <input type="hidden" name="_csrf" :value="csrf">
         <div class="form-group" style="margin-bottom:16px;">
-          <label for="locale-select">{{ t('语言') }}</label>
+          <label for="locale-select">{{ t('Language') }}</label>
           <select id="locale-select" name="locale">
             <option v-for="entry in locales" :key="entry.slug" :value="entry.slug" :selected="entry.slug === currentLocale">
               {{ entry.name }} ({{ entry.english }})
             </option>
           </select>
         </div>
-        <button type="submit" class="btn btn-primary">{{ t('保存') }}</button>
+        <button type="submit" class="btn btn-primary">{{ t('Save') }}</button>
       </form>
     </div>
 
     <div class="settings-section" id="sec-skin">
-      <h2>{{ t('外观') }}</h2>
-      <p class="form-hint" style="margin-bottom:16px;">{{ t('选择站点外观。没登录的设备用站点默认皮肤') }}</p>
+      <h2>{{ t('Appearance') }}</h2>
+      <p class="form-hint" style="margin-bottom:16px;">{{ t('Choose how the site looks. Devices that are not signed in use the site default skin.') }}</p>
       <form method="POST" action="/settings/skin">
         <input type="hidden" name="_csrf" :value="csrf">
         <div class="form-group" style="margin-bottom:16px;">
-          <label for="skin-select">{{ t('皮肤') }}</label>
+          <label for="skin-select">{{ t('Skins') }}</label>
           <select id="skin-select" name="skin">
             <option v-for="entry in skins" :key="entry.slug" :value="entry.slug" :selected="entry.slug === currentSkin">
               {{ entry.name }}
             </option>
           </select>
         </div>
-        <button type="submit" class="btn btn-primary">{{ t('保存') }}</button>
+        <button type="submit" class="btn btn-primary">{{ t('Save') }}</button>
       </form>
     </div>
 
     <div class="settings-section" id="sec-quick-login">
-      <h2>{{ t('Nomen启航计划项目快速中央登录') }}</h2>
-      <p class="form-hint" style="margin-bottom:16px;">{{ t('开启后，本站自家应用登录时不再逐项确认权限，直接授权并在回调地址带上快速登录标记。关闭后所有应用都走普通授权确认流程') }}</p>
+      <h2>{{ t('Nomen Launch Plan quick central sign-in') }}</h2>
+      <p class="form-hint" style="margin-bottom:16px;">{{ t('When on, first-party apps skip the per-scope consent screen and are authorized directly, with the quick-login flag on the callback. When off, all apps use the normal consent flow.') }}</p>
       <form @submit.prevent="saveQuickLogin">
         <div class="factor-select" style="margin-bottom:16px;">
           <label class="factor-option" :class="{ selected: quickLogin === '1' }">
             <input v-model="quickLogin" type="radio" name="quick_login" value="1">
             <span class="factor-icon"><Icon name="zap" /></span>
-            <span class="factor-label">{{ t('开启（默认）') }}</span>
+            <span class="factor-label">{{ t('On (default)') }}</span>
           </label>
           <label class="factor-option" :class="{ selected: quickLogin === '0' }">
             <input v-model="quickLogin" type="radio" name="quick_login" value="0">
             <span class="factor-icon"><Icon name="shield-check" /></span>
-            <span class="factor-label">{{ t('关闭，逐项确认权限') }}</span>
+            <span class="factor-label">{{ t('Off, confirm each permission') }}</span>
           </label>
         </div>
-        <button type="submit" class="btn btn-primary" :disabled="quickSaving">{{ quickSaving ? t('保存中...') : t('保存') }}</button>
+        <button type="submit" class="btn btn-primary" :disabled="quickSaving">{{ quickSaving ? t('Saving...') : t('Save') }}</button>
       </form>
     </div>
 
     <div class="settings-section" id="sec-notifications">
-      <h2>{{ t('邮件通知偏好') }}</h2>
-      <p class="form-hint" style="margin-bottom:16px;">{{ t('勾选的类别以后会通过邮件推送到你的邮箱；站内消息（右上角铃铛）始终接收，不受这里的开关影响') }}</p>
+      <h2>{{ t('Email notification preferences') }}</h2>
+      <p class="form-hint" style="margin-bottom:16px;">{{ t('Checked categories are also emailed to you. In-site messages (the bell, top right) always arrive regardless of these switches') }}</p>
       <form @submit.prevent="saveNotif">
         <label class="notif-pref-item">
           <input v-model="notif.system_important" type="checkbox" value="1">
           <span class="notif-pref-item__text">
-            <strong>{{ t('系统重要通知') }}</strong>
-            <span class="form-hint">{{ t('安全事件等需要你立即注意的事项（建议保持开启）') }}</span>
+            <strong>{{ t('Important system notice') }}</strong>
+            <span class="form-hint">{{ t('Security events that need immediate attention (keep this on)') }}</span>
           </span>
         </label>
         <label class="notif-pref-item">
           <input v-model="notif.system_general" type="checkbox" value="1">
           <span class="notif-pref-item__text">
-            <strong>{{ t('系统一般通知') }}</strong>
-            <span class="form-hint">{{ t('账号安全建议、功能更新等一般性通知') }}</span>
+            <strong>{{ t('General system notice') }}</strong>
+            <span class="form-hint">{{ t('General notices: security advice, feature updates') }}</span>
           </span>
         </label>
         <label class="notif-pref-item">
           <input v-model="notif.system_interact" type="checkbox" value="1">
           <span class="notif-pref-item__text">
-            <strong>{{ t('系统互动') }}</strong>
-            <span class="form-hint">{{ t('与你的账号相关的互动提醒') }}</span>
+            <strong>{{ t('System interaction') }}</strong>
+            <span class="form-hint">{{ t('Interactions related to your account') }}</span>
           </span>
         </label>
-        <button type="submit" class="btn btn-primary" style="margin-top:12px;" :disabled="notifSaving">{{ notifSaving ? t('保存中...') : t('保存') }}</button>
+        <button type="submit" class="btn btn-primary" style="margin-top:12px;" :disabled="notifSaving">{{ notifSaving ? t('Saving...') : t('Save') }}</button>
       </form>
     </div>
 
     <div class="settings-section" id="sec-totp">
-      <h2>{{ t('验证器 APP（TOTP）') }}</h2>
-      <p class="form-hint" style="margin-bottom:16px;">{{ t('使用 Google Authenticator、Authy 等 TOTP 应用生成6位动态验证码，作为双因素验证的第二要素') }}</p>
+      <h2>{{ t('Authenticator app (TOTP)') }}</h2>
+      <p class="form-hint" style="margin-bottom:16px;">{{ t('Generate 6-digit codes with a TOTP app like Google Authenticator or Authy as the second factor') }}</p>
       <TotpSection :csrf="csrf" />
     </div>
 
     <div class="settings-section" id="sec-recovery">
-      <h2>{{ t('恢复码') }}</h2>
-      <p class="form-hint" style="margin-bottom:16px;">{{ t('恢复码是最后手段的验证方式：无法使用验证器 APP 或邮箱验证码时，可以用它完成登录验证，每个恢复码只能使用一次。恢复码可以独立使用 —— 即使不启用验证器 APP（TOTP），生成后登录二验时也能选择「恢复码」。生成后请立即打印或抄写到纸上，保存在安全的地方。') }}</p>
+      <h2>{{ t('Recovery codes') }}</h2>
+      <p class="form-hint" style="margin-bottom:16px;">{{ t('Recovery codes are the last-resort method: when the authenticator app or email codes aren\'t available, they complete sign-in verification. Each code works once. They work on their own — even without enabling TOTP, you can pick “recovery code” during two-step verification. Print or write them down right away and keep them safe.') }}</p>
       <RecoveryCodesSection :csrf="csrf" />
     </div>
 
     <div class="settings-section" id="sec-biometric">
-      <h2>{{ t('生物识别') }}</h2>
-      <p class="form-hint" style="margin-bottom:16px;">{{ t('绑定生物识别（如 Windows Hello、指纹、面容 ID）后可快速登录，属于{:label}、不计入登录方式数量。最多同时绑定5个设备', { label: user.assistLabel }) }}</p>
+      <h2>{{ t('Biometric') }}</h2>
+      <p class="form-hint" style="margin-bottom:16px;">{{ t('Binding biometrics (like Windows Hello, fingerprint or Face ID) enables quick sign-in. It\'s one of your {:label} and doesn\'t count toward sign-in methods. Up to 5 devices at a time', { label: user.assistLabel }) }}</p>
       <BiometricsSection :csrf="csrf" />
     </div>
 
     <div class="settings-section" id="sec-devices">
-      <h2>{{ t('所有设备') }}</h2>
-      <p class="form-hint" style="margin-bottom:16px;">{{ t('已信任的设备在登录时无需额外验证。撤销设备信任后，该设备下次登录需要重新验证') }}</p>
-      <p v-if="!devices.length" class="text-muted" style="padding:12px 0;">{{ t('暂无信任设备') }}</p>
+      <h2>{{ t('All devices') }}</h2>
+      <p class="form-hint" style="margin-bottom:16px;">{{ t('Trusted devices skip extra verification. After revoking, the device must verify again on next sign-in') }}</p>
+      <p v-if="!devices.length" class="text-muted" style="padding:12px 0;">{{ t('No trusted devices') }}</p>
       <div v-else class="device-list" id="device-list">
         <div v-for="device in devices" :key="device.deviceId" class="device-item">
           <div class="device-item__info">
             <div class="device-item__name">
               {{ device.deviceName }}
-              <span v-if="device.isCurrent" class="badge badge--info" style="margin-left:8px;font-size:11px;">{{ t('当前设备') }}</span>
+              <span v-if="device.isCurrent" class="badge badge--info" style="margin-left:8px;font-size:11px;">{{ t('Current device') }}</span>
             </div>
             <div class="device-item__meta">{{ device.meta }}</div>
           </div>
-          <button v-if="!device.isCurrent" type="button" class="btn btn-sm btn-danger-outline" @click="revokeDevice(device)">{{ t('撤销') }}</button>
+          <button v-if="!device.isCurrent" type="button" class="btn btn-sm btn-danger-outline" @click="revokeDevice(device)">{{ t('Revoke') }}</button>
         </div>
       </div>
     </div>
 
     <div v-if="features.guardians" class="settings-section" id="sec-family">
-      <h2>{{ t('家庭') }}</h2>
+      <h2>{{ t('Family') }}</h2>
       <p class="form-hint" style="margin-bottom:16px;">
-        {{ t('家长加入你的家庭后，可以帮你重置密码、临时锁定账号；你也可以在这里邀请家长，或者（满本地区年龄后）停止监护、退出家庭。') }}
+        {{ t('Once a parent joins your family, they can reset your password or temporarily lock the account. You can also invite a parent here, or (once you reach the age for your region) end supervision and leave the family.') }}
       </p>
-      <a href="/family" class="btn btn-secondary">{{ t('打开家庭') }}</a>
+      <a href="/family" class="btn btn-secondary">{{ t('Open Family') }}</a>
     </div>
   </div>
 </template>

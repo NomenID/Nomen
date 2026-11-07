@@ -123,7 +123,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick))
       :value="query"
       type="text"
       class="country-picker__input"
-      :placeholder="t('输入中文 / English / 本地名 / 国家码')"
+      :placeholder="t('Chinese / English / native name / code')"
       autocomplete="off"
       role="combobox"
       :aria-expanded="open"
@@ -149,7 +149,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick))
           <span class="country-picker__code">{{ option.code }}</span>
         </li>
       </template>
-      <li v-else class="country-picker__empty">{{ t('没找到这个国家/地区，试试英文名或国家码') }}</li>
+      <li v-else class="country-picker__empty">{{ t('No such country/region — try the English name or code') }}</li>
     </ul>
   </div>
 </template>

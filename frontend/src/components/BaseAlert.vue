@@ -47,7 +47,7 @@ onBeforeUnmount(() => {
   >
     <span class="nomen-alert__icon" aria-hidden="true"><Icon :name="iconName" /></span>
     {{ message }}
-    <button v-if="dismissible" type="button" class="nomen-alert__close" :aria-label="t('关闭')" @click="close">
+    <button v-if="dismissible" type="button" class="nomen-alert__close" :aria-label="t('Close')" @click="close">
       <Icon name="close" />
     </button>
   </div>

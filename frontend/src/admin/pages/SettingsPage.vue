@@ -10,7 +10,7 @@ const loading = ref(true)
 const saving = ref(false)
 const error = ref('')
 const data = ref(null)
-const form = reactive({ login_2fa: 'off', cache_backend: 'auto' })
+const form = reactive({ login_2fa: 'off', cache_backend: 'auto', api_nomen: '1' })
 
 async function load() {
   loading.value = true
@@ -19,6 +19,7 @@ async function load() {
     data.value = await apiGet('/api/admin/settings')
     form.login_2fa = data.value.policy
     form.cache_backend = data.value.backend
+    form.api_nomen = data.value.apiEnabled ? '1' : '0'
   } catch (err) {
     error.value = '设置加载失败'
   } finally {
@@ -32,6 +33,7 @@ async function save() {
     const result = await apiPost('/admin/settings', {
       login_2fa: form.login_2fa,
       cache_backend: form.cache_backend,
+      api_nomen: form.api_nomen,
     })
     if (result.success) {
       window.Nomen.toast(result.message, 'success')
@@ -76,6 +78,18 @@ onMounted(load)
           <select v-model="form.cache_backend" class="a-input a-input--narrow">
             <option v-for="(label, value) in data.cacheOptions" :key="value" :value="value">{{ label }}</option>
           </select>
+        </AdminCard>
+
+        <AdminCard title="站点 API">
+          <p class="a-card__desc">
+            只读接口，地址 <code>{{ data.apiEndpoint }}</code>，参数照 MediaWiki 的习惯
+            （<code>action=query&amp;meta=siteinfo</code>）。站点信息和文档页面匿名可读，
+            插件登记的敏感模块只认管理员。
+          </p>
+          <label class="a-check">
+            <input v-model="form.api_nomen" type="checkbox" true-value="1" false-value="0">
+            <span>开启站点 API</span>
+          </label>
         </AdminCard>
 
         <AdminCard title="邮件">

@@ -24,14 +24,14 @@ $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APO
         <section class="np-hero">
             <div class="np-hero__inner">
                 <h1 class="np-hero__title"><?= htmlspecialchars((string)($brand['name'] ?? 'Nomen')) ?></h1>
-                <p class="np-hero__line"><?= t('自由的账号星系') ?></p>
+                <p class="np-hero__line"><?= t('A galaxy of free accounts') ?></p>
                 <div class="np-hero__actions">
                     <?php if ($loggedIn): ?>
-                        <a href="/dashboard" class="btn btn-primary btn-lg"><?= t('进入控制台') ?></a>
-                        <a href="/settings" class="btn btn-ghost btn-lg"><?= t('账户设置') ?></a>
+                        <a href="/dashboard" class="btn btn-primary btn-lg"><?= t('Open console') ?></a>
+                        <a href="/settings" class="btn btn-ghost btn-lg"><?= t('Account settings') ?></a>
                     <?php else: ?>
-                        <a href="/register" class="btn btn-primary btn-lg"><?= t('创建账号') ?></a>
-                        <a href="/login" class="btn btn-ghost btn-lg"><?= t('登录') ?></a>
+                        <a href="/register" class="btn btn-primary btn-lg"><?= t('Create account') ?></a>
+                        <a href="/login" class="btn btn-ghost btn-lg"><?= t('Sign in') ?></a>
                     <?php endif; ?>
                 </div>
             </div>

@@ -16,6 +16,7 @@ export default defineConfig(({ command }) => ({
     rollupOptions: {
       input: {
         landingNomen: fileURLToPath(new URL('src/entries/landing-nomen.js', import.meta.url)),
+        install: fileURLToPath(new URL('src/entries/install.js', import.meta.url)),
         register: fileURLToPath(new URL('src/entries/register.js', import.meta.url)),
         login: fileURLToPath(new URL('src/entries/login.js', import.meta.url)),
         twofa: fileURLToPath(new URL('src/entries/twofa.js', import.meta.url)),

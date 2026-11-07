@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{ActivityLog, Database, Session, Csrf, Response, RateLimiter, Email, EmailTemplate, Captcha, GeoIP, I18n, RecoveryHelper, VerifyCode, FamilyHelper, EmailPolicy, EmailSet, Settings, Skins, Hooks, Features};
+use Nomen\Src\{ActivityLog, Database, Session, Csrf, Response, RateLimiter, Email, EmailTemplate, Captcha, GeoIP, I18n, RecoveryHelper, VerifyCode, FamilyHelper, EmailPolicy, EmailSet, Settings, Skins, Hooks, Features, LoginMethods};
 use Nomen\Controllers\{DeviceController, DashboardController};
 use PDO;
 
@@ -23,13 +23,13 @@ class AuthController
 
     /** 登录页上可用的登录方式（顺序即界面上的推荐次序），登录页与「本次已尝试」共用这套名称 */
     public const LOGIN_METHODS = [
-        'password'   => '密码登录',
-        'email_code' => '邮箱验证码登录',
-        'biometric'  => '生物识别登录',
+        'password'   => 'Password',
+        'email_code' => 'Email code',
+        'biometric'  => 'Biometric',
     ];
 
     /** 「本次已尝试」区里可能出现的方式名称（临时密钥在独立的 /fast-pass 页面上，没有主区表单） */
-    public const LOGIN_METHOD_LABELS = self::LOGIN_METHODS + ['temp_key' => '临时密钥登录'];
+    public const LOGIN_METHOD_LABELS = self::LOGIN_METHODS + ['temp_key' => 'Temp key sign-in'];
 
     public function __construct()
     {
@@ -67,8 +67,9 @@ class AuthController
             || ($this->isCaptchaRequired() && !$this->captchaGraceActive());
 
         $failedMethods = self::failedLoginMethods();
+        $methods = LoginMethods::all();
 
-        Response::view('login', compact('error', 'success', 'redirect_to', 'requireCaptcha', 'failedMethods'));
+        Response::view('login', compact('error', 'success', 'redirect_to', 'requireCaptcha', 'failedMethods', 'methods'));
     }
 
     /**
@@ -83,6 +84,10 @@ class AuthController
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
             $this->failLogin($loginUrl, $isAjax, '请求无效，请重试');
+        }
+
+        if (!LoginMethods::on('password')) {
+            $this->failLogin($loginUrl, $isAjax, '管理员已关闭密码登录，请改用其它方式登录');
         }
 
         $username = trim($_POST['username'] ?? '');
@@ -267,13 +272,13 @@ class AuthController
             Response::json([
                 'success'             => false,
                 'need_address_choice' => true,
-                'message'             => t('这个账号绑了多个邮箱，请选择发到哪一个'),
+                'message'             => t('Several addresses are bound — pick one for the code'),
                 'username'            => (string)$user['username'],
                 'addresses'           => $options,
             ]);
         }
 
-        Session::flash('error', t('这个账号绑了多个邮箱，请重新输入一次，然后选一个收信地址'));
+        Session::flash('error', t('Several addresses are bound — enter the identifier again and pick a mailbox'));
         Response::redirect($loginUrl);
     }
 
@@ -299,12 +304,12 @@ class AuthController
             Response::json([
                 'success'             => false,
                 'need_account_choice' => true,
-                'message'             => t('这个邮箱对应多个账号，请选择要登录哪一个'),
+                'message'             => t('This address matches several accounts — pick one to sign in'),
                 'accounts'            => $options,
             ]);
         }
 
-        Session::flash('error', t('这个邮箱对应多个账号，请重新输入一次，然后在弹出来的选择框里挑一个'));
+        Session::flash('error', t('This address matches several accounts — enter it again and pick from the chooser'));
         Response::redirect($loginUrl);
     }
 
@@ -611,7 +616,7 @@ class AuthController
         }
 
         if ($json) {
-            Response::json(['success' => true, 'message' => t('登录成功'), 'redirect' => $redirect_to]);
+            Response::json(['success' => true, 'message' => t('Signed in'), 'redirect' => $redirect_to]);
         }
 
         Response::redirect($redirect_to);
@@ -689,7 +694,7 @@ class AuthController
         if (!$key) return;
 
         $locale = I18n::locale();
-        $subject = 'Nomen - ' . I18n::tIn($locale, '临时密钥使用通知');
+        $subject = 'Nomen - ' . I18n::tIn($locale, 'Temp key used');
         $device = DeviceController::parseDeviceName($_SERVER['HTTP_USER_AGENT'] ?? '');
         $ip = $_SERVER['REMOTE_ADDR'] ?? '未知';
         $location = GeoIP::getLocation($ip);
@@ -697,22 +702,22 @@ class AuthController
 
         $htmlBody = EmailTemplate::render([
             'preheader' => I18n::tIn($locale, '你的临时密钥「{:label}」刚刚被使用', ['label' => $key['label']]),
-            'badge'     => ['text' => '安全提醒', 'tone' => 'important'],
-            'title'     => '临时密钥使用通知',
-            'subtitle'  => '你的 Nomen 账户使用临时密钥登录',
+            'badge'     => ['text' => 'Security alert', 'tone' => 'important'],
+            'title'     => 'Temp key used',
+            'subtitle'  => 'Your Nomen account was signed in with a temp key',
             'blocks'    => [
                 ['type' => 'paragraph', 'text' => I18n::tIn($locale, '你好 {:name}，你的临时密钥已被使用：', ['name' => $user['username']])],
                 ['type' => 'info', 'items' => [
-                    ['label' => '密钥名称', 'value' => $key['label']],
-                    ['label' => '设备', 'value' => $device],
-                    ['label' => 'IP 地址', 'value' => $ip],
-                    ['label' => '地理位置', 'value' => $location],
-                    ['label' => '使用时间', 'value' => $time],
-                    ['label' => '到期时间', 'value' => $key['expires_at']],
+                    ['label' => 'Key label', 'value' => $key['label']],
+                    ['label' => 'Device', 'value' => $device],
+                    ['label' => 'IP address', 'value' => $ip],
+                    ['label' => 'Location', 'value' => $location],
+                    ['label' => 'Used at', 'value' => $time],
+                    ['label' => 'Expires at', 'value' => $key['expires_at']],
                 ]],
-                ['type' => 'alert', 'tone' => 'danger', 'text' => '如果不是你本人操作，请立即修改密码并删除该临时密钥。'],
+                ['type' => 'alert', 'tone' => 'danger', 'text' => 'If this wasn\'t you, change your password and delete that temp key right away.'],
             ],
-            'button'    => ['text' => '管理临时密钥', 'url' => EmailTemplate::url('/settings')],
+            'button'    => ['text' => 'Manage temp keys', 'url' => EmailTemplate::url('/settings')],
         ], $locale);
 
         // 未成年账号没有自己的邮箱，安全提醒发到监护人邮箱
@@ -739,13 +744,22 @@ class AuthController
 
         if (!$isAjax) {
             if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-                Session::flash('error', t('请求无效，请重试'));
+                Session::flash('error', t('Invalid request, try again'));
                 Response::redirect($loginUrl);
             }
         }
 
+        if (!LoginMethods::on('email_code')) {
+            $message = '管理员已关闭邮箱验证码登录，请改用其它方式登录';
+            if ($isAjax) {
+                Response::json(['success' => false, 'message' => $message]);
+            }
+            Session::flash('error', $message);
+            Response::redirect($loginUrl);
+        }
+
         if (!Email::isConfigured()) {
-            $message = t('本站还没有配置邮件服务，暂时不能用邮箱验证码登录，请改用密码');
+            $message = t('This site has not set up email delivery yet, so email code login is unavailable for now. Please use your password.');
             if ($isAjax) {
                 Response::json(['success' => false, 'message' => $message]);
             }
@@ -891,27 +905,27 @@ class AuthController
         // 存不下就别发信：让用户收到一封输进去却对不上的验证码，比当场报错更难查
         if (!VerifyCode::issue(VerifyCode::LOGIN, (int)$user['id'], $code)) {
             if ($isAjax) {
-                Response::json(['success' => false, 'message' => t('服务暂时不可用，请稍后重试')]);
+                Response::json(['success' => false, 'message' => t('Service temporarily unavailable, try again later')]);
             }
-            Session::flash('error', t('服务暂时不可用，请稍后重试'));
+            Session::flash('error', t('Service temporarily unavailable, try again later'));
             Response::redirect($loginUrl);
         }
 
         // 发送验证码邮件（正文里写明是哪个账号的码，一个家长邮箱可能带多个孩子）
         $locale = I18n::locale();
-        $subject = 'Nomen - ' . I18n::tIn($locale, '登录验证码');
+        $subject = 'Nomen - ' . I18n::tIn($locale, 'Sign-in code');
         $htmlBody = $this->getLoginCodeEmailHtml($contact, $code, (string)$user['username'], $locale);
 
         if (Email::send($contact, $subject, $htmlBody)) {
             if ($isAjax) {
-                Response::json(['success' => true, 'message' => t('验证码已发送，请查收（10分钟内有效）')]);
+                Response::json(['success' => true, 'message' => t('Code sent — check your inbox (valid for 10 minutes)')]);
             }
-            Session::flash('success', t('验证码已发送，请查收（10分钟内有效）'));
+            Session::flash('success', t('Code sent — check your inbox (valid for 10 minutes)'));
         } else {
             if ($isAjax) {
-                Response::json(['success' => false, 'message' => t('邮件发送失败，请稍后重试')]);
+                Response::json(['success' => false, 'message' => t('Email failed to send, try again later')]);
             }
-            Session::flash('error', t('邮件发送失败，请稍后重试'));
+            Session::flash('error', t('Email failed to send, try again later'));
         }
 
         Response::redirect($loginUrl);
@@ -924,13 +938,17 @@ class AuthController
     {
         [$redirect_to, $loginUrl] = $this->resolveRedirect();
 
+        if (!LoginMethods::on('email_code')) {
+            $this->failLogin($loginUrl, false, '管理员已关闭邮箱验证码登录，请改用其它方式登录');
+        }
+
         if (!Email::isConfigured()) {
-            Session::flash('error', t('本站还没有配置邮件服务，暂时不能用邮箱验证码登录，请改用密码'));
+            Session::flash('error', t('This site has not set up email delivery yet, so email code login is unavailable for now. Please use your password.'));
             Response::redirect($loginUrl);
         }
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            Session::flash('error', t('请求无效，请重试'));
+            Session::flash('error', t('Invalid request, try again'));
             Response::redirect($loginUrl);
         }
 
@@ -1014,6 +1032,11 @@ class AuthController
             Response::redirect($redirect);
         }
 
+        if (!LoginMethods::on('temp_key')) {
+            Session::flash('error', '管理员已关闭临时密钥登录，请改用其它方式登录');
+            Response::redirect('/login');
+        }
+
         $error = Session::getFlash('error');
         $success = Session::getFlash('success');
         $redirect_to = $_GET['redirect_to'] ?? '/dashboard';
@@ -1033,8 +1056,12 @@ class AuthController
         [$redirect_to, $loginUrl] = $this->resolveRedirect();
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            Session::flash('error', t('请求无效，请重试'));
+            Session::flash('error', t('Invalid request, try again'));
             Response::redirect($loginUrl);
+        }
+
+        if (!LoginMethods::on('temp_key')) {
+            $this->failLogin($loginUrl, false, '管理员已关闭临时密钥登录，请改用其它方式登录');
         }
 
         $username = trim($_POST['username'] ?? '');
@@ -1095,17 +1122,17 @@ class AuthController
         if ($username !== '') {
             $items[] = ['label' => '账号', 'value' => $username];
         }
-        $items[] = ['label' => '收信地址', 'value' => $contact];
+        $items[] = ['label' => 'Contact address', 'value' => $contact];
 
         return EmailTemplate::render([
             'preheader' => I18n::tIn($locale, '你的登录验证码是 {:code}，10 分钟内有效', ['code' => $code]),
-            'badge'     => ['text' => '安全验证', 'tone' => 'general'],
-            'title'     => '登录验证码',
+            'badge'     => ['text' => 'Security verification', 'tone' => 'general'],
+            'title'     => 'Sign-in code',
             'subtitle'  => $username !== '' ? I18n::tIn($locale, '账号 {:name} 的登录验证码', ['name' => $username]) : I18n::tIn($locale, '使用验证码登录你的 Nomen 账户'),
             'blocks'    => [
                 ['type' => 'info', 'items' => $items],
-                ['type' => 'code', 'label' => '验证码', 'value' => $code],
-                ['type' => 'alert', 'tone' => 'warning', 'text' => '此验证码 10 分钟内有效。如果不是你本人操作，请忽略此邮件。'],
+                ['type' => 'code', 'label' => 'Code', 'value' => $code],
+                ['type' => 'alert', 'tone' => 'warning', 'text' => 'The code is valid for 10 minutes. If this wasn\'t you, ignore this email.'],
             ],
         ], $locale);
     }
@@ -1119,8 +1146,15 @@ class AuthController
             Response::redirect('/dashboard');
         }
 
+        // 密码注册被关且第三方也没有（或没启用）：注册页就是死路，回登录页提示
+        if (!LoginMethods::on('password') && !LoginMethods::on('oauth')) {
+            Session::flash('error', '本站没有可用的注册方式，请联系管理员');
+            Response::redirect('/login');
+        }
+
         $error = Session::getFlash('error');
         $old = Session::getFlash('old', []);
+        $passwordRegistration = LoginMethods::on('password');
 
         // 第三步按来访 IP 预填国家/地区，只是默认值（取不到就空着，用户随时能改）
         $detectedCountry = '';
@@ -1131,7 +1165,7 @@ class AuthController
             }
         }
 
-        Response::view('register', compact('error', 'old', 'detectedCountry'));
+        Response::view('register', compact('error', 'old', 'detectedCountry', 'passwordRegistration'));
     }
 
     /**
@@ -1139,6 +1173,11 @@ class AuthController
      */
     public function handleRegister(): void
     {
+        if (!LoginMethods::on('password')) {
+            Session::flash('error', '管理员已关闭账号密码注册，请使用第三方登录');
+            Response::redirect('/register');
+        }
+
         // 回显数据走白名单，绝不整体闪 $_POST —— 明文密码不能进 session / 页面
         $old = [
             'username' => trim($_POST['username'] ?? ''),
@@ -1154,21 +1193,21 @@ class AuthController
         ];
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            Session::flash('error', t('请求无效，请重试'));
+            Session::flash('error', t('Invalid request, try again'));
             Session::flash('old', $old);
             Response::redirect('/register');
         }
 
         // 验证图片验证码（GD 没装时这一步整体跳过）
         if (Captcha::available() && !Captcha::verify($_POST['captcha'] ?? null)) {
-            Session::flash('error', t('验证码错误'));
+            Session::flash('error', t('Wrong code'));
             Session::flash('old', $old);
             Response::redirect('/register');
         }
 
         // 检查是否同意条款
         if (empty($_POST['agree_terms']) || empty($_POST['agree_service'])) {
-            Session::flash('error', t('请同意隐私政策和服务协议'));
+            Session::flash('error', t('Please agree to the Privacy Policy and Terms of Service'));
             Session::flash('old', $old);
             Response::redirect('/register');
         }
@@ -1177,7 +1216,7 @@ class AuthController
         $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
         $rateCheck = RateLimiter::check("auth:register:{$ip}", 3, 3600);
         if (!$rateCheck['allowed']) {
-            Session::flash('error', t('注册太频繁，请稍后重试'));
+            Session::flash('error', t('Too many sign-ups, try again later'));
             Session::flash('old', $old);
             Response::redirect('/register');
         }
@@ -1205,32 +1244,32 @@ class AuthController
         }
 
         if (Features::country() && (!$country || !preg_match('/^[A-Z]{2}$/', $country))) {
-            Session::flash('error', t('请选择国家/地区'));
+            Session::flash('error', t('Pick a country/region'));
             Session::flash('old', $old);
             Response::redirect('/register');
         }
 
         if (!$birth_date || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $birth_date)) {
-            Session::flash('error', t('请选择有效的出生日期'));
+            Session::flash('error', t('Pick a valid date of birth'));
             Session::flash('old', $old);
             Response::redirect('/register');
         }
         $bd = explode('-', $birth_date);
         if (!checkdate((int)$bd[1], (int)$bd[2], (int)$bd[0]) || (int)$bd[0] < 1920 || (int)$bd[0] > (int)date('Y')) {
-            Session::flash('error', t('请选择有效的出生日期'));
+            Session::flash('error', t('Pick a valid date of birth'));
             Session::flash('old', $old);
             Response::redirect('/register');
         }
 
         $validGenders = ['female', 'male', 'non-binary', 'prefer-not-to-say'];
         if (!$gender || !in_array($gender, $validGenders)) {
-            Session::flash('error', t('请选择性别'));
+            Session::flash('error', t('Pick a gender'));
             Session::flash('old', $old);
             Response::redirect('/register');
         }
 
         if (!preg_match('/^[a-z0-9_]{3,32}$/', $username)) {
-            Session::flash('error', t('用户名只能包含小写字母、数字和下划线，3-32个字符'));
+            Session::flash('error', t('Username: lowercase letters, digits, underscore; 3-32 characters'));
             Session::flash('old', $old);
             Response::redirect('/register');
         }
@@ -1241,13 +1280,13 @@ class AuthController
         $email = ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL)) ? $email : null;
 
         if ($email === null && !$is_minor) {
-            Session::flash('error', t('邮箱格式不正确'));
+            Session::flash('error', t('Invalid email format'));
             Session::flash('old', $old);
             Response::redirect('/register');
         }
 
         if ($email === null && (!$parent_email || !filter_var($parent_email, FILTER_VALIDATE_EMAIL))) {
-            Session::flash('error', t('请填写你自己的邮箱；没有自己的邮箱就填家长的（用来接收验证邮件）'));
+            Session::flash('error', t('Enter your own email; if you don\'t have one, enter a parent\'s (it receives the verification)'));
             Session::flash('old', $old);
             Response::redirect('/register');
         }
@@ -1263,13 +1302,13 @@ class AuthController
         }
 
         if (strlen($password) < 8 || !preg_match('/[a-zA-Z]/', $password) || !preg_match('/[0-9]/', $password)) {
-            Session::flash('error', t('密码至少8位，且必须包含字母和数字'));
+            Session::flash('error', t('At least 8 characters with letters and digits'));
             Session::flash('old', $old);
             Response::redirect('/register');
         }
 
         if ($password !== $password_confirm) {
-            Session::flash('error', t('两次输入的密码不一致'));
+            Session::flash('error', t('The passwords you entered don\'t match'));
             Session::flash('old', $old);
             Response::redirect('/register');
         }
@@ -1298,7 +1337,7 @@ class AuthController
         if ($usernameTaken || $emailOwner) {
             // 这句刻意不区分是用户名还是邮箱命中的，否则等于对外提供一个邮箱枚举接口
             $hint = '如果这个邮箱确实是你的，可以到登录页用「邮箱验证码」登录已有账户。';
-            Session::flash('error', t('用户名或邮箱已被注册。') . $hint);
+            Session::flash('error', t('That username or email is already registered.') . $hint);
             Session::flash('old', $old);
             Response::redirect('/register');
         }
@@ -1381,7 +1420,7 @@ class AuthController
         Session::set('role', 'user');
 
         if ($useGuardianEmail) {
-            Session::flash('success', t('账号已创建。点下面的「发送验证邮件」，邮件会发到 {:email}；家长点确认后账号才能开始使用。', ['email' => RecoveryHelper::maskEmail($parent_email)]));
+            Session::flash('success', t('Account created. Press Send verification email below — the mail goes to {:email}. The account activates once a parent confirms.', ['email' => RecoveryHelper::maskEmail($parent_email)]));
             Response::redirect('/activate');
         }
 
@@ -1437,8 +1476,8 @@ class AuthController
         ]);
 
         $registerLocale = I18n::locale();
-        if (!Email::send($email, 'Nomen - ' . I18n::tIn($registerLocale, $is_under_16 ? '家长同意确认' : '邮箱验证'), $this->getRegisterClaimEmailHtml($email, $code, $is_under_16, $country, $gender, $registerLocale))) {
-            Session::flash('error', t('验证邮件发送失败，请在页面上点「重新发送」'));
+        if (!Email::send($email, 'Nomen - ' . I18n::tIn($registerLocale, $is_under_16 ? 'Parental consent confirmation' : 'Email verification'), $this->getRegisterClaimEmailHtml($email, $code, $is_under_16, $country, $gender, $registerLocale))) {
+            Session::flash('error', t('The verification email failed — press Resend on the page'));
         }
 
         Response::redirect($verifyUrl);
@@ -1452,7 +1491,7 @@ class AuthController
         $email = trim((string)($_GET['e'] ?? ''));
         $row = $this->findPendingRegistration($email);
         if (!$row) {
-            Session::flash('error', t('待验证的注册已失效，请重新填写注册信息'));
+            Session::flash('error', t('This pending registration expired — please register again'));
             Response::redirect('/register');
         }
 
@@ -1475,19 +1514,19 @@ class AuthController
         $back = '/register/verify?e=' . urlencode($email);
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            Session::flash('error', t('请求无效，请重试'));
+            Session::flash('error', t('Invalid request, try again'));
             Response::redirect($back);
         }
 
         $row = $this->findPendingRegistration($email);
         if (!$row) {
-            Session::flash('error', t('待验证的注册已失效，请重新填写注册信息'));
+            Session::flash('error', t('This pending registration expired — please register again'));
             Response::redirect('/register');
         }
 
         $wait = self::CLAIM_RESEND_COOLDOWN - (time() - (int)strtotime((string)$row['last_sent_at']));
         if ($wait > 0) {
-            Session::flash('error', t('刚刚已经发过一封了，请 {:wait} 秒后再试（之前那封里的验证码仍然有效）', ['wait' => $wait]));
+            Session::flash('error', t('One was just sent — wait {:wait}s (the code in it is still valid)', ['wait' => $wait]));
             Response::redirect($back);
         }
 
@@ -1507,10 +1546,10 @@ class AuthController
 
         $is_under_16 = Features::guardians() && !empty($row['is_under_16']);
         $registerLocale = I18n::locale();
-        if (Email::send($email, 'Nomen - ' . I18n::tIn($registerLocale, $is_under_16 ? '家长同意确认' : '邮箱验证'), $this->getRegisterClaimEmailHtml($email, $code, $is_under_16, (string)$row['country'], (string)$row['gender'], $registerLocale))) {
-            Session::flash('success', t('验证码已重新发送，请查收（10 分钟内有效）'));
+        if (Email::send($email, 'Nomen - ' . I18n::tIn($registerLocale, $is_under_16 ? 'Parental consent confirmation' : 'Email verification'), $this->getRegisterClaimEmailHtml($email, $code, $is_under_16, (string)$row['country'], (string)$row['gender'], $registerLocale))) {
+            Session::flash('success', t('Code resent — check your inbox (valid for 10 minutes)'));
         } else {
-            Session::flash('error', t('邮件发送失败，请稍后重试'));
+            Session::flash('error', t('Email failed to send, try again later'));
         }
 
         Response::redirect($back);
@@ -1526,32 +1565,32 @@ class AuthController
         $back = '/register/verify?e=' . urlencode($email);
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            Session::flash('error', t('请求无效，请重试'));
+            Session::flash('error', t('Invalid request, try again'));
             Response::redirect($back);
         }
 
         $row = $this->findPendingRegistration($email);
         if (!$row) {
-            Session::flash('error', t('待验证的注册已失效，请重新填写注册信息'));
+            Session::flash('error', t('This pending registration expired — please register again'));
             Response::redirect('/register');
         }
 
         if ((int)$row['attempts'] >= self::CLAIM_MAX_ATTEMPTS) {
             $this->db->prepare('DELETE FROM pending_registrations WHERE id = :id')->execute([':id' => $row['id']]);
-            Session::flash('error', t('验证码错误次数太多，请点「重新发送」拿一个新的'));
+            Session::flash('error', t('Too many wrong codes — press Resend for a new one'));
             Response::redirect($back);
         }
 
         if ($code === '' || !hash_equals((string)$row['code_hash'], hash('sha512', $code))) {
             $this->db->prepare('UPDATE pending_registrations SET attempts = attempts + 1 WHERE id = :id')->execute([':id' => $row['id']]);
-            Session::flash('error', t('验证码错误，请重新输入'));
+            Session::flash('error', t('Wrong code — try again'));
             Response::redirect($back);
         }
 
         $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
         $verifyRate = RateLimiter::check("register_claim:verify:{$ip}", 20, 3600);
         if (!$verifyRate['allowed']) {
-            Session::flash('error', t('验证尝试太频繁，请 {:n} 秒后重试', ['n' => $verifyRate['retry_after']]));
+            Session::flash('error', t('Too many verification attempts — retry in {:n}s', ['n' => $verifyRate['retry_after']]));
             Response::redirect($back);
         }
 
@@ -1568,7 +1607,7 @@ class AuthController
             // 已验证的账号（或管理员）绝不动：那是真主人在用的账号，删了等于替他注销
             if ($owner && (!empty($owner['email_verified']) || ($owner['role'] ?? 'user') === 'admin')) {
                 $this->db->rollBack();
-                Session::flash('error', t('这个邮箱已经完成验证了，请直接用「邮箱验证码」登录已有账户。'));
+                Session::flash('error', t('This address is already verified — sign in to the existing account with an email code.'));
                 Response::redirect('/register');
             }
 
@@ -1585,7 +1624,7 @@ class AuthController
                     'parent_email'  => !empty($row['is_under_16']) ? $email : '',
                     'current_step'  => 2,
                 ]);
-                Session::flash('error', t('用户名「{:name}」刚被别人占用了，请回注册页换一个。', ['name' => $row['username']]));
+                Session::flash('error', t('The username “{:name}” was just taken — go back and pick another.', ['name' => $row['username']]));
                 Response::redirect('/register');
             }
 
@@ -1608,7 +1647,7 @@ class AuthController
                 $stmt->execute([':id' => $oldId, ':admin' => 'admin']);
                 if ($stmt->rowCount() === 0) {
                     $this->db->rollBack();
-                    Session::flash('error', t('这个邮箱的状态刚刚变了，请重新提交注册。'));
+                    Session::flash('error', t('This address\'s status just changed — please submit the registration again.'));
                     Response::redirect('/register');
                 }
             }
@@ -1692,7 +1731,7 @@ class AuthController
                 $this->db->rollBack();
             }
             error_log('[RegisterClaim] ' . $ex->getMessage());
-            Session::flash('error', t('注册失败，请稍后重试'));
+            Session::flash('error', t('Sign-up failed, try again later'));
             Response::redirect($back);
         }
 
@@ -1759,28 +1798,28 @@ class AuthController
                     ['type' => 'paragraph', 'text' => '你好，'],
                     ['type' => 'paragraph', 'text' => I18n::tIn($locale, '你的孩子正在注册 Nomen —— 一个青少年可以在这里安全地探索和创造的平台。{:pronoun}在注册时填写的国家 / 地区是{:country}，性别是{:gender}。因为还没到本地区可以独立使用 Nomen 的年龄，我们需要你的同意。', ['pronoun' => $pronoun, 'country' => $countryName, 'gender' => $genderLabel])],
                     ['type' => 'info', 'items' => [
-                        ['label' => '家长邮箱', 'value' => $email],
-                        ['label' => '国家 / 地区', 'value' => $countryName],
-                        ['label' => '性别', 'value' => $genderLabel],
+                        ['label' => 'Parent\'s email', 'value' => $email],
+                        ['label' => 'Country / Region', 'value' => $countryName],
+                        ['label' => 'Gender', 'value' => $genderLabel],
                     ]],
                 ];
 
             return EmailTemplate::render([
                 'preheader' => I18n::tIn($locale, '你的孩子正在注册 Nomen 账户，需要你的同意'),
-                'badge'     => ['text' => '家长同意', 'tone' => 'warning'],
-                'title'     => '家长同意确认',
-                'subtitle'  => '你的孩子正在注册 Nomen 账户',
+                'badge'     => ['text' => 'Parental consent', 'tone' => 'warning'],
+                'title'     => 'Parental consent confirmation',
+                'subtitle'  => 'Your child is creating a Nomen account',
                 'blocks'    => array_merge(
                     $blocks,
                     FamilyHelper::consentAgeEmailBlocks(FamilyHelper::consentAgeInfo($country), $locale),
                     [
-                        ['type' => 'code', 'label' => '家长同意验证码', 'value' => $code],
+                        ['type' => 'code', 'label' => 'Parental consent code', 'value' => $code],
                         ['type' => 'paragraph', 'muted' => true, 'text' => I18n::tIn($locale, '在注册页输入这个验证码，即表示你同意你的孩子使用 Nomen。{:note}', ['note' => $replaceNote])],
                         ['type' => 'alert', 'tone' => 'warning', 'text' => I18n::tIn($locale, '这个验证码 10 分钟内有效。如果不是你或你的孩子操作，请忽略此邮件。')],
                     ],
                     EmailTemplate::privacyUrl() !== '' ? [
                         ['type' => 'divider'],
-                        ['type' => 'paragraph', 'muted' => true, 'text' => '你可以阅读我们的完整隐私政策：' . EmailTemplate::privacyUrl()],
+                        ['type' => 'paragraph', 'muted' => true, 'text' => 'You can read our full privacy policy: ' . EmailTemplate::privacyUrl()],
                     ] : []
                 ),
             ], $locale);
@@ -1788,12 +1827,12 @@ class AuthController
 
         return EmailTemplate::render([
             'preheader' => I18n::tIn($locale, '你的注册验证码是 {:code}，10 分钟内有效', ['code' => $code]),
-            'badge'     => ['text' => '邮箱验证', 'tone' => 'general'],
-            'title'     => '完成邮箱验证',
-            'subtitle'  => '验证通过后即可完成注册',
+            'badge'     => ['text' => 'Email verification', 'tone' => 'general'],
+            'title'     => 'Finish email verification',
+            'subtitle'  => 'Registration completes once verified',
             'blocks'    => [
-                ['type' => 'info', 'items' => [['label' => '待注册邮箱', 'value' => $email]]],
-                ['type' => 'code', 'label' => '验证码', 'value' => $code],
+                ['type' => 'info', 'items' => [['label' => 'Pending email', 'value' => $email]]],
+                ['type' => 'code', 'label' => 'Code', 'value' => $code],
                 ['type' => 'paragraph', 'muted' => true, 'text' => $replaceNote],
                 ['type' => 'alert', 'tone' => 'warning', 'text' => I18n::tIn($locale, '这个验证码 10 分钟内有效。如果不是你本人操作，请忽略此邮件。')],
             ],
@@ -1809,30 +1848,30 @@ class AuthController
 
         $username = trim($_GET['username'] ?? '');
         if (!$username) {
-            Response::json(['available' => false, 'message' => t('请输入用户名')]);
+            Response::json(['available' => false, 'message' => t('Enter a username')]);
             return;
         }
 
         if (!preg_match('/^[a-z0-9_]{3,32}$/', $username)) {
-            Response::json(['available' => false, 'message' => t('用户名只能包含小写字母、数字和下划线，3-32个字符')]);
+            Response::json(['available' => false, 'message' => t('Username: lowercase letters, digits, underscore; 3-32 characters')]);
             return;
         }
 
         // 保留用户名
         $reserved = ['admin', 'root', 'system', 'caellab', 'support', 'test', 'null', 'undefined'];
         if (in_array(strtolower($username), $reserved)) {
-            Response::json(['available' => false, 'message' => t('该用户名不可用')]);
+            Response::json(['available' => false, 'message' => t('That username is unavailable')]);
             return;
         }
 
         $stmt = $this->db->prepare('SELECT id FROM users WHERE username = :u LIMIT 1');
         $stmt->execute([':u' => $username]);
         if ($stmt->fetch()) {
-            Response::json(['available' => false, 'message' => t('用户名已被占用')]);
+            Response::json(['available' => false, 'message' => t('Username taken')]);
             return;
         }
 
-        Response::json(['available' => true, 'message' => t('用户名可用')]);
+        Response::json(['available' => true, 'message' => t('Username available')]);
     }
 
     /**

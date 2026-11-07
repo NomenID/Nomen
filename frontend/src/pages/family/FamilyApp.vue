@@ -28,10 +28,10 @@ const props = defineProps({
 })
 
 const statusLabels = {
-  pending: t('邀请中'),
-  active: t('已加入'),
-  independent: t('已停止监护'),
-  removed: t('已退出'),
+  pending: t('Invitation pending'),
+  active: t('Joined'),
+  independent: t('Supervision ended'),
+  removed: t('Left'),
 }
 
 const state = reactive({
@@ -49,46 +49,46 @@ const isChild = computed(() => state.membership !== null && state.membership !==
 const isActive = computed(() => isChild.value && state.membership.status === 'active')
 const isPending = computed(() => isChild.value && state.membership.status === 'pending')
 
-const relationshipLabel = (key) => t(props.relationships[key] ?? '家长')
+const relationshipLabel = (key) => t(props.relationships[key] ?? 'Parent')
 
 const checks = computed(() => {
   if (!isChild.value) return []
   const age = props.user.age
   return [
     {
-      label: t('绑定一个属于你自己的邮箱'),
+      label: t('Bind an email you own'),
       ok: !!props.user.hasOwnEmail,
-      note: t('现在收信用的是家长邮箱，停止监护前要先有自己的'),
+      note: t('Notifications currently go to a parent\'s address — you need your own before ending supervision'),
       link: '/settings',
     },
     {
-      label: t('家长已经加入你的家庭'),
+      label: t('A parent has already joined your family'),
       ok: isActive.value,
-      note: t('邀请还没有被家长接受'),
+      note: t('The invitation hasn\'t been accepted yet'),
     },
     {
-      label: t('已满本地区可以独立使用的年龄（{:age} 岁）', { age: props.consentAge }),
+      label: t('Past your region\'s independent-use age ({:age})', { age: props.consentAge }),
       ok: age !== null && age >= props.consentAge,
-      note: age === null ? t('账号没有出生日期记录') : t('当前记录为 {:age} 岁', { age }),
+      note: age === null ? t('No date of birth on record for this account') : t('Currently recorded as age {:age}', { age }),
     },
     {
-      label: t('账号创建已满 {:days} 天', { days: props.minDays }),
+      label: t('Account is older than {:days} days', { days: props.minDays }),
       ok: props.user.accountAgeOk,
-      note: t('防止刚注册就脱离家长'),
+      note: t('Prevents leaving a parent right after sign-up'),
     },
   ]
 })
 
 const childStatusText = (child) => {
-  if (child.status === 'independent') return t('已停止监护')
-  if (child.status === 'pending') return t('邀请中')
-  if (Number(child.user_status) !== 1) return t('已锁定')
-  return t('正常')
+  if (child.status === 'independent') return t('Supervision ended')
+  if (child.status === 'pending') return t('Invitation pending')
+  if (Number(child.user_status) !== 1) return t('Locked')
+  return t('Normal')
 }
 
 const childAgeText = (child) => {
-  if (child.age === null || child.age === undefined) return t('出生日期未知')
-  return t('{:age} 岁', { age: child.age })
+  if (child.age === null || child.age === undefined) return t('Date of birth unknown')
+  return t('age {:age}', { age: child.age })
 }
 
 const releaseReason = computed(() =>
@@ -100,8 +100,8 @@ const busy = ref(false)
 async function submit(action, fields, { confirm } = {}) {
   if (confirm) {
     const ok = await window.Nomen.confirm(confirm.title, confirm.message, {
-      confirmText: confirm.ok || t('确定'),
-      cancelText: t('取消'),
+      confirmText: confirm.ok || t('OK'),
+      cancelText: t('Cancel'),
       danger: !!confirm.danger,
     })
     if (!ok) return
@@ -121,10 +121,10 @@ async function submit(action, fields, { confirm } = {}) {
       state.error = res.data.error || ''
       state.success = res.data.success || ''
     }
-    toast(res.message || (res.success ? t('已完成') : t('操作失败')), res.success ? 'success' : 'error')
+    toast(res.message || (res.success ? t('Done') : t('Operation failed')), res.success ? 'success' : 'error')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   } catch (err) {
-    toast(err.message || t('网络错误'), 'error')
+    toast(err.message || t('Network error'), 'error')
   } finally {
     busy.value = false
   }
@@ -146,9 +146,9 @@ const resetForm = reactive({ code: '', new_password: '', confirm_password: '' })
 
 <template>
   <div class="settings">
-    <h1>{{ t('家庭') }}</h1>
+    <h1>{{ t('Family') }}</h1>
     <p class="form-hint" style="margin-bottom:20px;">
-      {{ t('一个账号可以被一位家长带着用：家长加入家庭后，能帮你重置密码、临时锁定账号，') }}{{ t('但看不到你的密码、读不到你的消息，也不能以你的身份登录。') }}
+      {{ t('A parent can look after the account: once they join the family, they can reset your password or lock it temporarily,') }}{{ t('but they can\'t see your password, read your messages, or sign in as you.') }}
     </p>
 
     <BaseAlert v-if="state.error" type="error" :message="state.error" />
@@ -156,41 +156,41 @@ const resetForm = reactive({ code: '', new_password: '', confirm_password: '' })
 
     <!-- 发给你的邀请 -->
     <div v-if="state.invitations.length" class="settings-section">
-      <h2>{{ t('发给你的邀请') }}</h2>
+      <h2>{{ t('Invitations for you') }}</h2>
       <div v-for="invite in state.invitations" :key="invite.email" class="family-member">
         <div class="family-member__main">
-          <span class="family-list__name">{{ invite.child_names || t('一个孩子账号') }}</span>
-          <span class="family-list__meta">{{ t('邀请') }} <strong>{{ invite.email }}</strong> {{ t('成为家长') }}</span>
+          <span class="family-list__name">{{ invite.child_names || t('One child account') }}</span>
+          <span class="family-list__meta">{{ t('Invite') }} <strong>{{ invite.email }}</strong> {{ t('Become a parent') }}</span>
         </div>
         <form method="POST" action="/family/accept" @submit.prevent="post('/family/accept')">
-          <button type="submit" class="btn btn-primary btn-sm">{{ t('加入') }}</button>
+          <button type="submit" class="btn btn-primary btn-sm">{{ t('Join') }}</button>
         </form>
       </div>
-      <small class="form-hint" style="display:block;margin-top:10px;">{{ t('加入后你能帮 TA 重置登录密码、临时锁定账号。') }}</small>
+      <small class="form-hint" style="display:block;margin-top:10px;">{{ t('After joining you can reset their sign-in password or lock the account temporarily.') }}</small>
     </div>
 
     <!-- 你作为家长的每个家庭 -->
     <div v-for="group in state.groups" :key="group.id" class="settings-section">
-      <h2>{{ t('你的家庭') }}</h2>
+      <h2>{{ t('Your family') }}</h2>
       <p class="form-hint" style="margin-bottom:14px;">
-        {{ t('这个家庭用的是邮箱') }} <strong>{{ group.guardian_email }}</strong>{{ t('。') }}
+        {{ t('This family uses the email') }} <strong>{{ group.guardian_email }}</strong>{{ t('.') }}
       </p>
 
-      <h3 class="family-sub">{{ t('家长') }}</h3>
+      <h3 class="family-sub">{{ t('Parent') }}</h3>
       <ul class="family-list">
         <li v-for="guardian in group.guardians" :key="guardian.email + guardian.user_id">
           <span class="family-list__name">
             {{ guardian.username || guardian.email }}
-            <span v-if="Number(guardian.user_id) === Number(user.id)" class="family-tag">{{ t('你') }}</span>
+            <span v-if="Number(guardian.user_id) === Number(user.id)" class="family-tag">{{ t('you') }}</span>
           </span>
           <span class="family-list__meta">
             {{ relationshipLabel(guardian.relationship) }}
-            · {{ guardian.user_id ? t('已加入') : t('邀请中（还没注册 Nomen）') }}
+            · {{ guardian.user_id ? t('Joined') : t('Pending (no Nomen yet)') }}
           </span>
         </li>
       </ul>
 
-      <h3 class="family-sub">{{ t('孩子') }}</h3>
+      <h3 class="family-sub">{{ t('Child') }}</h3>
       <ul class="family-list">
         <li v-for="child in (state.childrenByGroup[group.id] || [])" :key="child.user_id" class="family-child">
           <span class="family-list__name">{{ child.username }}</span>
@@ -203,19 +203,19 @@ const resetForm = reactive({ code: '', new_password: '', confirm_password: '' })
               action="/family/child/status"
               @submit.prevent="post('/family/child/status', { child_id: child.user_id, op: 'lock' }, {
                 confirm: {
-                  title: t('锁定账号'),
-                  message: t('锁定后 TA 会被立刻踢下线并且无法登录。确定吗？'),
-                  ok: t('锁定'),
+                  title: t('Lock account'),
+                  message: t('They\'ll be signed out immediately and unable to sign in. Are you sure?'),
+                  ok: t('Lock'),
                 },
               })"
             >
-              <button type="submit" class="btn btn-secondary btn-sm">{{ t('锁定') }}</button>
+              <button type="submit" class="btn btn-secondary btn-sm">{{ t('Lock') }}</button>
             </form>
             <form v-else method="POST" action="/family/child/status" @submit.prevent="post('/family/child/status', { child_id: child.user_id, op: 'unlock' })">
-              <button type="submit" class="btn btn-secondary btn-sm">{{ t('解锁') }}</button>
+              <button type="submit" class="btn btn-secondary btn-sm">{{ t('Unlock') }}</button>
             </form>
             <form method="POST" action="/family/child/reset/send" @submit.prevent="post('/family/child/reset/send', { child_id: child.user_id })">
-              <button type="submit" class="btn btn-secondary btn-sm">{{ t('重置密码') }}</button>
+              <button type="submit" class="btn btn-secondary btn-sm">{{ t('Reset password') }}</button>
             </form>
           </div>
 
@@ -227,43 +227,43 @@ const resetForm = reactive({ code: '', new_password: '', confirm_password: '' })
             @submit.prevent="post('/family/child/reset', { child_id: child.user_id, code: resetForm.code, new_password: resetForm.new_password, confirm_password: resetForm.confirm_password })"
           >
             <div class="form-group">
-              <label>{{ t('验证码（已发到你的邮箱）') }}</label>
-              <input v-model="resetForm.code" type="text" required maxlength="6" :placeholder="t('6 位验证码')">
+              <label>{{ t('Code (sent to your email)') }}</label>
+              <input v-model="resetForm.code" type="text" required maxlength="6" :placeholder="t('6-digit code')">
             </div>
             <div class="form-group">
-              <label>{{ t('给 TA 设置的新密码') }}</label>
+              <label>{{ t('New password for the child') }}</label>
               <div class="pw-wrap">
-                <input v-model="resetForm.new_password" type="password" required minlength="8" :placeholder="t('至少8位，包含字母和数字')">
+                <input v-model="resetForm.new_password" type="password" required minlength="8" :placeholder="t('8+ characters, letters and digits')">
               </div>
             </div>
             <div class="form-group">
-              <label>{{ t('确认新密码') }}</label>
+              <label>{{ t('Confirm new password') }}</label>
               <input v-model="resetForm.confirm_password" type="password" required>
             </div>
-            <button type="submit" class="btn btn-primary btn-sm" :disabled="busy">{{ t('确认重置') }}</button>
+            <button type="submit" class="btn btn-primary btn-sm" :disabled="busy">{{ t('Reset') }}</button>
           </form>
         </li>
         <li v-if="!(state.childrenByGroup[group.id] || []).length">
-          <span class="family-list__meta">{{ t('这个家庭里还没有孩子账号') }}</span>
+          <span class="family-list__meta">{{ t('No child accounts in this family yet') }}</span>
         </li>
       </ul>
 
-      <h3 class="family-sub">{{ t('邀请另一位家长') }}</h3>
+      <h3 class="family-sub">{{ t('Invite another parent') }}</h3>
       <form
         method="POST"
         action="/family/guardian/add"
         class="family-inline-form"
         @submit.prevent="post('/family/guardian/add', { group_id: group.id, guardian_email: guardianEmail, relationship: guardianRelation })"
       >
-        <input v-model="guardianEmail" type="email" required :placeholder="t('爸爸或妈妈的邮箱')">
+        <input v-model="guardianEmail" type="email" required :placeholder="t('Mom\'s or dad\'s email')">
         <select v-model="guardianRelation">
           <option v-for="(label, key) in relationships" :key="key" :value="key">{{ t(label) }}</option>
         </select>
-        <button type="submit" class="btn btn-secondary">{{ t('邀请') }}</button>
+        <button type="submit" class="btn btn-secondary">{{ t('Invite') }}</button>
       </form>
-      <small class="form-hint">{{ t('对方用这条邮箱注册或登录 Nomen 后，在「家庭」页面就能加入。') }}</small>
+      <small class="form-hint">{{ t('Once they register or sign in with that address, they can join from the Family page.') }}</small>
 
-      <h3 class="family-sub">{{ t('创建孩子账号') }}</h3>
+      <h3 class="family-sub">{{ t('Create child account') }}</h3>
       <form
         method="POST"
         action="/family/child/create"
@@ -271,44 +271,44 @@ const resetForm = reactive({ code: '', new_password: '', confirm_password: '' })
         @submit.prevent="post('/family/child/create', { group_id: group.id, username: newChild.username, birth_date: newChild.birth_date, gender: newChild.gender, password: newChild.password, password_confirm: newChild.password_confirm })"
       >
         <div class="form-group">
-          <label>{{ t('用户名') }}</label>
-          <input v-model="newChild.username" type="text" required pattern="[a-z0-9_]{3,32}" :placeholder="t('小写字母、数字、下划线')">
+          <label>{{ t('Username') }}</label>
+          <input v-model="newChild.username" type="text" required pattern="[a-z0-9_]{3,32}" :placeholder="t('lowercase letters, digits, underscore')">
         </div>
         <div class="form-group">
-          <label>{{ t('出生日期') }}</label>
+          <label>{{ t('Date of birth') }}</label>
           <input v-model="newChild.birth_date" type="date" required>
         </div>
         <div class="form-group">
-          <label>{{ t('性别') }}</label>
+          <label>{{ t('Gender') }}</label>
           <select v-model="newChild.gender" required>
-            <option value="female">{{ t('女') }}</option>
-            <option value="male">{{ t('男') }}</option>
-            <option value="non-binary">{{ t('非二元') }}</option>
-            <option value="prefer-not-to-say">{{ t('不愿透露') }}</option>
+            <option value="female">{{ t('Female') }}</option>
+            <option value="male">{{ t('Male') }}</option>
+            <option value="non-binary">{{ t('Non-binary') }}</option>
+            <option value="prefer-not-to-say">{{ t('Prefer not to say') }}</option>
           </select>
         </div>
         <div class="form-group">
-          <label>{{ t('初始密码') }}</label>
+          <label>{{ t('Initial password') }}</label>
           <div class="pw-wrap">
-            <input v-model="newChild.password" type="password" required minlength="8" :placeholder="t('至少8位，包含字母和数字')">
+            <input v-model="newChild.password" type="password" required minlength="8" :placeholder="t('8+ characters, letters and digits')">
           </div>
         </div>
         <div class="form-group">
-          <label>{{ t('确认密码') }}</label>
+          <label>{{ t('Confirm password') }}</label>
           <input v-model="newChild.password_confirm" type="password" required>
         </div>
-        <button type="submit" class="btn btn-primary" :disabled="busy">{{ t('创建账号') }}</button>
-        <small class="form-hint">{{ t('创建后把用户名和初始密码交给孩子，让 TA 登录后自己改掉。') }}</small>
+        <button type="submit" class="btn btn-primary" :disabled="busy">{{ t('Create account') }}</button>
+        <small class="form-hint">{{ t('Hand the username and initial password to the child — they can change it after signing in.') }}</small>
       </form>
     </div>
 
     <!-- 你是孩子 -->
     <div v-if="isChild" class="settings-section">
-      <h2>{{ t('你的家长') }}</h2>
+      <h2>{{ t('Your parents') }}</h2>
       <p class="family-status">
-        {{ t('当前状态：') }}<strong>{{ statusLabels[state.membership.status] || state.membership.status }}</strong>
-        <template v-if="isPending"> · {{ t('邀请已经发出，等家长接受') }}</template>
-        <template v-else-if="isActive"> · {{ t('家长可以重置你的密码、临时锁定你的账号') }}</template>
+        {{ t('Current status: ') }}<strong>{{ statusLabels[state.membership.status] || state.membership.status }}</strong>
+        <template v-if="isPending"> · {{ t('Invitation sent — waiting for the parent to accept') }}</template>
+        <template v-else-if="isActive"> · {{ t('Parents can reset your password or lock your account') }}</template>
       </p>
 
       <ul class="family-list">
@@ -316,84 +316,84 @@ const resetForm = reactive({ code: '', new_password: '', confirm_password: '' })
           <span class="family-list__name">{{ guardian.username || guardian.email }}</span>
           <span class="family-list__meta">
             {{ relationshipLabel(guardian.relationship) }}
-            · {{ guardian.user_id ? t('已加入') : t('邀请中（还没注册 Nomen）') }}
+            · {{ guardian.user_id ? t('Joined') : t('Pending (no Nomen yet)') }}
           </span>
         </li>
-        <li v-if="!guardians.length"><span class="family-list__meta">{{ t('还没有邀请家长') }}</span></li>
+        <li v-if="!guardians.length"><span class="family-list__meta">{{ t('No parent invited yet') }}</span></li>
       </ul>
 
       <template v-if="isActive">
-        <h3 class="family-sub">{{ t('家长能做什么') }}</h3>
+        <h3 class="family-sub">{{ t('What parents can do') }}</h3>
         <ul class="family-perms">
-          <li class="is-can">{{ t('帮你重置登录密码') }}</li>
-          <li class="is-can">{{ t('临时锁定 / 解锁你的账号') }}</li>
-          <li class="is-cannot">{{ t('看到你的密码') }}</li>
-          <li class="is-cannot">{{ t('读你的站内消息或邮件') }}</li>
-          <li class="is-cannot">{{ t('以你的身份登录') }}</li>
+          <li class="is-can">{{ t('Reset your sign-in password for you') }}</li>
+          <li class="is-can">{{ t('Temporarily lock or unlock your account') }}</li>
+          <li class="is-cannot">{{ t('See your password') }}</li>
+          <li class="is-cannot">{{ t('Read your in-site messages or mail') }}</li>
+          <li class="is-cannot">{{ t('Sign in as you') }}</li>
         </ul>
       </template>
 
       <template v-if="isPending || isActive">
-        <h3 class="family-sub">{{ t('邀请家长') }}</h3>
+        <h3 class="family-sub">{{ t('Invite parent') }}</h3>
         <form
           method="POST"
           action="/family/invite-parent"
           class="family-inline-form"
           @submit.prevent="post('/family/invite-parent', { guardian_email: inviteEmail, relationship: inviteRelation })"
         >
-          <input v-model="inviteEmail" type="email" required :placeholder="t('家长或监护人的邮箱')">
+          <input v-model="inviteEmail" type="email" required :placeholder="t('Parent or guardian\'s email')">
           <select v-model="inviteRelation">
             <option v-for="(label, key) in relationships" :key="key" :value="key">{{ t(label) }}</option>
           </select>
-          <button type="submit" class="btn btn-secondary">{{ t('发邀请') }}</button>
+          <button type="submit" class="btn btn-secondary">{{ t('Send invite') }}</button>
         </form>
-        <small class="form-hint">{{ t('家长用这条邮箱注册或登录后，在「家庭」页面就能加入。') }}</small>
+        <small class="form-hint">{{ t('Once the parent registers or signs in with that address, they can join from the Family page.') }}</small>
 
-        <h3 class="family-sub">{{ t('停止监护') }}</h3>
+        <h3 class="family-sub">{{ t('End supervision') }}</h3>
         <ul class="family-checks">
           <li v-for="check in checks" :key="check.label" :class="check.ok ? 'is-ok' : 'is-todo'">
             <span class="family-checks__mark">{{ check.ok ? '✓' : '·' }}</span>
             <span>
               {{ check.label }}
               <small v-if="!check.ok && check.note" class="form-hint">{{ check.note }}</small>
-              <a v-if="!check.ok && check.link" :href="check.link">{{ t('去设置') }}</a>
+              <a v-if="!check.ok && check.link" :href="check.link">{{ t('Go to settings') }}</a>
             </span>
           </li>
         </ul>
 
         <form method="POST" action="/family/release" @submit.prevent="post('/family/release', {}, {
           confirm: {
-            title: t('停止监护'),
-            message: t('停止监护后，家长不能再重置你的密码或锁定你的账号。确定吗？'),
-            ok: t('停止监护'),
+            title: t('End supervision'),
+            message: t('After this, parents can no longer reset your password or lock your account. Are you sure?'),
+            ok: t('End supervision'),
           },
         })">
-          <button type="submit" class="btn btn-primary" :disabled="busy || !releaseCheck.ok">{{ t('停止监护') }}</button>
+          <button type="submit" class="btn btn-primary" :disabled="busy || !releaseCheck.ok">{{ t('End supervision') }}</button>
           <small v-if="!releaseCheck.ok" class="form-hint">{{ releaseReason }}</small>
         </form>
       </template>
       <template v-else>
         <form method="POST" action="/family/leave" @submit.prevent="post('/family/leave', {}, {
           confirm: {
-            title: t('退出家庭'),
-            message: t('退出后家长就看不到你了。确定吗？'),
-            ok: t('退出'),
+            title: t('Leave family'),
+            message: t('After leaving, your parents can no longer see you. Are you sure?'),
+            ok: t('Sign out'),
             danger: true,
           },
         })">
-          <button type="submit" class="btn btn-secondary">{{ t('退出家庭') }}</button>
+          <button type="submit" class="btn btn-secondary">{{ t('Leave family') }}</button>
         </form>
       </template>
     </div>
 
     <!-- 家长入口（还没有家庭） -->
     <div v-if="!state.groups.length" class="settings-section">
-      <h2>{{ t('家长入口') }}</h2>
+      <h2>{{ t('For parents') }}</h2>
       <p v-if="state.invitations.length" class="form-hint">
-        {{ t('上面的邀请点「加入」即可；如果邀请发给了你另一条邮箱，用那条邮箱收验证码在这里加入。') }}
+        {{ t('Press Join on an invitation above. If it was sent to another address of yours, request the code on that mailbox and join here.') }}
       </p>
       <p v-else class="form-hint" style="margin-bottom:16px;">
-        {{ t('孩子注册时填了你的邮箱、或者邀请了你，这里就会出现邀请。') }}{{ t('用那条邮箱注册过 Nomen 的话，登录后就能直接接受。') }}
+        {{ t('If your child used your email at sign-up or invited you, the invitation shows up here.') }}{{ t('If that address already has a Nomen account, sign in with it and accept directly.') }}
       </p>
 
       <form
@@ -403,16 +403,16 @@ const resetForm = reactive({ code: '', new_password: '', confirm_password: '' })
         class="family-inline-form"
         @submit.prevent="post('/family/claim/send', { guardian_email: claimEmail })"
       >
-        <input v-model="claimEmail" type="email" required :placeholder="t('收到邀请的那条邮箱')">
-        <button type="submit" class="btn btn-secondary">{{ t('发送验证码') }}</button>
+        <input v-model="claimEmail" type="email" required :placeholder="t('The invited address')">
+        <button type="submit" class="btn btn-secondary">{{ t('Send code') }}</button>
       </form>
       <template v-else>
         <form method="POST" action="/family/claim" class="family-inline-form" @submit.prevent="post('/family/claim', { code: claimCode })">
-          <input v-model="claimCode" type="text" required maxlength="6" :placeholder="t('6 位验证码')">
-          <button type="submit" class="btn btn-primary">{{ t('加入') }}</button>
+          <input v-model="claimCode" type="text" required maxlength="6" :placeholder="t('6-digit code')">
+          <button type="submit" class="btn btn-primary">{{ t('Join') }}</button>
         </form>
         <small class="form-hint">
-          {{ t('验证码已发到') }} {{ user.claimPendingMasked }}{{ t('，10 分钟内有效。') }}
+          {{ t('The code went to') }} {{ user.claimPendingMasked }}{{ t(', valid for 10 minutes.') }}
         </small>
       </template>
     </div>

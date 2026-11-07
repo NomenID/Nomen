@@ -1200,3 +1200,28 @@
     border-radius: 8px;
     font-size: 13px;
 }
+
+.home-links-defaults {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.home-links-defaults__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.home-links-defaults__item .a-sub {
+    margin: 0;
+}
+
+.home-links-custom {
+    align-items: center;
+}
+
+.home-links-custom .a-input:first-child {
+    max-width: 220px;
+}

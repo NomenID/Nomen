@@ -27,7 +27,7 @@ class EmailController
     {
         $token = (string)($_GET['token'] ?? '');
         if ($token === '') {
-            Response::error(400, t('无效的验证链接'));
+            Response::error(400, t('Invalid verification link'));
         }
 
         $stmt = $this->db->prepare(
@@ -37,23 +37,23 @@ class EmailController
         $row = $stmt->fetch();
 
         if (!$row) {
-            Response::error(400, t('无效的验证链接'));
+            Response::error(400, t('Invalid verification link'));
         }
 
         $userId = (int)$row['user_id'];
         $email  = (string)$row['email'];
 
         if (!empty($row['verified'])) {
-            Session::flash('success', t('这个邮箱已经确认过了'));
+            Session::flash('success', t('This address is already confirmed'));
             Response::redirect($this->backFromEmail($userId));
         }
 
         if (strtotime((string)$row['verify_token_expires_at']) < time()) {
-            Response::error(400, t('验证链接已过期，请在设置页重新发送'));
+            Response::error(400, t('This verification link has expired — resend it from settings'));
         }
 
         if (!EmailSet::markVerified($userId, (int)$row['id'])) {
-            Response::error(400, t('这个邮箱刚被别的账号占用了（主邮箱和备选邮箱各自唯一），无法绑定到你的账号'));
+            Response::error(400, t('That email was just claimed by another account (primary and backup emails are each unique), so it can\'t be bound to your account'));
         }
 
         $stmt = $this->db->prepare('SELECT username FROM users WHERE id = :id');
@@ -85,7 +85,7 @@ class EmailController
             }
         }
 
-        Session::flash('success', t('邮箱 {:email} 已确认', ['email' => $email]));
+        Session::flash('success', t('{:email} confirmed', ['email' => $email]));
         Response::redirect($this->backFromEmail($userId));
     }
 

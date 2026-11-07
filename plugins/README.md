@@ -235,7 +235,7 @@ $claims = Hooks::filter('userinfo.claims', $claims, $user, $scopes);
 | `layout.head` | filter | `html`, `layout` | 布局 `</head>` 前；返回值原样输出 |
 | `layout.body.start` | filter | `html`, `layout` | 布局 `<body>` 后 |
 | `layout.body.end` | filter | `html`, `layout` | 布局 `</body>` 前 |
-| `homepage.links` | filter | `links` | 首页底部链接组 |
+| `homepage.links` | filter | `links` | 首页底部链接组；追加条目带 `by`（插件显示名）的话，后台「首页」编辑器会标「由 X 托管」 |
 | `homepage.sections` | filter | `sections`, `home` | 默认首页正文区块；插件返回 HTML 片段数组 |
 | `footer.links` | filter | `links`, `brand`, `layout` | 页脚链接数组 |
 | `footer.html` | filter | `html`, `layout`, `brand`, `links` | 页脚最终 HTML（config/footer.php 或皮肤 partial 渲染完） |
@@ -251,11 +251,43 @@ $claims = Hooks::filter('userinfo.claims', $claims, $user, $scopes);
 | `admin.logs.rows` | filter | `rows` | 活动日志列表返回前 |
 | `admin.recovery.detail` | filter | `payload`, `request`, `user` | 恢复工单详情返回前 |
 | `admin.settings.data` | filter | `payload` | 站点设置页数据 |
-| `admin.settings.saved` | run | `policy`, `backend`, `adminId` | 站点设置保存后 |
+| `admin.settings.saved` | run | `policy`, `backend`, `adminId`, `apiEnabled` | 站点设置保存后 |
 | `admin.plugin.page.body` | filter | `html`, `slug`, `page`, `tab` | 插件后台页面输出前 |
 | `pages.content.before_save` | filter | `data`, `existing`, `isNew` | Pages 插件写库前，可改字段 |
 | `pages.content.saved` | run | `pageId`, `data`, `isNew`, `userId` | Pages 插件保存后 |
 | `pages.content.deleted` | run | `pageId`, `page`, `userId` | Pages 插件删除前 |
+| `api.siteinfo` | filter | `info`, `siprops`, `params` | `/nomen-api` 的 siteinfo 组装完 |
+
+## 站点 API
+
+`/nomen-api` 是给开发者拉数据的只读接口，参数照 MediaWiki 的习惯：
+
+```
+GET /nomen-api?action=query&meta=siteinfo&format=json
+GET /nomen-api?action=query&list=allpages&limit=20
+GET /nomen-api?action=query&titles=start&prop=content
+```
+
+总开关在后台「设置」里（`site_settings.api.nomen_api`，默认开），关掉后整个入口回 404。`action=help` 会列出当前装着的全部模块。
+
+插件在 `boot()` 里注册模块：
+
+```php
+use Nomen\Src\Api;
+
+Api::action('echo', fn(array $params): array => ['echo' => $params], 'public', '原样返回参数');
+Api::meta('foo', [Meta::class, 'build'], 'public', '站点信息扩展');
+Api::list('things', [ListModule::class, 'all'], 'public', '列出 things（limit / offset）');
+Api::prop('thing', [PropModule::class, 'fields'], 'public', 'things 的字段（titles）');
+```
+
+- `access` 只有 `public`（匿名可读）和 `admin`（管理员会话或管理员 OAuth Bearer token）两种。写错名字直接 500，不会当成 public 放出去。
+- `meta` / `list` 回调签名 `fn(array $params): array`，返回的数组并进 `query`；带 `continue` 键会被提到顶层。
+- `prop` 回调签名 `fn(array $titles, array $params): array`，返回 `slug => 字段`。核心按 `titles` 的顺序拼 `query.pages`，没找到的标 `missing`。
+- 错误用 `Api::error(400, 'badvalue', '...')`，输出统一是 `{"error":{"code":...,"info":...}}`。
+- 写操作的模块要自己校验 CSRF 或令牌，核心只负责读权限。
+
+页面相关的模块见 `plugins/pages/src/Api.php`（`allpages` / `info` / `content`）。
 
 ## 多语言
 

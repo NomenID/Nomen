@@ -29,7 +29,7 @@ class ActivationController
         $user = $stmt->fetch();
 
         if (!$user) {
-            Session::flash('error', t('用户不存在'));
+            Session::flash('error', t('User not found'));
             Response::redirect('/login');
         }
 
@@ -63,8 +63,8 @@ class ActivationController
                   strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('请求无效，请重试')]);
-            Session::flash('error', t('请求无效，请重试'));
+            if ($isAjax) Response::json(['success' => false, 'message' => t('Invalid request, try again')]);
+            Session::flash('error', t('Invalid request, try again'));
             Response::redirect('/activate');
         }
 
@@ -75,16 +75,16 @@ class ActivationController
 
         if (!$user) {
             if ($isAjax) {
-                Response::json(['success' => false, 'message' => t('用户不存在')]);
+                Response::json(['success' => false, 'message' => t('User not found')]);
             }
-            Session::flash('error', t('用户不存在'));
+            Session::flash('error', t('User not found'));
             Response::redirect('/login');
         }
 
         if ($user['email_verified']
             || (Features::guardians() && FamilyHelper::guardianConfirmed((int)$userId))) {
             if ($isAjax) {
-                Response::json(['success' => true, 'message' => t('邮箱已验证')]);
+                Response::json(['success' => true, 'message' => t('Email verified')]);
             }
             Response::redirect('/dashboard');
         }
@@ -127,16 +127,16 @@ class ActivationController
         // 理论上到不了：没有自有邮箱的账号，家庭里一定有一条家长邮箱。真遇到说明成员行被删了
         if ($contact === null) {
             if ($isAjax) {
-                Response::json(['success' => false, 'message' => t('账号没有可用的收信地址，请联系支持团队')]);
+                Response::json(['success' => false, 'message' => t('The account has no usable mailbox — contact support')]);
             }
-            Session::flash('error', t('账号没有可用的收信地址，请联系支持团队（id@caellab.com）'));
+            Session::flash('error', t('The account has no usable mailbox — contact support (id@caellab.com)'));
             Response::redirect('/activate');
         }
 
         // 发送邮件
         if ($usesGuardianAddress) {
             $locale = 'zh-hans'; // 收件人是家长（还没有账号），保持中文
-            $subject = 'Nomen - ' . I18n::tIn($locale, '家长确认');
+            $subject = 'Nomen - ' . I18n::tIn($locale, 'Parent confirmation');
             $htmlBody = $this->getGuardianConfirmEmailHtml(
                 (string)$contact,
                 $verifyUrl,
@@ -147,20 +147,20 @@ class ActivationController
             );
         } else {
             $locale = I18n::locale();
-            $subject = 'Nomen - ' . I18n::tIn($locale, '邮箱验证');
+            $subject = 'Nomen - ' . I18n::tIn($locale, 'Email verification');
             $htmlBody = $this->getVerificationEmailHtml((string)$user['email'], $verifyUrl, $locale);
         }
 
         if (Email::send($contact, $subject, $htmlBody)) {
             if ($isAjax) {
-                Response::json(['success' => true, 'message' => t('验证邮件已发送，请查收（24小时内有效）')]);
+                Response::json(['success' => true, 'message' => t('Verification email sent — check your inbox (valid for 24 hours)')]);
             }
-            Session::flash('success', t('验证邮件已发送，请查收（24小时内有效）'));
+            Session::flash('success', t('Verification email sent — check your inbox (valid for 24 hours)'));
         } else {
             if ($isAjax) {
-                Response::json(['success' => false, 'message' => t('邮件发送失败，请稍后重试')]);
+                Response::json(['success' => false, 'message' => t('Email failed to send, try again later')]);
             }
-            Session::flash('error', t('邮件发送失败，请稍后重试'));
+            Session::flash('error', t('Email failed to send, try again later'));
         }
 
         Response::redirect('/activate');
@@ -173,7 +173,7 @@ class ActivationController
     {
         $token = $_GET['token'] ?? '';
         if (!$token) {
-            Response::error(400, t('无效的验证链接'));
+            Response::error(400, t('Invalid verification link'));
         }
 
         // 查找用户
@@ -184,13 +184,13 @@ class ActivationController
         $user = $stmt->fetch();
 
         if (!$user) {
-            Response::error(400, t('无效的验证链接'));
+            Response::error(400, t('Invalid verification link'));
         }
 
         if ($user['email_verified']) {
             // 收信地址是家长的：点的人不是这个账号的主人，别把他塞进孩子的会话
             if (empty($user['email'])) {
-                Session::flash('success', t('这个邮箱已经确认过了。'));
+                Session::flash('success', t('This address is already confirmed.'));
                 Response::redirect('/login');
             }
 
@@ -202,7 +202,7 @@ class ActivationController
 
         // 检查是否过期
         if (strtotime($user['email_verify_token_expires_at']) < time()) {
-            Response::error(400, t('验证链接已过期，请重新发送'));
+            Response::error(400, t('This verification link has expired — send a new one'));
         }
 
         // 验证成功，更新状态
@@ -249,7 +249,7 @@ class ActivationController
         // 收信地址是家长的：点链接的是家长，不是这个账号的主人 —— 不自动登录，
         // 告诉他用这条邮箱登录后到「家庭」页面就能看到孩子
         if (empty($user['email'])) {
-            Session::flash('success', t('邮箱已确认。用这条邮箱注册过 Nomen 的话，登录后到「家庭」页面就能看到 TA。'));
+            Session::flash('success', t('Email confirmed. If this address already has a Nomen account, they appear on your Family page after signing in.'));
             Response::redirect('/login');
         }
 
@@ -257,7 +257,7 @@ class ActivationController
         Session::regenerate();
         Session::set('user_id', $user['id']);
 
-        Session::flash('success', t('邮箱验证成功！'));
+        Session::flash('success', t('Email verified!'));
         Response::redirect('/dashboard');
     }
 
@@ -267,16 +267,16 @@ class ActivationController
     private function getVerificationEmailHtml(string $email, string $verifyUrl, string $locale = 'zh-hans'): string
     {
         return EmailTemplate::render([
-            'preheader' => '确认你的邮箱地址以激活 Nomen 账户',
-            'badge'     => ['text' => '账户激活', 'tone' => 'general'],
-            'title'     => '验证你的邮箱地址',
-            'subtitle'  => '确认后即可正常使用 Nomen 的全部功能',
+            'preheader' => 'Confirm your address to activate your Nomen account',
+            'badge'     => ['text' => 'Account activation', 'tone' => 'general'],
+            'title'     => 'Verify your email address',
+            'subtitle'  => 'Once confirmed, everything works',
             'blocks'    => [
-                ['type' => 'info', 'items' => [['label' => '验证邮箱', 'value' => $email]]],
-                ['type' => 'link', 'label' => '验证链接', 'url' => $verifyUrl],
-                ['type' => 'alert', 'tone' => 'info', 'text' => '此链接 24 小时内有效。如果不是你本人注册，请忽略此邮件。'],
+                ['type' => 'info', 'items' => [['label' => 'Verify email', 'value' => $email]]],
+                ['type' => 'link', 'label' => 'Verification link', 'url' => $verifyUrl],
+                ['type' => 'alert', 'tone' => 'info', 'text' => 'The link is valid for 24 hours. If this wasn\'t you, ignore this email.'],
             ],
-            'button'    => ['text' => '激活账户', 'url' => $verifyUrl],
+            'button'    => ['text' => 'Activate account', 'url' => $verifyUrl],
         ], $locale);
     }
 
@@ -296,37 +296,37 @@ class ActivationController
 
         $infoItems = [];
         if ($username !== '') {
-            $infoItems[] = ['label' => '孩子账号', 'value' => $username];
+            $infoItems[] = ['label' => $x('Child account'), 'value' => $username];
         }
-        $infoItems[] = ['label' => '国家 / 地区', 'value' => $countryName];
-        $infoItems[] = ['label' => '性别', 'value' => $genderLabel];
+        $infoItems[] = ['label' => 'Country / Region', 'value' => $countryName];
+        $infoItems[] = ['label' => 'Gender', 'value' => $genderLabel];
 
         $blocks = [['type' => 'info', 'items' => $infoItems]];
         $blocks = array_merge($blocks, [
             ['type' => 'paragraph', 'text' => $username !== ''
-                ? $x('你好，{:name} 注册 Nomen 时填了你的邮箱作为收信地址，所以这封确认邮件发到了你这里。{:pronoun}在注册时填写的国家 / 地区是{:country}，性别是{:gender}。', ['name' => $username, 'pronoun' => $pronoun, 'country' => $countryName, 'gender' => $genderLabel])
-                : $x('你好，有人注册 Nomen 时填了你的邮箱作为收信地址，所以这封确认邮件发到了你这里。')],
+                ? $x('Hello, {:name} entered your email address as their contact address when signing up for Nomen, so this confirmation email came to you. When signing up they selected {:country} as their country/region and {:gender} as their gender.', ['name' => $username, 'pronoun' => $pronoun, 'country' => $countryName, 'gender' => $genderLabel])
+                : $x('Hello, someone entered your email address as their contact address when signing up for Nomen, so this confirmation email came to you.')],
         ], FamilyHelper::consentAgeEmailBlocks(FamilyHelper::consentAgeInfo($country), $locale), [
-            ['type' => 'paragraph', 'text' => $x('点下面的按钮确认后：你会加入 TA 的家庭（已经有 Nomen 账号的话直接加入，没有的话用这条邮箱注册一个就能加入），之后可以帮 TA 重置登录密码、临时锁定账号。')],
-            ['type' => 'paragraph', 'muted' => true, 'text' => $x('家长做不到的事：看不到 TA 的密码，读不到 TA 的消息和邮件，也不能以 TA 的身份登录。')],
+            ['type' => 'paragraph', 'text' => $x('After confirming with the button below: you join their family (if you already have a Nomen account you join directly; if not, register with this email and join), and can then reset their sign-in password and temporarily lock the account.')],
+            ['type' => 'paragraph', 'muted' => true, 'text' => $x('What parents cannot do: see their password, read their messages or emails, or sign in as them.')],
             ['type' => 'paragraph', 'muted' => true, 'text' => $username !== ''
-                ? $x('在按钮被点击之前，{:name} 的账号还不能开始使用。确认后 TA 就能正常使用账号，也能收到通知邮件。', ['name' => $username])
-                : $x('在按钮被点击之前，这个账号还不能开始使用。确认后它就能正常使用，也能收到通知邮件。')],
+                ? $x('Until the button is pressed, {:name}\'s account cannot be used yet. After confirmation they can use the account normally and receive notification emails.', ['name' => $username])
+                : $x('Until the button is pressed, this account cannot be used yet. After confirmation it works normally and can receive notification emails.')],
             ['type' => 'divider'],
-            ['type' => 'paragraph', 'muted' => true, 'text' => $x('如果你不是 TA 的家长，忽略这封邮件即可，账号会保持未激活状态。此链接 24 小时内有效。')],
+            ['type' => 'paragraph', 'muted' => true, 'text' => $x('If you are not their parent, just ignore this email and the account stays inactive. This link is valid for 24 hours.')],
         ]);
 
         if (EmailTemplate::privacyUrl() !== '') {
-            $blocks[] = ['type' => 'paragraph', 'muted' => true, 'text' => $x('你可以阅读我们的完整隐私政策：{:url}', ['url' => EmailTemplate::privacyUrl()])];
+            $blocks[] = ['type' => 'paragraph', 'muted' => true, 'text' => $x('You can read our full privacy policy: {:url}', ['url' => EmailTemplate::privacyUrl()])];
         }
 
         return EmailTemplate::render([
-            'preheader' => '请确认这个邮箱是不是你的孩子的',
-            'badge'     => ['text' => '家长确认', 'tone' => 'general'],
-            'title'     => '确认这是你的孩子',
-            'subtitle'  => $username !== '' ? $x('{:name} 注册时填了你的邮箱', ['name' => $username]) : $x('有人注册时填了你的邮箱'),
+            'preheader' => 'Please confirm this is your child\'s email',
+            'badge'     => ['text' => 'Parent confirmation', 'tone' => 'general'],
+            'title'     => 'Confirm this is your child',
+            'subtitle'  => $username !== '' ? $x('{:name} entered your email when signing up', ['name' => $username]) : $x('Someone entered your email when signing up'),
             'blocks'    => $blocks,
-            'button'    => ['text' => '确认并加入家庭', 'url' => $verifyUrl],
+            'button'    => ['text' => 'Confirm and join the family', 'url' => $verifyUrl],
         ], $locale);
     }
 
@@ -342,7 +342,7 @@ class ActivationController
         }
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            Session::flash('error', t('请求无效，请重试'));
+            Session::flash('error', t('Invalid request, try again'));
             Response::redirect('/activate');
             return;
         }
@@ -361,7 +361,7 @@ class ActivationController
         // 已经激活的账号（邮箱验证过 / 家长那条确认过）不能走这条「未验证账号自清」的路
         if ($user['email_verified']
             || (Features::guardians() && FamilyHelper::guardianConfirmed((int)$userId))) {
-            Session::flash('error', t('账号已经激活，请在设置中注销'));
+            Session::flash('error', t('The account is already active — delete it from settings'));
             Response::redirect('/dashboard');
             return;
         }

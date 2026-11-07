@@ -23,7 +23,7 @@ $secondary = [
             <a href="<?= htmlspecialchars($secondary['href']) ?>" class="btn btn-ghost"><?= htmlspecialchars($secondary['label']) ?></a>
         </p>
         <?php if ($links): ?>
-            <nav class="ssr-home__links" aria-label="<?= t('更多') ?>">
+            <nav class="ssr-home__links" aria-label="<?= t('More') ?>">
                 <?php foreach ($links as $link): ?>
                     <a href="<?= htmlspecialchars((string)$link['href']) ?>"><?= htmlspecialchars((string)$link['label']) ?></a>
                 <?php endforeach; ?>

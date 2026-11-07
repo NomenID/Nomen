@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="canonical" href="<?= htmlspecialchars($brand['base_url']) ?><?= rtrim(strtolower(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)), '/') ?: '/' ?>">
     <title><?php $t = $title ?? $brand['name']; echo htmlspecialchars($t === $brand['name'] ? $t : "$t - " . $brand['name']); ?></title>
-    <link rel="stylesheet" href="/css/style.css?v=r8n4v2kq">
+    <link rel="stylesheet" href="/css/style.css?v=8l9hchod">
     <link rel="stylesheet" href="/css/ui.css?v=woimt5tg">
     <?php if (\Nomen\Src\I18n::isRtl()): ?>
         <link rel="stylesheet" href="/css/rtl.css?v=31472968">
@@ -42,7 +42,7 @@
                 <img src="<?= htmlspecialchars($brand['logo']) ?>" alt="<?= htmlspecialchars($brand['name']) ?>" class="logo-icon" width="32" height="32">
                 <span class="logo-text"><?= htmlspecialchars($brand['name']) ?></span>
             </a>
-            <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="<?= t('菜单') ?>" aria-expanded="false" aria-controls="mobile-menu-drawer">
+            <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="<?= t('Menu') ?>" aria-expanded="false" aria-controls="mobile-menu-drawer">
                 <span></span><span></span><span></span>
             </button>
             <nav class="nav" id="mainNav">
@@ -68,13 +68,13 @@
                         <?php endif; ?>
                     <?php endforeach; ?>
                     <span class="nav-user"><?php if ($navAvatar): ?><img src="<?= htmlspecialchars($navAvatar) ?>" alt="" class="nav-avatar"><?php endif; ?><?= htmlspecialchars(\Nomen\Src\Session::get('username', '')) ?></span>
-                    <button class="nav-link nav-link--danger" onclick="handleLogout()"><?= t('退出') ?></button>
+                    <button class="nav-link nav-link--danger" onclick="handleLogout()"><?= t('Sign out') ?></button>
                 <?php else: ?>
-                    <a href="/login" class="nav-link"><?= t('登录') ?></a>
-                    <a href="/register" class="btn btn-primary btn-sm"><?= t('注册') ?></a>
+                    <a href="/login" class="nav-link"><?= t('Sign in') ?></a>
+                    <a href="/register" class="btn btn-primary btn-sm"><?= t('Sign up') ?></a>
                 <?php endif; ?>
                 <?php if (\Nomen\Src\I18n::switchingAllowed()): require \Nomen\Src\Skins::template('_lang_picker'); endif; ?>
-                <button class="theme-toggle" onclick="toggleTheme()" title="<?= t('切换主题') ?>" aria-label="<?= t('切换亮色/暗色主题') ?>">
+                <button class="theme-toggle" onclick="toggleTheme()" title="<?= t('Switch theme') ?>" aria-label="<?= t('Toggle light / dark theme') ?>">
                     <span class="icon icon-sun"></span>
                     <span class="icon icon-moon"></span>
                 </button>
@@ -101,7 +101,7 @@
             ];
         }
         $drawerLinks[] = ['type' => 'divider'];
-        $drawerLinks[] = ['label' => t('退出登录'), 'icon' => 'logout', 'danger' => true, 'onclick' => 'handleLogout()'];
+        $drawerLinks[] = ['label' => t('Sign out'), 'icon' => 'logout', 'danger' => true, 'onclick' => 'handleLogout()'];
     }
     echo \Nomen\Src\Response::viewPartial('_mobile_menu', [
         'menuLinks' => $drawerLinks,
@@ -110,7 +110,7 @@
     ?>
 
     <script src="<?= \Nomen\Src\I18n::catalogUrl() ?>"></script>
-    <script src="/js/app.js?v=r4mt8xqw"></script>
+    <script src="/js/app.js?v=kbjnj594"></script>
     <?php foreach (\Nomen\Src\Plugins::scripts() as $src): ?>
         <script src="<?= htmlspecialchars($src) ?>"></script>
     <?php endforeach; ?>

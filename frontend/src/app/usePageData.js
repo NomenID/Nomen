@@ -19,7 +19,7 @@ export function usePageData(pageName, buildPath) {
       const res = await apiGet(buildPath ? buildPath() : `/api/app/${pageName}`)
       data.value = res.page.data
     } catch (err) {
-      error.value = err.message || t('加载失败')
+      error.value = err.message || t('Load failed')
     } finally {
       loading.value = false
     }
