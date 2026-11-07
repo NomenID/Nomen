@@ -1,6 +1,6 @@
 <img src="public/assets/brand/nomen-icon.svg" width="72" alt="Nomen">
 
-#Nomen
+# Nomen
 
 自由的账号星系。
 
