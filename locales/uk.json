@@ -973,7 +973,7 @@
   "This sign-in method is not linked": "Цей спосіб входу не прив’язано",
   "This site does not allow switching languages": "На цьому сайті перемикання мови вимкнено",
   "This site has not set up email delivery yet, so email code login is unavailable for now. Please use your password.": "На цьому сайті ще не налаштовано поштову службу, тому вхід за кодом з листа наразі недоступний. Скористайтеся паролем.",
-  "This site is powered by {:link}. Copyright © 2025-{:year} Yunyun.": "Сайт працює на {:link}. Copyright © 2025-{:year} Yunyun.",
+  "This site is powered by {:link}. Copyright © 2025-{:year} Yunyun (Wang Yaoze).": "Сайт працює на {:link}. Copyright © 2025-{:year} Yunyun (Wang Yaoze).",
   "This third-party account is already linked to another account": "Цей сторонній акаунт уже прив’язано до іншого акаунта",
   "This verification link has expired — resend it from settings": "Термін дії посилання минув — надішліть його заново в налаштуваннях",
   "This verification link has expired — send a new one": "Термін дії посилання минув — надішліть нове",

@@ -973,7 +973,7 @@
   "This sign-in method is not linked": "Deze inlogmethode is niet gekoppeld",
   "This site does not allow switching languages": "Deze site staat het wisselen van taal niet toe",
   "This site has not set up email delivery yet, so email code login is unavailable for now. Please use your password.": "Deze site heeft nog geen e-maildienst ingesteld, dus inloggen met een e-mailcode is voorlopig niet mogelijk. Gebruik je wachtwoord.",
-  "This site is powered by {:link}. Copyright © 2025-{:year} Yunyun.": "Deze site draait op {:link}. Copyright © 2025-{:year} Yunyun.",
+  "This site is powered by {:link}. Copyright © 2025-{:year} Yunyun (Wang Yaoze).": "Deze site draait op {:link}. Copyright © 2025-{:year} Yunyun (Wang Yaoze).",
   "This third-party account is already linked to another account": "Dit account van derden is al gekoppeld aan een ander account",
   "This verification link has expired — resend it from settings": "Deze verificatielink is verlopen — verstuur hem opnieuw via de instellingen",
   "This verification link has expired — send a new one": "Deze verificatielink is verlopen — verstuur een nieuwe",

@@ -973,7 +973,7 @@
   "This sign-in method is not linked": "Este método de inicio de sesión no está vinculado",
   "This site does not allow switching languages": "Este sitio no permite cambiar de idioma",
   "This site has not set up email delivery yet, so email code login is unavailable for now. Please use your password.": "Este sitio aún no ha configurado el servicio de correo, así que por ahora no se puede iniciar sesión con código de email. Usa tu contraseña.",
-  "This site is powered by {:link}. Copyright © 2025-{:year} Yunyun.": "Este sitio funciona con {:link}. Copyright © 2025-{:year} Yunyun.",
+  "This site is powered by {:link}. Copyright © 2025-{:year} Yunyun (Wang Yaoze).": "Este sitio funciona con {:link}. Copyright © 2025-{:year} Yunyun (Wang Yaoze).",
   "This third-party account is already linked to another account": "Esta cuenta de terceros ya está vinculada a otra cuenta",
   "This verification link has expired — resend it from settings": "Este enlace de verificación ha caducado: reenvíalo desde los ajustes",
   "This verification link has expired — send a new one": "Este enlace de verificación ha caducado: envía uno nuevo",

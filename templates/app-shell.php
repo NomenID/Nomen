@@ -1,4 +1,12 @@
 <?php
+/*
+ * Copyright (c) 2025-2026 Yunyun (Wang Yaoze)
+ * Licensed under the GNU General Public License, version 3 or any later
+ * version, with additional attribution terms in the NOTICE file.
+ * Source: https://github.com/NomenID/Nomen
+ * Project: https://nomen.caellab.com/
+ */
+
 /**
  * 应用区（真 SPA）布局：页面骨架只剩挂载点 + props JSON，
  * 头部 / 导航 / 抽屉 / 页脚全部由 Vue（AppLayout）渲染。

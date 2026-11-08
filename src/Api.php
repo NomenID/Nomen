@@ -1,10 +1,18 @@
 <?php
+/*
+ * Copyright (c) 2025-2026 Yunyun (Wang Yaoze)
+ * Licensed under the GNU General Public License, version 3 or any later
+ * version, with additional attribution terms in the NOTICE file.
+ * Source: https://github.com/NomenID/Nomen
+ * Project: https://nomen.caellab.com/
+ */
+
 namespace Nomen\Src;
 
 use Nomen\Src\Api\Core;
 
 /**
- * 站点 API（/nomen-api），参数照 MediaWiki 的习惯：action=query&meta=siteinfo&format=json。
+ * 站点 API（/nomen-api）：action=query&meta=siteinfo&format=json。
  *
  * 插件在 boot() 里用 action() / meta() / list() / prop() 挂模块。
  * 权限只有两级：public 匿名可读，admin 需要管理员会话或管理员 OAuth Bearer token。

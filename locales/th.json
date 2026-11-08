@@ -973,7 +973,7 @@
   "This sign-in method is not linked": "วิธีเข้าสู่ระบบนี้ยังไม่ได้ผูก",
   "This site does not allow switching languages": "ไซต์นี้ไม่เปิดให้เปลี่ยนภาษา",
   "This site has not set up email delivery yet, so email code login is unavailable for now. Please use your password.": "เว็บไซต์นี้ยังไม่ได้ตั้งค่าบริการอีเมล จึงยังเข้าสู่ระบบด้วยรหัสอีเมลไม่ได้ในตอนนี้ กรุณาใช้รหัสผ่าน",
-  "This site is powered by {:link}. Copyright © 2025-{:year} Yunyun.": "เว็บไซต์นี้ขับเคลื่อนด้วย {:link} สงวนลิขสิทธิ์ © 2025-{:year} Yunyun",
+  "This site is powered by {:link}. Copyright © 2025-{:year} Yunyun (Wang Yaoze).": "เว็บไซต์นี้ขับเคลื่อนด้วย {:link} สงวนลิขสิทธิ์ © 2025-{:year} Yunyun (Wang Yaoze)",
   "This third-party account is already linked to another account": "บัญชีบุคคลที่สามนี้ผูกกับบัญชีอื่นอยู่แล้ว",
   "This verification link has expired — resend it from settings": "ลิงก์ยืนยันหมดอายุ โปรดส่งใหม่จากหน้าตั้งค่า",
   "This verification link has expired — send a new one": "ลิงก์ยืนยันหมดอายุ โปรดส่งใหม่",

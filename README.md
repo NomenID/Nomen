@@ -242,4 +242,4 @@ Nomen 使用 GPL-3.0-only 开源许可证，完整文本见 [LICENSE](LICENSE)�
 
 ---
 
-Copyright (C) 2025–2026 Yunyun
+Copyright (C) 2025–2026 Yunyun (Wang Yaoze)

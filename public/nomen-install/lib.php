@@ -1,4 +1,12 @@
 <?php
+/*
+ * Copyright (c) 2025-2026 Yunyun (Wang Yaoze)
+ * Licensed under the GNU General Public License, version 3 or any later
+ * version, with additional attribution terms in the NOTICE file.
+ * Source: https://github.com/NomenID/Nomen
+ * Project: https://nomen.caellab.com/
+ */
+
 // 安装向导的公共部分：会话、状态、环境检测和几个渲染小工具。入口是 index.php，接口是 api.php。
 
 use Nomen\Src\Plugins;

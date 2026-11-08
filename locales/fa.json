@@ -973,7 +973,7 @@
   "This sign-in method is not linked": "این روش ورود متصل نیست",
   "This site does not allow switching languages": "این سایت تغییر زبان را فعال نکرده است",
   "This site has not set up email delivery yet, so email code login is unavailable for now. Please use your password.": "این سایت هنوز سرویس ایمیل را تنظیم نکرده است، بنابراین ورود با کد ایمیل فعلاً ممکن نیست. از رمز عبور استفاده کنید.",
-  "This site is powered by {:link}. Copyright © 2025-{:year} Yunyun.": "این سایت با {:link} کار می‌کند. © 2025-{:year} Yunyun. تمام حقوق محفوظ است.",
+  "This site is powered by {:link}. Copyright © 2025-{:year} Yunyun (Wang Yaoze).": "این سایت با {:link} کار می‌کند. © 2025-{:year} Yunyun (Wang Yaoze). تمام حقوق محفوظ است.",
   "This third-party account is already linked to another account": "این حساب ثالث پیش‌تر به حساب دیگری متصل شده است",
   "This verification link has expired — resend it from settings": "این پیوند تأیید منقضی شده است — از صفحهٔ تنظیمات دوباره بفرستید",
   "This verification link has expired — send a new one": "این پیوند تأیید منقضی شده است — پیوند جدید بفرستید",

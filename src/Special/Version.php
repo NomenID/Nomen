@@ -1,18 +1,29 @@
 <?php
+/*
+ * Copyright (c) 2025-2026 Yunyun (Wang Yaoze)
+ * Licensed under the GNU General Public License, version 3 or any later
+ * version, with additional attribution terms in the NOTICE file.
+ * Source: https://github.com/NomenID/Nomen
+ * Project: https://nomen.caellab.com/
+ */
+
 namespace Nomen\Src\Special;
 
-use Nomen\Src\{Brand, Cache, Database, Plugins, Skins, Upgrade};
+use Nomen\Src\{Brand, Cache, Database, I18n, Plugins, Skins, Upgrade};
 
 class Version
 {
     public const PROJECT_URL = 'https://nomen.caellab.com/';
 
     // 版本页要查库、扫插件，内容又不常变：缓存一分钟，够挡住刷新风暴
+    // 键里带语言：渲染结果是翻译过的 HTML，串语言就等于给所有人发英文
     private const CACHE_TTL = 60;
 
     public static function render(): string
     {
-        return (string)Cache::remember('special:version', self::CACHE_TTL, static fn(): string => self::build());
+        $key = 'special:version:' . I18n::locale();
+
+        return (string)Cache::remember($key, self::CACHE_TTL, static fn(): string => self::build());
     }
 
     private static function build(): string
@@ -31,7 +42,7 @@ class Version
     private static function license(): string
     {
         return '<h2>' . t('Nomen license') . '</h2>'
-            . '<p>' . t('This site is powered by {:link}. Copyright © 2025-{:year} Yunyun.', [
+            . '<p>' . t('This site is powered by {:link}. Copyright © 2025-{:year} Yunyun (Wang Yaoze).', [
                 'link' => '<a href="' . self::PROJECT_URL . '">Nomen</a>',
                 'year' => date('Y'),
             ]) . '</p>'

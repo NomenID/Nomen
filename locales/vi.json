@@ -973,7 +973,7 @@
   "This sign-in method is not linked": "Phương thức đăng nhập này chưa được liên kết",
   "This site does not allow switching languages": "Trang này không cho phép chuyển ngôn ngữ",
   "This site has not set up email delivery yet, so email code login is unavailable for now. Please use your password.": "Trang này chưa thiết lập dịch vụ email, nên hiện chưa thể đăng nhập bằng mã email. Vui lòng dùng mật khẩu.",
-  "This site is powered by {:link}. Copyright © 2025-{:year} Yunyun.": "Trang này vận hành bởi {:link}. Bản quyền © 2025-{:year} Yunyun.",
+  "This site is powered by {:link}. Copyright © 2025-{:year} Yunyun (Wang Yaoze).": "Trang này vận hành bởi {:link}. Bản quyền © 2025-{:year} Yunyun (Wang Yaoze).",
   "This third-party account is already linked to another account": "Tài khoản bên thứ ba này đã được liên kết với tài khoản khác",
   "This verification link has expired — resend it from settings": "Liên kết xác minh đã hết hạn, vui lòng gửi lại từ trang cài đặt",
   "This verification link has expired — send a new one": "Liên kết xác minh đã hết hạn, vui lòng gửi lại",

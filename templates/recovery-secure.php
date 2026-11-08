@@ -1,4 +1,12 @@
 <?php
+/*
+ * Copyright (c) 2025-2026 Yunyun (Wang Yaoze)
+ * Licensed under the GNU General Public License, version 3 or any later
+ * version, with additional attribution terms in the NOTICE file.
+ * Source: https://github.com/NomenID/Nomen
+ * Project: https://nomen.caellab.com/
+ */
+
 /** @var string      $username
  *  @var array       $methods         登录方式（计入数量）
  *  @var array       $assistMethods   快速辅助验证方式（不计入数量）
@@ -11,8 +19,6 @@
  *  @var string|null $success
  */
 $title = t('Regain access to your account');
-
-$methodState = static fn(array $m): string => $m['present'] ? ($m['on'] ?? '已拥有') : ($m['off'] ?? '未设置');
 
 $mapMethod = static fn(array $m): array => [
     'label' => t($m['label']),

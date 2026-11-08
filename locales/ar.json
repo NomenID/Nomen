@@ -973,7 +973,7 @@
   "This sign-in method is not linked": "طريقة الدخول هذه غير مرتبطة",
   "This site does not allow switching languages": "هذا الموقع لا يسمح بتغيير اللغة",
   "This site has not set up email delivery yet, so email code login is unavailable for now. Please use your password.": "لم يتم إعداد خدمة البريد على هذا الموقع بعد، لذلك لا يمكن تسجيل الدخول برمز البريد مؤقتًا. استخدم كلمة المرور.",
-  "This site is powered by {:link}. Copyright © 2025-{:year} Yunyun.": "يعمل هذا الموقع بواسطة {:link}. حقوق النشر © 2025-{:year} Yunyun.",
+  "This site is powered by {:link}. Copyright © 2025-{:year} Yunyun (Wang Yaoze).": "يعمل هذا الموقع بواسطة {:link}. حقوق النشر © 2025-{:year} Yunyun (Wang Yaoze).",
   "This third-party account is already linked to another account": "حساب الطرف الثالث هذا مرتبط مسبقًا بحساب آخر",
   "This verification link has expired — resend it from settings": "انتهت صلاحية رابط التحقق — أعد إرساله من صفحة الإعدادات",
   "This verification link has expired — send a new one": "انتهت صلاحية رابط التحقق — أرسل رابطًا جديدًا",

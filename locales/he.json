@@ -973,7 +973,7 @@
   "This sign-in method is not linked": "אמצעי ההתחברות הזה אינו מקושר",
   "This site does not allow switching languages": "האתר הזה לא מאפשר החלפת שפה",
   "This site has not set up email delivery yet, so email code login is unavailable for now. Please use your password.": "האתר הזה עדיין לא הגדיר שירות דוא\"ל, לכן התחברות עם קוד דוא\"ל אינה זמינה כרגע. יש להשתמש בסיסמה.",
-  "This site is powered by {:link}. Copyright © 2025-{:year} Yunyun.": "האתר הזה פועל באמצעות {:link}. זכויות יוצרים © 2025-{:year} Yunyun.",
+  "This site is powered by {:link}. Copyright © 2025-{:year} Yunyun (Wang Yaoze).": "האתר הזה פועל באמצעות {:link}. זכויות יוצרים © 2025-{:year} Yunyun (Wang Yaoze).",
   "This third-party account is already linked to another account": "חשבון הצד השלישי הזה כבר מקושר לחשבון אחר",
   "This verification link has expired — resend it from settings": "קישור האימות פג תוקף — שלחו אותו שוב מדף ההגדרות",
   "This verification link has expired — send a new one": "קישור האימות פג תוקף — שלחו קישור חדש",

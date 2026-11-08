@@ -1,4 +1,12 @@
 <?php
+/*
+ * Copyright (c) 2025-2026 Yunyun (Wang Yaoze)
+ * Licensed under the GNU General Public License, version 3 or any later
+ * version, with additional attribution terms in the NOTICE file.
+ * Source: https://github.com/NomenID/Nomen
+ * Project: https://nomen.caellab.com/
+ */
+
 /**
  * 语言选择器（头部）。无 JS 时就是指向 /special/lang 的普通链接；
  * 有 JS 时 app.js 把它升级成下拉面板，选中项走 ?lang=（服务端落 cookie / 账号偏好）。

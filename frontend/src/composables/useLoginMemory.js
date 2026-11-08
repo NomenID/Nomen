@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2025-2026 Yunyun (Wang Yaoze)
+ * Licensed under the GNU General Public License, version 3 or any later
+ * version, with additional attribution terms in the NOTICE file.
+ * Source: https://github.com/NomenID/Nomen
+ * Project: https://nomen.caellab.com/
+ */
+
 const ID_KEY = 'nomen_login_id_v1'
 const HIST_KEY = 'nomen_login_hist_v1'
 const HANDOFF_COOKIE = 'nomen_login_ok'

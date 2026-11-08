@@ -1,4 +1,11 @@
 <?php
+/*
+ * Copyright (c) 2025-2026 Yunyun (Wang Yaoze)
+ * Licensed under the GNU General Public License, version 3 or any later
+ * version, with additional attribution terms in the NOTICE file.
+ * Source: https://github.com/NomenID/Nomen
+ * Project: https://nomen.caellab.com/
+ */
 
 // Legal source per country for the digital age of consent (child = below this age,
 // guardian consent required). Collected 2026-10-11 against official gazettes, legislation

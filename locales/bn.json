@@ -973,7 +973,7 @@
   "This sign-in method is not linked": "এই সাইন-ইন পদ্ধতি যুক্ত নয়",
   "This site does not allow switching languages": "এই সাইটে ভাষা পরিবর্তন চালু নেই",
   "This site has not set up email delivery yet, so email code login is unavailable for now. Please use your password.": "এই সাইটে এখনও মেইল সেবা সেট করা হয়নি, তাই আপাতত ইমেইল কোড দিয়ে লগইন করা যাবে না। পাসওয়ার্ড ব্যবহার করুন।",
-  "This site is powered by {:link}. Copyright © 2025-{:year} Yunyun.": "এই সাইটটি {:link} দিয়ে চলে। কপিরাইট © 2025-{:year} Yunyun।",
+  "This site is powered by {:link}. Copyright © 2025-{:year} Yunyun (Wang Yaoze).": "এই সাইটটি {:link} দিয়ে চলে। কপিরাইট © 2025-{:year} Yunyun (Wang Yaoze)।",
   "This third-party account is already linked to another account": "এই তৃতীয় পক্ষের অ্যাকাউন্ট আগেই অন্য অ্যাকাউন্টে যুক্ত",
   "This verification link has expired — resend it from settings": "যাচাই লিংকের মেয়াদ শেষ, সেটিংস পৃষ্ঠা থেকে আবার পাঠান",
   "This verification link has expired — send a new one": "যাচাই লিংকের মেয়াদ শেষ, আবার পাঠান",

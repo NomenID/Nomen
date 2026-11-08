@@ -1151,7 +1151,7 @@
     "This site has not set up email delivery yet, so email code login is unavailable for now. Please use your password.": "This site has not set up email delivery yet, so email code login is unavailable for now. Please use your password.",
     "This site is already installed": "This site is already installed",
     "This site is already installed. Delete config/installed.php to reinstall.": "This site is already installed. Delete config/installed.php to reinstall.",
-    "This site is powered by {:link}. Copyright © 2025-{:year} Yunyun.": "This site is powered by {:link}. Copyright © 2025-{:year} Yunyun.",
+    "This site is powered by {:link}. Copyright © 2025-{:year} Yunyun (Wang Yaoze).": "This site is powered by {:link}. Copyright © 2025-{:year} Yunyun (Wang Yaoze).",
     "This third-party account is already linked to another account": "This third-party account is already linked to another account",
     "This verification link has expired — resend it from settings": "This verification link has expired — resend it from settings",
     "This verification link has expired — send a new one": "This verification link has expired — send a new one",

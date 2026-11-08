@@ -1,4 +1,12 @@
 <?php
+/*
+ * Copyright (c) 2025-2026 Yunyun (Wang Yaoze)
+ * Licensed under the GNU General Public License, version 3 or any later
+ * version, with additional attribution terms in the NOTICE file.
+ * Source: https://github.com/NomenID/Nomen
+ * Project: https://nomen.caellab.com/
+ */
+
 /**
  * Nomen SSO - 入口文件
  */
@@ -43,15 +51,15 @@ Session::start();
 
 // 核心导航与后台菜单。插件在 boot 里已经登记过自己的，核心后登记，同名项由核心接管。
 Nav::add('notifications', [
-    'label' => '消息中心', 'href' => '/notifications', 'icon' => 'bell', 'order' => 5,
+    'label' => 'Messages', 'href' => '/notifications', 'icon' => 'bell', 'order' => 5,
     'spa' => true, 'visible' => static fn(?int $uid): bool => $uid !== null && $uid > 0,
 ]);
 Nav::add('dashboard', [
-    'label' => '仪表盘', 'href' => '/dashboard', 'icon' => 'chart', 'order' => 20,
+    'label' => 'Dashboard', 'href' => '/dashboard', 'icon' => 'chart', 'order' => 20,
     'spa' => true, 'visible' => static fn(?int $uid): bool => $uid !== null && $uid > 0,
 ]);
 Nav::add('settings', [
-    'label' => '设置', 'href' => '/settings', 'icon' => 'sliders', 'order' => 30,
+    'label' => 'Settings', 'href' => '/settings', 'icon' => 'sliders', 'order' => 30,
     'spa' => true, 'visible' => static fn(?int $uid): bool => $uid !== null && $uid > 0,
 ]);
 Nav::add('admin', [
@@ -346,7 +354,7 @@ if (Features::guardians()) {
 $router->get('/api/userinfo',   [ApiController::class, 'userinfo']);
 $router->get('/api/token-info', [ApiController::class, 'tokenInfo']);
 
-// 站点 API（MediaWiki 式）：/nomen-api?action=query&meta=siteinfo&format=json
+// 站点 API：/nomen-api?action=query&meta=siteinfo&format=json
 $router->any('/nomen-api', static fn() => Api::handle());
 
 // 账号恢复（申诉 → 一次性恢复链接 → 强制安全修复）

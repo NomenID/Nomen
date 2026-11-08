@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2025-2026 Yunyun (Wang Yaoze)
+ * Licensed under the GNU General Public License, version 3 or any later
+ * version, with additional attribution terms in the NOTICE file.
+ * Source: https://github.com/NomenID/Nomen
+ * Project: https://nomen.caellab.com/
+ */
+
 // 邮箱回收验证页：重发按钮的冷却倒计时
 document.addEventListener('DOMContentLoaded', function () {
     var claimForm = document.getElementById('claim-form');

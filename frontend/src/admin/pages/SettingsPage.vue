@@ -1,3 +1,11 @@
+<!--
+ * Copyright (c) 2025-2026 Yunyun (Wang Yaoze)
+ * Licensed under the GNU General Public License, version 3 or any later
+ * version, with additional attribution terms in the NOTICE file.
+ * Source: https://github.com/NomenID/Nomen
+ * Project: https://nomen.caellab.com/
+-->
+
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { apiGet, apiPost } from '../../app/api'
@@ -82,8 +90,8 @@ onMounted(load)
 
         <AdminCard title="站点 API">
           <p class="a-card__desc">
-            只读接口，地址 <code>{{ data.apiEndpoint }}</code>，参数照 MediaWiki 的习惯
-            （<code>action=query&amp;meta=siteinfo</code>）。站点信息和文档页面匿名可读，
+            只读接口，地址 <code>{{ data.apiEndpoint }}</code>，参数用
+            <code>action=</code> 查询串（如 <code>action=query&amp;meta=siteinfo</code>）。站点信息和文档页面匿名可读，
             插件登记的敏感模块只认管理员。
           </p>
           <label class="a-check">

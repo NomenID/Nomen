@@ -1,8 +1,16 @@
 <?php
+/*
+ * Copyright (c) 2025-2026 Yunyun (Wang Yaoze)
+ * Licensed under the GNU General Public License, version 3 or any later
+ * version, with additional attribution terms in the NOTICE file.
+ * Source: https://github.com/NomenID/Nomen
+ * Project: https://nomen.caellab.com/
+ */
+
 namespace Nomen\Src;
 
 /**
- * 独立报错页（MediaWiki 式）：不读语言包、皮肤、session、数据库，
+ * 独立报错页：不读语言包、皮肤、session、数据库，
  * 只碰超全局变量和 best-effort 的品牌信息，保证「渲染报错页」这步永远不二次炸掉。
  * 同时负责全局异常 / 致命错误的兜底，调试开关是 .env 里的 APP_DEBUG。
  */

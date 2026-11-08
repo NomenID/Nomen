@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2025-2026 Yunyun (Wang Yaoze)
+ * Licensed under the GNU General Public License, version 3 or any later
+ * version, with additional attribution terms in the NOTICE file.
+ * Source: https://github.com/NomenID/Nomen
+ * Project: https://nomen.caellab.com/
+ */
+
 // 应用区 SPA 的请求层。所有页面数据与动作都走这里：
 // - 统一带 X-Requested-With（服务端据此回 JSON 而不是 redirect+flash）
 // - 响应不是 JSON（如会话过期被 302 到登录页）时整页跟过去

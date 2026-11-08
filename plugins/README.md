@@ -8,7 +8,7 @@
     "version": "0.1.0",
     "description": "开发者门户",
     "license": "GPL-3.0-only",
-    "author": ["Yunyun"],
+    "author": ["Yunyun (Wang Yaoze)"],
     "requires": {
         "Nomen": ">=0.1",
         "php": ["gd", "fileinfo"]

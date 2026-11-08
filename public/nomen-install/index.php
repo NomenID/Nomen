@@ -1,4 +1,12 @@
 <?php
+/*
+ * Copyright (c) 2025-2026 Yunyun (Wang Yaoze)
+ * Licensed under the GNU General Public License, version 3 or any later
+ * version, with additional attribution terms in the NOTICE file.
+ * Source: https://github.com/NomenID/Nomen
+ * Project: https://nomen.caellab.com/
+ */
+
 // 安装向导入口：只输出 Vue 挂载壳和初始数据；步骤都在 frontend/src/pages/install/ 里。
 
 require __DIR__ . '/lib.php';

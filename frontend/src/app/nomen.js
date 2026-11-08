@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2025-2026 Yunyun (Wang Yaoze)
+ * Licensed under the GNU General Public License, version 3 or any later
+ * version, with additional attribution terms in the NOTICE file.
+ * Source: https://github.com/NomenID/Nomen
+ * Project: https://nomen.caellab.com/
+ */
+
 // 应用区 SPA 的提示层：从 public/js/app.js 原样抽出的 Nomen IIFE（toast/alert/confirm/prompt）。
 // app 布局不加载旧 app.js，组件里的 toast()/Nomen.confirm 全靠这一份；样式仍在 style.css。
 // 图标：独立 SVG 文件 + CSS mask，页面上只留一个带图标名的 span

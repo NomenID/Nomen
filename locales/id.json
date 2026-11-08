@@ -973,7 +973,7 @@
   "This sign-in method is not linked": "Metode masuk ini belum terikat",
   "This site does not allow switching languages": "Situs ini tidak mengizinkan penggantian bahasa",
   "This site has not set up email delivery yet, so email code login is unavailable for now. Please use your password.": "Situs ini belum menyiapkan layanan email, jadi login dengan kode email belum tersedia. Gunakan kata sandi.",
-  "This site is powered by {:link}. Copyright © 2025-{:year} Yunyun.": "Situs ini ditenagai oleh {:link}. Hak cipta © 2025-{:year} Yunyun.",
+  "This site is powered by {:link}. Copyright © 2025-{:year} Yunyun (Wang Yaoze).": "Situs ini ditenagai oleh {:link}. Hak cipta © 2025-{:year} Yunyun (Wang Yaoze).",
   "This third-party account is already linked to another account": "Akun pihak ketiga ini sudah terikat ke akun lain",
   "This verification link has expired — resend it from settings": "Tautan verifikasi kedaluwarsa, kirim ulang dari halaman pengaturan",
   "This verification link has expired — send a new one": "Tautan verifikasi kedaluwarsa, kirim ulang",

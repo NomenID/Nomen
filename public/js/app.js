@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2025-2026 Yunyun (Wang Yaoze)
+ * Licensed under the GNU General Public License, version 3 or any later
+ * version, with additional attribution terms in the NOTICE file.
+ * Source: https://github.com/NomenID/Nomen
+ * Project: https://nomen.caellab.com/
+ */
+
 'use strict';
 
 // 图标：独立 SVG 文件 + CSS mask，页面上只留一个带图标名的 span

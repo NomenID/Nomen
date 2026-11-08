@@ -8,7 +8,7 @@
     "version": "1.0.0",
     "description": "默认皮肤",
     "license": "GPL-3.0-only",
-    "author": ["Yunyun"]
+    "author": ["Yunyun (Wang Yaoze)"]
 }
 ```
 

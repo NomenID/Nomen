@@ -1,4 +1,12 @@
 <?php
+/*
+ * Copyright (c) 2025-2026 Yunyun (Wang Yaoze)
+ * Licensed under the GNU General Public License, version 3 or any later
+ * version, with additional attribution terms in the NOTICE file.
+ * Source: https://github.com/NomenID/Nomen
+ * Project: https://nomen.caellab.com/
+ */
+
 /**
  * 移动端抽屉菜单，必须放在 <header> 之外（页面末尾）。
  * 放在 header 里会被 .header 的 backdrop-filter 变成包含块，fixed 定位直接失效。

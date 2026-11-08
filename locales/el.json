@@ -973,7 +973,7 @@
   "This sign-in method is not linked": "Αυτή η μέθοδος σύνδεσης δεν είναι συνδεδεμένη",
   "This site does not allow switching languages": "Αυτός ο ιστότοπος δεν επιτρέπει αλλαγή γλώσσας",
   "This site has not set up email delivery yet, so email code login is unavailable for now. Please use your password.": "Ο ιστότοπος δεν έχει ρυθμίσει ακόμη υπηρεσία email. Η σύνδεση με κωδικό email δεν είναι διαθέσιμη προς το παρόν. Χρησιμοποιήστε τον κωδικό πρόσβασης.",
-  "This site is powered by {:link}. Copyright © 2025-{:year} Yunyun.": "Ο ιστότοπος αυτός λειτουργεί με {:link}. Πνευματικά δικαιώματα © 2025-{:year} Yunyun.",
+  "This site is powered by {:link}. Copyright © 2025-{:year} Yunyun (Wang Yaoze).": "Ο ιστότοπος αυτός λειτουργεί με {:link}. Πνευματικά δικαιώματα © 2025-{:year} Yunyun (Wang Yaoze).",
   "This third-party account is already linked to another account": "Αυτός ο λογαριασμός τρίτου είναι ήδη συνδεδεμένος με άλλον λογαριασμό",
   "This verification link has expired — resend it from settings": "Ο σύνδεσμος επαλήθευσης έληξε· στείλτε νέο από τη σελίδα ρυθμίσεων",
   "This verification link has expired — send a new one": "Ο σύνδεσμος επαλήθευσης έληξε· στείλτε νέο",

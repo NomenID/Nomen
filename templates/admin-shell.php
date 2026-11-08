@@ -1,4 +1,12 @@
 <?php
+/*
+ * Copyright (c) 2025-2026 Yunyun (Wang Yaoze)
+ * Licensed under the GNU General Public License, version 3 or any later
+ * version, with additional attribution terms in the NOTICE file.
+ * Source: https://github.com/NomenID/Nomen
+ * Project: https://nomen.caellab.com/
+ */
+
 /**
  * 管理后台 SPA 的挂载点。界面全部由 Vue（AdminRoot）渲染，
  * 这里只保留 props JSON，避免首屏多一次请求。

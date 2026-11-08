@@ -973,7 +973,7 @@
   "This sign-in method is not linked": "यह साइन-इन विधि बाइंड नहीं है",
   "This site does not allow switching languages": "इस साइट पर भाषा बदलने की अनुमति नहीं है",
   "This site has not set up email delivery yet, so email code login is unavailable for now. Please use your password.": "इस साइट पर ईमेल सेवा अभी सेट नहीं हुई है, इसलिए अभी ईमेल कोड से लॉगिन नहीं हो सकता। कृपया पासवर्ड इस्तेमाल करें।",
-  "This site is powered by {:link}. Copyright © 2025-{:year} Yunyun.": "यह साइट {:link} द्वारा संचालित है। कॉपीराइट © 2025-{:year} Yunyun.",
+  "This site is powered by {:link}. Copyright © 2025-{:year} Yunyun (Wang Yaoze).": "यह साइट {:link} द्वारा संचालित है। कॉपीराइट © 2025-{:year} Yunyun (Wang Yaoze).",
   "This third-party account is already linked to another account": "यह तृतीय-पक्ष खाता पहले से किसी अन्य खाते से बाइंड है",
   "This verification link has expired — resend it from settings": "सत्यापन लिंक समाप्त हो गया — सेटिंग्स पेज से फिर भेजें",
   "This verification link has expired — send a new one": "सत्यापन लिंक समाप्त हो गया — नया भेजें",

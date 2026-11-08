@@ -1,4 +1,12 @@
 <?php
+/*
+ * Copyright (c) 2025-2026 Yunyun (Wang Yaoze)
+ * Licensed under the GNU General Public License, version 3 or any later
+ * version, with additional attribution terms in the NOTICE file.
+ * Source: https://github.com/NomenID/Nomen
+ * Project: https://nomen.caellab.com/
+ */
+
 /**
  * 已经在家庭里、且家长真的加入了的孩子走这一页，而不是自助申诉：
  * 家长在「家庭」页面就能直接给 TA 重置密码，比凑够 3 种登录方式快得多。

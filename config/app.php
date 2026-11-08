@@ -1,4 +1,12 @@
 <?php
+/*
+ * Copyright (c) 2025-2026 Yunyun (Wang Yaoze)
+ * Licensed under the GNU General Public License, version 3 or any later
+ * version, with additional attribution terms in the NOTICE file.
+ * Source: https://github.com/NomenID/Nomen
+ * Project: https://nomen.caellab.com/
+ */
+
 // 加载 .env 文件
 $envFile = dirname(__DIR__) . '/.env';
 if (file_exists($envFile)) {
@@ -31,7 +39,7 @@ $feature = static function (string $envKey, string $configKey) use ($appConf): b
 return [
     // 基本信息
     'name'         => $brand['name'],
-    'version'      => '1.3.4',
+    'version'      => '1.3.5',
     'base_url'     => $brand['base_url'],
 
     // 安全

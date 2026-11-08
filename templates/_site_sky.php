@@ -1,3 +1,10 @@
+<?php /*
+ * Copyright (c) 2025-2026 Yunyun (Wang Yaoze)
+ * Licensed under the GNU General Public License, version 3 or any later
+ * version, with additional attribution terms in the NOTICE file.
+ * Source: https://github.com/NomenID/Nomen
+ * Project: https://nomen.caellab.com/
+ */ ?>
 <div class="site-sky" aria-hidden="true">
     <svg class="site-sky__scene" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" focusable="false">
         <defs>
