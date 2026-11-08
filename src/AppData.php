@@ -94,7 +94,7 @@ final class AppData
     {
         $stmt = Database::getInstance()->prepare(
             'SELECT id, username, display_name, email, email_verified, avatar, bio, birth_date,
-                    gender, country, quick_login, two_factor_policy, status, role, created_at
+                    gender, country, two_factor_policy, status, role, created_at
                FROM users WHERE id = :id'
         );
         $stmt->execute([':id' => $userId]);
@@ -191,7 +191,6 @@ final class AppData
                     'countryDisplay' => (string)($user['country'] ?: t('Not set')),
                     'createdAtDisplay' => date('Y-m-d H:i', strtotime((string)$user['created_at'])),
                     'twoFactorPolicy' => (string)($user['two_factor_policy'] ?? 'new_device'),
-                    'quickLogin' => !isset($user['quick_login']) || (int)$user['quick_login'] === 1,
                     'contactVerified' => !empty($user['email_verified'])
                         || EmailSet::hasVerified($userId)
                         || (Features::guardians() && FamilyHelper::guardianConfirmed($userId)),

@@ -8,6 +8,6 @@
 $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
 ?>
 <div id="admin-root" class="admin-root-host">
-    <noscript><p class="admin-noscript">管理后台需要开启 JavaScript。</p></noscript>
+    <noscript><p class="admin-noscript"><?= t('The admin area requires JavaScript.') ?></p></noscript>
     <script type="application/json" id="admin-props"><?= json_encode($appProps, $jsonFlags) ?></script>
 </div>

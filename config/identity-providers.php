@@ -4,6 +4,7 @@
 
 return [
     'github' => [
+        'logo'           => '/assets/providers/github.svg',
         'name'           => 'GitHub',
         'type'           => 'oauth2',
         'authorize_url'  => 'https://github.com/login/oauth/authorize',
@@ -19,6 +20,7 @@ return [
         'token_auth'     => 'post',
     ],
     'google' => [
+        'logo'           => '/assets/providers/google.svg',
         'name'           => 'Google',
         'type'           => 'oidc',
         'authorize_url'  => 'https://accounts.google.com/o/oauth2/v2/auth',
@@ -34,6 +36,7 @@ return [
         'token_auth'     => 'post',
     ],
     'microsoft' => [
+        'logo'           => '/assets/providers/microsoft.svg',
         'name'           => 'Microsoft',
         'type'           => 'oidc',
         'authorize_url'  => 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize',
@@ -49,6 +52,7 @@ return [
         'token_auth'     => 'post',
     ],
     'caellabid' => [
+        'logo'           => '/assets/providers/caellabid.svg',
         'name'           => 'CaelLabID',
         'type'           => 'oidc',
         'authorize_url'  => 'https://id.caellab.com/oauth/authorize',

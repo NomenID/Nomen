@@ -32,13 +32,15 @@ if (!preg_match("/'version'\s*=>\s*'([^']+)'/", (string)file_get_contents($root 
 $version = $m[1];
 
 // 插件和官方皮肤不在核心仓库里，打包机上得先 clone 到 plugins/、skins/；漏了就报错
-foreach (['pages', 'open-platform', 'geoip'] as $bundled) {
+$bundledPlugins = ['pages', 'open-platform', 'geoip'];
+$bundledSkins = ['nomen-2026', 'nomen-ssr'];
+foreach ($bundledPlugins as $bundled) {
     if (!is_file($root . '/plugins/' . $bundled . '/plugin.json')) {
         fwrite(STDERR, '缺插件：plugins/' . $bundled . '（见 plugins/README.md，先 clone 到 plugins/）' . PHP_EOL);
         exit(1);
     }
 }
-foreach (['nomen-2026', 'nomen-ssr'] as $bundled) {
+foreach ($bundledSkins as $bundled) {
     if (!is_file($root . '/skins/' . $bundled . '/skin.json')) {
         fwrite(STDERR, '缺皮肤：skins/' . $bundled . '（见 skins/README.md，先 clone 到 skins/）' . PHP_EOL);
         exit(1);
@@ -66,13 +68,20 @@ $skip = [
 ];
 
 $files = [];
-$walk = static function (string $dir, string $rel) use (&$walk, &$files, $skip): void {
+$walk = static function (string $dir, string $rel) use (&$walk, &$files, $skip, $bundledPlugins, $bundledSkins): void {
     foreach (scandir($dir) ?: [] as $name) {
         if ($name === '.' || $name === '..') {
             continue;
         }
         // 插件是独立仓库，plugins/<slug>/.git 不是发布内容
         if ($name === '.git') {
+            continue;
+        }
+        // plugins/、skins/ 顶层只打清单内的，本地多 clone 的（如只在个别实例部署的插件）不进包
+        if ($rel === 'plugins' && $name !== 'README.md' && !in_array($name, $bundledPlugins, true)) {
+            continue;
+        }
+        if ($rel === 'skins' && $name !== 'README.md' && !in_array($name, $bundledSkins, true)) {
             continue;
         }
         $path = $rel === '' ? $name : $rel . '/' . $name;

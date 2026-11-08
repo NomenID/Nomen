@@ -6,9 +6,6 @@ use PDO;
 
 class OAuthController
 {
-    /** 快速登录标记：回调地址上额外带 spicallogin 这个参数，应用侧可据此提示「快速登录成功」 */
-    private const QUICK_LOGIN_FLAG = 'caellab-launch-plan-sister-project-quick-login';
-
     private PDO $db;
 
     public function __construct()
@@ -90,8 +87,10 @@ class OAuthController
             return;
         }
 
-        // 第一方应用 + 用户开着「快速登录」= 免确认直授，并在回调带上快速登录标记
-        $quickLogin = $isFirstParty && $this->quickLoginEnabled((int)$userId);
+        // 免确认直授由插件通过钩子决定（返回非空字符串 = 直接发码，回调带上 spicallogin=<返回值>）。
+        // 核心不内置任何「第一方免确认」策略；没有插件注册这个钩子时，走普通确认流程。
+        $quickFlag = Hooks::filter('oauth.authorize.quick', null, (int)$userId, $client, $grantedScopes);
+        $quickLogin = is_string($quickFlag) && $quickFlag !== '';
 
         // 检查是否已经授权过（且scope相同或更少）
         $existing = $this->getAuthorization($userId, $clientId);
@@ -111,17 +110,15 @@ class OAuthController
         $silent = ($prompt === 'none');
 
         // 不经过授权页、直接发码的两种情况：
-        //   1) prompt=none：能免确认（已授权，或第一方 + 开着「快速登录」）就直接发码，
+        //   1) prompt=none：能免确认（已授权，或插件批了快速通道）就直接发码，
         //      需要用户点头就只能回 interaction_required；
-        //   2) 普通交互请求 + 应用已授权过、scope 也够，而且不需要中间页
-        //      —— 第三方应用，或用户关了快速登录。
-        $directIssue = $silent ? ($allGranted || $quickLogin) : ($allGranted && !$quickLogin);
+        //   2) 普通交互请求 + 应用已授权过、scope 也够 —— 第三方应用的常规静默续授。
+        $directIssue = $allGranted || $quickLogin;
 
         if ($directIssue) {
             if (!$allGranted) {
-                // 只有「第一方 + 开着快速登录 + 首次（或撤销之后）」会走到这儿：
-                // 这次的 scope 隐式写进 user_authorizations —— 用户在控制台的已授权列表里
-                // 看得到、也能随时撤销，不是"不留痕迹"。
+                // 插件批了快速通道但还没授权过会走到这儿：这次的 scope 隐式写进
+                // user_authorizations —— 用户在控制台的已授权列表里看得到、也能随时撤销。
                 $this->saveAuthorization($userId, $clientId, $scope);
             }
             // 已授权那条路要自己确保 subject 在；saveAuthorization 内部已经调过了（幂等，重复无害）
@@ -132,9 +129,8 @@ class OAuthController
             );
             $params = ['code' => $code];
             if ($state) $params['state'] = $state;
-            // 快速登录标记只在"用户全程没看见任何页面"时带 —— 也就是这条静默直发的路。
-            // 中间页那条路用户已经看过打勾动画了，不带，免得应用侧再弹一次多余的提示。
-            if ($quickLogin) $params['spicallogin'] = self::QUICK_LOGIN_FLAG;
+            // spicallogin 是「快速登录成功」的提示标记，应用侧只判参数在不在，别比对值
+            if ($quickLogin) $params['spicallogin'] = $quickFlag;
 
             $clientName = $this->clientName($clientId);
             ActivityLog::record([
@@ -161,9 +157,7 @@ class OAuthController
             return;
         }
 
-        // 剩下的都是用户主动点登录点过来的（比如明确退出之后又点了一次登录），显示授权页面：
-        // 第一方 + 开着快速登录走中间页（打勾动画 + 顶部进度条，自动提交后由 handleAuthorize
-        // 发码并带上快速登录标记），其余情况是普通授权页，要用户自己勾权限。
+        // 剩下的都是用户主动点登录点过来的（比如明确退出之后又点了一次登录），显示授权页面
         $user = $this->getUser($userId);
         $scopeDescriptions = $config['scopes'];
         $requestedScopeList = $grantedScopes;
@@ -180,7 +174,7 @@ class OAuthController
         Response::view('authorize', compact(
             'client', 'scope', 'state', 'user',
             'scopeDescriptions', 'requestedScopeList',
-            'redirectUri', 'clientId', 'responseType', 'isFirstParty', 'quickLogin'
+            'redirectUri', 'clientId', 'responseType', 'isFirstParty'
         ));
     }
 
@@ -283,18 +277,11 @@ class OAuthController
         // 勾选框没提交（用户取消勾选 / 应用只请求了 openid）时，只保留必需的 openid
         $requestedParts = preg_split('/[\s,]+/', trim($requestedScope), -1, PREG_SPLIT_NO_EMPTY);
 
-        // 第一方应用 + 用户开着「快速登录」：授权页没有勾选框，本次请求的 scope 全部授予
-        $quickLogin = $this->isFirstParty($client) && $this->quickLoginEnabled((int)$userId);
+        $postedScopes = (isset($_POST['scopes']) && is_array($_POST['scopes'])) ? $_POST['scopes'] : [];
 
-        if ($quickLogin) {
-            $scopeParts = array_values(array_intersect($requestedParts, $validScopes));
-        } else {
-            $postedScopes = (isset($_POST['scopes']) && is_array($_POST['scopes'])) ? $_POST['scopes'] : [];
-
-            $scopeParts = array_values(array_unique(
-                array_intersect($postedScopes, $validScopes, $requestedParts)
-            ));
-        }
+        $scopeParts = array_values(array_unique(
+            array_intersect($postedScopes, $validScopes, $requestedParts)
+        ));
 
         if (!in_array('openid', $scopeParts, true)) {
             $scopeParts[] = 'openid';
@@ -328,7 +315,7 @@ class OAuthController
 
         $params = ['code' => $code];
         if ($state) $params['state'] = $state;
-        // 这里只可能是中间页（或普通授权页）提交回来的 —— 用户刚看过页面，不带快速登录标记
+        // 这里是授权页提交回来的 —— 用户刚看过页面
         Response::redirect($redirectUri . '?' . http_build_query($params));
     }
 
@@ -641,19 +628,6 @@ class OAuthController
     private function isFirstParty(array $client): bool
     {
         return (int)($client['developer_id'] ?? 0) === 1;
-    }
-
-    /**
-     * 用户是否开着「快速登录」（users.quick_login，默认开启）
-     * 关闭后第一方应用也走普通授权确认流程，回调不带快速登录标记
-     */
-    private function quickLoginEnabled(int $userId): bool
-    {
-        $stmt = $this->db->prepare('SELECT quick_login FROM users WHERE id = :id');
-        $stmt->execute([':id' => $userId]);
-        $row = $stmt->fetch();
-
-        return !$row || (int)$row['quick_login'] === 1;
     }
 
     private function getUser(int $userId): ?array

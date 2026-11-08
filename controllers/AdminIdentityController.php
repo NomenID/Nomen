@@ -2,7 +2,7 @@
 namespace Nomen\Controllers;
 
 use InvalidArgumentException;
-use Nomen\Src\{ActivityLog, Admin, Csrf, IdentityProviders, LoginMethods, Response, Settings};
+use Nomen\Src\{ActivityLog, Admin, Csrf, IconUpload, IdentityProviders, LoginMethods, Response, Settings};
 
 class AdminIdentityController
 {
@@ -87,6 +87,17 @@ class AdminIdentityController
         }
 
         $id = (int)($_POST['id'] ?? 0);
+
+        // 图标：传了新文件就替换；勾了清除就置空；否则保留原值（预置 logo 走表单里的路径字段）
+        if (!empty($_FILES['logo']['name'])) {
+            $file = IconUpload::store($_FILES['logo']);
+            if ($file === null) {
+                Response::json(['success' => false, 'message' => '图标上传失败：只支持 PNG / JPG / GIF / WebP，2MB 以内'], 422);
+            }
+            $_POST['logo'] = IconUpload::url($file);
+        } elseif (!empty($_POST['logo_clear'])) {
+            $_POST['logo'] = '';
+        }
 
         try {
             [$provider] = IdentityProviders::save($_POST, $id > 0 ? $id : null);

@@ -5477,3 +5477,15 @@ body.mobile-menu-open {
     flex-wrap: wrap;
     gap: 8px;
 }
+
+.auth-provider__mark--logo {
+    background: transparent;
+}
+
+.auth-provider__mark img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    object-fit: cover;
+}

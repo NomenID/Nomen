@@ -33,7 +33,7 @@ use Nomen\Src\I18n;
 
 $root = dirname(__DIR__, 2);
 
-$scanDirs = ['templates', 'controllers', 'src', 'public/js', 'frontend/src'];
+$scanDirs = ['templates', 'controllers', 'src', 'public/js', 'frontend/src', 'public/nomen-install'];
 $scanExts = ['php', 'js', 'vue'];
 $scanExcludes = [
     'templates/admin/',          // 后台保持中文
@@ -105,7 +105,7 @@ function scanFileForKeys(string $file, array &$keys): void
         return;
     }
     // t( / tIn( 后紧跟一个字符串字面量（键）；第二参不管
-    if (!preg_match_all('/(?<![A-Za-z0-9_$])t(?:In)?\(\s*(\'(?:[^\'\\\\]|\\\\.)*\'|"(?:[^"\\\\]|\\\\.)*")/', $content, $m)) {
+    if (!preg_match_all('/(?<![A-Za-z0-9_$])(?:nomen_install_)?t(?:In)?\(\s*(\'(?:[^\'\\\\]|\\\\.)*\'|"(?:[^"\\\\]|\\\\.)*")/', $content, $m)) {
         return;
     }
     foreach ($m[1] as $raw) {

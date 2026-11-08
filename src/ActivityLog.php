@@ -80,7 +80,6 @@ class ActivityLog
         'security.recovery_codes_delete'   => 'Delete recovery codes',
         'security.recovery_code_used'     => 'Use a recovery code',
         'security.2fa_policy'             => 'Change two-step verification policy',
-        'security.quick_login'            => 'Change quick sign-in',
         'security.biometric_add'          => 'Bind biometrics',
         'security.biometric_remove'       => 'Delete biometric',
         'security.temp_key_create'        => 'Create temp key',

@@ -10,7 +10,7 @@ use Nomen\Src\Installer\Database;
 use Nomen\Src\Plugins;
 
 if (nomen_install_is_installed()) {
-    nomen_install_json(['error' => '这个站点已经装好了。要重装先删掉 config/installed.php。'], 409);
+    nomen_install_json(['error' => nomen_install_t('This site is already installed. Delete config/installed.php to reinstall.')], 409);
 }
 
 $action = (string)($_GET['action'] ?? '');
@@ -18,7 +18,7 @@ $method = (string)($_SERVER['REQUEST_METHOD'] ?? 'GET');
 $state = nomen_install_state();
 
 if ($method === 'POST' && !nomen_install_csrf_ok()) {
-    nomen_install_json(['error' => '页面过期了，刷新一下再试。'], 419);
+    nomen_install_json(['error' => nomen_install_t('This page has expired. Refresh the page and try again.')], 419);
 }
 
 $body = static function (): array {
@@ -42,6 +42,23 @@ try {
         ]);
     }
 
+    if ($action === 'i18n' && $method === 'GET') {
+        $set = (string)($_GET['set'] ?? '');
+        if ($set !== '' && nomen_install_lang_valid($set)) {
+            nomen_install_set_lang($set);
+        }
+        $lang = $set !== '' && nomen_install_lang_valid($set) ? $set : nomen_install_lang();
+        $dictionary = [];
+        if ($lang !== 'en') {
+            $file = nomen_install_root('locales/' . $lang . '.json');
+            $data = is_file($file) ? json_decode((string)file_get_contents($file), true) : null;
+            if (is_array($data)) {
+                $dictionary = $data;
+            }
+        }
+        nomen_install_json(['ok' => true, 'lang' => $lang, 'dictionary' => $dictionary]);
+    }
+
     if ($action === 'db' && $method === 'POST') {
         $data = $body();
         $driver = $text($data, 'driver', 'mysql');
@@ -57,19 +74,19 @@ try {
             ];
 
             if (!extension_loaded('pdo_sqlite')) {
-                $error = 'PHP 没装 pdo_sqlite，用不了 SQLite。换个类型，或装好扩展再回来。';
+                $error = nomen_install_t('PHP is missing pdo_sqlite, so SQLite is unavailable. Pick another driver, or install the extension and come back.');
             } elseif ($db['path'] === '') {
-                $error = 'SQLite 要填一个数据库文件路径。';
+                $error = nomen_install_t('SQLite needs a database file path.');
             } else {
                 try {
                     $pdo = Database::connect($db, false);
                     if (Database::tables($pdo) !== []) {
-                        $error = '这个数据库文件里已经有表了，换一个空文件，或先把旧表清掉。';
+                        $error = nomen_install_t('This database file already has tables. Use an empty file, or clear the old tables first.');
                     }
                 } catch (RuntimeException $e) {
                     $error = $e->getMessage();
                 } catch (Throwable $e) {
-                    $error = '连不上数据库：' . $e->getMessage();
+                    $error = nomen_install_t('Could not connect to the database: {:reason}', ['reason' => $e->getMessage()]);
                 }
             }
         } else {
@@ -83,21 +100,21 @@ try {
             ];
 
             if (!extension_loaded('pdo_mysql')) {
-                $error = 'PHP 没装 pdo_mysql，用不了 MySQL / MariaDB。换 SQLite，或装好扩展再回来。';
+                $error = nomen_install_t('PHP is missing pdo_mysql, so MySQL / MariaDB is unavailable. Use SQLite, or install the extension and come back.');
             } elseif ($db['host'] === '' || $db['name'] === '' || $db['user'] === '') {
-                $error = '主机、库名、用户名都要填。';
+                $error = nomen_install_t('Host, database name and username are all required.');
             } elseif ($db['port'] < 1 || $db['port'] > 65535) {
-                $error = '端口要在 1-65535 之间。';
+                $error = nomen_install_t('The port must be between 1 and 65535.');
             } else {
                 try {
                     $pdo = nomen_install_connect_database($db);
                     if (Database::tables($pdo) !== []) {
-                        $error = '这个库里已经有表了，换一个空库，或先把旧表清掉。';
+                        $error = nomen_install_t('This database already has tables. Use an empty one, or clear the old tables first.');
                     }
                 } catch (RuntimeException $e) {
                     $error = $e->getMessage();
                 } catch (Throwable $e) {
-                    $error = '连不上数据库：' . $e->getMessage();
+                    $error = nomen_install_t('Could not connect to the database: {:reason}', ['reason' => $e->getMessage()]);
                 }
             }
         }
@@ -113,7 +130,7 @@ try {
 
     if ($action === 'site' && $method === 'POST') {
         if (!isset($state['db'])) {
-            nomen_install_json(['error' => '数据库那一步还没过，刷新页面重新来。', 'step' => 'db'], 409);
+            nomen_install_json(['error' => nomen_install_t('The database step is not finished yet. Refresh the page and start over.'), 'step' => 'db'], 409);
         }
 
         $data = $body();
@@ -131,22 +148,22 @@ try {
 
         $scheme = strtolower((string)parse_url($site['base_url'], PHP_URL_SCHEME));
         if ($site['name'] === '' || mb_strlen($site['name']) > 60) {
-            $error = '站点名要有内容，最多 60 个字。';
+            $error = nomen_install_t('The site name is required, at most 60 characters.');
         } elseif (!filter_var($site['base_url'], FILTER_VALIDATE_URL)
             || !in_array($scheme, ['http', 'https'], true)
             || parse_url($site['base_url'], PHP_URL_HOST) === null) {
-            $error = '访问地址要写完整，带 http:// 或 https://。';
+            $error = nomen_install_t('The base URL must be complete, with http:// or https://.');
         } elseif (parse_url($site['base_url'], PHP_URL_QUERY) !== null
             || parse_url($site['base_url'], PHP_URL_FRAGMENT) !== null) {
-            $error = '访问地址不要带查询参数或 #。';
+            $error = nomen_install_t('The base URL must not contain a query string or a # fragment.');
         } elseif (!in_array($site['language_default'], $slugs, true)) {
-            $error = '这个语言不在列表里。';
+            $error = nomen_install_t('That language is not in the list.');
         } elseif ($site['support_email'] !== '' && !filter_var($site['support_email'], FILTER_VALIDATE_EMAIL)) {
-            $error = '对外支持邮箱格式不对。';
+            $error = nomen_install_t('The support email address is not valid.');
         } elseif ($site['admin_notify_email'] !== '' && !filter_var($site['admin_notify_email'], FILTER_VALIDATE_EMAIL)) {
-            $error = '管理员通知邮箱格式不对。';
+            $error = nomen_install_t('The admin notification email address is not valid.');
         } elseif ($site['logo'] !== '' && !preg_match('#^(https?://|/)#i', $site['logo'])) {
-            $error = '站点图标要填完整 URL 或以 / 开头的站内路径。';
+            $error = nomen_install_t('The site logo must be a full URL or a site path starting with /.');
         }
 
         if (isset($error)) {
@@ -169,7 +186,7 @@ try {
 
     if ($action === 'upload-logo' && $method === 'POST') {
         if (!isset($state['db'])) {
-            nomen_install_json(['error' => '先过数据库那一步再上传头像。', 'step' => 'db'], 409);
+            nomen_install_json(['error' => nomen_install_t('Finish the database step before uploading an avatar.'), 'step' => 'db'], 409);
         }
 
         $upload = nomen_install_upload_available();
@@ -181,9 +198,9 @@ try {
         if (!is_array($file) || ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
             $code = (int)($file['error'] ?? UPLOAD_ERR_NO_FILE);
             $message = match ($code) {
-                UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => '图片太大了，换一张小于 2MB 的。',
-                UPLOAD_ERR_NO_FILE => '没收到图片，再选一次。',
-                default => '图片上传失败（错误码 ' . $code . '），换一张再试。',
+                UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => nomen_install_t('The image is too large. Use one under 2MB.'),
+                UPLOAD_ERR_NO_FILE => nomen_install_t('No image was received. Pick one and try again.'),
+                default => nomen_install_t('The image upload failed (error code {:code}). Try another image.', ['code' => $code]),
             };
             nomen_install_json(['error' => $message], 422);
         }
@@ -191,7 +208,7 @@ try {
         $filename = IconUpload::store($file);
         if ($filename === null) {
             nomen_install_json([
-                'error' => '图片处理失败。确认它是 JPG / PNG / GIF / WebP、小于 2MB，服务器也装了 GD 和 fileinfo。',
+                'error' => nomen_install_t('Could not process the image. Make sure it is a JPG / PNG / GIF / WebP under 2MB and the server has GD and fileinfo.'),
             ], 422);
         }
 
@@ -208,7 +225,7 @@ try {
 
     if ($action === 'admin' && $method === 'POST') {
         if (!isset($state['site'])) {
-            nomen_install_json(['error' => '站点信息那一步还没过，刷新页面重新来。', 'step' => 'site'], 409);
+            nomen_install_json(['error' => nomen_install_t('The site step is not finished yet. Refresh the page and start over.'), 'step' => 'site'], 409);
         }
 
         $data = $body();
@@ -222,15 +239,15 @@ try {
         }
 
         if (!preg_match('/^[a-z0-9_]{3,32}$/', $username)) {
-            $error = '用户名要 3-32 位小写字母、数字或下划线。';
+            $error = nomen_install_t('The username must be 3-32 lowercase letters, digits or underscores.');
         } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $error = '管理员邮箱格式不对。';
+            $error = nomen_install_t('The admin email address is not valid.');
         } elseif (EmailPolicy::isBlocked($email)) {
-            $error = EmailPolicy::REJECT_MESSAGE;
+            $error = nomen_install_t(EmailPolicy::REJECT_MESSAGE);
         } elseif (strlen($password) < 8 || !preg_match('/[A-Za-z]/', $password) || !preg_match('/\d/', $password)) {
-            $error = '密码至少 8 位，且要有字母和数字。';
+            $error = nomen_install_t('The password must be at least 8 characters and contain letters and digits.');
         } elseif ($password !== $confirm) {
-            $error = '两次密码不一致。';
+            $error = nomen_install_t('The two passwords do not match.');
         }
 
         if (isset($error)) {
@@ -249,7 +266,7 @@ try {
 
     if ($action === 'plugins' && $method === 'POST') {
         if (!isset($state['admin'])) {
-            nomen_install_json(['error' => '管理员账号那一步还没过，刷新页面重新来。', 'step' => 'admin'], 409);
+            nomen_install_json(['error' => nomen_install_t('The admin step is not finished yet. Refresh the page and start over.'), 'step' => 'admin'], 409);
         }
 
         $data = $body();
@@ -272,7 +289,7 @@ try {
 
     if ($action === 'mail' && $method === 'POST') {
         if (!isset($state['plugins'])) {
-            nomen_install_json(['error' => '扩展那一步还没过，刷新页面重新来。', 'step' => 'plugins'], 409);
+            nomen_install_json(['error' => nomen_install_t('The plugins step is not finished yet. Refresh the page and start over.'), 'step' => 'plugins'], 409);
         }
 
         $data = $body();
@@ -298,9 +315,9 @@ try {
         }
 
         if ($smtp['host'] !== '' && ($smtp['port'] < 1 || $smtp['port'] > 65535)) {
-            $error = 'SMTP 端口要在 1-65535 之间。';
+            $error = nomen_install_t('The SMTP port must be between 1 and 65535.');
         } elseif ($smtp['host'] !== '' && !filter_var($smtp['from_email'], FILTER_VALIDATE_EMAIL)) {
-            $error = '填了 SMTP 主机就要给一个发件地址。';
+            $error = nomen_install_t('A from address is required when an SMTP host is set.');
         }
 
         if (isset($error)) {
@@ -323,7 +340,7 @@ try {
                     'plugins' => 'plugins',
                     'smtp' => 'mail',
                 };
-                nomen_install_json(['error' => '前面还有没填完的步骤。', 'step' => $step], 409);
+                nomen_install_json(['error' => nomen_install_t('Some earlier steps are not finished yet.'), 'step' => $step], 409);
             }
         }
 
@@ -341,7 +358,7 @@ try {
         try {
             $pdo = nomen_install_connect_database($db);
             if (Database::tables($pdo) !== []) {
-                nomen_install_json(['error' => '这个库里已经有表了（可能有人同时装过两次）。换一个空库再来。'], 422);
+                nomen_install_json(['error' => nomen_install_t('This database already has tables (two installs may have raced). Use an empty database and try again.')], 422);
             }
 
             Database::importSchema($pdo, $pdo->dialect()->schemaFile(nomen_install_root()));
@@ -350,7 +367,7 @@ try {
         } catch (RuntimeException $e) {
             nomen_install_json(['error' => $e->getMessage()], 422);
         } catch (Throwable $e) {
-            nomen_install_json(['error' => '安装失败：' . $e->getMessage()], 422);
+            nomen_install_json(['error' => nomen_install_t('Installation failed: {:reason}', ['reason' => $e->getMessage()])], 422);
         }
 
         $content = ConfigFile::render([
@@ -388,7 +405,7 @@ try {
         $pluginsWritten = nomen_install_write_plugins_config(nomen_install_root('config/plugins.php'), $plugins);
         $pluginsNote = $pluginsWritten
             ? ''
-            : 'config/plugins.php 没写进去，装完手动把 enabled 改成：' . implode(', ', $plugins);
+            : nomen_install_t('config/plugins.php could not be written. After installing, set enabled to: {:list}', ['list' => implode(', ', $plugins)]);
 
         unset($_SESSION['nomen_install'], $_SESSION['nomen_install_logo']);
 
@@ -418,9 +435,9 @@ try {
         nomen_install_json(['ok' => true, 'step' => 'start', 'state' => []]);
     }
 
-    nomen_install_json(['error' => '没有这个操作。'], 404);
+    nomen_install_json(['error' => nomen_install_t('No such action.')], 404);
 } catch (Throwable $e) {
-    nomen_install_json(['error' => '服务器处理失败：' . $e->getMessage()], 500);
+    nomen_install_json(['error' => nomen_install_t('The server could not process the request: {:reason}', ['reason' => $e->getMessage()])], 500);
 }
 
 function nomen_install_connect_database(array $db): \Nomen\Src\Db\Connection
@@ -442,7 +459,7 @@ function nomen_install_connect_database(array $db): \Nomen\Src\Db\Connection
     try {
         $server->exec("CREATE DATABASE IF NOT EXISTS `$name` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
     } catch (Throwable $e) {
-        throw new RuntimeException('连上了，但这个账号没有建库权限。先在面板里把库和用户建好，再回来填。');
+        throw new RuntimeException(nomen_install_t('Connected, but this account has no permission to create databases. Create the database and user in your hosting panel first, then come back.'));
     }
 
     return Database::connect($db, true);

@@ -18,6 +18,17 @@ try {
 $payload = nomen_install_payload();
 $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
 
+// 当前语言的词典直接内嵌进页面：装向导期间 /i18n/ 路由不可用，也不值得多一次往返。
+// en 就是母键本身，不用带词典。
+$installLang = nomen_install_lang();
+$installDict = [];
+if ($installLang !== 'en') {
+    $dictData = json_decode((string)@file_get_contents(nomen_install_root('locales/' . $installLang . '.json')), true);
+    if (is_array($dictData)) {
+        $installDict = $dictData;
+    }
+}
+
 header('Content-Type: text/html; charset=utf-8');
 header('X-Frame-Options: DENY');
 header('Referrer-Policy: no-referrer');
@@ -25,13 +36,13 @@ header('X-Robots-Tag: noindex, nofollow');
 header('Cache-Control: no-store, max-age=0');
 ?>
 <!doctype html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="<?= nomen_install_h(nomen_install_locale_code()) ?>" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <meta name="color-scheme" content="dark light">
-<title>安装 Nomen</title>
+<title><?= nomen_install_h(nomen_install_t('Install Nomen')) ?></title>
 <link rel="icon" href="/assets/brand/nomen-icon.svg">
 <script>
 (function () {
@@ -47,12 +58,15 @@ header('Cache-Control: no-store, max-age=0');
   document.documentElement.dataset.theme = theme;
 })();
 </script>
+<?php if ($installDict !== []): ?>
+<script>window.__NOMEN_INSTALL_I18N__<?= json_encode($installDict, $jsonFlags) ?>;</script>
+<?php endif; ?>
 <?= $assets ?>
 </head>
 <body>
 <div id="install-app">
     <noscript>
-        <p class="noscript">安装向导需要 JavaScript。打开脚本后刷新这一页。</p>
+        <p class="noscript"><?= nomen_install_h(nomen_install_t('The install wizard needs JavaScript. Turn it on and refresh this page.')) ?></p>
     </noscript>
     <script type="application/json" id="install-props"><?= json_encode($payload, $jsonFlags) ?></script>
 </div>

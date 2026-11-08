@@ -588,7 +588,8 @@ onMounted(() => {
             class="auth-provider"
             :href="`/auth/${provider.slug}/redirect`"
           >
-            <span class="auth-provider__mark">{{ provider.name.slice(0, 1) }}</span>
+            <span v-if="provider.logo" class="auth-provider__mark auth-provider__mark--logo"><img :src="provider.logo" alt=""></span>
+            <span v-else class="auth-provider__mark">{{ provider.name.slice(0, 1) }}</span>
             <span>{{ provider.name }}</span>
           </a>
         </div>

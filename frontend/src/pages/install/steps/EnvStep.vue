@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import StepHead from '../StepHead.vue'
 import CheckRow from '../CheckRow.vue'
+import { t } from '../i18n'
 import { go, refreshEnv, wizard } from '../wizard'
 
 const probing = ref(true)
@@ -17,14 +18,14 @@ const probeState = computed(() => {
   return probe.value === 'ok' ? 'pass' : (probe.value === 'fail' ? 'fail' : 'off')
 })
 const probeText = computed(() => {
-  if (probing.value) return '检测中'
-  return probe.value === 'ok' ? '通过' : (probe.value === 'fail' ? '需要处理' : '未知')
+  if (probing.value) return t('Checking')
+  return probe.value === 'ok' ? t('Pass') : (probe.value === 'fail' ? t('Needs attention') : t('Unknown'))
 })
 const probeHint = computed(() => {
-  if (probing.value) return '正在检测 /__rewrite_probe…'
-  if (probe.value === 'ok') return '/__rewrite_probe 正常'
-  if (probe.value === 'fail') return '除首页外的地址会 404，按下面配好再继续'
-  return '检测失败，点「重新检查」再试'
+  if (probing.value) return t('Probing /__rewrite_probe…')
+  if (probe.value === 'ok') return t('/__rewrite_probe works')
+  if (probe.value === 'fail') return t('Addresses other than the home page return 404 — set up the rules below and continue')
+  return t('The probe failed. Click "Check again" and try again')
 })
 
 const snippet = `nginx:
@@ -33,7 +34,7 @@ location / {
     try_files $uri $uri/ /index.php$is_args$args;
 }
 
-apache（public/.htaccess）:
+${t('apache (public/.htaccess)')}:
 
 RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-f
@@ -65,38 +66,39 @@ onMounted(runProbe)
 </script>
 
 <template>
-  <StepHead icon="env" title="检查环境" lead="先确认这台服务器能跑 Nomen。标红的项目解决后再继续。" />
+  <StepHead icon="env" :title="t('Check the environment')"
+    :lead="t('First make sure this server can run Nomen. Fix the red items before continuing.')" />
 
-  <div v-if="!envOk" class="alert alert--error" role="alert">「需要处理」的项目先解决，再刷新本页。</div>
+  <div v-if="!envOk" class="alert alert--error" role="alert">{{ t('Fix the items marked "Needs attention", then refresh this page.') }}</div>
 
   <ul class="checks">
     <CheckRow v-for="row in required" :key="row.key" :label="row.label" :hint="row.pass ? '' : row.hint"
-      :state="row.pass ? 'pass' : 'fail'" :state-text="row.pass ? '通过' : '需要处理'" />
-    <CheckRow label="路由与伪静态" :hint="probeHint" :state="probeState" :state-text="probeText" />
+      :state="row.pass ? 'pass' : 'fail'" :state-text="row.pass ? t('Pass') : t('Needs attention')" />
+    <CheckRow :label="t('Routing and URL rewriting')" :hint="probeHint" :state="probeState" :state-text="probeText" />
   </ul>
 
   <div v-if="probe === 'fail' && !probing" class="alert alert--error" style="margin-top:18px">
-    <strong>伪静态没生效。</strong>除首页外，<code>/login</code>、<code>/special/version</code> 这些地址都会 404。
-    加上下面的规则、reload 之后再点「重新检查」。
+    <strong>{{ t('URL rewriting is not active.') }}</strong>
+    {{ t('Addresses other than the home page, such as /login and /special/version, return 404. Add the rules below, reload, then click "Check again".') }}
     <pre class="code">{{ snippet }}</pre>
   </div>
 
   <div class="actions">
-    <button v-if="canContinue" class="btn btn-primary" type="button" @click="go('db')">继续</button>
+    <button v-if="canContinue" class="btn btn-primary" type="button" @click="go('db')">{{ t('Continue') }}</button>
     <button v-else class="btn btn-ghost" type="button" :class="{ 'is-busy': wizard.busy }"
-      :disabled="wizard.busy" @click="recheck">重新检查</button>
+      :disabled="wizard.busy" @click="recheck">{{ t('Check again') }}</button>
   </div>
 
   <details class="more">
-    <summary>可选项（缺了也能装，对应功能会关掉）</summary>
+    <summary>{{ t('Optional (the site installs without them; the matching features are disabled)') }}</summary>
     <ul class="checks">
       <CheckRow v-for="row in optional" :key="row.key" :label="row.label" :hint="row.hint"
-        :state="row.pass ? 'pass' : 'off'" :state-text="row.pass ? '可用' : '跳过'" />
+        :state="row.pass ? 'pass' : 'off'" :state-text="row.pass ? t('Available') : t('Skipped')" />
     </ul>
   </details>
 
   <div class="nav-links">
-    <button class="linkish" type="button" @click="go('start')">← 上一步</button>
+    <button class="linkish" type="button" @click="go('start')">← {{ t('Back') }}</button>
     <span></span>
   </div>
 </template>

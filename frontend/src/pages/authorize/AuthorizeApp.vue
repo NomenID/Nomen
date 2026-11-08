@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { useT } from '../../composables/useT.js'
 const { t } = useT()
 import Icon from '../../components/Icon.vue'
@@ -16,7 +16,6 @@ const props = defineProps({
   clientId: { type: String, default: '' },
   responseType: { type: String, default: 'code' },
   isFirstParty: { type: Boolean, default: false },
-  quickLogin: { type: Boolean, default: false },
   urls: { type: Object, default: () => ({}) },
 })
 
@@ -53,10 +52,6 @@ const denyUrl = computed(() => (
   + '&state=' + encodeURIComponent(props.state)
   + '&redirect_uri=' + encodeURIComponent(props.redirectUri)
 ))
-
-const autoText = ref(t('Authorizing {:name}…', { name: props.client.name }))
-let autoTimer = null
-let progressEl = null
 
 function scopeIcon(scope) {
   return { openid: 'fingerprint', profile: 'user', email: 'mail' }[scope] || 'key'
@@ -107,7 +102,6 @@ function submitForm() {
 
 function onSubmit(event) {
   event.preventDefault()
-  if (props.quickLogin) return
 
   if (mediumRiskScopes.value.length > 0) {
     showConfirmModal(props.client.name, mediumRiskScopes.value).then((confirmed) => {
@@ -118,26 +112,6 @@ function onSubmit(event) {
 
   submitForm()
 }
-
-onMounted(() => {
-  if (!props.quickLogin) return
-
-  progressEl = document.createElement('div')
-  progressEl.className = 'nomen-top-progress'
-  progressEl.innerHTML = '<div class="nomen-top-progress__bar"></div>'
-  document.body.appendChild(progressEl)
-
-  autoTimer = setTimeout(() => {
-    progressEl.classList.add('nomen-top-progress--active')
-    autoText.value = t('Authorized — returning to {:name}…', { name: props.client.name })
-    formEl.value?.submit()
-  }, 1200)
-})
-
-onBeforeUnmount(() => {
-  if (autoTimer) clearTimeout(autoTimer)
-  if (progressEl) progressEl.remove()
-})
 </script>
 
 <template>
@@ -181,75 +155,52 @@ onBeforeUnmount(() => {
         <input type="hidden" name="_csrf" :value="csrf">
         <input type="hidden" name="client_id" :value="clientId">
         <input type="hidden" name="redirect_uri" :value="redirectUri">
-        <input type="hidden" name="scope" :value="quickLogin ? scope : scopeValue">
+        <input type="hidden" name="scope" :value="scopeValue">
         <input type="hidden" name="state" :value="state">
         <input type="hidden" name="response_type" :value="responseType">
         <input type="hidden" name="action" value="allow">
 
-        <template v-if="quickLogin">
-          <div class="authorize-scopes">
-            <ul class="scope-list">
-              <li v-for="item in requestedScopeList" :key="item" class="scope-item">
-                <span :class="['scope-icon', 'icon', 'icon-' + scopeIcon(item)]"></span>
+        <div class="authorize-scopes">
+          <ul class="scope-list">
+            <template v-for="item in requestedScopeList" :key="item">
+              <li v-if="item === 'openid'" class="scope-item">
+                <span class="scope-icon icon icon-fingerprint"></span>
                 <span class="scope-name">{{ scopeLabel(item) }}</span>
-                <span class="scope-hint scope-hint--granted">{{ t('Granted') }}</span>
+                <span class="scope-hint scope-hint--required">{{ t('Required') }}</span>
               </li>
-            </ul>
-          </div>
 
-          <div class="authorize-auto" id="authorizeAuto">
-            <svg class="authorize-check" viewBox="0 0 52 52" aria-hidden="true">
-              <circle class="authorize-check__circle" cx="26" cy="26" r="23"></circle>
-              <path class="authorize-check__mark" d="M14.5 27 L22.5 35.5 L38 19"></path>
-            </svg>
-            <p class="authorize-auto-text" id="authorizeAutoText">{{ autoText }}</p>
-            <p class="authorize-auto-hint">{{ t('Don\'t want to authorize every time? Open ') }}<a href="/settings">{{ t('Settings') }}</a>{{ t(' and turn off “Nomen Launch Plan quick central sign-in”') }}</p>
-          </div>
-        </template>
+              <li v-else-if="item === 'profile'" class="scope-item scope-item--has-checkbox" :class="{ denied: !checked.profile }">
+                <label class="scope-checkbox">
+                  <input v-model="checked.profile" type="checkbox" name="scopes[]" value="profile">
+                  <span class="checkmark"></span>
+                  <span class="scope-icon icon icon-user"></span>
+                  <span class="scope-name">{{ t('username, display name, avatar') }}</span>
+                </label>
+                <span class="scope-risk scope-risk--low"><span class="icon icon-info"></span> {{ t('Low risk: lets the app access your username, display name and avatar') }}</span>
+              </li>
 
-        <template v-else>
-          <div class="authorize-scopes">
-            <ul class="scope-list">
-              <template v-for="item in requestedScopeList" :key="item">
-                <li v-if="item === 'openid'" class="scope-item">
-                  <span class="scope-icon icon icon-fingerprint"></span>
-                  <span class="scope-name">{{ scopeLabel(item) }}</span>
-                  <span class="scope-hint scope-hint--required">{{ t('Required') }}</span>
-                </li>
+              <li v-else-if="item === 'email'" class="scope-item scope-item--has-checkbox scope-item--medium-risk" :class="{ denied: !checked.email }">
+                <label class="scope-checkbox">
+                  <input v-model="checked.email" type="checkbox" name="scopes[]" value="email">
+                  <span class="checkmark"></span>
+                  <span class="scope-icon icon icon-mail"></span>
+                  <span class="scope-name">{{ t('Verified email') }}</span>
+                </label>
+                <span class="scope-risk scope-risk--medium"><span class="icon icon-warning"></span> {{ t('Medium risk: lets the app access your verified email address') }}</span>
+              </li>
 
-                <li v-else-if="item === 'profile'" class="scope-item scope-item--has-checkbox" :class="{ denied: !checked.profile }">
-                  <label class="scope-checkbox">
-                    <input v-model="checked.profile" type="checkbox" name="scopes[]" value="profile">
-                    <span class="checkmark"></span>
-                    <span class="scope-icon icon icon-user"></span>
-                    <span class="scope-name">{{ t('username, display name, avatar') }}</span>
-                  </label>
-                  <span class="scope-risk scope-risk--low"><span class="icon icon-info"></span> {{ t('Low risk: lets the app access your username, display name and avatar') }}</span>
-                </li>
+              <li v-else class="scope-item">
+                <span class="scope-icon icon icon-key"></span>
+                <span class="scope-name">{{ scopeLabel(item) }}</span>
+              </li>
+            </template>
+          </ul>
+        </div>
 
-                <li v-else-if="item === 'email'" class="scope-item scope-item--has-checkbox scope-item--medium-risk" :class="{ denied: !checked.email }">
-                  <label class="scope-checkbox">
-                    <input v-model="checked.email" type="checkbox" name="scopes[]" value="email">
-                    <span class="checkmark"></span>
-                    <span class="scope-icon icon icon-mail"></span>
-                    <span class="scope-name">{{ t('Verified email') }}</span>
-                  </label>
-                  <span class="scope-risk scope-risk--medium"><span class="icon icon-warning"></span> {{ t('Medium risk: lets the app access your verified email address') }}</span>
-                </li>
-
-                <li v-else class="scope-item">
-                  <span class="scope-icon icon icon-key"></span>
-                  <span class="scope-name">{{ scopeLabel(item) }}</span>
-                </li>
-              </template>
-            </ul>
-          </div>
-
-          <div class="authorize-buttons">
-            <a :href="denyUrl" class="btn btn-secondary">{{ t('Deny') }}</a>
-            <button type="submit" name="action" value="allow" class="btn btn-primary">{{ t('Authorize') }}</button>
-          </div>
-        </template>
+        <div class="authorize-buttons">
+          <a :href="denyUrl" class="btn btn-secondary">{{ t('Deny') }}</a>
+          <button type="submit" name="action" value="allow" class="btn btn-primary">{{ t('Authorize') }}</button>
+        </div>
       </form>
     </div>
 

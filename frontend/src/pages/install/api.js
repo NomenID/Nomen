@@ -1,15 +1,26 @@
+import { t } from './i18n'
+
 let csrf = ''
+let lang = ''
 
 export function setCsrf(token) {
   csrf = token || ''
 }
 
+export function setLang(value) {
+  lang = value || ''
+}
+
 export async function request(action, payload, options = {}) {
   const method = options.method || 'POST'
+  const headers = { 'X-CSRF-Token': csrf }
+  if (lang) {
+    headers['X-Nomen-Lang'] = lang
+  }
   const init = {
     method,
     credentials: 'same-origin',
-    headers: { 'X-CSRF-Token': csrf },
+    headers,
   }
 
   if (method !== 'GET' && payload !== undefined && payload !== null) {
@@ -23,9 +34,9 @@ export async function request(action, payload, options = {}) {
 
   let response
   try {
-    response = await fetch(`/nomen-install/api.php?action=${encodeURIComponent(action)}`, init)
+    response = await fetch(`/nomen-install/api.php?action=${encodeURIComponent(action)}${options.query || ''}`, init)
   } catch (err) {
-    throw new Error('连不上服务器，检查网络后再试。')
+    throw new Error(t('Could not reach the server. Check the network and try again.'))
   }
 
   let data = {}
@@ -36,11 +47,17 @@ export async function request(action, payload, options = {}) {
   }
 
   if (!response.ok || data.error) {
-    const error = new Error(data.error || `请求失败（${response.status}）`)
+    const error = new Error(data.error || t('Request failed ({:code}).', { code: response.status }))
     error.status = response.status
     error.step = data.step || ''
     throw error
   }
 
   return data
+}
+
+/** 取一份语言词典，顺便把选择存进服务器会话。 */
+export async function fetchI18n(target) {
+  const query = target ? '&set=' + encodeURIComponent(target) : ''
+  return request('i18n', null, { method: 'GET', query })
 }

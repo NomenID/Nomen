@@ -538,53 +538,6 @@ class DashboardController
     }
 
     /**
-     * POST /settings/quick-login - 开关「快速登录」
-     * 开启（默认）时第一方应用免确认直接授权；关闭后走普通授权确认流程
-     */
-    public function updateQuickLogin(): void
-    {
-        $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
-                  strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
-
-        if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            if ($isAjax) Response::json(['success' => false, 'message' => t('Invalid request, try again')]);
-            Session::flash('error', t('Invalid request, try again'));
-            Response::redirect('/settings#sec-quick-login');
-            return;
-        }
-
-        $userId = Session::get('user_id');
-        $enabled = ($_POST['quick_login'] ?? '0') === '1' ? 1 : 0;
-
-        $stmt = $this->db->prepare('SELECT quick_login FROM users WHERE id = :id');
-        $stmt->execute([':id' => $userId]);
-        $oldQuickLogin = (int)$stmt->fetchColumn();
-
-        $stmt = $this->db->prepare('UPDATE users SET quick_login = :q WHERE id = :id');
-        $stmt->execute([':q' => $enabled, ':id' => $userId]);
-
-        ActivityLog::record([
-            'action'   => 'security.quick_login',
-            'category' => ActivityLog::CAT_SECURITY,
-            'changes'  => ActivityLog::diff(
-                ['quick_login' => $oldQuickLogin ? '1' : '0'],
-                ['quick_login' => $enabled ? '1' : '0'],
-                ['quick_login']
-            ),
-            'summary'  => $enabled ? '开启快速登录' : '关闭快速登录',
-        ]);
-
-        $message = $enabled
-            ? t('Nomen Launch Plan quick central sign-in is on')
-            : t('Nomen Launch Plan quick central sign-in is off — each authorization will be confirmed individually');
-        if ($isAjax) {
-            Response::json(['success' => true, 'message' => $message]);
-        }
-        Session::flash('success', $message);
-        Response::redirect('/settings#sec-quick-login');
-    }
-
-    /**
      * POST /settings/locale - 设置页的「语言」下拉。cookie 由语言选择器那套负责，
      * 这里把账号级的写进库 + 会话，登出后语言照旧。
      */
@@ -1021,7 +974,7 @@ class DashboardController
         }
 
         $stmt = $this->db->prepare(
-            'SELECT id, username, email, display_name, avatar, bio, email_verified, pending_email, role, two_factor_policy, quick_login, created_at, birth_date, gender, country FROM users WHERE id = :id'
+            'SELECT id, username, email, display_name, avatar, bio, email_verified, pending_email, role, two_factor_policy, created_at, birth_date, gender, country FROM users WHERE id = :id'
         );
         $stmt->execute([':id' => $userId]);
         $user = $stmt->fetch();

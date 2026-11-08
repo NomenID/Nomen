@@ -1,6 +1,6 @@
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
-import { apiGet, apiPost } from '../../app/api'
+import { computed, onMounted, reactive, ref } from 'vue'
+import { apiGet, apiPost, apiPostForm } from '../../app/api'
 import AdminPage from '../components/AdminPage.vue'
 import AdminCard from '../components/AdminCard.vue'
 import AdminBadge from '../components/AdminBadge.vue'
@@ -17,6 +17,8 @@ const editing = ref(false)
 const editingHasSecret = ref(false)
 const busyId = ref(0)
 const methodBusy = ref('')
+const logoFile = ref(null)
+const logoClear = ref(false)
 
 const methodRows = [
   { key: 'password', label: '密码登录', desc: '用户名/邮箱 + 密码；关掉后注册页的密码注册一并停用' },
@@ -30,6 +32,7 @@ const emptyForm = () => ({
   id: 0,
   slug: '',
   name: '',
+  logo: '',
   type: 'oauth2',
   client_id: '',
   client_secret: '',
@@ -51,6 +54,20 @@ const emptyForm = () => ({
 
 const form = reactive(emptyForm())
 
+const callbackUrl = computed(() => {
+  const slug = String(form.slug || '').trim()
+  return `${window.location.origin}/auth/${slug || '…'}/callback`
+})
+
+const logoPreviewUrl = ref('')
+
+function onLogoChange(event) {
+  const file = event.target.files?.[0] || null
+  logoFile.value = file
+  if (logoPreviewUrl.value) URL.revokeObjectURL(logoPreviewUrl.value)
+  logoPreviewUrl.value = file ? URL.createObjectURL(file) : ''
+}
+
 async function load() {
   loading.value = true
   error.value = ''
@@ -65,6 +82,8 @@ async function load() {
 
 function startCreate() {
   Object.assign(form, emptyForm())
+  logoFile.value = null
+  logoClear.value = false
   editing.value = true
 }
 
@@ -73,6 +92,8 @@ function startEdit(provider) {
   form.client_secret = ''
   form.enabled = Number(provider.enabled) === 1
   editingHasSecret.value = !!provider.has_secret
+  logoFile.value = null
+  logoClear.value = false
   editing.value = true
 }
 
@@ -92,8 +113,19 @@ function applyPreset() {
 async function save() {
   saving.value = true
   try {
-    const payload = { ...form, enabled: form.enabled ? '1' : '0' }
-    const result = await apiPost('/admin/identities/save', payload)
+    const fd = new FormData()
+    for (const [key, value] of Object.entries(form)) {
+      if (key === 'logo') continue
+      fd.set(key, typeof value === 'boolean' ? (value ? '1' : '0') : String(value ?? ''))
+    }
+    if (logoFile.value) {
+      fd.set('logo', logoFile.value)
+    } else if (logoClear.value) {
+      fd.set('logo_clear', '1')
+    } else {
+      fd.set('logo', form.logo || '')
+    }
+    const result = await apiPostForm('/admin/identities/save', fd)
     if (result.success) {
       window.Nomen.toast(result.message, 'success')
       editing.value = false
@@ -222,6 +254,28 @@ onMounted(load)
           </div>
 
           <div class="a-form__row">
+            <AdminField label="回调地址" hint="去提供方的 OAuth 应用设置里，把这个地址原样填进回调 / Redirect URI，逐字一致">
+              <div class="a-kv">
+                <span class="a-mono a-break">{{ callbackUrl }}</span>
+                <button v-if="form.slug" class="a-btn a-btn--ghost a-btn--sm" type="button" @click="copy(callbackUrl, '回调地址')">复制</button>
+              </div>
+            </AdminField>
+            <AdminField
+              label="图标"
+              :hint="form.logo ? `当前：${form.logo}；选新文件替换，或勾选清除退回首字母图标` : '选填；PNG / JPG / WebP，方图最佳。预置提供方自带图标'"
+            >
+              <div class="a-kv">
+                <img v-if="logoPreviewUrl || form.logo" :src="logoPreviewUrl || form.logo" alt="" class="a-provider-logo a-provider-logo--lg">
+                <input class="a-input a-input--file" type="file" accept="image/png,image/jpeg,image/webp" @change="onLogoChange">
+              </div>
+              <label v-if="form.logo" class="a-check" style="margin-top:8px">
+                <input v-model="logoClear" type="checkbox">
+                <span>清除图标</span>
+              </label>
+            </AdminField>
+          </div>
+
+          <div class="a-form__row">
             <AdminField label="Client ID">
               <input v-model="form.client_id" class="a-input a-mono" type="text" required>
             </AdminField>
@@ -313,7 +367,12 @@ onMounted(load)
             <thead><tr><th>名称</th><th>标识</th><th>类型</th><th>回调地址</th><th>状态</th><th class="a-td-actions">操作</th></tr></thead>
             <tbody>
               <tr v-for="provider in data.providers" :key="provider.id">
-                <td class="a-strong">{{ provider.name }}</td>
+                <td class="a-strong">
+                  <span class="a-appcell">
+                    <img v-if="provider.logo" :src="provider.logo" alt="" class="a-provider-logo">
+                    <span>{{ provider.name }}</span>
+                  </span>
+                </td>
                 <td class="a-mono">{{ provider.slug }}</td>
                 <td>{{ provider.type }}</td>
                 <td>

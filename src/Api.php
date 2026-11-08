@@ -55,7 +55,7 @@ final class Api
         self::registerCore();
 
         if (!self::enabled()) {
-            self::error(404, 'api-disabled', 'The site API is disabled on this site.');
+            self::error(404, 'api-disabled', t('The site API is disabled on this site.'));
         }
 
         $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
@@ -64,7 +64,7 @@ final class Api
         $rate = RateLimiter::check($rateKey, 120, 60);
         if (!$rate['allowed']) {
             header('Retry-After: ' . $rate['retry_after']);
-            self::error(429, 'ratelimited', 'Too many requests. Try again later.');
+            self::error(429, 'ratelimited', t('Too many requests. Try again later.'));
         }
 
         // 数组参数（?x[]=1）直接丢掉，后面都按字符串处理
@@ -96,7 +96,7 @@ final class Api
     public static function requireAdmin(): void
     {
         if (!self::isAdmin()) {
-            self::error(403, 'permissiondenied', 'This module requires an administrator.');
+            self::error(403, 'permissiondenied', t('This module requires an administrator.'));
         }
     }
 
@@ -246,7 +246,7 @@ final class Api
     {
         $raw = trim((string)($params['titles'] ?? ''));
         if ($raw === '') {
-            self::error(400, 'missingparam', 'The titles parameter is required when prop= is used.');
+            self::error(400, 'missingparam', t('The titles parameter is required when prop= is used.'));
         }
 
         $titles = [];

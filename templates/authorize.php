@@ -10,7 +10,6 @@
  * @var string $clientId
  * @var string $responseType
  * @var bool $isFirstParty 第一方应用（开发者 Id=1）
- * @var bool $quickLogin 第一方应用 + 用户开着快速登录：免逐项确认，自动授权
  */
 $title = t('Authorized apps');
 
@@ -36,7 +35,6 @@ $props = [
     'clientId' => $clientId,
     'responseType' => $responseType,
     'isFirstParty' => (bool)$isFirstParty,
-    'quickLogin' => (bool)$quickLogin,
     'urls' => [
         'authorize' => '/oauth/authorize',
         'deny' => '/oauth/deny',

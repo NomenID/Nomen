@@ -223,7 +223,8 @@ $claims = Hooks::filter('userinfo.claims', $claims, $user, $scopes);
 | `user.login.succeeded` | run | `userId`, `username` | 会话建立之后 |
 | `user.logout` | run | `userId`, `username` | 清会话之前 |
 | `userinfo.claims` | filter | `claims`, `user`, `scopes` | `/api/userinfo` 组装完 claims 之后 |
-| `oauth.authorize.approved` | run | `userId`, `clientId`, `scope`, `quickLogin` | 用户同意授权、写入授权记录之后 |
+| `oauth.authorize.quick` | filter | `null`, `userId`, `client`, `scopes` | 授权请求判定阶段；返回非空字符串 = 该请求免确认直接发码，回调带上 `spicallogin=<返回值>`（返回 `null` 走普通确认流程）。这是产品策略钩子，跳不跳确认由插件自己判断 |
+| `oauth.authorize.approved` | run | `userId`, `clientId`, `scope`, `silent` | 授权码发出之后；`silent` 表示这次没经过确认页（已授权过、`prompt=none` 或插件批了快速通道） |
 | `oauth.token.issued` | run | `userId`, `clientId`, `scopes`, `grantType` | 发出 access token 之后（`authorization_code` / `refresh_token`） |
 | `oauth.token.revoked` | run | `tokenTypeHint` | 撤销端点处理完 |
 | `admin.user.status_changed` | run | `userId`, `status`, `adminId` | 管理员启用/禁用账户之后 |
@@ -291,19 +292,25 @@ Api::prop('thing', [PropModule::class, 'fields'], 'public', 'things 的字段（
 
 ## 多语言
 
-插件界面文案用全局 `t('中文原文')`，键就是简体中文原文。核心已有的键直接用，运行时按「核心优先、插件补缺」合并；只有核心没有的键才放进插件自己的 `i18n/`：
+插件界面文案用全局 `t('English sentence.')`——键是英文原句，运行时按当前访客语言出译文，核心词典（`locales/`）没有的键才落到插件自己的 `i18n/<语言>.json`：
 
 ```
 plugins/<slug>/
 ├── plugin.json
 ├── i18n/
-│   ├── zh-hans.json
-│   ├── en.json
-│   └── ...
+│   ├── en.json          键 = 值（英文原句）
+│   ├── zh-hans.json     英文键 → 中文译文
+│   └── ...              每个核心支持的语言一份
 └── src/
 ```
 
-清单里的 `description`、`specialPages.title`、`adminPages.title` 渲染时也过 `t()`。生成和校验用：
+- 插件能直接读到站点当前语言：模板和 PHP 里用 `t()`（全局助手），拿语言标记用 `I18n::locale()`；
+  前端词典（`/i18n/<语言>.js`）会把插件 `i18n/` 的词条一并提供，Vue / JS 里照常 `t()`。
+- 清单里的 `description`、`specialPages.title`、`adminPages.title` 渲染时也过 `t()`，照英文句子的口径写。
+- 新增键当场把语言文件补齐（`--check` 对缺键会红）；既有键的措辞别顺手改，改一个键等于全部语言跟着动。
+- 安装向导类的独立入口（核心的 `public/nomen-install/`）用 `nomen_install_t()`，键同样是英文原句。
+
+生成和校验用：
 
 ```bash
 php docs-internal/i18n/extract.php
@@ -332,4 +339,10 @@ php docs-internal/i18n/extract.php --check
 | `open-platform` | <https://github.com/NomenID/plugin-open-platform> | 开发者门户 |
 | `geoip` | <https://github.com/NomenID/plugin-geoip> | IP 归属地 |
 
-本仓库的 `plugins/` 只有这份说明；插件源码在各自仓库里。打包时先把三个目录 clone 到 `plugins/`，再跑 `php code-scripts/build-dist.php`，zip 里会带上它们。
+另有不在发布包里的插件，按需自行安装：
+
+| 插件 | 仓库 | 做什么 |
+|---|---|---|
+| `quick-central-login` | <https://github.com/NomenID/plugin-quick-central-login> | 第一方应用免确认的快速中央登录（回调带 `spicallogin` 标记），需要核心 ≥1.3.2 |
+
+本仓库的 `plugins/` 只有这份说明；插件源码在各自仓库里。打包时先把三个自带目录 clone 到 `plugins/`，再跑 `php code-scripts/build-dist.php`，zip 里会带上它们。

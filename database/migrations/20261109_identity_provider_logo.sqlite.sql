@@ -1,0 +1,1 @@
+ALTER TABLE identity_providers ADD COLUMN logo TEXT NOT NULL DEFAULT '';

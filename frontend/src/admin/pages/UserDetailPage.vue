@@ -113,7 +113,6 @@ onMounted(load)
             <dt>出生日期</dt><dd>{{ data.user.birth_date || '—' }}</dd>
             <dt>性别</dt><dd>{{ data.user.gender || '—' }}</dd>
             <dt>两步验证</dt><dd>{{ data.user.two_factor_policy || 'off' }}</dd>
-            <dt>快速登录</dt><dd>{{ Number(data.user.quick_login) === 1 ? '开启' : '关闭' }}</dd>
             <dt>注册时间</dt><dd>{{ data.user.created_at }}</dd>
             <dt>最近登录</dt><dd>{{ data.user.last_login_at || '从未登录' }}<template v-if="data.user.last_login_ip"> · <span class="a-mono">{{ data.user.last_login_ip }}</span></template></dd>
           </dl>

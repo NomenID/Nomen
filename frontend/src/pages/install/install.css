@@ -135,8 +135,42 @@ a:hover {
   border-left: 1px solid var(--border);
 }
 
-.theme-toggle {
+.topbar__spacer {
   margin-left: auto;
+}
+
+.lang-select {
+  height: 32px;
+  max-width: 150px;
+  padding: 0 24px 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background-color: var(--panel);
+  color: var(--muted);
+  font: inherit;
+  font-size: 12.5px;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b949e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 7px center;
+  background-size: 11px;
+  cursor: pointer;
+  transition: color .15s, border-color .15s;
+}
+
+.lang-select:hover,
+.lang-select:focus-visible {
+  color: var(--text);
+  border-color: var(--muted);
+  outline: none;
+}
+
+.lang-select:disabled {
+  opacity: .55;
+  cursor: default;
+}
+
+.theme-toggle {
   width: 32px;
   height: 32px;
   display: grid;

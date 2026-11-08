@@ -1225,3 +1225,23 @@
 .home-links-custom .a-input:first-child {
     max-width: 220px;
 }
+
+.a-provider-logo {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    flex: none;
+    object-fit: cover;
+}
+
+.a-provider-logo--lg {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+}
+
+.a-appcell {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}

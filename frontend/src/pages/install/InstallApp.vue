@@ -1,5 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue'
+import { i18n, t } from './i18n'
+import { fetchI18n } from './api'
 import { initWizard, wizard } from './wizard'
 import StartStep from './steps/StartStep.vue'
 import EnvStep from './steps/EnvStep.vue'
@@ -24,6 +26,7 @@ const props = defineProps({
   baseUrl: { type: String, default: '' },
   defaultLogo: { type: String, default: '/assets/brand/nomen-icon.svg' },
   done: { type: Object, default: null },
+  lang: { type: String, default: 'en' },
 })
 
 initWizard(props)
@@ -55,15 +58,41 @@ function toggleTheme() {
     // 隐私模式下存不了，只在这次会话里生效。
   }
 }
+
+const switchingLang = ref(false)
+
+async function changeLanguage(event) {
+  const target = event.target.value
+  if (!target || target === i18n.locale || switchingLang.value) {
+    event.target.value = i18n.locale
+    return
+  }
+  switchingLang.value = true
+  try {
+    await fetchI18n(target)
+  } catch (err) {
+    switchingLang.value = false
+    event.target.value = i18n.locale
+    return
+  }
+  window.location.reload()
+}
 </script>
 
 <template>
   <header class="topbar">
     <img class="topbar__logo" :src="brandLogo" alt="" width="26" height="26">
     <b>Nomen</b>
-    <span class="topbar__tag">安装</span>
+    <span class="topbar__tag">{{ t('Install') }}</span>
+    <span class="topbar__spacer"></span>
+    <select class="lang-select" :value="i18n.locale" :disabled="switchingLang"
+      :aria-label="t('Language')" @change="changeLanguage">
+      <option v-for="language in props.languages" :key="language.slug" :value="language.slug">
+        {{ language.name }}
+      </option>
+    </select>
     <button class="theme-toggle" type="button" @click="toggleTheme"
-      :aria-label="theme === 'dark' ? '切换到浅色' : '切换到深色'">
+      :aria-label="theme === 'dark' ? t('Switch to light') : t('Switch to dark')">
       <svg v-if="theme === 'dark'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <circle cx="12" cy="12" r="4.2" />

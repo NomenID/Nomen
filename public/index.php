@@ -278,7 +278,6 @@ $router->post('/settings/password/reset-code', [DashboardController::class, 'res
 $router->post('/settings/devices/revoke', [DashboardController::class, 'revokeDevice'], ['auth']);
 $router->post('/settings/devices/revoke-all', [DashboardController::class, 'revokeAllDevices'], ['auth']);
 $router->post('/settings/two-factor/policy', [DashboardController::class, 'updateTwoFactorPolicy'], ['auth']);
-$router->post('/settings/quick-login', [DashboardController::class, 'updateQuickLogin'], ['auth']);
 $router->post('/settings/locale', [DashboardController::class, 'changeLocale'], ['auth']);
 $router->post('/settings/skin', [DashboardController::class, 'changeSkin'], ['auth']);
 $router->get('/settings/temp-keys', [DashboardController::class, 'getTempKeys'], ['auth']);

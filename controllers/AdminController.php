@@ -266,7 +266,7 @@ class AdminController
 
         $stmt = $this->db->prepare(
             'SELECT id, username, display_name, email, email_verified, role, status, country,
-                    birth_date, gender, created_at, last_login_at, last_login_ip, two_factor_policy, quick_login
+                    birth_date, gender, created_at, last_login_at, last_login_ip, two_factor_policy
              FROM users WHERE id = :id LIMIT 1'
         );
         $stmt->execute([':id' => $userId]);
@@ -806,7 +806,6 @@ class AdminController
         'gender'             => '性别',
         'avatar'             => '头像',
         'two_factor_policy'  => '两步验证策略',
-        'quick_login'        => '快速登录',
         'notify_system_important' => '通知：系统重要',
         'notify_system_general'   => '通知：系统一般',
         'notify_system_interact'  => '通知：系统互动',

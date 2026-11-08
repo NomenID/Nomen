@@ -220,7 +220,7 @@ const settingsPage = {
     user: {
       username: 'yunyun', email: 'yunyun@caellab.com', displayName: '云云', bio: '虚舟实验室创始人',
       avatarUrl: '', birthDateDisplay: '2010年01月01日', genderDisplay: '男性', countryDisplay: 'CN',
-      createdAtDisplay: '2025-07-05 12:00', twoFactorPolicy: 'new_device', quickLogin: true,
+      createdAtDisplay: '2025-07-05 12:00', twoFactorPolicy: 'new_device',
       contactVerified: true, assistLabel: '快速辅助验证方式', error: '', success: '',
     },
     emails: [

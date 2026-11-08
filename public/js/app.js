@@ -1692,26 +1692,6 @@ function initAuthorizePage() {
     var form = document.getElementById('authorizeForm');
     if (!form) return;
 
-    // 第一方应用：没有勾选项，打勾动画播完就自动提交，
-    // 顶部进度条一直晃到浏览器跳回 callback 为止
-    var autoBox = document.getElementById('authorizeAuto');
-    if (autoBox) {
-        var progress = document.createElement('div');
-        progress.className = 'nomen-top-progress';
-        progress.innerHTML = '<div class="nomen-top-progress__bar"></div>';
-        document.body.appendChild(progress);
-
-        var autoText = document.getElementById('authorizeAutoText');
-        setTimeout(function() {
-            progress.classList.add('nomen-top-progress--active');
-            if (autoText) {
-                autoText.textContent = t('Authorized — returning to {:name}…', { name: form.dataset.appName || t('apps') });
-            }
-            form.submit();
-        }, 1200);
-        return;
-    }
-
     var scopeInput = form.querySelector('input[name="scope"]');
     var checkboxes = form.querySelectorAll('input[name="scopes[]"]');
 

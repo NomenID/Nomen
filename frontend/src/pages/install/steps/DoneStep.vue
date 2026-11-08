@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import StepHead from '../StepHead.vue'
 import CheckRow from '../CheckRow.vue'
+import { t } from '../i18n'
 import { wizard } from '../wizard'
 
 const done = computed(() => wizard.done || {})
@@ -19,35 +20,35 @@ function downloadConfig() {
 </script>
 
 <template>
-  <StepHead icon="check" tone="done" title="装好了" :lead="'「' + (done.site_name || 'Nomen') + '」已经跑起来了。'" />
+  <StepHead icon="check" tone="done" :title="t('Installed')"
+    :lead="t('{:name} is up and running.', { name: done.site_name || 'Nomen' })" />
 
   <div v-if="done.written" class="alert alert--ok" role="status">
-    数据库、管理员和配置文件都已就位。
+    {{ t('The database, admin account and config file are all in place.') }}
   </div>
   <div v-else class="alert alert--warn" role="alert">
-    数据库和账号都建好了，但 PHP 没权限写 <code>config/installed.php</code>。
-    把下面的内容保存成这个文件放到 config/ 里，站点才会启动。
+    {{ t('The database and admin account are ready, but PHP could not write the config file config/installed.php. Save the content below as that file inside config/ for the site to start.') }}
   </div>
 
   <div class="actions">
     <template v-if="done.written">
-      <a class="btn btn-primary btn-lg" :href="siteUrl">进入网站</a>
-      <a class="btn btn-ghost" :href="loginUrl">用管理员账号登录</a>
+      <a class="btn btn-primary btn-lg" :href="siteUrl">{{ t('Open the site') }}</a>
+      <a class="btn btn-ghost" :href="loginUrl">{{ t('Sign in as the admin') }}</a>
     </template>
     <template v-else>
-      <button class="btn btn-primary" type="button" @click="downloadConfig">下载 installed.php</button>
+      <button class="btn btn-primary" type="button" @click="downloadConfig">{{ t('Download installed.php') }}</button>
       <textarea class="code" :value="done.content" readonly></textarea>
-      <p class="fine">这份内容里有数据库密码和密钥，别贴到聊天或工单里。放好文件后重新打开站点首页即可。</p>
+      <p class="fine">{{ t('This content contains the database password and secrets — do not paste it into chats or tickets. Once the file is in place, open the site home page again.') }}</p>
     </template>
   </div>
 
   <div style="margin-top:22px">
     <ul class="checks">
-      <CheckRow :label="done.username || ''" :hint="done.email || ''" state="pass" state-text="已创建" />
-      <CheckRow label="配置文件" :hint="done.written ? '已写入 config/installed.php' : 'PHP 没权限写 config/，要手动放进去'"
-        :state="done.written ? 'pass' : 'fail'" :state-text="done.written ? '完成' : '待处理'" />
-      <CheckRow label="安装目录" hint="public/nomen-install/ 还留着，确认站点没问题后删掉"
-        state="off" state-text="要删" />
+      <CheckRow :label="done.username || ''" :hint="done.email || ''" state="pass" :state-text="t('Created')" />
+      <CheckRow :label="t('Config file')" :hint="done.written ? t('Written to config/installed.php') : t('PHP cannot write to config/ — place the file manually')"
+        :state="done.written ? 'pass' : 'fail'" :state-text="done.written ? t('Done') : t('Needs attention')" />
+      <CheckRow :label="t('Install directory')" :hint="t('public/nomen-install/ is still there — delete it once the site is verified')"
+        state="off" :state-text="t('Should be deleted')" />
     </ul>
   </div>
 
@@ -55,8 +56,7 @@ function downloadConfig() {
     {{ done.plugins_note }}
   </div>
 
-  <p class="fine">第一次登录后可以到后台建 OAuth 应用、改站点设置。
-    没填 SMTP 的话，注册验证码和找回密码要等配置好邮件之后才能用。
-    <template v-if="done.written">如果 PHP 进程和网站不是同一个用户，确认站点能读到 config/installed.php。</template>
+  <p class="fine">{{ t('After the first sign-in you can create OAuth apps and change site settings in the admin area. Without SMTP, sign-up codes and password recovery only work after email is configured.') }}
+    <template v-if="done.written">{{ t('If the PHP process and the website run as different users, make sure the site can read config/installed.php.') }}</template>
   </p>
 </template>

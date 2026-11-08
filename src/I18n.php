@@ -322,7 +322,7 @@ class I18n
     // ---------- 邮件语言 ----------
 
     /**
-     * 收件人语言：账号存了偏好就用它；没存（含库异常）按简体发 —— 存量用户收到的邮件不变。
+     * 收件人语言：账号存了偏好就用它；没存（含库异常）按站点默认语言发。
      * 请求上下文里能确定用户正在看的语言的（登录验证码这类），直接传 I18n::locale()，不走这里。
      */
     public static function emailLocale(?int $userId = null): string
@@ -339,7 +339,7 @@ class I18n
                 // 落到下面的默认
             }
         }
-        return self::SOURCE;
+        return self::siteDefaultLocale();
     }
 
     // ---------- 前端词典 ----------

@@ -1,6 +1,7 @@
 <script setup>
 import { reactive, ref, watch } from 'vue'
 import StepHead from '../StepHead.vue'
+import { t } from '../i18n'
 import { go, submit, wizard } from '../wizard'
 
 const saved = wizard.state.smtp || {}
@@ -40,68 +41,69 @@ function back() {
 
 <template>
   <template v-if="mode === 'choice'">
-    <StepHead icon="mail" title="需要现在配置邮箱么？"
-      lead="注册验证码、找回密码和通知都走 SMTP。现在不配也能装，装完在 config/installed.php 里补。" />
+    <StepHead icon="mail" :title="t('Configure email now?')"
+      :lead="t('Sign-up codes, password recovery and notifications all go through SMTP. You can install without it and add it later in config/installed.php.')" />
 
     <div class="actions">
       <button class="btn btn-primary" type="button" :class="{ 'is-busy': wizard.busy }" :disabled="wizard.busy"
-        @click="skip">暂时不</button>
-      <button class="btn btn-ghost" type="button" :disabled="wizard.busy" @click="mode = 'form'">现在就配置</button>
+        @click="skip">{{ t('Not now') }}</button>
+      <button class="btn btn-ghost" type="button" :disabled="wizard.busy" @click="mode = 'form'">{{ t('Configure now') }}</button>
     </div>
 
     <div class="nav-links">
-      <button class="linkish" type="button" @click="go('plugins')">← 上一步</button>
+      <button class="linkish" type="button" @click="go('plugins')">← {{ t('Back') }}</button>
       <span></span>
     </div>
   </template>
 
   <template v-else>
-    <StepHead icon="mail" title="配置发信" lead="注册验证码、找回密码和通知都走 SMTP。" />
+    <StepHead icon="mail" :title="t('Set up outgoing email')"
+      :lead="t('Sign-up codes, password recovery and notifications all go through SMTP.')" />
 
     <form @submit.prevent="save">
       <div class="fields">
         <div class="field-row">
           <div class="field">
-            <label for="smtp_host">SMTP 主机</label>
+            <label for="smtp_host">{{ t('SMTP host') }}</label>
             <input id="smtp_host" v-model="form.host" class="input" placeholder="smtp.example.com" autocomplete="off">
           </div>
           <div class="field">
-            <label for="smtp_port">端口</label>
+            <label for="smtp_port">{{ t('Port') }}</label>
             <input id="smtp_port" v-model="form.port" class="input" inputmode="numeric">
           </div>
         </div>
         <div class="field">
-          <label for="smtp_encryption">加密</label>
+          <label for="smtp_encryption">{{ t('Encryption') }}</label>
           <select id="smtp_encryption" v-model="form.encryption" class="input">
-            <option value="tls">STARTTLS（587）</option>
-            <option value="ssl">SSL（465）</option>
-            <option value="">不加密</option>
+            <option value="tls">{{ t('STARTTLS (587)') }}</option>
+            <option value="ssl">{{ t('SSL (465)') }}</option>
+            <option value="">{{ t('No encryption') }}</option>
           </select>
         </div>
         <div class="field">
-          <label for="smtp_username">用户名</label>
+          <label for="smtp_username">{{ t('Username') }}</label>
           <input id="smtp_username" v-model="form.username" class="input" autocomplete="off">
-          <div class="hint">需要认证的邮箱填上；本机中继可以留空。</div>
+          <div class="hint">{{ t('Fill this in if the SMTP server requires authentication; leave it empty for a local relay.') }}</div>
         </div>
         <div class="field">
-          <label for="smtp_password">密码</label>
+          <label for="smtp_password">{{ t('Password') }}</label>
           <input id="smtp_password" v-model="form.password" class="input" type="password" autocomplete="new-password">
         </div>
         <div class="field">
-          <label for="smtp_from">发件地址</label>
+          <label for="smtp_from">{{ t('From address') }}</label>
           <input id="smtp_from" v-model="form.from_email" class="input" type="email" placeholder="no-reply@example.com">
         </div>
       </div>
 
       <div class="actions">
         <button class="btn btn-primary" type="submit" :class="{ 'is-busy': wizard.busy }" :disabled="wizard.busy">
-          保存并继续
+          {{ t('Save and continue') }}
         </button>
       </div>
 
       <div class="nav-links">
-        <button class="linkish" type="button" @click="back">← 上一步</button>
-        <button class="linkish" type="button" :disabled="wizard.busy" @click="skip">暂时跳过</button>
+        <button class="linkish" type="button" @click="back">← {{ t('Back') }}</button>
+        <button class="linkish" type="button" :disabled="wizard.busy" @click="skip">{{ t('Skip for now') }}</button>
       </div>
     </form>
   </template>

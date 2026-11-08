@@ -1,5 +1,5 @@
 import { reactive } from 'vue'
-import { request, setCsrf } from './api'
+import { request, setCsrf, setLang } from './api'
 
 export const wizard = reactive({
   step: 'start',
@@ -15,10 +15,12 @@ export const wizard = reactive({
   baseUrl: '',
   defaultLogo: '/assets/brand/nomen-icon.svg',
   done: null,
+  lang: 'en',
 })
 
 export function initWizard(payload) {
   setCsrf(payload.csrf)
+  setLang(payload.lang || 'en')
   wizard.step = payload.step || 'start'
   wizard.resume = payload.resume || 'env'
   wizard.started = !!payload.started
@@ -30,6 +32,7 @@ export function initWizard(payload) {
   wizard.baseUrl = payload.baseUrl || ''
   wizard.defaultLogo = payload.defaultLogo || '/assets/brand/nomen-icon.svg'
   wizard.done = payload.done || null
+  wizard.lang = payload.lang || 'en'
 }
 
 export function go(step) {

@@ -96,9 +96,18 @@ root /path/to/nomen/public;
 location / {
     try_files $uri $uri/ /index.php$is_args$args;
 }
+
+location ^~ /plugin-assets/ {
+    try_files $uri /index.php$is_args$args;
+}
 ```
 
 宝塔用户：站点设置 → 伪静态，把这行填进去。**少了 `try_files` 就只有首页能开，`/login` 这些全是 404。**
+
+`/plugin-assets/` 那段是给插件静态资源用的：很多面板默认 vhost 带 `location ~ .*\.(js|css)?$`
+这种按后缀拦截的块，会抢在 PHP 前面去磁盘找 `/plugin-assets/**.css`，找不到就 404，插件的样式和脚本
+全部失效（页面能开但样式崩）。`^~` 前缀匹配优先于正则，保证这段路径一定进 PHP。
+没装带静态块的 vhost 就不加，也无副作用。
 
 ## 邮件
 

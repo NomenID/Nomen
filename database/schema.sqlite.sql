@@ -389,7 +389,6 @@ CREATE TABLE users (
   updated_at TEXT NOT NULL DEFAULT '',
   password_reset_code TEXT DEFAULT NULL,
   password_reset_code_expires_at TEXT DEFAULT NULL,
-  quick_login INTEGER NOT NULL DEFAULT 1,
   CHECK (role IN ('user','admin')),
   CHECK (two_factor_policy IN ('every_login','new_device'))
 );
@@ -629,6 +628,7 @@ CREATE TABLE identity_providers (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   slug TEXT NOT NULL COLLATE NOCASE,
   name TEXT NOT NULL,
+  logo TEXT NOT NULL DEFAULT '',
   type TEXT NOT NULL DEFAULT 'oauth2',
   client_id TEXT NOT NULL DEFAULT '',
   client_secret TEXT NOT NULL DEFAULT '',

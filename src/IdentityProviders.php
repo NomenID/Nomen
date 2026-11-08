@@ -108,9 +108,16 @@ class IdentityProviders
             return preg_match('/^[A-Za-z0-9_.]{1,64}$/', $value) ? $value : $default;
         };
 
+        // 图标存公开路径：预置自带 /assets/providers/<slug>.svg，上传的落 /assets/develops/
+        $logo = trim((string)($input['logo'] ?? ''));
+        if ($logo !== '' && (!preg_match('#^/[A-Za-z0-9._/-]+\.(svg|png|webp|jpe?g)$#i', $logo) || str_contains($logo, '..'))) {
+            throw new InvalidArgumentException('图标地址不合法');
+        }
+
         $data = [
             'slug'                 => $slug,
             'name'                 => mb_substr($name, 0, 64),
+            'logo'                 => $logo,
             'type'                 => $type,
             'client_id'            => mb_substr($clientId, 0, 255),
             'client_secret'        => $clientSecret,
@@ -161,12 +168,13 @@ class IdentityProviders
             ->execute([':e' => $enabled ? 1 : 0, ':id' => $id]);
     }
 
-    /** 登录页 / 注册页用的最小信息 @return array<int, array{slug: string, name: string}> */
+    /** 登录页 / 注册页用的最小信息 @return array<int, array{slug: string, name: string, logo: string}> */
     public static function publicList(): array
     {
         return array_map(static fn(array $row): array => [
             'slug' => (string)$row['slug'],
             'name' => (string)$row['name'],
+            'logo' => (string)($row['logo'] ?? ''),
         ], self::all(true));
     }
 

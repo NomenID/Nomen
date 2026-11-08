@@ -90,7 +90,6 @@ const resetForm = reactive({
   confirm: '',
 })
 const policy = ref(props.user.twoFactorPolicy || 'new_device')
-const quickLogin = ref(props.user.quickLogin ? '1' : '0')
 const notif = reactive({
   system_important: !!props.notifSettings.notify_system_important,
   system_general: !!props.notifSettings.notify_system_general,
@@ -359,21 +358,6 @@ async function savePolicy() {
     toast(t('Network error'), 'error')
   } finally {
     policySaving.value = false
-  }
-}
-
-const quickSaving = ref(false)
-
-async function saveQuickLogin() {
-  if (quickSaving.value) return
-  quickSaving.value = true
-  try {
-    const result = await postForm('/settings/quick-login', { quick_login: quickLogin.value })
-    toast(result.message || (result.success ? t('Saved') : t('Save failed')), result.success ? 'success' : 'error')
-  } catch (err) {
-    toast(t('Network error'), 'error')
-  } finally {
-    quickSaving.value = false
   }
 }
 
@@ -706,26 +690,6 @@ onMounted(() => {
           </select>
         </div>
         <button type="submit" class="btn btn-primary">{{ t('Save') }}</button>
-      </form>
-    </div>
-
-    <div class="settings-section" id="sec-quick-login">
-      <h2>{{ t('Nomen Launch Plan quick central sign-in') }}</h2>
-      <p class="form-hint" style="margin-bottom:16px;">{{ t('When on, first-party apps skip the per-scope consent screen and are authorized directly, with the quick-login flag on the callback. When off, all apps use the normal consent flow.') }}</p>
-      <form @submit.prevent="saveQuickLogin">
-        <div class="factor-select" style="margin-bottom:16px;">
-          <label class="factor-option" :class="{ selected: quickLogin === '1' }">
-            <input v-model="quickLogin" type="radio" name="quick_login" value="1">
-            <span class="factor-icon"><Icon name="zap" /></span>
-            <span class="factor-label">{{ t('On (default)') }}</span>
-          </label>
-          <label class="factor-option" :class="{ selected: quickLogin === '0' }">
-            <input v-model="quickLogin" type="radio" name="quick_login" value="0">
-            <span class="factor-icon"><Icon name="shield-check" /></span>
-            <span class="factor-label">{{ t('Off, confirm each permission') }}</span>
-          </label>
-        </div>
-        <button type="submit" class="btn btn-primary" :disabled="quickSaving">{{ quickSaving ? t('Saving...') : t('Save') }}</button>
       </form>
     </div>
 

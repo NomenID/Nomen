@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import StepHead from '../StepHead.vue'
+import { t } from '../i18n'
 import { go, languageName, pluginName, resetStep, submit, wizard } from '../wizard'
 
 const site = computed(() => wizard.state.site || {})
@@ -19,19 +20,19 @@ const dbLabel = computed(() => {
 
 const pluginLabel = computed(() => selectedPlugins.value.length
   ? selectedPlugins.value.map(pluginName).join('、')
-  : '不启用')
+  : t('None enabled'))
 
 const featureLabel = computed(() => {
   const names = []
-  if (features.value.guardians) names.push('家庭与未成年监护')
-  if (features.value.country) names.push('注册时填写国家 / 地区')
-  return names.length ? names.join('、') : '都不开启'
+  if (features.value.guardians) names.push(t('Family and minor guardianship'))
+  if (features.value.country) names.push(t('Ask for country / region at registration'))
+  return names.length ? names.join('、') : t('None enabled')
 })
 
 const logoLabel = computed(() => {
   const logo = site.value.logo || ''
-  if (logo === '') return '默认 Nomen 图标'
-  return logo.startsWith('/assets/develops/') ? '已上传到站点' : logo
+  if (logo === '') return t('Default Nomen icon')
+  return logo.startsWith('/assets/develops/') ? t('Uploaded to the site') : logo
 })
 
 async function install() {
@@ -43,36 +44,37 @@ async function install() {
 </script>
 
 <template>
-  <StepHead icon="review" title="确认一下" lead="最后看一眼。数据库密码不会显示在这里。" />
+  <StepHead icon="review" :title="t('Review')"
+    :lead="t('One last look. The database password is not shown here.')" />
 
   <dl class="summary">
-    <div><dt>站点</dt><dd>{{ site.name }} · {{ site.base_url }}</dd></div>
-    <div><dt>站点图标</dt><dd>{{ logoLabel }}</dd></div>
-    <div><dt>数据库</dt><dd>{{ dbLabel }}</dd></div>
-    <div><dt>管理员</dt><dd>{{ admin.username }} · {{ admin.email }}</dd></div>
+    <div><dt>{{ t('Site') }}</dt><dd>{{ site.name }} · {{ site.base_url }}</dd></div>
+    <div><dt>{{ t('Site icon') }}</dt><dd>{{ logoLabel }}</dd></div>
+    <div><dt>{{ t('Database') }}</dt><dd>{{ dbLabel }}</dd></div>
+    <div><dt>{{ t('Admin account') }}</dt><dd>{{ admin.username }} · {{ admin.email }}</dd></div>
     <div>
-      <dt>默认语言</dt>
-      <dd>{{ languageName(site.language_default) }}{{ site.language_allow_switch ? '（允许访客切换）' : '（固定）' }}</dd>
+      <dt>{{ t('Default language') }}</dt>
+      <dd>{{ languageName(site.language_default) }}{{ site.language_allow_switch ? t(' (visitors can switch)') : t(' (fixed)') }}</dd>
     </div>
-    <div><dt>扩展</dt><dd>{{ pluginLabel }}</dd></div>
-    <div><dt>可选功能</dt><dd>{{ featureLabel }}</dd></div>
-    <div><dt>邮件</dt><dd>{{ smtp.host ? smtp.host : '暂不配置' }}</dd></div>
+    <div><dt>{{ t('Extensions') }}</dt><dd>{{ pluginLabel }}</dd></div>
+    <div><dt>{{ t('Optional features') }}</dt><dd>{{ featureLabel }}</dd></div>
+    <div><dt>{{ t('Email') }}</dt><dd>{{ smtp.host ? smtp.host : t('Not configured') }}</dd></div>
   </dl>
 
   <div class="actions">
     <button class="btn btn-primary btn-lg" type="button" :class="{ 'is-busy': wizard.busy }"
-      :disabled="wizard.busy" @click="install">开始安装</button>
+      :disabled="wizard.busy" @click="install">{{ t('Start installation') }}</button>
   </div>
 
   <div class="nav-links">
-    <button class="linkish" type="button" :disabled="wizard.busy" @click="go('mail')">← 上一步</button>
+    <button class="linkish" type="button" :disabled="wizard.busy" @click="go('mail')">← {{ t('Back') }}</button>
     <template v-if="wizard.error">
-      <button class="linkish" type="button" :disabled="wizard.busy" @click="go('db')">换个空库</button>
-      <button class="linkish" type="button" :disabled="wizard.busy" @click="resetStep">从头再填</button>
+      <button class="linkish" type="button" :disabled="wizard.busy" @click="go('db')">{{ t('Use a different empty database') }}</button>
+      <button class="linkish" type="button" :disabled="wizard.busy" @click="resetStep">{{ t('Start over') }}</button>
     </template>
     <span v-else></span>
   </div>
 
-  <p class="fine">页脚会显示 Powered by Nomen，并链到版本页。这是 GPLv3 第 7 条 (b) 款的署名要求，
-    详见 <code>NOTICE</code>。</p>
+  <p class="fine">{{ t('The footer shows "Powered by Nomen" and links to the version page — the attribution requirement of GPLv3 §7(b), see:') }}
+    <code>NOTICE</code></p>
 </template>

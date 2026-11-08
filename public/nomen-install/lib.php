@@ -73,6 +73,131 @@ function nomen_install_languages(): array
     return (array)(require nomen_install_root('locales/languages.php'));
 }
 
+function nomen_install_lang_slugs(): array
+{
+    return array_map(static fn(array $language): string => (string)$language['slug'], nomen_install_languages());
+}
+
+function nomen_install_lang_valid(string $slug): bool
+{
+    return in_array($slug, nomen_install_lang_slugs(), true);
+}
+
+/** 当前请求的语言：请求显式带上的（请求头 / ?lang=）> 会话里选过的 > 浏览器语言 > 英文。 */
+function nomen_install_lang(): string
+{
+    static $lang = null;
+    if ($lang !== null) {
+        return $lang;
+    }
+
+    $explicit = [
+        (string)($_SERVER['HTTP_X_NOMEN_LANG'] ?? ''),
+        (string)($_GET['lang'] ?? ''),
+        (string)($_SESSION['nomen_install_lang'] ?? ''),
+    ];
+    foreach ($explicit as $candidate) {
+        if ($candidate !== '' && nomen_install_lang_valid($candidate)) {
+            return $lang = $candidate;
+        }
+    }
+
+    return $lang = nomen_install_match_accept_language((string)($_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '')) ?? 'en';
+}
+
+function nomen_install_set_lang(string $slug): void
+{
+    if (nomen_install_lang_valid($slug)) {
+        $_SESSION['nomen_install_lang'] = $slug;
+    }
+}
+
+function nomen_install_locale_code(): string
+{
+    $slug = nomen_install_lang();
+    foreach (nomen_install_languages() as $language) {
+        if ((string)$language['slug'] === $slug) {
+            return (string)$language['code'];
+        }
+    }
+
+    return 'en';
+}
+
+/** 安装向导自己的翻译助手：此刻核心还没装（config/installed.php 不存在），不能依赖站点配置。 */
+function nomen_install_t(string $key, array $params = []): string
+{
+    static $dict = null;
+    if ($dict === null) {
+        $dict = [];
+        $lang = nomen_install_lang();
+        if ($lang !== 'en') {
+            $file = nomen_install_root('locales/' . $lang . '.json');
+            $data = is_file($file) ? json_decode((string)file_get_contents($file), true) : null;
+            if (is_array($data)) {
+                $dict = $data;
+            }
+        }
+    }
+
+    $text = (string)($dict[$key] ?? $key);
+    foreach ($params as $name => $value) {
+        $text = strtr($text, ['{:' . $name . '}' => (string)$value]);
+    }
+
+    return $text;
+}
+
+/** 跟核心 I18n 同一套 Accept-Language 匹配规则的最小实现（en-US → en、zh-TW → zh-hant）。 */
+function nomen_install_match_accept_language(string $header): ?string
+{
+    if ($header === '') {
+        return null;
+    }
+
+    $tags = [];
+    foreach (explode(',', $header) as $part) {
+        $part = trim($part);
+        if ($part === '') {
+            continue;
+        }
+        $q = 1.0;
+        if (str_contains($part, ';')) {
+            [$tag, $param] = array_pad(explode(';', $part, 2), 2, '');
+            if (preg_match('/q=([0-9.]+)/', $param, $m)) {
+                $q = (float)$m[1];
+            }
+        } else {
+            $tag = $part;
+        }
+        $tag = strtolower(str_replace('_', '-', trim($tag)));
+        if ($tag !== '' && $tag !== '*') {
+            $tags[] = ['tag' => $tag, 'q' => $q];
+        }
+    }
+
+    usort($tags, static fn(array $a, array $b): int => $b['q'] <=> $a['q']);
+    foreach ($tags as $entry) {
+        $tag = $entry['tag'];
+        if (str_starts_with($tag, 'zh')) {
+            $sub = substr($tag, 2);
+            if (str_contains($sub, 'hant') || str_contains($sub, '-tw') || str_contains($sub, '-hk') || str_contains($sub, '-mo')) {
+                return 'zh-hant';
+            }
+            return 'zh-hans';
+        }
+        foreach (nomen_install_languages() as $language) {
+            $code = strtolower((string)$language['code']);
+            if ($code === $tag || (string)$language['slug'] === $tag
+                || explode('-', $code)[0] === explode('-', $tag)[0]) {
+                return (string)$language['slug'];
+            }
+        }
+    }
+
+    return null;
+}
+
 function nomen_install_resume_step(array $state): string
 {
     $next = 'env';
@@ -120,65 +245,65 @@ function nomen_install_env_checks(): array
             'key' => 'php',
             'label' => 'PHP ' . PHP_VERSION,
             'pass' => version_compare(PHP_VERSION, '8.1.0', '>='),
-            'hint' => '需要 8.1 或更高，先让主机商升级 PHP',
+            'hint' => nomen_install_t('PHP 8.1 or newer is required — ask your host to upgrade PHP.'),
         ],
         [
             'key' => 'pdo',
-            'label' => '数据库扩展',
+            'label' => nomen_install_t('Database extension'),
             'pass' => extension_loaded('pdo_mysql') || extension_loaded('pdo_sqlite'),
-            'hint' => 'pdo_mysql 和 pdo_sqlite 至少装一个',
+            'hint' => nomen_install_t('Install at least one of the pdo_mysql and pdo_sqlite extensions.'),
         ],
         [
             'key' => 'mbstring',
-            'label' => '扩展 mbstring',
+            'label' => nomen_install_t('Extension mbstring'),
             'pass' => extension_loaded('mbstring'),
-            'hint' => '多语言和字符串处理要用',
+            'hint' => nomen_install_t('Used for multilingual text and string handling.'),
         ],
         [
             'key' => 'openssl',
-            'label' => '扩展 openssl',
+            'label' => nomen_install_t('Extension openssl'),
             'pass' => extension_loaded('openssl'),
-            'hint' => 'HTTPS、SMTP 和通行密钥要用',
+            'hint' => nomen_install_t('Used for HTTPS, SMTP and passkeys.'),
         ],
         [
             'key' => 'vendor',
-            'label' => 'Composer 依赖',
+            'label' => nomen_install_t('Composer dependencies'),
             'pass' => is_readable(nomen_install_root('vendor/autoload.php')),
-            'hint' => '发布包自带；源码部署先跑 composer install',
+            'hint' => nomen_install_t('Bundled with the release package; for a source deployment run composer install first.'),
         ],
         [
             'key' => 'schema',
-            'label' => '数据库表结构',
+            'label' => nomen_install_t('Database schema files'),
             'pass' => is_readable(nomen_install_root('database/schema.sql'))
                 && is_readable(nomen_install_root('database/schema.sqlite.sql')),
-            'hint' => 'database/schema*.sql 不全，重新解压发布包',
+            'hint' => nomen_install_t('database/schema*.sql are incomplete — extract the release package again.'),
         ],
     ];
 
     $optional = [
         [
             'key' => 'gd',
-            'label' => '扩展 gd',
+            'label' => nomen_install_t('Extension gd'),
             'pass' => extension_loaded('gd'),
-            'hint' => '验证码图片和申诉截图缩略图会关掉',
+            'hint' => nomen_install_t('Captcha images and appeal screenshot thumbnails will be disabled.'),
         ],
         [
             'key' => 'fileinfo',
-            'label' => '扩展 fileinfo',
+            'label' => nomen_install_t('Extension fileinfo'),
             'pass' => extension_loaded('fileinfo'),
-            'hint' => '头像和应用图标上传会关掉',
+            'hint' => nomen_install_t('Avatar and app icon uploads will be disabled.'),
         ],
         [
             'key' => 'redis',
-            'label' => '扩展 redis',
+            'label' => nomen_install_t('Extension redis'),
             'pass' => extension_loaded('redis'),
-            'hint' => '限流和多设备踢出降级',
+            'hint' => nomen_install_t('Rate limiting and multi-device sign-out fall back to weaker modes.'),
         ],
         [
             'key' => 'config',
-            'label' => 'config/ 可写',
+            'label' => nomen_install_t('config/ writable'),
             'pass' => is_writable(nomen_install_root('config')),
-            'hint' => '装完要手动把 installed.php 传上去',
+            'hint' => nomen_install_t('After installing you must upload installed.php manually.'),
         ],
     ];
 
@@ -198,11 +323,11 @@ function nomen_install_upload_available(): array
     $writable = is_dir($dir) ? is_writable($dir) : is_writable(dirname($dir));
 
     if (!extension_loaded('gd') || !function_exists('imagecreatetruecolor') || !function_exists('imagewebp')) {
-        $reason = '服务器缺少 GD（含 WebP）扩展，头像上传用不了，先填图片链接';
+        $reason = nomen_install_t('The server is missing the GD (with WebP) extension, so avatar uploads are unavailable — paste an image URL instead.');
     } elseif (!extension_loaded('fileinfo') || !function_exists('finfo_open')) {
-        $reason = '服务器缺少 fileinfo 扩展，没法校验图片类型，先填图片链接';
+        $reason = nomen_install_t('The server is missing the fileinfo extension, so image types cannot be verified — paste an image URL instead.');
     } elseif (!$writable) {
-        $reason = 'public/assets/ 不可写，头像上传用不了，先填图片链接';
+        $reason = nomen_install_t('public/assets/ is not writable, so avatar uploads are unavailable — paste an image URL instead.');
     } else {
         $reason = '';
     }
@@ -271,6 +396,7 @@ function nomen_install_payload(): array
         'env' => nomen_install_env_checks(),
         'upload' => nomen_install_upload_available(),
         'baseUrl' => nomen_install_guess_base_url(),
+        'lang' => nomen_install_lang(),
         'defaultLogo' => '/assets/brand/nomen-icon.svg',
     ];
 }
@@ -304,7 +430,7 @@ function nomen_install_simple_page(string $title, string $body, bool $ok = false
     header('X-Frame-Options: DENY');
     header('X-Robots-Tag: noindex, nofollow');
 
-    echo '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">'
+    echo '<!doctype html><html lang="' . nomen_install_h(nomen_install_locale_code()) . '"><head><meta charset="utf-8">'
         . '<meta name="viewport" content="width=device-width, initial-scale=1">'
         . '<meta name="robots" content="noindex, nofollow">'
         . '<title>' . nomen_install_h($title) . ' · Nomen</title>'
@@ -354,20 +480,18 @@ function nomen_install_render_installed(): void
     $siteUrl = $base !== '' ? $base : nomen_install_guess_base_url();
     $name = (string)($config['app']['name'] ?? 'Nomen');
 
-    nomen_install_simple_page('这个站点已经装好了',
-        '<p>「' . nomen_install_h($name) . '」正在运行。</p>'
-        . '<p>装完要把 <code>public/nomen-install/</code> 删掉或改名，别把安装向导留在网站上。'
-        . '要重装的话，先删掉 <code>config/installed.php</code> 再刷新。</p>'
-        . '<a class="btn" href="' . nomen_install_h($siteUrl) . '">进入网站</a>'
-        . '<a class="btn ghost" href="' . nomen_install_h($siteUrl . '/login') . '">登录</a>',
+    nomen_install_simple_page(nomen_install_t('This site is already installed'),
+        '<p>' . nomen_install_t('{:name} is up and running.', ['name' => nomen_install_h($name)]) . '</p>'
+        . '<p>' . nomen_install_t('After installing, delete or rename <code>public/nomen-install/</code> — do not leave the install wizard on the site. To reinstall, delete <code>config/installed.php</code> and refresh this page.') . '</p>'
+        . '<a class="btn" href="' . nomen_install_h($siteUrl) . '">' . nomen_install_t('Open the site') . '</a>'
+        . '<a class="btn ghost" href="' . nomen_install_h($siteUrl . '/login') . '">' . nomen_install_t('Sign in') . '</a>',
         true);
 }
 
 function nomen_install_render_missing_assets(): void
 {
-    nomen_install_simple_page('安装向导的前端资源不见了',
-        '<p>浏览器要用的脚本在 <code>public/assets/dist/</code> 里，这次没找到安装向导的入口。</p>'
-        . '<p>用发布包的话，重新解压一次、确认 <code>public/assets/dist/</code> 整个传上去了；'
-        . '源码部署就在 <code>frontend/</code> 里跑一次 <code>npm ci</code> 和 <code>npm run build</code>。</p>'
-        . '<a class="btn" href="">再试一次</a>');
+    nomen_install_simple_page(nomen_install_t('The install wizard front-end assets are missing'),
+        '<p>' . nomen_install_t('The browser scripts live in <code>public/assets/dist/</code>, and the install wizard entry was not found this time.') . '</p>'
+        . '<p>' . nomen_install_t('With the release package, extract it again and make sure <code>public/assets/dist/</code> was uploaded in full; for a source deployment run <code>npm ci</code> and <code>npm run build</code> inside <code>frontend/</code>.') . '</p>'
+        . '<a class="btn" href="">' . nomen_install_t('Try again') . '</a>');
 }
