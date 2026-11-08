@@ -29,10 +29,20 @@ const setupOpen = ref(false)
 const setupLoading = ref(false)
 const verifying = ref(false)
 const secret = ref('')
-const qrUrl = ref('')
-const qrFailed = ref(false)
+const qr = ref(null)
 const code = ref('')
 const disableBtn = ref(null)
+
+// 二维码由 totp-qr 插件提供，缺席时只显示密钥、手动输入
+function renderQr(uri) {
+  const renderer = window.NomenQr
+  if (!renderer || typeof renderer.render !== 'function') return null
+  try {
+    return renderer.render(uri)
+  } catch (err) {
+    return null
+  }
+}
 
 async function loadStatus() {
   try {
@@ -62,10 +72,7 @@ async function startSetup() {
     }
     setupOpen.value = true
     secret.value = data.secret || ''
-    qrFailed.value = false
-    qrUrl.value = data.uri
-      ? 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(data.uri)
-      : ''
+    qr.value = data.uri ? renderQr(data.uri) : null
   } catch (err) {
     toast(t('Network error'), 'error')
   } finally {
@@ -179,15 +186,18 @@ function disableTotp() {
           <div
             style="width:180px;height:180px;margin:0 auto;background:var(--color-bg-tertiary);border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--color-text-subtle);font-size:13px;"
           >
-            <img
-              v-if="qrUrl && !qrFailed"
-              :src="qrUrl"
-              :alt="t('TOTP QR code')"
+            <svg
+              v-if="qr"
+              :viewBox="`0 0 ${qr.size + 8} ${qr.size + 8}`"
               style="width:180px;height:180px;border-radius:8px;display:block;"
-              @error="qrFailed = true"
+              shape-rendering="crispEdges"
+              role="img"
+              :aria-label="t('TOTP QR code')"
             >
-            <span v-else-if="qrFailed">{{ t('Couldn\'t load the QR code — enter the key below manually') }}</span>
-            <span v-else>{{ t('Loading...') }}</span>
+              <rect :width="qr.size + 8" :height="qr.size + 8" fill="#fff" />
+              <path :d="qr.path" fill="#000" />
+            </svg>
+            <span v-else>{{ t('Couldn\'t load the QR code — enter the key below manually') }}</span>
           </div>
         </div>
         <div style="background:var(--color-bg-tertiary);border-radius:8px;padding:12px;text-align:center;font-family:var(--font-mono);font-size:14px;word-break:break-all;">{{ secret }}</div>

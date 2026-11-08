@@ -31,7 +31,7 @@ $feature = static function (string $envKey, string $configKey) use ($appConf): b
 return [
     // 基本信息
     'name'         => $brand['name'],
-    'version'      => '1.3.3',
+    'version'      => '1.3.4',
     'base_url'     => $brand['base_url'],
 
     // 安全

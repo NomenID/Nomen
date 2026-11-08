@@ -32,7 +32,7 @@ if (!preg_match("/'version'\s*=>\s*'([^']+)'/", (string)file_get_contents($root 
 $version = $m[1];
 
 // 插件和官方皮肤不在核心仓库里，打包机上得先 clone 到 plugins/、skins/；漏了就报错
-$bundledPlugins = ['pages', 'open-platform', 'geoip'];
+$bundledPlugins = ['pages', 'open-platform', 'geoip', 'totp-qr'];
 $bundledSkins = ['nomen-2026', 'nomen-ssr'];
 foreach ($bundledPlugins as $bundled) {
     if (!is_file($root . '/plugins/' . $bundled . '/plugin.json')) {

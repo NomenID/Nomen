@@ -155,6 +155,8 @@ Plugins::script('open-platform', 'portal.js');
 
 实际地址由 `Plugins::assetUrl()` 生成，带文件修改时间做缓存版本；核心布局会把它们输出到页面里。也可以只在某个页面前登记，避免全站加载。`/plugin-assets/<slug>/<path>` 只发白名单类型（css、js、图片、字体、json），路径不能跳出 `assets/`。
 
+设置页的 TOTP 二维码交给插件补：核心调 `window.NomenQr.render(uri)` 拿 `{ size, path }` 画 `<svg>`，没有这个全局就只显示密钥、让用户手动输入。实现参考 `plugins/totp-qr/assets/qr.js`。
+
 ## 迁移
 
 插件自己的表放 `plugins/<slug>/database/migrations/`：
