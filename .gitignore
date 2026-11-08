@@ -8,6 +8,10 @@ node_modules/
 /plugins/*
 !/plugins/README.md
 
+# 官方皮肤同插件：独立仓库，这里只留说明
+/skins/*
+!/skins/README.md
+
 /data/
 /public/assets/recovery/
 /public/assets/avatars/

@@ -14,13 +14,16 @@
 
 `slug` 就是目录名，写进 `config/skins.php` 的 `default`（或环境变量 `DEFAULT_SKIN`）就是站点默认皮肤。用户可以在设置页换自己的，登录后写进 `users.skin`。
 
-`enabled` 是站点启用的皮肤列表，默认带三个：
+## 官方皮肤
 
-- `nomen-2026`：默认皮肤，通用首页
-- `caellabid-2026`：另一套配色的皮肤
-- `nomen-ssr`：纯服务端渲染的轻量外观，没有星图背景，首页文字优先
+官方皮肤是独立仓库，源码不进核心仓库，发布包自带这两个：
 
-站长把不想用的从 `enabled` 里删掉就行；整个 `enabled` 键不写表示不限制。默认皮肤被禁用时会自动落到列表里第一个可用皮肤。
+- [`nomen-2026`](https://github.com/NomenID/skin-nomen-2026)：默认皮肤，通用首页、星野背景、卡片式认证页
+- [`nomen-ssr`](https://github.com/NomenID/skin-nomen-ssr)：纯服务端渲染的轻量外观，没有星野背景，首页文字优先
+
+`enabled` 默认就是这两个。站长把不想用的从 `enabled` 里删掉就行；整个 `enabled` 键不写表示不限制。默认皮肤被禁用时会自动落到列表里第一个可用皮肤。
+
+装皮肤：把皮肤目录放进 `skins/<slug>/`（clone 或解包都行），再在 `enabled` 里带上。打包机把官方皮肤 clone 到 `skins/` 即可，`php code-scripts/build-dist.php` 会检查缺不缺。
 
 ## 目录
 
@@ -29,7 +32,7 @@
 | `layouts/` | 页面外壳（`default` / `app` / `admin-app`），提供哪个就覆盖哪个 |
 | `templates/` | **页面模板覆盖**，和核心 `templates/` 同名就顶掉 |
 | `partials/` | 皮肤自己的片段，布局里按相对路径 require |
-| `i18n/` | 皮肤特有文案的译文（`<lang>.json`，键 = 简体中文原文），见下面「多语言」 |
+| `i18n/` | 皮肤特有文案的译文（`<lang>.json`，键 = 英文原句），见下面「多语言」 |
 | `css/`、`js/` | 皮肤自己的静态资源（放 `public/assets/skins/<slug>/` 也行） |
 
 ## 模板覆盖
@@ -68,7 +71,7 @@
 
 ## 多语言
 
-皮肤模板里的 `t('中文原文')` 和核心走同一条链：核心已有的键直接用；皮肤特有的键放自己的 `i18n/<lang>.json`（格式同 `locales/`，键 = 简体中文原文，`locales/languages.php` 里每个语言一份）。`skin.json` 的 `description` 渲染时也过 `t()`，想翻译就放同键译文。
+皮肤模板里的 `t('English sentence.')` 和核心走同一条链（键 = 英文原句，运行时按访客语言出译文）：核心已有的键直接用；皮肤特有的键放自己的 `i18n/<lang>.json`（格式同 `locales/`，每个支持的语言一份）。`skin.json` 的 `description` 渲染时也过 `t()`，照英文句子的口径写。
 
 生成与校验用 `php docs-internal/i18n/extract.php`（`--check` 验收），规范见 `docs-internal/i18n/CONVENTIONS.md`。
 

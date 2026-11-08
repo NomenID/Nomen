@@ -182,13 +182,12 @@ Nomen 将功能与外观分开管理。你可以扩展系统功能，也可以�
 
 皮肤可以覆盖任意模板，决定整个账号系统的外观。
 
-目前自带皮肤：
+官方皮肤独立发版，发布包自带这两个：
 
 | 皮肤 | 说明 |
 |---|---|
-| `nomen-2026` | 默认皮肤 |
-| `caellabid-2026` | CaelLabID 风格 |
-| `nomen-ssr` | 纯 PHP 服务端渲染皮肤 |
+| [`nomen-2026`](https://github.com/NomenID/skin-nomen-2026) | 默认皮肤 |
+| [`nomen-ssr`](https://github.com/NomenID/skin-nomen-ssr) | 纯 PHP 服务端渲染皮肤 |
 
 皮肤开发：[skins/README.md](skins/README.md)
 

@@ -1,7 +1,0 @@
-{
-    "name": "Nomen SSR",
-    "version": "1.0.0",
-    "description": "Lightweight server-rendered skin: no starfield background, no frontend framework, home and docs rendered straight from PHP",
-    "license": "GPL-3.0-only",
-    "author": ["Yunyun"]
-}

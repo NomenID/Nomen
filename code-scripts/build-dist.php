@@ -31,10 +31,16 @@ if (!preg_match("/'version'\s*=>\s*'([^']+)'/", (string)file_get_contents($root 
 }
 $version = $m[1];
 
-// 插件不在核心仓库里，打包机上得先 clone 到 plugins/；漏了就打出个没有插件的包
+// 插件和官方皮肤不在核心仓库里，打包机上得先 clone 到 plugins/、skins/；漏了就报错
 foreach (['pages', 'open-platform', 'geoip'] as $bundled) {
     if (!is_file($root . '/plugins/' . $bundled . '/plugin.json')) {
         fwrite(STDERR, '缺插件：plugins/' . $bundled . '（见 plugins/README.md，先 clone 到 plugins/）' . PHP_EOL);
+        exit(1);
+    }
+}
+foreach (['nomen-2026', 'nomen-ssr'] as $bundled) {
+    if (!is_file($root . '/skins/' . $bundled . '/skin.json')) {
+        fwrite(STDERR, '缺皮肤：skins/' . $bundled . '（见 skins/README.md，先 clone 到 skins/）' . PHP_EOL);
         exit(1);
     }
 }
