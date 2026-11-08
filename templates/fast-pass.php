@@ -52,20 +52,13 @@ $title = t('Temp key sign-in');
                 </div>
             </div>
 
-            <?php
-            $privacyUrl = (string)\Nomen\Src\Brand::get('privacy_url');
-            $termsUrl = (string)\Nomen\Src\Brand::get('terms_url');
-            ?>
-            <?php if ($privacyUrl !== '' || $termsUrl !== ''): ?>
+            <?php $legalLinks = \Nomen\Src\Brand::legalLinks(); ?>
+            <?php if ($legalLinks !== []): ?>
                 <p style="font-size:12px;color:var(--color-text-subtle);margin-bottom:12px;">
                     <?= t('By signing in, you agree to the') ?>
-                    <?php if ($privacyUrl !== ''): ?>
-                        <a href="<?= htmlspecialchars($privacyUrl) ?>" target="_blank"><?= t('Privacy Policy') ?></a>
-                    <?php endif; ?>
-                    <?php if ($privacyUrl !== '' && $termsUrl !== ''): ?><?= t('and') ?><?php endif; ?>
-                    <?php if ($termsUrl !== ''): ?>
-                        <a href="<?= htmlspecialchars($termsUrl) ?>" target="_blank"><?= t('Terms of Service') ?></a>
-                    <?php endif; ?>
+                    <?php foreach ($legalLinks as $i => $link): ?>
+                        <?php if ($i > 0): ?> · <?php endif; ?><a href="<?= htmlspecialchars($link['url']) ?>" target="_blank"><?= t($link['label']) ?></a>
+                    <?php endforeach; ?>
                 </p>
             <?php endif; ?>
 

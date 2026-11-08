@@ -1210,9 +1210,9 @@ class AdminController
         $disclaimer = $x('You received this email because someone provided this address as the contact email when submitting an appeal. If you did not submit any appeal, you can ignore this email.');
 
         if ($mode === 'reject') {
-            $title = $x('Your Nomen account recovery appeal — result');
+            $title = $x('Your {:sitename} account recovery appeal — result');
             $blocks = [
-                ['type' => 'paragraph', 'text' => $x('Thank you for reaching out about regaining access to your Nomen.')],
+                ['type' => 'paragraph', 'text' => $x('Thank you for reaching out about regaining access to your {:sitename}.')],
                 ['type' => 'paragraph', 'text' => $x('After review, we could not approve this appeal for now, so access to the account “{:name}” has not been restored.', ['name' => $username])],
                 ['type' => 'paragraph', 'text' => $x('If you believe this was a mistake, or you can provide more material proving the account is yours, reply to this email directly or contact {:support}.', ['support' => $support])],
                 ['type' => 'alert', 'tone' => 'info', 'text' => $disclaimer],
@@ -1221,10 +1221,10 @@ class AdminController
         } else {
             $url = EmailTemplate::url('/recovery/ticket?token=' . (string)$token);
             $days = max(1, (int)ceil(((int)($config['recovery_token_ttl'] ?? 604800)) / 86400));
-            $title = $x('Your Nomen account recovery appeal was approved');
+            $title = $x('Your {:sitename} account recovery appeal was approved');
 
             $blocks = [
-                ['type' => 'paragraph', 'text' => $x('Your Nomen account recovery appeal has been approved.')],
+                ['type' => 'paragraph', 'text' => $x('Your {:sitename} account recovery appeal has been approved.')],
                 ['type' => 'paragraph', 'text' => $x('Within {:days} days, click the link below (usable once) to sign in directly. After signing in you will be asked to change your password, or to add, replace or verify an email (this is most likely why you could not sign in); and if the account has only 2 sign-in methods left, you will be asked to add a third.', ['days' => $days])],
                 ['type' => 'alert', 'tone' => 'warning', 'text' => $x('This link can be used once — do not forward it to anyone. If it has expired, reply to this email and we will issue a new one.')],
                 ['type' => 'alert', 'tone' => 'info', 'text' => $disclaimer],
@@ -1238,7 +1238,7 @@ class AdminController
         $to = (string)($request['contact_email'] ?? '');
         if ($to !== '') {
             $locale = I18n::emailLocale((int)($request['user_id'] ?? 0));
-            Email::send($to, 'Nomen - ' . $title, EmailTemplate::render([
+            Email::send($to, EmailTemplate::subjectPrefix() . $title, EmailTemplate::render([
                 'preheader' => $title,
                 'badge'     => ['text' => '账号恢复', 'tone' => $mode === 'reject' ? 'neutral' : 'success'],
                 'title'     => $title,

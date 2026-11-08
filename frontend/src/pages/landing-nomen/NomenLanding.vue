@@ -90,7 +90,7 @@ const links = docsBase
   </section>
 
   <section class="np-section">
-    <h2>{{ t('What it does') }}</h2>
+    <h2>{{ t('What {:sitename} can do') }}</h2>
     <dl class="np-features">
       <div v-for="feature in features" :key="feature.title" class="np-feature">
         <dt>{{ feature.title }}</dt>

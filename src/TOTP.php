@@ -71,8 +71,9 @@ class TOTP
     /**
      * 生成 otpauth:// URI（用于QR码）
      */
-    public static function getProvisioningUri(string $secret, string $label, string $issuer = 'Nomen'): string
+    public static function getProvisioningUri(string $secret, string $label, ?string $issuer = null): string
     {
+        $issuer = $issuer ?: (string)Brand::get('name', 'Nomen');
         $label = rawurlencode($label);
         $issuer = rawurlencode($issuer);
         $secret = rawurlencode($secret);

@@ -661,7 +661,7 @@ onMounted(() => {
 
     <div class="settings-section" id="sec-locale" v-if="locales.length">
       <h2>{{ t('Interface language') }}</h2>
-      <p class="form-hint" style="margin-bottom:16px;">{{ t('Language for the interface and system emails. Signed-out devices follow the browser language') }}</p>
+      <p class="form-hint" style="margin-bottom:16px;">{{ t('Language for the {:sitename} interface and system emails. Signed-out devices follow the browser language') }}</p>
       <form method="POST" action="/settings/locale">
         <input type="hidden" name="_csrf" :value="csrf">
         <div class="form-group" style="margin-bottom:16px;">

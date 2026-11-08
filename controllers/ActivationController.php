@@ -136,7 +136,7 @@ class ActivationController
         // 发送邮件
         if ($usesGuardianAddress) {
             $locale = 'zh-hans'; // 收件人是家长（还没有账号），保持中文
-            $subject = 'Nomen - ' . I18n::tIn($locale, 'Parent confirmation');
+            $subject = EmailTemplate::subjectPrefix() . I18n::tIn($locale, 'Parent confirmation');
             $htmlBody = $this->getGuardianConfirmEmailHtml(
                 (string)$contact,
                 $verifyUrl,
@@ -147,7 +147,7 @@ class ActivationController
             );
         } else {
             $locale = I18n::locale();
-            $subject = 'Nomen - ' . I18n::tIn($locale, 'Email verification');
+            $subject = EmailTemplate::subjectPrefix() . I18n::tIn($locale, 'Email verification');
             $htmlBody = $this->getVerificationEmailHtml((string)$user['email'], $verifyUrl, $locale);
         }
 
@@ -249,7 +249,7 @@ class ActivationController
         // 收信地址是家长的：点链接的是家长，不是这个账号的主人 —— 不自动登录，
         // 告诉他用这条邮箱登录后到「家庭」页面就能看到孩子
         if (empty($user['email'])) {
-            Session::flash('success', t('Email confirmed. If this address already has a Nomen account, they appear on your Family page after signing in.'));
+            Session::flash('success', t('Email confirmed. If this address already has a {:sitename} account, they appear on your Family page after signing in.'));
             Response::redirect('/login');
         }
 
@@ -267,10 +267,10 @@ class ActivationController
     private function getVerificationEmailHtml(string $email, string $verifyUrl, string $locale = 'zh-hans'): string
     {
         return EmailTemplate::render([
-            'preheader' => 'Confirm your address to activate your Nomen account',
+            'preheader' => 'Confirm your address to activate your {:sitename} account',
             'badge'     => ['text' => 'Account activation', 'tone' => 'general'],
             'title'     => 'Verify your email address',
-            'subtitle'  => 'Once confirmed, everything works',
+            'subtitle'  => 'Once confirmed, every feature of {:sitename} works',
             'blocks'    => [
                 ['type' => 'info', 'items' => [['label' => 'Verify email', 'value' => $email]]],
                 ['type' => 'link', 'label' => 'Verification link', 'url' => $verifyUrl],
@@ -304,10 +304,10 @@ class ActivationController
         $blocks = [['type' => 'info', 'items' => $infoItems]];
         $blocks = array_merge($blocks, [
             ['type' => 'paragraph', 'text' => $username !== ''
-                ? $x('Hello, {:name} entered your email address as their contact address when signing up for Nomen, so this confirmation email came to you. When signing up they selected {:country} as their country/region and {:gender} as their gender.', ['name' => $username, 'pronoun' => $pronoun, 'country' => $countryName, 'gender' => $genderLabel])
-                : $x('Hello, someone entered your email address as their contact address when signing up for Nomen, so this confirmation email came to you.')],
+                ? $x('Hello, {:name} entered your email address as their contact address when signing up for {:sitename}, so this confirmation email came to you. When signing up they selected {:country} as their country/region and {:gender} as their gender.', ['name' => $username, 'pronoun' => $pronoun, 'country' => $countryName, 'gender' => $genderLabel])
+                : $x('Hello, someone entered your email address as their contact address when signing up for {:sitename}, so this confirmation email came to you.')],
         ], FamilyHelper::consentAgeEmailBlocks(FamilyHelper::consentAgeInfo($country), $locale), [
-            ['type' => 'paragraph', 'text' => $x('After confirming with the button below: you join their family (if you already have a Nomen account you join directly; if not, register with this email and join), and can then reset their sign-in password and temporarily lock the account.')],
+            ['type' => 'paragraph', 'text' => $x('After confirming with the button below: you join their family (if you already have a {:sitename} account you join directly; if not, register with this email and join), and can then reset their sign-in password and temporarily lock the account.')],
             ['type' => 'paragraph', 'muted' => true, 'text' => $x('What parents cannot do: see their password, read their messages or emails, or sign in as them.')],
             ['type' => 'paragraph', 'muted' => true, 'text' => $username !== ''
                 ? $x('Until the button is pressed, {:name}\'s account cannot be used yet. After confirmation they can use the account normally and receive notification emails.', ['name' => $username])

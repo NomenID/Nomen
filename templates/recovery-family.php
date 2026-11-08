@@ -29,7 +29,7 @@ $title = t('Managed by a parent');
         <?php endif; ?>
 
         <p style="font-size:14px;line-height:1.9;color:var(--color-text-muted);">
-            <?= t('Ask a parent to sign in to Nomen and reset your password on the Family page.') ?>
+            <?= t('Ask a parent to sign in to {:sitename} and reset your password on the Family page.') ?>
             <?= t('The parent\'s email is') ?> <strong style="color:var(--color-text);"><?= htmlspecialchars($maskedGuardian) ?></strong><?= t('.') ?>
         </p>
 

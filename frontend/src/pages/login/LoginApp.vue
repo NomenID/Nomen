@@ -19,9 +19,7 @@ const props = defineProps({
   triedLabels: { type: Object, default: () => ({}) },
   initialUsername: { type: String, default: '' },
   initialEmail: { type: String, default: '' },
-  privacyUrl: { type: String, default: '' },
-  termsUrl: { type: String, default: '' },
-  developerGuidelinesUrl: { type: String, default: '' },
+  legalLinks: { type: Array, default: () => [] },
   supportEmail: { type: String, default: '' },
   supportName: { type: String, default: '' },
   mailEnabled: { type: Boolean, default: true },
@@ -365,8 +363,8 @@ onBeforeUnmount(() => {
       <div class="auth-logo">
         <img :src="brandLogo" alt="" width="48" height="48">
       </div>
-      <h1>{{ t('Sign in to Nomen') }}</h1>
-      <p>{{ t('Continue with your Nomen account') }}</p>
+      <h1>{{ t('Sign in to {:sitename}') }}</h1>
+      <p>{{ t('Continue with your {:sitename} account') }}</p>
     </div>
 
     <BaseAlert v-if="error" type="error" :message="error" />
@@ -616,16 +614,13 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <div class="auth-legal" v-if="props.privacyUrl || props.termsUrl || props.developerGuidelinesUrl">
-      <p v-if="props.privacyUrl || props.termsUrl">
+    <div class="auth-legal" v-if="props.legalLinks.length">
+      <p>
         {{ t('By signing in, you agree to the') }}
-        <template v-if="props.privacyUrl"><a :href="props.privacyUrl" target="_blank">{{ t('Privacy Policy') }}</a></template>
-        <template v-if="props.privacyUrl && props.termsUrl">{{ t('and') }}</template>
-        <template v-if="props.termsUrl"><a :href="props.termsUrl" target="_blank">{{ t('Terms of Service') }}</a></template>
-      </p>
-      <p v-if="props.developerGuidelinesUrl">
-        {{ t('Developers must also follow the') }}
-        <a :href="props.developerGuidelinesUrl" target="_blank">{{ t('Developer Guidelines') }}</a>
+        <template v-for="(link, i) in props.legalLinks" :key="link.url">
+          <span v-if="i > 0"> · </span>
+          <a :href="link.url" target="_blank">{{ t(link.label) }}</a>
+        </template>
       </p>
     </div>
 

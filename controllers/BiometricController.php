@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{ActivityLog, Database, Session, Csrf, Response, RateLimiter, LoginMethods};
+use Nomen\Src\{ActivityLog, Brand, Database, Session, Csrf, Response, RateLimiter, LoginMethods};
 use Nomen\Controllers\DeviceController;
 use lbuchs\WebAuthn\WebAuthn;
 use PDO;
@@ -20,11 +20,11 @@ class BiometricController
     private function initWebAuthn(): void
     {
         $config = require __DIR__ . '/../config/app.php';
-        $origin = $config['webauthn_origin'] ?? 'https://id.caellab.com';
-        $rpName = $config['webauthn_rp_name'] ?? 'Nomen';
+        $origin = $config['webauthn_origin'] ?? (string)Brand::get('base_url', 'http://localhost:8080');
+        $rpName = $config['webauthn_rp_name'] ?? (string)Brand::get('name', 'Nomen');
 
         $urlParts = parse_url($origin);
-        $rpId = $urlParts['host'] ?? 'id.caellab.com';
+        $rpId = $urlParts['host'] ?? (string)parse_url((string)Brand::get('base_url', 'http://localhost:8080'), PHP_URL_HOST);
 
         $this->webAuthn = new WebAuthn(
             $rpName,

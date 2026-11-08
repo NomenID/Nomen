@@ -20,6 +20,11 @@ return [
     'terms_url'          => getenv('BRAND_TERMS_URL') ?: ($app['terms_url'] ?? ''),
     'developer_guidelines_url' => getenv('BRAND_DEVELOPER_GUIDELINES_URL') ?: ($app['developer_guidelines_url'] ?? ''),
 
+    // 认证页（登录 / 临时密钥）法律声明的链接列表，每项 ['label' => ..., 'url' => ...]。
+    // label 写什么显示什么；写 'Privacy Policy' 这类词典键会按当前语言翻译。
+    // 留空时回退为 privacy_url / terms_url / developer_guidelines_url 按序合成。
+    'legal_links'        => [],
+
     // 支持团队名称，登录页/恢复页用它；留空就写「支持团队」
     'support_name'       => getenv('BRAND_SUPPORT_NAME') ?: ($app['support_name'] ?? ''),
 

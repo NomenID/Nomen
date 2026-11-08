@@ -34,6 +34,12 @@ class EmailTemplate
         return (string)Brand::get('privacy_url');
     }
 
+    /** 邮件主题前缀：站点名。调用点别写死品牌 */
+    public static function subjectPrefix(): string
+    {
+        return (string)Brand::get('name', 'Nomen') . ' - ';
+    }
+
     // 与站内消息页类别徽章同源（浅色 / 深色两套）
     private const TONES = [
         'important' => ['bg' => '#ffebe9', 'fg' => '#cf222e', 'bd' => '#ffcecb', 'dkBg' => '#3c1618', 'dkFg' => '#ff7b72'],

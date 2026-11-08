@@ -17,7 +17,7 @@ class Email
                 'username'   => getenv('SMTP_USERNAME') ?: '',
                 'password'   => getenv('SMTP_PASSWORD') ?: '',
                 'from_email' => getenv('SMTP_FROM_EMAIL') ?: '',
-                'from_name'  => getenv('SMTP_FROM_NAME') ?: 'Nomen',
+                'from_name'  => getenv('SMTP_FROM_NAME') ?: (string)Brand::get('name', 'Nomen'),
                 'encryption' => getenv('SMTP_ENCRYPTION') ?: 'tls',
             ];
         }

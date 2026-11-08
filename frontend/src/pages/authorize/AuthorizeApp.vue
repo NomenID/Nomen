@@ -142,7 +142,7 @@ function onSubmit(event) {
         <span class="authorize-user-name">{{ user.display_name || user.username }}</span>
       </div>
 
-      <p class="authorize-desc"><strong>{{ client.name }}</strong> {{ t('wants to access your Nomen account:') }}</p>
+      <p class="authorize-desc"><strong>{{ client.name }}</strong> {{ t('wants to access your {:sitename} account:') }}</p>
 
       <form
         ref="formEl"
@@ -205,7 +205,7 @@ function onSubmit(event) {
     </div>
 
     <div class="authorize-footer">
-      <p>{{ t('By authorizing, you agree to share your Nomen information with this app. You can revoke access at any time from your ') }}<a href="/dashboard">{{ t('Dashboard') }}</a>{{ t(' at any time.') }}</p>
+      <p>{{ t('By authorizing, you agree to share your {:sitename} information with this app. You can revoke access at any time from your ') }}<a href="/dashboard">{{ t('Dashboard') }}</a>{{ t(' at any time.') }}</p>
     </div>
   </div>
 </template>

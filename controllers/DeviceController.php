@@ -149,7 +149,7 @@ class DeviceController
         $time = date('Y-m-d H:i:s');
 
         $locale = I18n::emailLocale((int)$user['id']);
-        $subject = 'Nomen - ' . I18n::tIn($locale, 'New device sign-in');
+        $subject = EmailTemplate::subjectPrefix() . I18n::tIn($locale, 'New device sign-in');
         $htmlBody = self::getDeviceNotificationEmailHtml($user['username'], $deviceName, $ip, $location, $time, $locale);
 
         Email::send($contact, $subject, $htmlBody);
@@ -158,10 +158,10 @@ class DeviceController
     private static function getDeviceNotificationEmailHtml(string $username, string $device, string $ip, string $location, string $time, string $locale = 'zh-hans'): string
     {
         return EmailTemplate::render([
-            'preheader' => I18n::tIn($locale, '你的 Nomen 账户刚刚在{:device}上登录', ['device' => $device]),
+            'preheader' => I18n::tIn($locale, '你的 {:sitename} 账户刚刚在{:device}上登录', ['device' => $device]),
             'badge'     => ['text' => 'Security alert', 'tone' => 'important'],
             'title'     => 'New device sign-in',
-            'subtitle'  => 'A new device signed in to your Nomen account',
+            'subtitle'  => 'A new device signed in to your {:sitename} account',
             'blocks'    => [
                 ['type' => 'paragraph', 'text' => I18n::tIn($locale, '你好 {:name}，以下设备刚刚成功登录了你的账户：', ['name' => $username])],
                 ['type' => 'info', 'items' => [

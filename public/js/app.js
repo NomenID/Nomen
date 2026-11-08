@@ -17,6 +17,9 @@ function t(key, params) {
             }
         }
     }
+    if (text.indexOf('{:sitename}') !== -1 && !(params && params.sitename)) {
+        text = text.split('{:sitename}').join(window.NOMEN_SITENAME || 'Nomen');
+    }
     return text;
 }
 window.t = t;

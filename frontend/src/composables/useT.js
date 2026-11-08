@@ -11,6 +11,10 @@ export function useT() {
         text = text.split('{:' + name + '}').join(String(params[name]))
       }
     }
+    if (text.indexOf('{:sitename}') !== -1 && !(params && params.sitename)) {
+      const sn = (typeof window !== 'undefined' && window.NOMEN_SITENAME) || 'Nomen'
+      text = text.split('{:sitename}').join(sn)
+    }
     return text
   }
 

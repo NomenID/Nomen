@@ -548,7 +548,7 @@ class RecoveryController
         $user = $stmt->fetch();
 
         if (!$user || (int)$user['status'] !== 1) {
-            $this->ticketFailed(t('This account is currently unavailable — contact the CaelLab support team'));
+            $this->ticketFailed(t('This account is currently unavailable — contact the {:sitename} support team'));
         }
 
         $this->db->prepare(
@@ -702,13 +702,13 @@ class RecoveryController
         $locale = I18n::locale();
         $disclaimer = I18n::tIn($locale, 'You received this email because someone provided this address as the contact email when submitting an appeal. If you did not submit any appeal, you can ignore this email.');
 
-        Email::send($contactEmail, 'Nomen - ' . I18n::tIn($locale, 'We received your account recovery request'), EmailTemplate::render([
-            'preheader' => 'We received your Nomen recovery request',
+        Email::send($contactEmail, EmailTemplate::subjectPrefix() . I18n::tIn($locale, 'We received your account recovery request'), EmailTemplate::render([
+            'preheader' => 'We received your {:sitename} recovery request',
             'badge'     => ['text' => 'Account recovery', 'tone' => 'general'],
             'title'     => 'We received your account recovery request',
             'blocks'    => [
-                ['type' => 'paragraph', 'text' => 'Thank you for reaching out about regaining access to your Nomen.'],
-                ['type' => 'paragraph', 'text' => 'CaelLab will review your request as soon as possible. Most are reviewed within 2 business days; some take longer.'],
+                ['type' => 'paragraph', 'text' => 'Thank you for reaching out about regaining access to your {:sitename}.'],
+                ['type' => 'paragraph', 'text' => '{:sitename} will review your request as soon as possible. Most are reviewed within 2 business days; some take longer.'],
                 ['type' => 'paragraph', 'text' => 'Thank you for your patience.'],
                 ['type' => 'alert', 'tone' => 'info', 'text' => $disclaimer],
             ],
@@ -718,8 +718,8 @@ class RecoveryController
         // 账号邮箱：只在已验证时发（未验证邮箱一律不发信），且与联系邮箱重复时去重
         $accountEmail = (string)($ctx['email'] ?? '');
         if (!empty($ctx['email_verified']) && $accountEmail !== '' && strcasecmp($accountEmail, $contactEmail) !== 0) {
-            $this->notifyAccountEmail((int)$ctx['user_id'], 'Nomen 账号恢复申诉提醒',
-                I18n::tIn($locale, '有人为你的 Nomen 账户（{:name}）提交了账号恢复申诉，我们已将受理信息发送至其填写的联系邮箱。\n\n如果这不是你本人操作，请尽快登录并修改密码，同时联系 {:support}。', ['name' => $ctx['username'], 'support' => $support]));
+            $this->notifyAccountEmail((int)$ctx['user_id'], '账号恢复申诉提醒',
+                I18n::tIn($locale, '有人为你的 {:sitename} 账户（{:name}）提交了账号恢复申诉，我们已将受理信息发送至其填写的联系邮箱。\n\n如果这不是你本人操作，请尽快登录并修改密码，同时联系 {:support}。', ['name' => $ctx['username'], 'support' => $support]));
         }
 
         // 管理员提醒发给 admin_notify_email（管理员自己的信箱），不是对外的 support_email；
@@ -893,7 +893,7 @@ class RecoveryController
             'muted' => true,
         ];
 
-        Email::send($to, 'Nomen - ' . $title, EmailTemplate::render([
+        Email::send($to, EmailTemplate::subjectPrefix() . $title, EmailTemplate::render([
             'preheader' => $preheader,
             'badge'     => ['text' => 'Admin digest', 'tone' => 'warning'],
             'title'     => $title,
@@ -920,16 +920,16 @@ class RecoveryController
         }
 
         $locale = I18n::locale();
-        Email::send($user['email'], 'Nomen - ' . I18n::tIn($locale, 'Account recovery complete'), EmailTemplate::render([
-            'preheader' => 'Your Nomen account has finished security repair',
+        Email::send($user['email'], EmailTemplate::subjectPrefix() . I18n::tIn($locale, 'Account recovery complete'), EmailTemplate::render([
+            'preheader' => 'Your {:sitename} account has finished security repair',
             'badge'     => ['text' => 'Account recovery', 'tone' => 'success'],
             'title'     => 'Account recovery complete',
             'blocks'    => [
-                ['type' => 'paragraph', 'text' => 'Your Nomen account has finished security repair and is ready to use.'],
+                ['type' => 'paragraph', 'text' => 'Your {:sitename} account has finished security repair and is ready to use.'],
                 ['type' => 'paragraph', 'text' => 'For safety we signed the account out of all other devices and revoked every third-party authorization.'],
                 ['type' => 'alert', 'tone' => 'warning', 'text' => I18n::tIn($locale, '如果这不是你本人操作，请立即修改密码并联系 {:support}。', ['support' => (self::config()['support_email'] ?? '')])],
             ],
-            'button'    => ['text' => 'Open Nomen', 'url' => EmailTemplate::url('/dashboard')],
+            'button'    => ['text' => 'Open {:sitename}', 'url' => EmailTemplate::url('/dashboard')],
         ], $locale));
     }
 
@@ -943,14 +943,14 @@ class RecoveryController
         }
 
         $locale = I18n::emailLocale((int)$user['id']);
-        Email::send($user['email'], 'Nomen - ' . I18n::tIn($locale, $title), EmailTemplate::render([
+        Email::send($user['email'], EmailTemplate::subjectPrefix() . I18n::tIn($locale, $title), EmailTemplate::render([
             'preheader' => $title,
             'badge'     => ['text' => 'Security alert', 'tone' => 'important'],
             'title'     => $title,
             'blocks'    => [
                 ['type' => 'paragraph', 'text' => $body],
             ],
-            'button'    => ['text' => 'Open Nomen', 'url' => EmailTemplate::url('/settings')],
+            'button'    => ['text' => 'Open {:sitename}', 'url' => EmailTemplate::url('/settings')],
         ], $locale));
     }
 }

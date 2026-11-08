@@ -53,7 +53,7 @@ function initialOf(name) {
       <div v-if="!authorizations.length" class="empty-state">
         <div class="empty-state__icon"><span class="icon icon-lock"></span></div>
         <p>{{ t('You haven\'t authorized any third-party apps yet') }}</p>
-        <p class="text-muted">{{ t('Apps you sign in to with Nomen will show up here') }}</p>
+        <p class="text-muted">{{ t('Apps you sign in to with {:sitename} will show up here') }}</p>
       </div>
 
       <div v-else class="app-list">

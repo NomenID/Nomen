@@ -261,7 +261,7 @@ class TwoFactorController
         }
 
         $locale = I18n::locale();
-        $subject = 'Nomen - ' . I18n::tIn($locale, '双因素验证码');
+        $subject = EmailTemplate::subjectPrefix() . I18n::tIn($locale, '双因素验证码');
         $htmlBody = $this->getTwoFactorCodeEmailHtml($contact, $code, (string)$user['username'], $locale);
 
         if (Email::send($contact, $subject, $htmlBody)) {

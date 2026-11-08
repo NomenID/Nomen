@@ -740,7 +740,7 @@ class DashboardController
         ]);
 
         $locale = I18n::locale();
-        if (Email::send($email, 'Nomen - ' . I18n::tIn($locale, 'Email verification'), $this->getEmailVerifyEmailHtml($email, $this->emailVerifyUrl($added['token']), $locale))) {
+        if (Email::send($email, EmailTemplate::subjectPrefix() . I18n::tIn($locale, 'Email verification'), $this->getEmailVerifyEmailHtml($email, $this->emailVerifyUrl($added['token']), $locale))) {
             $this->emailBack($isAjax, t('A verification email was sent to {:email} — follow the link inside to confirm it', ['email' => $email]), true);
         }
         $this->emailBack($isAjax, t('Could not send the verification email — please try again later'));
@@ -785,7 +785,7 @@ class DashboardController
 
         $email = (string)$row['email'];
         $locale = I18n::locale();
-        if (Email::send($email, 'Nomen - ' . I18n::tIn($locale, 'Email verification'), $this->getEmailVerifyEmailHtml($email, $this->emailVerifyUrl($token), $locale))) {
+        if (Email::send($email, EmailTemplate::subjectPrefix() . I18n::tIn($locale, 'Email verification'), $this->getEmailVerifyEmailHtml($email, $this->emailVerifyUrl($token), $locale))) {
             $this->emailBack($isAjax, t('The verification email was sent again to {:email}', ['email' => $email]), true);
         }
         $this->emailBack($isAjax, t('Could not send the verification email — please try again later'));
@@ -934,7 +934,7 @@ class DashboardController
     private function getEmailVerifyEmailHtml(string $email, string $verifyUrl, string $locale = 'zh-hans'): string
     {
         return EmailTemplate::render([
-            'preheader' => I18n::tIn($locale, 'Confirm adding {:email} to your Nomen account', ['email' => $email]),
+            'preheader' => I18n::tIn($locale, 'Confirm adding {:email} to your {:sitename} account', ['email' => $email]),
             'badge'     => ['text' => 'Account security', 'tone' => 'general'],
             'title'     => 'Confirm this address',
             'subtitle'  => 'After confirming, the address works for sign-in and can become your contact address',
@@ -1059,7 +1059,7 @@ class DashboardController
 
         // 发送验证码邮件
         $locale = I18n::locale();
-        $subject = 'Nomen - ' . I18n::tIn($locale, '重置密码验证码');
+        $subject = EmailTemplate::subjectPrefix() . I18n::tIn($locale, '重置密码验证码');
         $htmlBody = $this->getPasswordResetCodeEmailHtml((string)$contact, $code, $locale);
 
         if (Email::send($contact, $subject, $htmlBody)) {
@@ -1344,10 +1344,10 @@ class DashboardController
     private function getPasswordResetCodeEmailHtml(string $email, string $code, string $locale = 'zh-hans'): string
     {
         return EmailTemplate::render([
-            'preheader' => I18n::tIn($locale, 'Your Nomen password reset code is {:code}, valid for 10 minutes', ['code' => $code]),
+            'preheader' => I18n::tIn($locale, 'Your {:sitename} password reset code is {:code}, valid for 10 minutes', ['code' => $code]),
             'badge'     => ['text' => 'Security verification', 'tone' => 'general'],
             'title'     => 'Reset password',
-            'subtitle'  => 'Reset your Nomen password with a code',
+            'subtitle'  => 'Reset your {:sitename} password with a code',
             'blocks'    => [
                 ['type' => 'info', 'items' => [['label' => 'Account email', 'value' => $email]]],
                 ['type' => 'code', 'label' => 'Code', 'value' => $code],

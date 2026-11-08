@@ -59,7 +59,7 @@ onBeforeUnmount(() => {
     </div>
 
     <div class="claim-note">
-      <p>{{ t('Hi, welcome to Nomen.') }}</p>
+      <p>{{ t('Hi, welcome to {:sitename}.') }}</p>
       <p>{{ t('This email was registered before (by a person or a bot), but that account never verified the address, so it was never properly activated.') }}</p>
       <p>{{ t('Verify your email first: enter the 6-digit code we just sent you. Once verified, we\'ll remove the unverified account and register and activate this one with the details you just entered.') }}</p>
     </div>

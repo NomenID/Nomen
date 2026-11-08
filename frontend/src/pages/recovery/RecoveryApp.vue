@@ -250,7 +250,7 @@ onBeforeUnmount(() => document.removeEventListener('paste', onPaste))
         <StepHero
           icon="file"
           :title="t('Confirm it\'s you')"
-          :desc="t('We won\'t collect your information twice — this is only to confirm that you\'re the one using this Nomen account')"
+          :desc="t('We won\'t collect your information twice — this is only to confirm that you\'re the one using this {:sitename} account')"
         />
 
         <div class="form-group">

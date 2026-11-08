@@ -251,6 +251,10 @@ class I18n
         foreach ($params as $name => $value) {
             $text = strtr($text, ['{:' . $name . '}' => (string)$value]);
         }
+        // {:sitename} 是全局占位符（站点品牌名），调用点不用传
+        if (!isset($params['sitename']) && str_contains($text, '{:sitename}')) {
+            $text = strtr($text, ['{:sitename}' => (string)Brand::get('name', 'Nomen')]);
+        }
         return $text;
     }
 
@@ -388,6 +392,7 @@ class I18n
         header('Content-Type: application/javascript; charset=utf-8');
         header('Cache-Control: public, max-age=31536000, immutable');
         echo 'window.NOMEN_I18N=' . json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . ';';
+        echo 'window.NOMEN_SITENAME=' . json_encode((string)Brand::get('name', 'Nomen'), JSON_UNESCAPED_UNICODE) . ';';
         echo 'window.NOMEN_LOCALE=' . json_encode($slug) . ';';
         echo 'window.NOMEN_LANG=' . json_encode(self::code($slug)) . ';';
         echo 'window.NOMEN_DIR=' . json_encode(self::dir($slug)) . ';';

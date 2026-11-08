@@ -185,7 +185,7 @@ const resetForm = reactive({ code: '', new_password: '', confirm_password: '' })
           </span>
           <span class="family-list__meta">
             {{ relationshipLabel(guardian.relationship) }}
-            · {{ guardian.user_id ? t('Joined') : t('Pending (no Nomen yet)') }}
+            · {{ guardian.user_id ? t('Joined') : t('Pending (no {:sitename} yet)') }}
           </span>
         </li>
       </ul>
@@ -261,7 +261,7 @@ const resetForm = reactive({ code: '', new_password: '', confirm_password: '' })
         </select>
         <button type="submit" class="btn btn-secondary">{{ t('Invite') }}</button>
       </form>
-      <small class="form-hint">{{ t('Once they register or sign in with that address, they can join from the Family page.') }}</small>
+      <small class="form-hint">{{ t('Once they register or sign in to {:sitename} with that address, they can join from the Family page.') }}</small>
 
       <h3 class="family-sub">{{ t('Create child account') }}</h3>
       <form
@@ -316,7 +316,7 @@ const resetForm = reactive({ code: '', new_password: '', confirm_password: '' })
           <span class="family-list__name">{{ guardian.username || guardian.email }}</span>
           <span class="family-list__meta">
             {{ relationshipLabel(guardian.relationship) }}
-            · {{ guardian.user_id ? t('Joined') : t('Pending (no Nomen yet)') }}
+            · {{ guardian.user_id ? t('Joined') : t('Pending (no {:sitename} yet)') }}
           </span>
         </li>
         <li v-if="!guardians.length"><span class="family-list__meta">{{ t('No parent invited yet') }}</span></li>
@@ -393,7 +393,7 @@ const resetForm = reactive({ code: '', new_password: '', confirm_password: '' })
         {{ t('Press Join on an invitation above. If it was sent to another address of yours, request the code on that mailbox and join here.') }}
       </p>
       <p v-else class="form-hint" style="margin-bottom:16px;">
-        {{ t('If your child used your email at sign-up or invited you, the invitation shows up here.') }}{{ t('If that address already has a Nomen account, sign in with it and accept directly.') }}
+        {{ t('If your child used your email at sign-up or invited you, the invitation shows up here.') }}{{ t('If that address already has a {:sitename} account, sign in with it and accept directly.') }}
       </p>
 
       <form

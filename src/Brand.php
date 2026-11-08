@@ -34,4 +34,34 @@ final class Brand
 
         return $links;
     }
+
+    /** 认证页法律声明：legal_links 配置优先；没配时用 privacy / terms / 开发者守则合成。 */
+    public static function legalLinks(): array
+    {
+        $out = [];
+        foreach ((array)self::get('legal_links', []) as $link) {
+            if (!is_array($link)) {
+                continue;
+            }
+            $label = trim((string)($link['label'] ?? ''));
+            $url = trim((string)($link['url'] ?? ''));
+            if ($label !== '' && $url !== '') {
+                $out[] = ['label' => $label, 'url' => $url];
+            }
+        }
+        if ($out !== []) {
+            return $out;
+        }
+        $fallback = [
+            ['url' => trim((string)self::get('privacy_url', '')), 'label' => t('Privacy Policy')],
+            ['url' => trim((string)self::get('terms_url', '')), 'label' => t('Terms of Service')],
+            ['url' => trim((string)self::get('developer_guidelines_url', '')), 'label' => t('Developer Guidelines')],
+        ];
+        foreach ($fallback as $link) {
+            if ($link['url'] !== '') {
+                $out[] = $link;
+            }
+        }
+        return $out;
+    }
 }

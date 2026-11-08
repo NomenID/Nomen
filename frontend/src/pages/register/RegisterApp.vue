@@ -377,7 +377,7 @@ onMounted(() => {
         <div class="auth-logo">
           <img :src="brandLogo" alt="" width="48" height="48">
         </div>
-        <h1>{{ t('Sign up for Nomen') }}</h1>
+        <h1>{{ t('Sign up for {:sitename}') }}</h1>
         <p>{{ t('Create your own account') }}</p>
       </div>
 

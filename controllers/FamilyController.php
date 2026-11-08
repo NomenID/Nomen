@@ -95,10 +95,10 @@ class FamilyController
             I18n::tIn($locale, '家庭邀请验证码'),
             I18n::tIn($locale, '加入家庭'),
             $code,
-            I18n::tIn($locale, '有人正在用这条邮箱接受一个 Nomen 家庭邀请。如果这不是你本人操作，请忽略本邮件。'),
+            I18n::tIn($locale, '有人正在用这条邮箱接受一个 {:sitename} 家庭邀请。如果这不是你本人操作，请忽略本邮件。'),
             $locale
         );
-        if (!Email::send($email, 'Nomen - ' . I18n::tIn($locale, '家庭邀请验证码'), $html)) {
+        if (!Email::send($email, EmailTemplate::subjectPrefix() . I18n::tIn($locale, '家庭邀请验证码'), $html)) {
             $this->back(t('Email failed to send, try again later'));
         }
 
@@ -183,7 +183,7 @@ class FamilyController
             'changes'  => ['new_member_id' => ['old' => null, 'new' => $memberId]],
         ]);
 
-        $this->back('', t('Invited {:email}. Ask them to sign up or sign in to Nomen with this address, then accept the invitation on the Family page.', ['email' => $email]));
+        $this->back('', t('Invited {:email}. Ask them to sign up or sign in to {:sitename} with this address, then accept the invitation on the Family page.', ['email' => $email]));
     }
 
     public function childCreate(): void
@@ -363,7 +363,7 @@ class FamilyController
             I18n::tIn($locale, '验证码发到了你（家长）的邮箱上，用它在「家庭」页面给孩子设置新密码。'),
             $locale
         );
-        if (!Email::send($contact, 'Nomen - ' . I18n::tIn($locale, 'Reset child\'s password'), $html)) {
+        if (!Email::send($contact, EmailTemplate::subjectPrefix() . I18n::tIn($locale, 'Reset child\'s password'), $html)) {
             $this->back(t('Email failed to send, try again later'));
         }
 
@@ -494,13 +494,13 @@ class FamilyController
             'subtitle'  => $x('{:name} invited you to be their parent', ['name' => $user['username']]),
             'blocks'    => [
                 ['type' => 'info', 'items' => [['label' => 'Child account', 'value' => (string)$user['username']]]],
-                ['type' => 'paragraph', 'text' => $x('Sign up or sign in to Nomen with this email, then accept the invitation on the Family page.')],
+                ['type' => 'paragraph', 'text' => $x('Sign up or sign in to {:sitename} with this email, then accept the invitation on the Family page.')],
                 ['type' => 'paragraph', 'muted' => true, 'text' => $x('After joining, you can reset their sign-in password and temporarily lock the account; you cannot see their password or read their messages.')],
                 ['type' => 'paragraph', 'muted' => true, 'text' => $x('If this is not an account you know, just ignore this email.')],
             ],
-            'button'    => ['text' => 'Open Nomen', 'url' => EmailTemplate::url('/family')],
+            'button'    => ['text' => 'Open {:sitename}', 'url' => EmailTemplate::url('/family')],
         ], $locale);
-        Email::send($email, 'Nomen - ' . $x('Parent invitation'), $html);
+        Email::send($email, EmailTemplate::subjectPrefix() . $x('Parent invitation'), $html);
 
         $this->back('', t('An invitation was sent to {:email}. Once they sign up or sign in with this address, they can join from the Family page.', ['email' => RecoveryHelper::maskEmail($email)]));
     }

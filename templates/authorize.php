@@ -56,7 +56,7 @@ $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APO
                 </div>
             </div>
             <div class="authorize-body">
-                <p class="authorize-desc"><strong><?= htmlspecialchars($client['name']) ?></strong> <?= t('wants to access your Nomen account:') ?></p>
+                <p class="authorize-desc"><strong><?= htmlspecialchars($client['name']) ?></strong> <?= t('wants to access your {:sitename} account:') ?></p>
                 <form method="POST" action="/oauth/authorize" class="authorize-actions">
                     <?= \Nomen\Src\Csrf::field() ?>
                     <input type="hidden" name="client_id" value="<?= htmlspecialchars($clientId) ?>">

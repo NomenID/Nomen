@@ -694,7 +694,7 @@ class AuthController
         if (!$key) return;
 
         $locale = I18n::locale();
-        $subject = 'Nomen - ' . I18n::tIn($locale, 'Temp key used');
+        $subject = EmailTemplate::subjectPrefix() . I18n::tIn($locale, 'Temp key used');
         $device = DeviceController::parseDeviceName($_SERVER['HTTP_USER_AGENT'] ?? '');
         $ip = $_SERVER['REMOTE_ADDR'] ?? '未知';
         $location = GeoIP::getLocation($ip);
@@ -704,7 +704,7 @@ class AuthController
             'preheader' => I18n::tIn($locale, '你的临时密钥「{:label}」刚刚被使用', ['label' => $key['label']]),
             'badge'     => ['text' => 'Security alert', 'tone' => 'important'],
             'title'     => 'Temp key used',
-            'subtitle'  => 'Your Nomen account was signed in with a temp key',
+            'subtitle'  => 'Your {:sitename} account was signed in with a temp key',
             'blocks'    => [
                 ['type' => 'paragraph', 'text' => I18n::tIn($locale, '你好 {:name}，你的临时密钥已被使用：', ['name' => $user['username']])],
                 ['type' => 'info', 'items' => [
@@ -913,7 +913,7 @@ class AuthController
 
         // 发送验证码邮件（正文里写明是哪个账号的码，一个家长邮箱可能带多个孩子）
         $locale = I18n::locale();
-        $subject = 'Nomen - ' . I18n::tIn($locale, 'Sign-in code');
+        $subject = EmailTemplate::subjectPrefix() . I18n::tIn($locale, 'Sign-in code');
         $htmlBody = $this->getLoginCodeEmailHtml($contact, $code, (string)$user['username'], $locale);
 
         if (Email::send($contact, $subject, $htmlBody)) {
@@ -1128,7 +1128,7 @@ class AuthController
             'preheader' => I18n::tIn($locale, '你的登录验证码是 {:code}，10 分钟内有效', ['code' => $code]),
             'badge'     => ['text' => 'Security verification', 'tone' => 'general'],
             'title'     => 'Sign-in code',
-            'subtitle'  => $username !== '' ? I18n::tIn($locale, '账号 {:name} 的登录验证码', ['name' => $username]) : I18n::tIn($locale, '使用验证码登录你的 Nomen 账户'),
+            'subtitle'  => $username !== '' ? I18n::tIn($locale, '账号 {:name} 的登录验证码', ['name' => $username]) : I18n::tIn($locale, '使用验证码登录你的 {:sitename} 账户'),
             'blocks'    => [
                 ['type' => 'info', 'items' => $items],
                 ['type' => 'code', 'label' => 'Code', 'value' => $code],
@@ -1476,7 +1476,7 @@ class AuthController
         ]);
 
         $registerLocale = I18n::locale();
-        if (!Email::send($email, 'Nomen - ' . I18n::tIn($registerLocale, $is_under_16 ? 'Parental consent confirmation' : 'Email verification'), $this->getRegisterClaimEmailHtml($email, $code, $is_under_16, $country, $gender, $registerLocale))) {
+        if (!Email::send($email, EmailTemplate::subjectPrefix() . I18n::tIn($registerLocale, $is_under_16 ? 'Parental consent confirmation' : 'Email verification'), $this->getRegisterClaimEmailHtml($email, $code, $is_under_16, $country, $gender, $registerLocale))) {
             Session::flash('error', t('The verification email failed — press Resend on the page'));
         }
 
@@ -1546,7 +1546,7 @@ class AuthController
 
         $is_under_16 = Features::guardians() && !empty($row['is_under_16']);
         $registerLocale = I18n::locale();
-        if (Email::send($email, 'Nomen - ' . I18n::tIn($registerLocale, $is_under_16 ? 'Parental consent confirmation' : 'Email verification'), $this->getRegisterClaimEmailHtml($email, $code, $is_under_16, (string)$row['country'], (string)$row['gender'], $registerLocale))) {
+        if (Email::send($email, EmailTemplate::subjectPrefix() . I18n::tIn($registerLocale, $is_under_16 ? 'Parental consent confirmation' : 'Email verification'), $this->getRegisterClaimEmailHtml($email, $code, $is_under_16, (string)$row['country'], (string)$row['gender'], $registerLocale))) {
             Session::flash('success', t('Code resent — check your inbox (valid for 10 minutes)'));
         } else {
             Session::flash('error', t('Email failed to send, try again later'));
@@ -1796,7 +1796,7 @@ class AuthController
 
             $blocks = [
                     ['type' => 'paragraph', 'text' => '你好，'],
-                    ['type' => 'paragraph', 'text' => I18n::tIn($locale, '你的孩子正在注册 Nomen —— 一个青少年可以在这里安全地探索和创造的平台。{:pronoun}在注册时填写的国家 / 地区是{:country}，性别是{:gender}。因为还没到本地区可以独立使用 Nomen 的年龄，我们需要你的同意。', ['pronoun' => $pronoun, 'country' => $countryName, 'gender' => $genderLabel])],
+                    ['type' => 'paragraph', 'text' => I18n::tIn($locale, '你的孩子正在注册 {:sitename} —— 一个青少年可以在这里安全地探索和创造的平台。{:pronoun}在注册时填写的国家 / 地区是{:country}，性别是{:gender}。因为还没到本地区可以独立使用 {:sitename} 的年龄，我们需要你的同意。', ['pronoun' => $pronoun, 'country' => $countryName, 'gender' => $genderLabel])],
                     ['type' => 'info', 'items' => [
                         ['label' => 'Parent\'s email', 'value' => $email],
                         ['label' => 'Country / Region', 'value' => $countryName],
@@ -1805,16 +1805,16 @@ class AuthController
                 ];
 
             return EmailTemplate::render([
-                'preheader' => I18n::tIn($locale, '你的孩子正在注册 Nomen 账户，需要你的同意'),
+                'preheader' => I18n::tIn($locale, '你的孩子正在注册 {:sitename} 账户，需要你的同意'),
                 'badge'     => ['text' => 'Parental consent', 'tone' => 'warning'],
                 'title'     => 'Parental consent confirmation',
-                'subtitle'  => 'Your child is creating a Nomen account',
+                'subtitle'  => 'Your child is creating a {:sitename} account',
                 'blocks'    => array_merge(
                     $blocks,
                     FamilyHelper::consentAgeEmailBlocks(FamilyHelper::consentAgeInfo($country), $locale),
                     [
                         ['type' => 'code', 'label' => 'Parental consent code', 'value' => $code],
-                        ['type' => 'paragraph', 'muted' => true, 'text' => I18n::tIn($locale, '在注册页输入这个验证码，即表示你同意你的孩子使用 Nomen。{:note}', ['note' => $replaceNote])],
+                        ['type' => 'paragraph', 'muted' => true, 'text' => I18n::tIn($locale, '在注册页输入这个验证码，即表示你同意你的孩子使用 {:sitename}。{:note}', ['note' => $replaceNote])],
                         ['type' => 'alert', 'tone' => 'warning', 'text' => I18n::tIn($locale, '这个验证码 10 分钟内有效。如果不是你或你的孩子操作，请忽略此邮件。')],
                     ],
                     EmailTemplate::privacyUrl() !== '' ? [

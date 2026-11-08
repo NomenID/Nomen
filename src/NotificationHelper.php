@@ -193,15 +193,16 @@ class NotificationHelper
     public static function deriveSubject(string $title): string
     {
         $title = trim($title);
+        $prefix = (string)Brand::get('name', 'Nomen') . ' · ';
         if (mb_strlen($title, 'UTF-8') <= 48) {
-            return 'Nomen · ' . $title;
+            return $prefix . $title;
         }
 
         $firstClause = preg_split('/[，。；,;]/u', $title)[0] ?? $title;
         if (mb_strlen($firstClause, 'UTF-8') > 48) {
             $firstClause = mb_substr($firstClause, 0, 46, 'UTF-8') . '…';
         }
-        return 'Nomen · ' . $firstClause;
+        return $prefix . $firstClause;
     }
 
     public static function unreadCount(int $userId): int

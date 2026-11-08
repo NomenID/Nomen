@@ -22,9 +22,7 @@ $props = [
     'triedLabels' => array_map('t', \Nomen\Controllers\AuthController::LOGIN_METHOD_LABELS),
     'initialUsername' => $_GET['username'] ?? '',
     'initialEmail' => $_GET['email'] ?? '',
-    'privacyUrl' => (string)\Nomen\Src\Brand::get('privacy_url'),
-    'termsUrl' => (string)\Nomen\Src\Brand::get('terms_url'),
-    'developerGuidelinesUrl' => (string)\Nomen\Src\Brand::get('developer_guidelines_url'),
+    'legalLinks' => \Nomen\Src\Brand::legalLinks(),
     'supportEmail' => (string)\Nomen\Src\Brand::get('support_email'),
     'supportName' => (string)\Nomen\Src\Brand::get('support_name'),
     'mailEnabled' => \Nomen\Src\Email::isConfigured(),
@@ -47,8 +45,8 @@ $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APO
                 <div class="auth-logo">
                     <img src="<?= htmlspecialchars((string)\Nomen\Src\Brand::get('logo')) ?>" alt="" width="48" height="48">
                 </div>
-                <h1><?= t('Sign in to Nomen') ?></h1>
-                <p><?= t('Continue with your Nomen account') ?></p>
+                <h1><?= t('Sign in to {:sitename}') ?></h1>
+                <p><?= t('Continue with your {:sitename} account') ?></p>
             </div>
             <?php if ($error): ?>
                 <div class="nomen-alert nomen-alert--error"><?= htmlspecialchars($error) ?></div>
