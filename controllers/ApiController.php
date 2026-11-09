@@ -145,7 +145,7 @@ class ApiController
 
     /**
      * GET /api/version - 本站运行的 Nomen 版本（公开）。
-     * 官方站（nomen.caellab.com）发版即升级，其它实例把它当更新源查最新正式版。
+     * 官方站（nomenid.org）发版即升级，其它实例把它当更新源查最新正式版。
      */
     public function siteVersion(): void
     {

@@ -3,7 +3,7 @@
  * Licensed under the GNU General Public License, version 3 only, with
  * additional attribution terms in the NOTICE file.
  * Source: https://github.com/NomenID/Nomen
- * Project: https://nomen.caellab.com/
+ * Project: https://nomenid.org/
  */
 
 // 多语言：词典由布局挂的 /i18n/{语言}.js 注入到 window.NOMEN_I18N（母键 = 英文原句），

@@ -4,7 +4,7 @@
  * Licensed under the GNU General Public License, version 3 only, with
  * additional attribution terms in the NOTICE file.
  * Source: https://github.com/NomenID/Nomen
- * Project: https://nomen.caellab.com/
+ * Project: https://nomenid.org/
  */
 
 namespace Nomen\Src\Special;
@@ -13,7 +13,7 @@ use Nomen\Src\{Brand, Cache, Database, I18n, Plugins, Skins, Upgrade};
 
 class Version
 {
-    public const PROJECT_URL = 'https://nomen.caellab.com/';
+    public const PROJECT_URL = 'https://nomenid.org/';
 
     // 版本页要查库、扫插件，内容又不常变：缓存一分钟，够挡住刷新风暴
     // 键里带语言：渲染结果是翻译过的 HTML，串语言就等于给所有人发英文

@@ -4,7 +4,7 @@
  * Licensed under the GNU General Public License, version 3 only, with
  * additional attribution terms in the NOTICE file.
  * Source: https://github.com/NomenID/Nomen
- * Project: https://nomen.caellab.com/
+ * Project: https://nomenid.org/
  */
 
 namespace Nomen\Src;
@@ -16,8 +16,8 @@ namespace Nomen\Src;
  */
 final class UpdateCheck
 {
-    private const UPDATE_SOURCE = 'https://nomen.caellab.com/api/version';
-    private const RELEASE_URL = 'https://nomen.caellab.com/w/download';
+    private const UPDATE_SOURCE = 'https://nomenid.org/api/version';
+    private const RELEASE_URL = 'https://nomenid.org/w/download';
     private const CACHE_TTL = 1800;
 
     /** @return array{version: string, url: string}|null 拉不到返回 null */

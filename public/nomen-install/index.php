@@ -4,7 +4,7 @@
  * Licensed under the GNU General Public License, version 3 only, with
  * additional attribution terms in the NOTICE file.
  * Source: https://github.com/NomenID/Nomen
- * Project: https://nomen.caellab.com/
+ * Project: https://nomenid.org/
  */
 
 // 安装向导入口：只输出 Vue 挂载壳和初始数据；步骤都在 frontend/src/pages/install/ 里。

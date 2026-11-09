@@ -3,7 +3,7 @@
  * Licensed under the GNU General Public License, version 3 only, with
  * additional attribution terms in the NOTICE file.
  * Source: https://github.com/NomenID/Nomen
- * Project: https://nomen.caellab.com/
+ * Project: https://nomenid.org/
  */ ?>
 <div class="container special-page<?= !empty($pageClass) ? ' ' . htmlspecialchars((string)$pageClass) : '' ?>">
     <?php if (empty($hideTitle)): ?>

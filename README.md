@@ -16,7 +16,7 @@ Nomen 是一个自由、开放、可自托管的账号系统。 它将账号、�
 
 ## 官方实例
 
-- [nomen.caellab.com](https://nomen.caellab.com/)
+- [nomenid.org](https://nomenid.org/)
 - [id.caellab.com](https://id.caellab.com/)
 
 两个实例运行同一套 Nomen 代码。官方实例还提供站内文档，安装后可通过 `/w` 访问（由 pages 插件提供）。
@@ -218,7 +218,7 @@ Nomen 将功能与外观分开管理。你可以扩展系统功能，也可以�
 
 | 文档 | 内容 |
 |---|---|
-| [站内文档](https://nomen.caellab.com/w) | Nomen 使用与配置说明 |
+| [站内文档](https://nomenid.org/w) | Nomen 使用与配置说明 |
 | [INSTALL.md](INSTALL.md) | 安装、部署与升级 |
 | [plugins/README.md](plugins/README.md) | 插件开发 |
 | [skins/README.md](skins/README.md) | 皮肤开发 |
@@ -234,7 +234,7 @@ Nomen 将功能与外观分开管理。你可以扩展系统功能，也可以�
 |---|---|
 | 代码、模板、配置与语言词条（核心仓库与发布包） | [GPL-3.0-only](LICENSE) |
 | 文档与帮助文本（`docs/`、`README.md`、`INSTALL.md` 等） | [CZS v1](LICENSES/CZS-v1.txt) |
-| 官方站 [nomen.caellab.com](https://nomen.caellab.com/) 的页面内容（另有声明者除外） | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+| 官方站 [nomenid.org](https://nomenid.org/) 的页面内容（另有声明者除外） | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
 
 软件以 GNU 通用公共许可证第 3 版授权，且仅限第 3 版（GPL-3.0-only），不适用「或任何更新版本」。完整文本见 [LICENSE](LICENSE)。
 
