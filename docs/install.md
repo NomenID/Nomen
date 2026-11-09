@@ -35,6 +35,26 @@ PHP 依赖已经在发布包的 `vendor/` 里，不用在服务器上跑 Compose
 
 ## 升级
 
+### 升级前备份
+
+升级只覆盖程序文件，不碰运行期数据，但备份还是先做一份。在站点根目录执行：
+
+```bash
+tar czf /tmp/nomen-backup-$(date +%F).tar.gz --ignore-failed-read \
+  config data database public/assets/avatars public/assets/recovery public/assets/develops \
+  skins plugins
+mysqldump -u <数据库用户> -p <数据库名> > /tmp/nomen-backup-$(date +%F).sql
+```
+
+- `config/`：`installed.php` 是站点配置和密钥，`brand.php`、`plugins.php`、`skins.php`、`plugins/*.json` 是站点定制。
+- `data/`：上传的文件、GeoIP 数据。`database/` 只在用 SQLite 时有用，库文件默认是 `database/nomen.sqlite`。
+- `public/assets/{avatars,recovery,develops}/`：头像、恢复工单附件、站点和应用图标。这三个目录不在发布包里，被 `rsync --delete` 带上就会整个删掉，删了找不回来。
+- 装了非随包的插件或皮肤，`plugins/`、`skins/` 要一起打进去。
+
+备份文件放在 web root 之外（`/tmp` 或专门的备份目录）。放在 `public/` 下等于对外公开。
+
+### 覆盖文件
+
 升级包不包含这些运行时文件，覆盖时别动：
 
 ```
@@ -61,7 +81,7 @@ php bin/nomen upgrade
 它把核心迁移和插件迁移一起跑，最后更新库里的版本号。只跑核心迁移用 `migrate`，
 插件自己的迁移用 `plugins migrate`。
 
-升级前备份数据库和上面这些目录。跨大版本升级前先看发布说明里有没有需要手动处理的迁移。
+跨大版本升级前先看发布说明里有没有需要手动处理的迁移。
 
 ## 常驻进程
 
