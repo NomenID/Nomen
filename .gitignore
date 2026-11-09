@@ -15,6 +15,7 @@ node_modules/
 /data/
 /public/assets/recovery/
 /public/assets/avatars/
+/public/assets/develops/
 
 /public/assets/dist/
 /config/installed.php

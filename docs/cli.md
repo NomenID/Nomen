@@ -35,8 +35,8 @@ php bin/nomen install
 php bin/nomen upgrade
 ```
 
-先备份数据库和 `config/installed.php`、`data/`、`public/assets/avatars/`、`public/assets/recovery/`。
-升级包不覆盖这些运行时文件。详见 [安装与升级](install.md)。
+先备份数据库和 `config/installed.php`、`data/`、`public/assets/avatars/`、`public/assets/recovery/`、
+`public/assets/develops/`。升级包不覆盖这些运行时文件。详见 [安装与升级](install.md)。
 
 ### 补文档页面
 

@@ -1,0 +1,174 @@
+CaelLab Zero Subject License
+Version 1
+September 30, 2026
+https://www.caellab.com/license/czs-v1
+
+TERMS AND CONDITIONS
+
+0. DEFINITIONS
+
+"License" means the CaelLab Zero Subject License, Version 1, whose text is
+published at https://www.caellab.com/license/czs-v1.txt, and any later
+version of it as defined in Section 6.
+
+"Steward" means CaelLab, which publishes and maintains this License under
+https://www.caellab.com/license/, together with any successor that CaelLab
+names. Publishing this
+License does not make the Steward the Licensor of any Work; the Steward is the
+Licensor of a Work only if it has itself applied this License to that Work.
+
+"Licensor" means the individual or legal entity that holds copyright in the
+Work and grants this License.
+
+"You" and "Your" mean an individual or legal entity exercising rights under
+this License.
+
+"Work" means any copyrightable material to which the Licensor has attached
+this License, including software, source code, markup, stylesheets, scripts,
+configuration files, assets, documentation, text, articles, images, audio,
+video, and other creative works, whether in Source Code or in any other form.
+
+"Source Code" means the preferred form of the Work for making modifications
+to it.
+
+"Modified Version" means any work based on or derived from the Work in which
+the Work has been translated, adapted, altered, or extended.
+
+"Distribute" means to reproduce, publish, upload, transfer, or otherwise make
+the Work or a Modified Version available to any third party, in any medium.
+
+1. GRANT OF RIGHTS
+
+The Licensor grants You a worldwide, non-exclusive, perpetual, irrevocable,
+royalty-free copyright license to use, reproduce, modify, adapt, translate,
+publish, Distribute, publicly display, publicly perform, sublicense, and
+otherwise exploit the Work and Modified Versions of it, in any medium, for any
+purpose, including commercial purposes.
+
+The exercise of these rights requires no notice, registration, payment, or
+other condition.
+
+2. NO OBLIGATIONS
+
+This License exists to keep the Work free and open. It imposes no condition on
+the exercise of the rights granted in Section 1, and it deliberately withholds
+the obligations that most open licences attach to those rights. In particular,
+You are not required to:
+
+    (a) give credit to the Licensor or to any author, or retain any copyright,
+        attribution, or license notice in the Work or in a Modified Version;
+    (b) identify the origin of the Work, or link to the Work or to this
+        License;
+    (c) state that You modified the Work, or identify what You changed;
+    (d) publish, license, or otherwise make available the Source Code of a
+        Modified Version, or any part of it; or
+    (e) license a Modified Version under this License or under any other
+        license.
+
+No condition of this License is implied by its wording, by any notice placed
+on the Work, or by the act of distributing the Work. You may license Your
+Modified Versions on any terms You choose, including proprietary terms.
+
+Keeping the notices, or naming the author, is welcome all the same: it is a
+courtesy, and it is how a commons stays alive. It is not a condition of this
+License, and nobody may require it of You.
+
+3. NO TRADEMARK OR PATENT LICENSE
+
+This License grants copyright rights only. The Licensor declines to grant any
+rights under patent, trademark, service mark, or trade name law: nothing in
+this License authorises the use of the names, marks, or logos of the Licensor
+or of CaelLab, whether to endorse a Modified Version, to promote it, or
+otherwise.
+
+Because this Section grants no rights, following it or not cannot affect the
+rights granted in Section 1.
+
+4. DISCLAIMER OF WARRANTY
+
+UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING, THE LICENSOR
+PROVIDES THE WORK ON AN "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
+ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, ANY
+WARRANTIES OR CONDITIONS OF TITLE, NON-INFRINGEMENT, MERCHANTABILITY, OR
+FITNESS FOR A PARTICULAR PURPOSE. YOU ARE SOLELY RESPONSIBLE FOR DETERMINING
+THE APPROPRIATENESS OF USING OR REDISTRIBUTING THE WORK AND ASSUME ANY RISKS
+ASSOCIATED WITH YOUR EXERCISE OF PERMISSIONS UNDER THIS LICENSE.
+
+5. LIMITATION OF LIABILITY
+
+IN NO EVENT AND UNDER NO LEGAL THEORY, WHETHER IN TORT (INCLUDING
+NEGLIGENCE), CONTRACT, OR OTHERWISE, UNLESS REQUIRED BY APPLICABLE LAW (SUCH
+AS DELIBERATE AND GROSSLY NEGLIGENT ACTS) OR AGREED TO IN WRITING, SHALL THE
+LICENSOR BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY DIRECT, INDIRECT,
+SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING AS A
+RESULT OF THIS LICENSE OR OUT OF THE USE OR INABILITY TO USE THE WORK
+(INCLUDING BUT NOT LIMITED TO DAMAGES FOR LOSS OF GOODWILL, WORK STOPPAGE,
+COMPUTER FAILURE OR MALFUNCTION, OR ANY AND ALL OTHER COMMERCIAL DAMAGES OR
+LOSSES), EVEN IF THE LICENSOR HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+DAMAGES.
+
+6. LATER VERSIONS OF THIS LICENSE
+
+The Steward may publish revised or new versions of this License from time to
+time. Each version is given a distinguishing version number.
+
+A "later version" is a version of this License that meets all of the
+following:
+
+    (a) it is published by the Steward under https://www.caellab.com/license/,
+        or at a URL that the Steward names as the successor to that address;
+    (b) it carries a version number higher than the version You are
+        following; and
+    (c) the Steward designates it as a final release, and its version number
+        carries no suffix or qualifier such as "-alpha", "-beta", "-rc",
+        "-draft", "-preview", or "-experimental".
+
+Versions that are not final releases, including development, draft, preview,
+experimental, provisional, and modified versions, and versions released by
+anyone other than the Steward, are not later versions, whatever they are
+called.
+
+If the Work specifies that a later version of this License applies, such as
+"Version 1 or any later version", You may follow the terms of that version
+or the terms of any later version as defined above.
+
+If the Work specifies a version number and does not include "or any later
+version", You may follow only that version.
+
+7. ACCEPTANCE AND DURATION
+
+You are not required to accept this License, and no acceptance, signature, or
+other act is required in order to exercise the rights granted in Section 1.
+Those rights are granted unconditionally and irrevocably; this License does
+not terminate, and the Licensor may not revoke it.
+
+8. SEVERABILITY AND INTERPRETATION
+
+If any provision of this License is held to be unenforceable, that provision
+shall be reformed only to the extent necessary to make it enforceable, and
+the remaining provisions shall remain in full force and effect. Nothing in
+this License is intended to restrict any use of the Work that is permitted by
+applicable law without a license, including fair use and fair dealing. This
+License does not create any obligation on the part of the Licensor to provide
+support, maintenance, updates, or new versions of the Work.
+
+9. HOW TO APPLY THIS LICENSE
+
+To apply this License to Your Work, attach the following notice, replacing
+the bracketed fields with Your own information:
+
+    Copyright (c) [YEAR] [AUTHOR]
+    Licensed under the CaelLab Zero Subject License, Version 1.
+    Source: [URL]
+
+Attribution is not required by this License, so the notice above is a courtesy
+and not a condition. You may omit it, shorten it, or replace it with a notice
+of Your own. Adding "or any later version" is optional:
+
+    Licensed under the CaelLab Zero Subject License, Version 1 or any later
+    version.
+
+Only final versions published by the Steward under Section 6 can be followed
+this way. Leave the phrase out to keep recipients on this exact version.
+
+END OF TERMS AND CONDITIONS

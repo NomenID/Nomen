@@ -42,3 +42,7 @@
 - 后台「设置」页改的东西存在数据库里，保存后下一次请求生效。
 - 改前端 `frontend/` 下的文件需要重新构建（`cd frontend && npm run build`）；从发布包部署的不用管，
   产物已经在 `public/assets/dist/` 里。
+
+## 许可
+
+`docs/` 下的文档与帮助文本以 [CaelLab Zero Subject License, Version 1](../LICENSES/CZS-v1.txt)（CZS v1）授权。Nomen 软件本身按 GPL-3.0-only 授权。

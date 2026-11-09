@@ -230,7 +230,15 @@ Nomen 将功能与外观分开管理。你可以扩展系统功能，也可以�
 
 ## 许可证
 
-Nomen 使用 GPL-3.0-only 开源许可证，完整文本见 [LICENSE](LICENSE)。
+| 范围 | 许可证 |
+|---|---|
+| 代码、模板、配置与语言词条（核心仓库与发布包） | [GPL-3.0-only](LICENSE) |
+| 文档与帮助文本（`docs/`、`README.md`、`INSTALL.md` 等） | [CZS v1](LICENSES/CZS-v1.txt) |
+| 官方站 [nomen.caellab.com](https://nomen.caellab.com/) 的页面内容（另有声明者除外） | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+
+软件以 GNU 通用公共许可证第 3 版授权，且仅限第 3 版（GPL-3.0-only），不适用「或任何更新版本」。完整文本见 [LICENSE](LICENSE)。
+
+文档与帮助文本以 CaelLab Zero Subject License, Version 1（CZS v1）授权，全文见 [LICENSES/CZS-v1.txt](LICENSES/CZS-v1.txt)。官方站的站内文档（`/w`）同样按 CZS v1 授权。
 
 另外，本项目在 GPLv3 第 7 条第 (b) 款下附有额外的署名要求：
 

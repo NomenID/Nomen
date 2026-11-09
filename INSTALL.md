@@ -185,7 +185,11 @@ config/installed.php   站点配置和密钥，覆盖掉就得以这个为准
 data/                  上传的文件、GeoIP 数据
 public/assets/avatars/ 头像
 public/assets/recovery/ 恢复工单里的截图
+public/assets/develops/ 站点图标、应用图标、第三方登录图标
 ```
+
+用 rsync 这类带删除的同步方式覆盖时，上面这些目录都要排除；装了自定义皮肤的话
+`skins/` 和 `public/assets/skins/` 也一起排除。
 
 **下载 zip 的**：把新包里除上面几项以外的文件覆盖上去就行。**用 git 的**：`git pull`。然后跑：
 

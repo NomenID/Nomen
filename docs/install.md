@@ -21,8 +21,8 @@ PHP 依赖已经在发布包的 `vendor/` 里，不用在服务器上跑 Compose
    装之前可以访问 `/__rewrite_probe`，返回 `ok` 就对了。
 3. **`public/nomen-install/` 装完删掉或改名**。留着等于把安装入口开放给所有人。
 
-`config/`、`data/`、`public/assets/avatars/`、`public/assets/recovery/` 需要 PHP 进程可写。
-发布包解出来的文件权限可能是 666，部署后统一成文件 644、目录 755。
+`config/`、`data/`、`public/assets/avatars/`、`public/assets/recovery/`、`public/assets/develops/`
+需要 PHP 进程可写。发布包解出来的文件权限可能是 666，部署后统一成文件 644、目录 755。
 
 ## 安装方式
 
@@ -46,7 +46,11 @@ config/plugins/*.json     插件挂载路径
 data/                    上传文件、GeoIP 数据
 public/assets/avatars/   用户头像
 public/assets/recovery/  恢复工单附件
+public/assets/develops/  站点图标、应用图标、第三方登录图标
 ```
+
+用 rsync 这类带删除的同步方式覆盖时，上面这些目录都要排除；装了自定义皮肤的话
+`skins/` 和 `public/assets/skins/` 也一起排除。
 
 覆盖新文件之后：
 

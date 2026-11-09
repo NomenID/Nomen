@@ -88,4 +88,4 @@ HSTS 由 nginx 统一设置，程序不重复发。
 - `config/installed.php`、`.env` 不进仓库、不给 web 服务器之外的人读。
 - 传输走 HTTPS；反代 / CDN 场景下确认程序拿到的 `REMOTE_ADDR` 是真实访客地址，
   否则限流会按反代 IP 统计。
-- 定期备份数据库、`data/`、`public/assets/avatars/`、`public/assets/recovery/`。
+- 定期备份数据库、`data/`、`public/assets/avatars/`、`public/assets/recovery/`、`public/assets/develops/`。
