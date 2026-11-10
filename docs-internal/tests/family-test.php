@@ -469,23 +469,23 @@ $check('孩子账号直接算已验证（家长就是同意人）', (int)one("SE
 $check('直接进组且 active', one("SELECT status FROM family_members WHERE kind='child' AND user_id=$newKid"), 'active');
 $check('同意时间直接记上', (int)one("SELECT consent_at IS NOT NULL FROM family_members WHERE user_id=$newKid"), 1);
 $check('组里现在两个孩子', (int)one("SELECT COUNT(*) FROM family_members WHERE kind='child' AND group_id=$gid"), 2);
-$check('家长收到「账号已创建」的提示', str_contains($r['flash']['success'] ?? '', '已创建孩子账号'), true);
+$check('家长收到「账号已创建」的提示', str_contains($r['flash']['success'] ?? '', 'Child account kidb created.'), true);
 
 $r = runChild('child_create', $createArgs(['username' => 'kidc', 'birth_date' => '2000-01-01']));
-$check('成年人不让家长代建', str_contains($r['flash']['error'] ?? '', '自己注册'), true);
+$check('成年人不让家长代建', str_contains($r['flash']['error'] ?? '', 'register an account on their own'), true);
 $check('成年人：没建号', one("SELECT id FROM users WHERE username = 'kidc'"), null);
 
 $r = runChild('child_create', $createArgs(['username' => 'kida']));
-$check('用户名被占：报占用', str_contains($r['flash']['error'] ?? '', '已经被占用'), true);
+$check('用户名被占：报占用', str_contains($r['flash']['error'] ?? '', 'That username is taken'), true);
 
 $r = runChild('child_create', $createArgs(['username' => 'kidd', 'password_confirm' => 'nope1234']));
-$check('两次密码不一致：拒绝', str_contains($r['flash']['error'] ?? '', '不一致'), true);
+$check('两次密码不一致：拒绝', str_contains($r['flash']['error'] ?? '', "The passwords you entered don't match"), true);
 
 $r = runChild('child_create', $createArgs(['username' => 'kide', 'birth_date' => '2016-13-45']));
-$check('生日非法：拒绝', str_contains($r['flash']['error'] ?? '', '出生日期'), true);
+$check('生日非法：拒绝', str_contains($r['flash']['error'] ?? '', 'Enter a valid date of birth'), true);
 
 $r = runChild('child_create', ['session' => ['user_id' => $kidA], 'method' => 'childCreate', 'post' => ['group_id' => $gid, 'username' => 'kidf', 'password' => 'Passw0rd1', 'password_confirm' => 'Passw0rd1', 'birth_date' => '2016-05-05', 'gender' => 'male']]);
-$check('孩子自己不能建号（不是监护人）', str_contains($r['flash']['error'] ?? '', '没有权限'), true);
+$check('孩子自己不能建号（不是监护人）', str_contains($r['flash']['error'] ?? '', 'You do not have permission to manage this family'), true);
 
 // =====================================================================
 echo "\n==== 11) 家庭页三种视角 ====\n";
@@ -520,10 +520,10 @@ $check('孩子视角：props 能解析', is_array($famProps), true);
 $check('孩子视角：membership 进 props', ($famProps['membership']['status'] ?? ''), 'active');
 $check('孩子视角：家长列进 props', ($famProps['guardians'][0]['username'] ?? ''), 'mom');
 $check('孩子视角：releaseCheck 进 props', ($famProps['releaseCheck']['reason'] ?? ''), 'no_own_email');
-$check('孩子视角：有「你的家长」（组件）', str_contains($familySrc, '你的家长'), true);
-$check('孩子视角：列出停止监护的条件（组件）', str_contains($familySrc, '绑定一个属于你自己的邮箱'), true);
+$check('孩子视角：有「你的家长」（组件）', str_contains($familySrc, "t('Your parents')"), true);
+$check('孩子视角：列出停止监护的条件（组件）', str_contains($familySrc, "t('Bind an email you own')"), true);
 $check('孩子视角：条件没齐时按钮禁用（组件）', str_contains($familySrc, '!releaseCheck.ok'), true);
-$check('孩子视角：写出家长做不到的事（组件）', str_contains($familySrc, '以你的身份登录'), true);
+$check('孩子视角：写出家长做不到的事（组件）', str_contains($familySrc, "t('Sign in as you')"), true);
 $check('孩子视角：不出现「认领」', str_contains($html . $familySrc, '认领'), false);
 $check('孩子视角：不出现「家庭组」', str_contains($html . $familySrc, '家庭组'), false);
 
@@ -541,12 +541,12 @@ preg_match('/<script type="application\/json" id="family-props">(.*?)<\/script>/
 $famProps = json_decode($famPropsMatch[1] ?? '', true);
 $check('家长视角：邀请进了 props', ($famProps['invitations'][0]['child_names'] ?? ''), 'kidc');
 $check('家长视角：孩子进了 props', ($famProps['groups'][0]['children'][0]['username'] ?? ''), 'kidb');
-$check('家长视角：看到发给自己的邀请（组件）', str_contains($familySrc, '发给你的邀请'), true);
+$check('家长视角：看到发给自己的邀请（组件）', str_contains($familySrc, "t('Invitations for you')"), true);
 $check('家长视角：有加入按钮（组件）', str_contains($familySrc, '/family/accept'), true);
-$check('家长视角：有「你的家庭」（组件）', str_contains($familySrc, '你的家庭'), true);
-$check('家长视角：有锁定按钮（组件）', str_contains($familySrc, '锁定'), true);
-$check('家长视角：有创建孩子账号的表单（组件）', str_contains($familySrc, '创建孩子账号'), true);
-$check('家长视角：有邀请另一位家长的表单（组件）', str_contains($familySrc, '邀请另一位家长'), true);
+$check('家长视角：有「你的家庭」（组件）', str_contains($familySrc, "t('Your family')"), true);
+$check('家长视角：有锁定按钮（组件）', str_contains($familySrc, "t('Lock')"), true);
+$check('家长视角：有创建孩子账号的表单（组件）', str_contains($familySrc, "t('Create child account')"), true);
+$check('家长视角：有邀请另一位家长的表单（组件）', str_contains($familySrc, "t('Invite another parent')"), true);
 
 // 既不在家庭里也没邀请的人
 $html = $renderFamily(array_merge($base, [
@@ -557,8 +557,8 @@ $html = $renderFamily(array_merge($base, [
     'childrenByGroup' => [],
     'releaseCheck' => null,
 ]));
-$check('普通人：有家长入口（组件）', str_contains($familySrc, '家长入口'), true);
-$check('普通人：不会显示别人的家长（组件）', str_contains($familySrc, '你的家长'), true);
+$check('普通人：有家长入口（组件）', str_contains($familySrc, "t('For parents')"), true);
+$check('普通人：不会显示别人的家长（组件）', str_contains($familySrc, "t('Your parents')"), true);
 
 // =====================================================================
 echo "\n==== 12) 未成年也能用邮箱验证码登录（填用户名）====\n";
@@ -634,7 +634,7 @@ $check('用家长邮箱：家庭是邀请中', one('SELECT status FROM family_gr
 $check('用家长邮箱：家长那条记的是家长邮箱', one("SELECT email FROM family_members WHERE kind='guardian'"), 'mom@caellab-test.com');
 $check('用家长邮箱：孩子那条是邀请中', one("SELECT status FROM family_members WHERE kind='child'"), 'pending');
 $check('用家长邮箱：提示要等家长确认后才能用',
-    str_contains((string)($r['flash']['success'] ?? ''), '家长点确认后账号才能开始使用'), true);
+    str_contains((string)($r['flash']['success'] ?? ''), 'activates once a parent confirms'), true);
 
 // C) 邮箱已有账号时，家长点确认链接会被自动接进家庭
 freshDb();
@@ -656,12 +656,12 @@ $check('孩子邀请家长：没抛异常', $r['error'], null);
 $check('孩子邀请家长：建了家庭', (int)one('SELECT COUNT(*) FROM family_groups'), 1);
 $check('孩子邀请家长：记的是家长邮箱', one("SELECT email FROM family_members WHERE kind='guardian'"), 'dad@caellab-test.com');
 $check('孩子邀请家长：家长那条是邀请中', one("SELECT status FROM family_members WHERE kind='guardian'"), 'pending');
-$check('孩子邀请家长：提示已发邀请', str_contains((string)($r['flash']['success'] ?? ''), '邀请'), true);
+$check('孩子邀请家长：提示已发邀请', str_contains((string)($r['flash']['success'] ?? ''), 'An invitation was sent'), true);
 
 $r = runChild('invite_parent', ['controller' => 'family', 'method' => 'inviteParent',
                                 'session' => ['user_id' => $kidD],
                                 'post' => ['guardian_email' => 'dad@caellab-test.com', 'relationship' => 'father']]);
-$check('同一条邮箱重复邀请：提示已邀请过', str_contains((string)($r['flash']['error'] ?? ''), '已经邀请过'), true);
+$check('同一条邮箱重复邀请：提示已邀请过', str_contains((string)($r['flash']['error'] ?? ''), 'already been invited'), true);
 
 // =====================================================================
 echo "\n" . ($fails === 0 ? "全部通过。\n" : "失败 {$fails} 项。\n");

@@ -317,7 +317,7 @@ $check('被拒之后还是 5 条', EmailSet::count($uid), 5);
 echo "\n==== 3) 设首选 / 移除 ====\n";
 // =====================================================================
 $second = EmailSet::findRow($uid, (int)one('SELECT id FROM user_emails WHERE user_id = :u AND email = :e', [':u' => $uid, ':e' => 'addr2@mail.com']));
-$check('未验证的邮箱不能设首选', EmailSet::setPrimary($uid, (int)$second['id']), '这个邮箱还没有验证，先点邮件里的链接确认');
+$check('未验证的邮箱不能设首选', EmailSet::setPrimary($uid, (int)$second['id']), 'This address isn\'t verified yet — click the link in the email first');
 
 EmailSet::markVerified($uid, (int)$second['id']);
 $check('验证过之后可以设首选', EmailSet::setPrimary($uid, (int)$second['id']), '');
@@ -332,7 +332,7 @@ $check('移除后剩 4 条', EmailSet::count($uid), 4);
 
 $check('移除已验证的次要邮箱：可以', EmailSet::remove($uid, (int)$added['id']), '');
 
-$check('移除唯一已验证的邮箱：拒绝', EmailSet::remove($uid, (int)$second['id']), '这是你唯一已验证的邮箱，请先添加并验证另一个邮箱再移除它');
+$check('移除唯一已验证的邮箱：拒绝', EmailSet::remove($uid, (int)$second['id']), 'This is your only verified address — add and verify another one before removing it');
 $check('被拒后那一行还在', EmailSet::findRow($uid, (int)$second['id']) !== null, true);
 
 // 再验证一条，然后删首选：应该顺位提升到剩下的那个已验证邮箱
@@ -349,7 +349,7 @@ while (EmailSet::count($uid) > 1) {
     EmailSet::remove($uid, (int)$rows[count($rows) - 1]['id']);
 }
 $check('只剩一条', EmailSet::count($uid), 1);
-$check('最后一条不能移除', EmailSet::remove($uid, (int)EmailSet::all($uid)[0]['id']), '至少要保留一个邮箱');
+$check('最后一条不能移除', EmailSet::remove($uid, (int)EmailSet::all($uid)[0]['id']), 'Keep at least one address');
 
 // =====================================================================
 echo "\n==== 3b) 主邮箱位 / 备选位各自唯一（一个地址最多落 2 个账号）====\n";
@@ -442,14 +442,14 @@ EmailSet::syncPrimaryFromUsers($actor);
 
 $r = childJson(runChild('add_blocked', ['session' => ['user_id' => $actor], 'method' => 'addEmail', 'post' => ['new_email' => 'nope@example.com', 'password' => 'CorrectHorse1']]));
 $check('加保留域邮箱：被拒', $r['success'], false);
-$check('文案就是那一句', $r['message'], EmailPolicy::REJECT_MESSAGE);
+$check('文案就是那一句', $r['message'], t(EmailPolicy::REJECT_MESSAGE));
 $check('被拒时不建行', EmailSet::count($actor), 1);
 
 $r = childJson(runChild('add_dup', ['session' => ['user_id' => $actor], 'method' => 'addEmail', 'post' => ['new_email' => 'actor@mail.com', 'password' => 'CorrectHorse1']]));
-$check('加自己已有的邮箱：被拒', $r['message'], '这个邮箱已经在你的账号里了');
+$check('加自己已有的邮箱：被拒', $r['message'], 'This email is already on your account');
 
 $r = childJson(runChild('add_badpw', ['session' => ['user_id' => $actor], 'method' => 'addEmail', 'post' => ['new_email' => 'extra@mail.com', 'password' => 'wrong-password']]));
-$check('密码不对：被拒', $r['message'], '当前密码错误');
+$check('密码不对：被拒', $r['message'], 'Wrong current password');
 $check('密码不对时不建行', EmailSet::count($actor), 1);
 
 $raw = runChild('add_ok', ['session' => ['user_id' => $actor], 'method' => 'addEmail', 'post' => ['new_email' => 'Extra@Mail.com', 'password' => 'CorrectHorse1']]);
@@ -463,7 +463,7 @@ $check('添加不改首选', one('SELECT email FROM users WHERE id = :i', [':i' 
 
 $extraId = (int)one('SELECT id FROM user_emails WHERE user_id = :u AND email = :e', [':u' => $actor, ':e' => 'extra@mail.com']);
 $r = childJson(runChild('set_unverified', ['session' => ['user_id' => $actor], 'method' => 'setPrimaryEmail', 'post' => ['email_id' => $extraId, 'password' => 'CorrectHorse1']]));
-$check('把未验证的设为首选：被拒', $r['message'], '这个邮箱还没有验证，先点邮件里的链接确认');
+$check('把未验证的设为首选：被拒', $r['message'], 'This address isn\'t verified yet — click the link in the email first');
 
 EmailSet::markVerified($actor, $extraId);
 $r = childJson(runChild('set_ok', ['session' => ['user_id' => $actor], 'method' => 'setPrimaryEmail', 'post' => ['email_id' => $extraId, 'password' => 'CorrectHorse1']]));
@@ -478,14 +478,14 @@ $check('剩下的被顺位提为首选', one('SELECT email FROM users WHERE id =
 $spare = EmailSet::add($actor, 'spare@mail.com');
 $actorEmailId = (int)one('SELECT id FROM user_emails WHERE user_id = :u AND email = :e', [':u' => $actor, ':e' => 'actor@mail.com']);
 $r = childJson(runChild('remove_only_verified', ['session' => ['user_id' => $actor], 'method' => 'removeEmail', 'post' => ['email_id' => $actorEmailId, 'password' => 'CorrectHorse1']]));
-$check('移除唯一已验证的邮箱：被拒', $r['message'], '这是你唯一已验证的邮箱，请先添加并验证另一个邮箱再移除它');
+$check('移除唯一已验证的邮箱：被拒', $r['message'], 'This is your only verified address — add and verify another one before removing it');
 $check('被拒后那一行还在', EmailSet::findRow($actor, $actorEmailId) !== null, true);
 
 $r = childJson(runChild('remove_spare', ['session' => ['user_id' => $actor], 'method' => 'removeEmail', 'post' => ['email_id' => $spare['id'], 'password' => 'CorrectHorse1']]));
 $check('移除未验证的次要邮箱：成功', $r['success'], true);
 
 $r = childJson(runChild('remove_last', ['session' => ['user_id' => $actor], 'method' => 'removeEmail', 'post' => ['email_id' => $actorEmailId, 'password' => 'CorrectHorse1']]));
-$check('只剩一条时移除：被拒', $r['message'], '至少要保留一个邮箱');
+$check('只剩一条时移除：被拒', $r['message'], 'Keep at least one address');
 
 // =====================================================================
 echo "\n==== 6b) 登录消歧：一个邮箱落在两个账号上 ====\n";

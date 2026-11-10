@@ -12,6 +12,12 @@ class Email
     /** @var array<int, array{to:string, subject:string, html:string, embedded:int}> */
     public static array $sent = [];
 
+    /** 测试里一律当作「邮件已配置」，否则发码流程会提前返回 */
+    public static function isConfigured(): bool
+    {
+        return true;
+    }
+
     public static function send(string $to, string $subject, string $htmlBody, array $embedded = []): bool
     {
         self::$sent[] = [

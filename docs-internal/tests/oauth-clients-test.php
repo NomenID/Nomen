@@ -102,7 +102,7 @@ try {
     ], 1, 1);
     $check('非法回调被拒', false, true);
 } catch (InvalidArgumentException $e) {
-    $check('非法回调被拒', str_contains($e->getMessage(), '回调 URL'), true);
+    $check('非法回调被拒', str_contains($e->getMessage(), 'Invalid callback URL'), true);
 }
 
 echo "\n==== 更新与统计 ====\n";

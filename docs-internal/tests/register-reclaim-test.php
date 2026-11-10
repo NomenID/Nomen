@@ -41,6 +41,10 @@ $_SERVER['REQUEST_URI'] = '/register/verify';
 $_SERVER['REQUEST_METHOD'] = 'POST';
 $_SESSION = [];
 
+// 家庭与未成年监护属于可选功能，测试按开启状态跑
+putenv('FEATURE_GUARDIANS=1');
+putenv('FEATURE_COUNTRY=1');
+
 define('PROJ', dirname(__DIR__, 2));
 define('TEST_DB', sys_get_temp_dir() . '/nomen-reclaim-test.sqlite');
 define('TEST_OUT', sys_get_temp_dir() . '/nomen-reclaim-test-out.json');
@@ -330,7 +334,7 @@ freshDb($c['email']);
 $r = runChild('claim', ['email' => $c['email']], $c['ip']);
 $check('发出 1 封验证码邮件', count($r['emails']), 1);
 $check('收件人 = 被占用的邮箱', $r['emails'][0]['to'] ?? '', $c['email']);
-$check('标题是邮箱验证', str_contains($r['emails'][0]['subject'] ?? '', '邮箱验证'), true);
+$check('标题是邮箱验证', str_contains($r['emails'][0]['subject'] ?? '', 'Email verification'), true);
 $code = codeFromMail($r['emails'][0] ?? ['html' => '']);
 $check('邮件里有 6 位验证码', preg_match('/^\d{6}$/', $code), 1);
 $check('邮件说明了会清理旧账户', str_contains($r['emails'][0]['html'] ?? '', '清掉那个账户'), true);
@@ -375,7 +379,7 @@ echo "\n==== 3) 命中时不该动手的四种情况 ====\n";
 $c = nextCtx();
 freshDb();
 $r = runChild('reg_verified_email', ['email' => 'taken@caellab-test.com'], $c['ip']);
-$check('已验证邮箱：报「已被注册」', str_contains($r['flash']['error'] ?? '', '用户名或邮箱已被注册'), true);
+$check('已验证邮箱：报「已被注册」', str_contains($r['flash']['error'] ?? '', 'That username or email is already registered.'), true);
 $check('已验证邮箱：指路用邮箱验证码登录', str_contains($r['flash']['error'] ?? '', '邮箱验证码'), true);
 $check('已验证邮箱：不发信', count($r['emails']), 0);
 $check('已验证邮箱：不写待注册行', (int)one('SELECT COUNT(*) FROM pending_registrations'), 0);
@@ -396,14 +400,14 @@ $check('第二个孩子：没走回收支线', (int)one('SELECT COUNT(*) FROM pe
 $c = nextCtx();
 freshDb();
 $r = runChild('reg_admin_unverified', ['email' => 'admin@caellab-test.com'], $c['ip']);
-$check('管理员邮箱（未验证）：报「已被注册」', str_contains($r['flash']['error'] ?? '', '用户名或邮箱已被注册'), true);
+$check('管理员邮箱（未验证）：报「已被注册」', str_contains($r['flash']['error'] ?? '', 'That username or email is already registered.'), true);
 $check('管理员邮箱：不写待注册行', (int)one('SELECT COUNT(*) FROM pending_registrations'), 0);
 $check('管理员账号完好', (int)one("SELECT COUNT(*) FROM users WHERE role = 'admin'"), 1);
 
 $c = nextCtx();
 freshDb();
 $r = runChild('reg_username_taken', ['username' => 'squatter', 'email' => 'brand_new@caellab-test.com'], $c['ip']);
-$check('用户名被占：报「已被注册」', str_contains($r['flash']['error'] ?? '', '用户名或邮箱已被注册'), true);
+$check('用户名被占：报「已被注册」', str_contains($r['flash']['error'] ?? '', 'That username or email is already registered.'), true);
 $check('用户名被占：不写待注册行', (int)one('SELECT COUNT(*) FROM pending_registrations'), 0);
 
 // =====================================================================
@@ -414,7 +418,7 @@ freshDb($c['email']);
 seedPending(['email' => $c['email']]);
 $r = runChild('verify_wrong_code', ['email' => $c['email'], 'code' => '999999'], $c['ip']);
 $check('错码：计数 +1', (int)one('SELECT attempts FROM pending_registrations'), 1);
-$check('错码：提示错误', str_contains($r['flash']['error'] ?? '', '验证码错误'), true);
+$check('错码：提示错误', str_contains($r['flash']['error'] ?? '', 'Wrong code'), true);
 $check('错码：没建账号', (int)one('SELECT COUNT(*) FROM users'), 3);
 
 $c = nextCtx();
@@ -422,14 +426,14 @@ freshDb($c['email']);
 seedPending(['email' => $c['email'], 'attempts' => 5]);
 $r = runChild('verify_attempts_exceeded', ['email' => $c['email'], 'code' => '123456'], $c['ip']);
 $check('错满：作废待注册行', (int)one('SELECT COUNT(*) FROM pending_registrations'), 0);
-$check('错满：提示重发', str_contains($r['flash']['error'] ?? '', '错误次数太多'), true);
+$check('错满：提示重发', str_contains($r['flash']['error'] ?? '', 'Too many wrong codes'), true);
 $check('错满：原账号不动', (int)one('SELECT COUNT(*) FROM users'), 3);
 
 $c = nextCtx();
 freshDb($c['email']);
 seedPending(['email' => $c['email'], 'expires_at' => date('Y-m-d H:i:s', time() - 60)]);
 $r = runChild('verify_expired', ['email' => $c['email'], 'code' => '123456'], $c['ip']);
-$check('过期：提示重新填写', str_contains($r['flash']['error'] ?? '', '待验证的注册已失效'), true);
+$check('过期：提示重新填写', str_contains($r['flash']['error'] ?? '', 'This pending registration expired'), true);
 $check('过期：不建账号', (int)one('SELECT COUNT(*) FROM users'), 3);
 
 // =====================================================================
@@ -470,7 +474,7 @@ $c = nextCtx();
 freshDb();
 seedPending(['email' => 'taken@caellab-test.com']);
 $r = runChild('verify_owner_verified', ['email' => 'taken@caellab-test.com', 'code' => '123456'], $c['ip']);
-$check('原主人已自己验证：提示已激活', str_contains($r['flash']['error'] ?? '', '已经完成验证'), true);
+$check('原主人已自己验证：提示已激活', str_contains($r['flash']['error'] ?? '', 'This address is already verified'), true);
 $check('原主人已自己验证：账号还在', (int)one("SELECT COUNT(*) FROM users WHERE username = 'realowner'"), 1);
 $check('原主人已自己验证：没建新账号', (int)one("SELECT COUNT(*) FROM users WHERE username = 'newbie'"), 0);
 $check('原主人已自己验证：没记删号日志', (int)one("SELECT COUNT(*) FROM activity_logs WHERE action = 'account.delete'"), 0);
@@ -479,7 +483,7 @@ $c = nextCtx();
 freshDb();
 seedPending(['email' => 'admin@caellab-test.com']);
 $r = runChild('verify_owner_admin', ['email' => 'admin@caellab-test.com', 'code' => '123456'], $c['ip']);
-$check('占用者是管理员：提示已激活', str_contains($r['flash']['error'] ?? '', '已经完成验证'), true);
+$check('占用者是管理员：提示已激活', str_contains($r['flash']['error'] ?? '', 'This address is already verified'), true);
 $check('占用者是管理员：账号还在', (int)one("SELECT COUNT(*) FROM users WHERE role = 'admin'"), 1);
 $check('占用者是管理员：没建新账号', (int)one("SELECT COUNT(*) FROM users WHERE username = 'newbie'"), 0);
 
@@ -488,7 +492,7 @@ freshDb($c['email']);
 seedPending(['email' => $c['email'], 'username' => 'stolen']);
 db()->exec("INSERT INTO users (id, username, email, email_verified) VALUES (7, 'stolen', 'someone@caellab-test.com', 1)");
 $r = runChild('verify_username_stolen', ['email' => $c['email'], 'code' => '123456'], $c['ip']);
-$check('用户名被抢：提示换一个', str_contains($r['flash']['error'] ?? '', '刚被别人占用'), true);
+$check('用户名被抢：提示换一个', str_contains($r['flash']['error'] ?? '', 'was just taken'), true);
 $check('用户名被抢：原占坑账号没被删', (int)one("SELECT COUNT(*) FROM users WHERE username = 'squatter'"), 1);
 $check('用户名被抢：没建新账号', (int)one("SELECT COUNT(*) FROM users WHERE username = 'newbie'"), 0);
 $check('用户名被抢：回注册页带回了资料', ($r['flash']['old'] ?? [])['username'] ?? '', 'stolen');
@@ -500,7 +504,7 @@ $c = nextCtx();
 freshDb($c['email']);
 seedPending(['email' => $c['email'], 'last_sent_at' => date('Y-m-d H:i:s')]);
 $r = runChild('resend_cooldown', ['email' => $c['email']], $c['ip']);
-$check('冷却中：拒绝重发', str_contains($r['flash']['error'] ?? '', '刚刚已经发过一封'), true);
+$check('冷却中：拒绝重发', str_contains($r['flash']['error'] ?? '', 'One was just sent'), true);
 $check('冷却中：不发信', count($r['emails']), 0);
 
 $c = nextCtx();
@@ -520,7 +524,7 @@ echo "\n==== 8) 页面 ====\n";
 $c = nextCtx();
 freshDb();
 $r = runChild('view_missing', ['e' => 'nobody@caellab-test.com'], $c['ip']);
-$check('无待注册行：提示失效', str_contains($r['flash']['error'] ?? '', '待验证的注册已失效'), true);
+$check('无待注册行：提示失效', str_contains($r['flash']['error'] ?? '', 'This pending registration expired'), true);
 
 $c = nextCtx();
 freshDb($c['email']);

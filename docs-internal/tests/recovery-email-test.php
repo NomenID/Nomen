@@ -107,7 +107,7 @@ $sent = $call($ctxDiff, 'temp@y.com');
 $check('账号邮箱≠联系邮箱：共 2 封', count($sent), 2);
 $check('收件人集合 = 联系邮箱 + 账号邮箱',
     Email::addresses() === ['temp@y.com', 'acct@x.com'], true);
-$check('给联系邮箱的是「已收到申诉」', str_contains(Email::to('temp@y.com')[0]['html'], '已收到您的账号恢复申诉'), true);
+$check('给联系邮箱的是「已收到申诉」', str_contains(Email::to('temp@y.com')[0]['html'], 'We received your account recovery request'), true);
 $check('给账号邮箱的是安全提醒', str_contains(Email::to('acct@x.com')[0]['html'], '账号恢复申诉提醒'), true);
 $check('不含管理员那封（无 pending 工单）', count(Email::to($adminNotify)), 0);
 
@@ -169,7 +169,8 @@ $sent = Email::$sent;
 $check('完成：只发 1 封', count($sent), 1);
 $check('完成：发给账号邮箱（本人）', Email::addresses(), ['acct@x.com']);
 $check('完成：正文讲清了撤销授权与踢下线',
-    str_contains($sent[0]['html'], '第三方应用授权') && str_contains($sent[0]['html'], '登录状态'), true);
+    str_contains($sent[0]['html'], 'signed the account out of all other devices')
+    && str_contains($sent[0]['html'], 'revoked every third-party authorization'), true);
 
 // =====================================================================
 echo "\n==== 4) 源码守卫（防止又把重复的那封加回来）====\n";

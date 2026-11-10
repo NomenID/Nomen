@@ -172,7 +172,7 @@ if ($ONLY === '') {
 
     // ------------------------------------------------------------ 3) 动作登记
     echo "\n==== 3) 开放平台的动作与分类已登记 ====\n";
-    $check('「开放平台」分类存在', ActivityLog::CATEGORIES[ActivityLog::CAT_DEV] ?? null, '开放平台');
+    $check('「开放平台」分类存在', ActivityLog::CATEGORIES[ActivityLog::CAT_DEV] ?? null, 'Open Platform');
     $check('分类图标存在', ActivityLog::iconFor(ActivityLog::CAT_DEV) !== '•', true);
     foreach ([
         'developer.register', 'developer.profile_update', 'developer.app_create',

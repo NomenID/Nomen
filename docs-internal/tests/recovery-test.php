@@ -273,20 +273,20 @@ function runCase(string $case): array
 if ($ONLY === '' || $ONLY === 'upload') {
     echo "==== upload() 分支 ====\n";
     $cases = [
-        ['no_csrf',    '请求无效'],
-        ['no_ctx',     '验证会话已过期'],
-        ['no_file',    '没有收到文件'],
-        ['err_ini',    '超过了服务器允许的大小'],
-        ['text_png',   '只接受真正的'],
-        ['gif',        '只接受真正的'],
-        ['tiny_image', '尺寸异常'],
-        ['too_large',  '不能超过'],
-        ['full_5',     '最多只能上传 5 张'],
-        // CLI 下 move_uploaded_file() 必失败：报「保存失败」= 前面校验全过
-        ['valid_png',  '保存失败'],
-        ['valid_jpg',  '保存失败'],
-        ['valid_webp', '保存失败'],
-        ['spoof_type', '保存失败'],
+        ['no_csrf',    'Invalid request'],
+        ['no_ctx',     'Verification session expired'],
+        ['no_file',    'No file received'],
+        ['err_ini',    'exceeds the server\'s size limit'],
+        ['text_png',   'Only real PNG / JPG / WebP'],
+        ['gif',        'Only real PNG / JPG / WebP'],
+        ['tiny_image', 'odd dimensions'],
+        ['too_large',  'can\'t exceed 1 MB'],
+        ['full_5',     'Up to 5 images'],
+        // CLI 下 move_uploaded_file() 必失败：报「Save failed」= 前面校验全过
+        ['valid_png',  'Save failed'],
+        ['valid_jpg',  'Save failed'],
+        ['valid_webp', 'Save failed'],
+        ['spoof_type', 'Save failed'],
     ];
     foreach ($cases as [$case, $needle]) {
         $res = runCase($case);
@@ -535,7 +535,7 @@ if ($ONLY === '') {
         return $json;
     };
 
-    $BLOCK = '新密码不能与当前密码相同';
+    $BLOCK = 'New password must differ from the current one';
     $sameCases = [
         ['equal',          '带 pepper 的现行 hash'],
         ['equal_legacy',   '未迁移的老 hash（不带 pepper）'],
@@ -544,7 +544,7 @@ if ($ONLY === '') {
     foreach ($sameCases as [$case, $label]) {
         $r = $runPw($case);
         $check($case . ' 密码没被换掉 · ' . $label, $r['changed'] ?? null, false);
-        $check($case . ' 提示：' . $BLOCK, $r['error'] ?? null, $BLOCK);
+        $check($case . ' 提示：新密码不能与当前密码相同', $r['error'] ?? null, $BLOCK);
     }
 
     $diff = $runPw('different');
@@ -572,7 +572,7 @@ if ($ONLY === '') {
     };
     foreach (['changePassword', 'resetPasswordWithCode'] as $fn) {
         $body = $bodyOf($fn);
-        $check($fn . ' 拒绝与当前密码相同', str_contains($body, '新密码不能与当前密码相同'), true);
+        $check($fn . ' 拒绝与当前密码相同', str_contains($body, 'New password must differ from the current one'), true);
         $check($fn . ' 用 password_verify 比对新密码',
             str_contains($body, 'password_verify($newPassword'), true);
     }

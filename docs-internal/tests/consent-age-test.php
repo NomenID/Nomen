@@ -146,13 +146,13 @@ $check('巴西 = 12（LGPD 儿童定义）', $br['age'], 12);
 echo "\n==== 5) 家长邮件里的法律依据块 ====\n";
 $statuteBlocks = FamilyHelper::consentAgeEmailBlocks($cn);
 $check('法条国家：第一块是 info', $statuteBlocks[0]['type'], 'info');
-$check('法条国家：写了法律依据', $statuteBlocks[0]['items'][0]['label'], '法律依据');
+$check('法条国家：写了法律依据', $statuteBlocks[0]['items'][0]['label'], 'Legal basis');
 $check('法条国家：给了官方链接', in_array('link', array_column($statuteBlocks, 'type'), true), true);
-$check('法条国家：给了条文原文', (bool)array_filter($statuteBlocks, fn($b) => str_contains((string)($b['text'] ?? ''), '条文原文')), true);
+$check('法条国家：给了条文原文', (bool)array_filter($statuteBlocks, fn($b) => str_contains((string)($b['text'] ?? ''), 'Quoted provision:')), true);
 
 $noneBlocks = FamilyHelper::consentAgeEmailBlocks($zz);
 $check('无立法国家：不出现"未查到"', str_contains(json_encode($noneBlocks, JSON_UNESCAPED_UNICODE), '未查到'), false);
-$check('无立法国家：引隐私权政策', str_contains($noneBlocks[0]['items'][0]['value'], '站点隐私政策'), true);
+$check('无立法国家：引隐私权政策', str_contains($noneBlocks[0]['items'][0]['value'], 'site privacy policy'), true);
 $check('无立法国家：给了政策链接', str_contains((string)($noneBlocks[1]['url'] ?? ''), 'example.com/privacy'), true);
 
 echo "\n==== 6) 接口 /api/consent-age ====\n";
