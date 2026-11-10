@@ -33,7 +33,7 @@ use Nomen\Src\I18n;
 
 $root = dirname(__DIR__, 2);
 
-$scanDirs = ['templates', 'controllers', 'src', 'public/js', 'frontend/src', 'public/nomen-install'];
+$scanDirs = ['templates', 'controllers', 'src', 'config', 'public/js', 'frontend/src', 'public/nomen-install'];
 $scanExts = ['php', 'js', 'vue'];
 $scanExcludes = [
     'templates/admin/',          // 后台保持中文

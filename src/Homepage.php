@@ -24,7 +24,7 @@ final class Homepage
             'mode'            => 'default',
             'page_slug'       => '',
             'title'           => '',
-            'subtitle'        => '自由的账号星系',
+            'subtitle'        => '',
             'primary_label'   => '',
             'primary_url'     => '',
             'secondary_label' => '',

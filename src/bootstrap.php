@@ -46,3 +46,6 @@ spl_autoload_register(function (string $class) use ($root) {
 
 // 全局兜底：未捕获异常和致命错误都走独立报错页（细节受 APP_DEBUG 控制）
 \Nomen\Src\ErrorPage::register();
+
+// 核心给出的 head meta，皮肤经 layout.head 钩子拿到；优先级 1，排在插件追加的内容前面
+\Nomen\Src\Hooks::add('layout.head', static fn(string $html): string => $html . \Nomen\Src\Meta::head(), 1);

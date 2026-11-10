@@ -235,7 +235,7 @@ $claims = Hooks::filter('userinfo.claims', $claims, $user, $scopes);
 | `notification.created` | run | `userId`, `category`, `title`, `body`, `notificationId` | 站内通知入库之后、发邮件之前 |
 | `viewer.props` | filter | `viewer`, `userId`, `user` | SPA 的 viewer 数据组装完 |
 | `nav.items` | filter | `items`, `userId` | 站点导航组装完（PHP 布局和 Vue 外壳共用） |
-| `layout.head` | filter | `html`, `layout` | 布局 `</head>` 前；返回值原样输出 |
+| `layout.head` | filter | `html`, `layout` | 布局 `</head>` 前；返回值原样输出（核心先在这里给出 generator / 版本 / 皮肤 / 语言 meta） |
 | `layout.body.start` | filter | `html`, `layout` | 布局 `<body>` 后 |
 | `layout.body.end` | filter | `html`, `layout` | 布局 `</body>` 前 |
 | `homepage.links` | filter | `links` | 首页底部链接组；追加条目带 `by`（插件显示名）的话，后台「首页」编辑器会标「由 X 托管」 |

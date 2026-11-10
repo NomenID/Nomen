@@ -70,6 +70,7 @@ $skip = [
     'AGENTS.md',
     'CLAUDE.md',
     'config/installed.php',
+    'config/home-nomenid.php',
     'public/assets/avatars',
     'public/assets/recovery',
     'public/docs',

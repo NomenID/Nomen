@@ -9,6 +9,7 @@
 
 /** @var array $home @var array $brand @var array $urls @var array $links */
 $title = $home['title'] !== '' ? $home['title'] : (string)$brand['name'];
+$subtitle = $home['subtitle'] !== '' ? $home['subtitle'] : t('A galaxy of accounts');
 $extraCss = ['/css/home.css?v=h7m2q9xw'];
 
 $primary = [
@@ -24,9 +25,7 @@ $secondary = [
     <div class="home-hero__inner">
         <div class="home-hero__copy">
             <h1 class="home-hero__title"><?= htmlspecialchars($title) ?></h1>
-            <?php if ($home['subtitle'] !== ''): ?>
-                <p class="home-hero__line"><?= htmlspecialchars($home['subtitle']) ?></p>
-            <?php endif; ?>
+            <p class="home-hero__line"><?= htmlspecialchars($subtitle) ?></p>
             <div class="home-hero__actions">
                 <a href="<?= htmlspecialchars($primary['href']) ?>" class="btn btn-primary btn-lg"><?= htmlspecialchars($primary['label']) ?></a>
                 <a href="<?= htmlspecialchars($secondary['href']) ?>" class="btn btn-ghost btn-lg"><?= htmlspecialchars($secondary['label']) ?></a>
