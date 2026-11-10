@@ -2,163 +2,94 @@ Nomen
 Copyright (C) 2025-2026 Yunyun (Wang Yaoze)
 https://nomenid.org/
 
-ADDITIONAL TERMS AND NOTICES
+A NOTE FROM THE MAINTAINER
 
-This file forms part of the distribution of the Nomen software. It is to be read
-together with the GNU General Public License, version 3 ("GPLv3"), the text of
-which is contained in the file LICENSE. Capitalised terms have the meanings
-given in Section 1 or, where not defined in this file, in GPLv3.
+This file is not a license. It adds no terms to the GNU General Public License,
+version 3 ("GPLv3"), and it imposes no obligations. Nomen is free software: you
+may run it, study it, modify it, rename it and convey it under GPLv3 alone.
+Nothing in this file is required for any of that.
 
-
-WHY THIS FILE EXISTS
-
-Free software is rarely one person's work. A deployment of Nomen runs the
-Program, the libraries it depends on, the plugins and skins its operator chose
-to install, and the packages those bring with them. Each of them has authors,
-and each carries a license of its own.
-
-The Version Page is where a deployment names them. It lists the Program, the
-plugins, the skins and the libraries, so that the people who wrote them are
-acknowledged where their work actually runs. An attribution nobody can reach
-credits nobody, which is why Section 2 asks for a link as well as the words,
-and why Section 4 asks that the page stay public.
-
-This is not a branding requirement. Nomen is free software: you may change it,
-rename it and run it as you see fit. What these terms ask is that the chain of
-credit survives being passed on, and that a deployment presenting itself as
-Nomen keeps the page that says whose work it is. Section 6 provides the other
-way out: rebrand, and the deployment no longer relies on the permission granted
-there. Section 2 continues to apply whenever the Program itself is conveyed.
-
-The GPL's own preamble makes the same argument at greater length.
+What follows is a set of requests. They are the things the maintainer hopes a
+deployment will do, because they keep the project healthy and the credit where
+it belongs. If you do none of them, the software is still free, and you have
+done nothing wrong under this file.
 
 
-1. DEFINITIONS
+TERMS
 
-"Licensor" means the copyright holder named at the head of this file.
-
-"Program" means the Nomen software as distributed by the Licensor, including its
-source code, templates, default configuration and the Default Skin.
-
-"Default Skin" means the skin distributed with the Program under the directory
-name "nomen-2026", which provides the default page layout and the default site
-footer.
-
-"Attribution Notice" means the visible text "Powered by Nomen" contained in the
-footer of the Default Skin. In the Default Skin that text is linked to the
-Version Page.
-
-"Front Page" means the first page of a Deployment that is served to a visitor
-who is not signed in.
-
-"Version Page" means the page served at the path /special/version of a
-Deployment, or an equivalent page of that Deployment which displays the
-copyright notice, the applicable license and the notices referred to in
-Section 4.
-
-"Deployment" means a running instance of the Program made available to users,
-whether or not the Program is conveyed to those users.
-
-"Convey" has the meaning given in Section 0 of GPLv3.
+"Program" means the Nomen software as distributed by the maintainer.
+"Deployment" means a running instance of it. "Version Page" means the page at
+/special/version, or an equivalent page that lists the components. "Convey" has
+the meaning given in Section 0 of GPLv3.
 
 
-2. ATTRIBUTION (GPLv3 SECTION 7(b))
+WHY WE ASK
 
-The Program, as distributed by the Licensor, displays the Attribution Notice in
-the footer of the Default Skin. The Attribution Notice is a reasonable author
-attribution within the meaning of Section 7(b) of GPLv3 and is preserved as an
-additional term under that Section.
+A Nomen deployment is never one person's work. It runs on PHP and a database, it
+links libraries, it loads plugins and skins, and it stands on the packages those
+bring with them. Each of those pieces has authors, a license and a notice of its
+own.
 
-2.1 Upon conveying the Program or a modified version of it, the following two
-requirements apply. They are independent of each other and may be satisfied by
-a single element or by two separate elements:
-
-    (a) the Front Page shall display the text "Powered by Nomen" in a form that
-        is perceptible to a human reader without interaction; and
-
-    (b) the Front Page shall contain a hyperlink that is perceptible and
-        operable and that leads to the Version Page.
-
-2.2 Neither element shall be concealed or rendered inoperable, including by
-means of display:none, visibility:hidden, zero or negligible dimensions, color
-matching the background, overlapping elements, off-screen positioning, disabled
-pointer events, or any comparable technique.
-
-2.3 The Attribution Notice may be relocated and restyled. The footer of the
-Default Skin may be modified or removed only if the requirements of Section 2.1
-are satisfied on the Front Page by other means, including by an equivalent
-attribution supplied by you.
-
-2.4 This Section applies equally where you replace the layout or templates of
-the Default Skin, replace the Front Page, or incorporate the Program into
-another work.
+The Version Page is where a deployment names them. It is not a monument to the
+author of the Program. It is the place where a site shows, in a single view,
+whose work it is standing on: the Program, the runtime, the database, the
+libraries, the plugins, the skins. That is why we ask you to keep it.
 
 
-3. THIRD-PARTY SKINS
+WHAT WE ASK
 
-The Program supports skins other than the Default Skin. If you install,
-distribute or deploy such a skin, you are responsible for verifying that the
-requirements of Section 2.1 continue to be satisfied. A skin that removes or
-conceals the Attribution Notice, without an equivalent attribution being
-provided on the Front Page, does not satisfy these terms.
+1. Keep the notices.
 
+The Program carries a copyright notice and a notice that it is licensed under
+GPLv3. When you convey the Program or a modified version, GPLv3 already requires
+you to keep them; that requirement comes from GPLv3, not from this file. When
+you are only running a deployment, we ask you to keep them too, because they
+tell visitors what the software is.
 
-4. VERSION PAGE
+The footer credit is optional. To remove it, set 'powered_by' => false in
+config/brand.php; the rest of the page is unchanged.
 
-A Deployment that relies on Section 6 shall keep its Version Page publicly
-accessible. The Version Page shall not be restricted to administrators or
-otherwise withheld from visitors.
+2. Keep the Version Page.
 
-For security reasons, a Deployment may omit or redact specific implementation
-details from the Version Page, including without limitation installed component
-versions, database server versions, interpreter versions, library listings and
-filesystem paths, provided that the Version Page continues to display:
+The page at /special/version lists the Program, PHP, the database, the
+libraries, the plugins and the skins. We ask you to keep it publicly reachable.
+It is useful to visitors, fair to the authors, and the simplest answer to "what
+is this site running?".
 
-    (a) the copyright notice of the Program;
-    (b) the license under which the Program is distributed; and
-    (c) the attribution required by Section 2.
+Before you change it, check the licenses of the plugins and skins you installed:
+some of them require their notices to be shown, and the Version Page is where
+those notices live. That obligation comes from their licenses, not from Nomen.
 
-A Deployment should also make this NOTICE and the README of the Program
-available on or through the Version Page, either by reproducing them or by
-linking to them.
+3. Keep the name for the Program.
 
+We are happy for an unmodified copy of Nomen to be called Nomen. If you modify
+the Program, we ask you to give the result its own name: a fork called Nomen is
+confusing for users and unfair to the original. You may still say truthfully
+that it is based on Nomen or powered by it.
 
-5. SOURCE CODE AND NOTICES
+The name and the logo are not licensed by GPLv3. This paragraph is a request,
+not a trademark license; nothing here conditions your rights under GPLv3.
 
-A Deployment may remove this NOTICE and the README from the Version Page,
-provided that the Version Page then offers at least one of the following:
+4. Check the licenses of what you install.
 
-    (a) the complete corresponding source code of the Program; or
+Plugins and skins are other people's work, under their own licenses. Nothing in
+this file can waive or change those licenses, and we cannot waive them on their
+authors' behalf. If you install a plugin or a skin, read its license; if you
+convey it, keep its notices. This is a reminder, not a request: those licenses
+bind you on their own terms.
 
-    (b) a reference to a location published by the Licensor from which that
-        source code may be obtained,
+5. When you convey, GPLv3 applies in full.
 
-and provided that the attribution required by Section 2 remains satisfied.
-
-
-6. NAME AND MARKS
-
-The name "Nomen" and the Nomen logo identify the Program and its origin. GPLv3
-does not grant permission to use them, and nothing in this file grants such
-permission except as stated below.
-
-A Deployment may use the name and logo to identify an unmodified version of the
-Program, and to state that it is based on the Program, provided that Section 2.1
-is satisfied on its Front Page and that Sections 4 and 5 are satisfied.
-
-If you modify the Program and do not wish to satisfy those requirements, you
-shall rebrand the Deployment. The name and logo of the Program shall not then
-be used to identify it.
-
-This Section concerns the marks only. It does not limit any right granted to
-you by GPLv3 in respect of the copyright in the Program.
+Running a deployment and conveying the Program are different things. If you
+convey the Program or a modified version, GPLv3 applies in full: source code,
+copyright and license notices, and marking of modifications. Renaming a
+deployment does not change that and does not suspend GPLv3.
 
 
-7. GENERAL
+A LAST WORD
 
-Sections 2 and 3 are additional terms permitted by Section 7(b) of GPLv3 and
-apply upon conveying the Program. Sections 4 and 5 are conditions of the
-permission granted in Section 6 to use the name and logo, and apply to a
-Deployment that relies on that permission. Nothing in this file restricts,
-modifies or supersedes any right granted by GPLv3; in the event of conflict,
-GPLv3 governs.
+Nomen exists because people write software and give it away. The credit is part
+of the gift. We ask for it because it is right, not because we can compel it.
+
+If this file ever reads like a demand, it has been misread. GPLv3 governs the
+software. This file governs nothing.

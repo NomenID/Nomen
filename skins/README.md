@@ -86,7 +86,7 @@
 | `base_url` | 绝对地址，canonical 和示例代码用它（`APP_URL`） |
 | `copyright` | 页脚版权行，留空就不显示（`BRAND_COPYRIGHT`） |
 | `footer_links` | 页脚链接数组，每项 `['label' => ..., 'url' => ...]`；Pages 插件启用时会自动补一个「文档」 |
-| `powered_by` | 页脚署名，`false` 关掉；关掉后首页要自己补齐署名和版本页入口（见下） |
+| `powered_by` | 页脚署名，`false` 关掉，随你；只是建议保留（见下） |
 
 布局里用 `\Nomen\Src\Brand::all()` / `Brand::get('name')` 取值。
 
@@ -96,16 +96,15 @@
 
 站长想改页脚，把 `config/footer.example.php` 复制成 `config/footer.php` 改就行，变量 `$brand` / `$links` / `$layout` 都能用。插件用 `footer.links` 加链接、`footer.html` 改最终 HTML。
 
-署名那条链到 `/special/version`，是 GPLv3 第 7 条 (b) 款要求的。拆开是两条独立的要求：
+页脚署名和 `/special/version` 版本页都只是建议，不是许可条件。页脚署名可以在 `config/brand.php` 关掉；版本页我们只是建议保留。
 
-- 首页上看得到 `Powered by Nomen`；
-- 首页上有一个能点开的链接，落到 `/special/version`。
+建议保留的理由：版本页列出程序、PHP、数据库、依赖库、插件和皮肤的署名，访客能一眼看到站点跑的是什么。**但插件和皮肤各自的许可证可能要求展示声明，装了什么就核对什么**——这一条跟 Nomen 无关，是它们自己的许可。
 
-默认把两条放在一个元素里。合成一处、分成两处都行，位置和样式随你，两条都得在首页、都得看得见。
+默认皮肤把署名和版本页链接放在一个元素里；想拆、想改样式都行。
 
 ### 去掉它
 
-`config/brand.php` 里把 `'powered_by'` 改成 `false`，默认那条就不渲染了，程序层面不拦。关掉之后上面两条还在，得自己在首页补；合一或分开都行，缺一条就算不合规（见 `NOTICE`）。
+`config/brand.php` 里把 `'powered_by'` 改成 `false`，默认那条就不渲染了，程序层面不拦。删了也不违反 `NOTICE`。
 
 ## 许可
 

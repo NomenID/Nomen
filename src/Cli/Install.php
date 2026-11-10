@@ -1,8 +1,8 @@
 <?php
 /*
  * Copyright (c) 2025-2026 Yunyun (Wang Yaoze)
- * Licensed under the GNU General Public License, version 3 only, with
- * additional attribution terms in the NOTICE file.
+ * Licensed under the GNU General Public License, version 3 only.
+ * Attribution requests are in the NOTICE file.
  * Source: https://github.com/NomenID/Nomen
  * Project: https://nomenid.org/
  */
@@ -84,7 +84,8 @@ class Install
         echo '  2. cd frontend && npm install && npm run build', PHP_EOL;
         echo '  3. php scripts/mail-drain.php 常驻（通知邮件靠它发）', PHP_EOL, PHP_EOL;
         echo '网页安装器 public/nomen-install/ 用不上就删掉，别留在站点上。', PHP_EOL;
-        echo '页脚 Powered by Nomen 是 GPLv3 第 7 条 (b) 款的署名，去掉要在首页自己补（见 NOTICE）。', PHP_EOL, PHP_EOL;
+        echo '页脚 Powered by Nomen 和 /special/version 版本页都只是建议，删掉不违反 NOTICE；', PHP_EOL;
+        echo '但插件和皮肤各自的许可证可能要求保留声明，装了什么就核对什么。', PHP_EOL, PHP_EOL;
 
         return 0;
     }

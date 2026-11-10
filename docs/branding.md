@@ -63,10 +63,11 @@
 
 启用了 Pages 插件时，会自动追加一个「文档」入口，指向 Pages 的挂载路径。
 
-`powered_by` 控制「Powered by Nomen」署名，默认 `true`。关掉之后要自己满足 GPLv3 第 7 条 (b) 款
-的两条署名要求：首页看得到「Powered by Nomen」，且有链到 `/special/version` 的入口。
-两条分开或合在一起都行。**无 JS 时页脚链接直接指向 `/special/version`，别把它去掉**，
-否则纯 HTML 里就没有版本页入口。
+`powered_by` 控制「Powered by Nomen」署名，默认 `true`。关掉完全没问题——`NOTICE` 是建议性文档，不附加条件。版本页我们只是建议保留。
+
+建议保留的理由是版本页把程序、PHP、数据库、依赖库、插件和皮肤的署名摆在一起。**但插件和皮肤各自的许可证可能要求展示声明，装了什么就核对什么**，这跟 Nomen 无关。
+
+**无 JS 时页脚链接直接指向 `/special/version`**，这是纯 HTML 里的版本页入口；保留署名的话别把 href 改掉。
 
 ## 首页
 

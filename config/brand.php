@@ -1,8 +1,8 @@
 <?php
 /*
  * Copyright (c) 2025-2026 Yunyun (Wang Yaoze)
- * Licensed under the GNU General Public License, version 3 only, with
- * additional attribution terms in the NOTICE file.
+ * Licensed under the GNU General Public License, version 3 only.
+ * Attribution requests are in the NOTICE file.
  * Source: https://github.com/NomenID/Nomen
  * Project: https://nomenid.org/
  */
@@ -40,7 +40,7 @@ return [
     // Pages 插件启用时，Brand::footerLinks() 会自动补一个「文档」入口。
     'footer_links'       => [],
 
-    // 页脚署名。关掉后首页要自己满足两条：看得到「Powered by Nomen」，且有链到 /special/version
-    // 的入口；两条合一或分开都行（GPLv3 第 7 条 (b) 款，见 NOTICE）
+    // 页脚署名，纯建议：关掉不影响任何许可（NOTICE 是建议性文档）。
+    // 保留的话它会链到 /special/version；无 JS 时 href 直接指版本页
     'powered_by'         => true,
 ];

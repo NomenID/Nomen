@@ -240,13 +240,14 @@ Nomen 将功能与外观分开管理。你可以扩展系统功能，也可以�
 
 文档与帮助文本以 CaelLab Zero Subject License, Version 1（CZS v1）授权，全文见 [LICENSES/CZS-v1.txt](LICENSES/CZS-v1.txt)。官方站的站内文档（`/w`）同样按 CZS v1 授权。
 
-另外，本项目在 GPLv3 第 7 条第 (b) 款下附有额外的署名要求：
+另外，[NOTICE](NOTICE) 不是许可，也不附加任何条件——它只是一份建议：
 
-使用本项目代码对外提供服务时，站点首页需要展示「Powered by Nomen」，并提供指向 `/special/version` 的入口。两项内容可以合并展示，也可以分别展示。
+- 保留版权声明、许可声明和作者署名：分发时 GPLv3 本来就要求，运行部署时只是建议。
+- 保留 `/special/version` 版本页：它列出程序、PHP、数据库、依赖库、插件和皮肤的署名。插件和皮肤各自的许可证可能要求展示声明，这一条得自己核对。
+- 未修改的 Nomen 可以继续叫 Nomen；改了代码的 fork 建议另起名字。名字和 logo 不在 GPLv3 授权范围内，NOTICE 里那段只是请求，不是商标许可。
+- 分发时 GPLv3 全套重新生效：源码、版权/许可声明、修改标注。改名不代表分发，也不豁免 GPLv3。
 
-默认页脚中的署名可以通过 `config/brand.php` 关闭。关闭默认署名后，需要自行补齐上述展示要求。
-
-如果不希望保留 Nomen 品牌署名，请更换站点名称。具体法律条款见 [NOTICE](NOTICE)。
+页面上的「Powered by Nomen」可以在 `config/brand.php` 关掉，随你。
 
 ---
 
