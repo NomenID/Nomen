@@ -30,6 +30,23 @@ final class Brand
         return self::all()[$key] ?? $default;
     }
 
+    /** 页脚版权行：支持 [文字](链接)，其余内容按纯文本转义。 */
+    public static function copyrightHtml(string $text): string
+    {
+        $out = '';
+        $offset = 0;
+
+        preg_match_all('/\[([^\]]+)\]\(([^)\s]+)\)/u', $text, $matches, PREG_OFFSET_CAPTURE);
+        foreach ($matches[0] as $i => [$whole, $start]) {
+            $out .= htmlspecialchars(substr($text, $offset, $start - $offset), ENT_QUOTES);
+            $out .= '<a href="' . htmlspecialchars($matches[2][$i][0], ENT_QUOTES) . '">'
+                . htmlspecialchars($matches[1][$i][0], ENT_QUOTES) . '</a>';
+            $offset = $start + strlen($whole);
+        }
+
+        return $out . htmlspecialchars(substr($text, $offset), ENT_QUOTES);
+    }
+
     /** @return array<int, array{label: string, url: string}> */
     public static function footerLinks(): array
     {

@@ -20,7 +20,7 @@ return [
     // 站点图标：布局左上角、favicon、页脚都用它。留空就用包里带的 Nomen 图标
     'logo'               => getenv('BRAND_LOGO') ?: (($app['logo'] ?? '') ?: '/assets/brand/nomen-icon.svg'),
 
-    // 页脚版权行：站点所有者自己填，留空就不显示
+    // 页脚版权行：站点所有者自己填，留空就不显示。要加链接写成 [文字](https://example.com)
     'copyright'          => getenv('BRAND_COPYRIGHT') ?: ($app['copyright'] ?? ''),
 
     // 对外的政策页和开发者守则；留空时界面不显示对应链接
