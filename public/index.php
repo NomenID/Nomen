@@ -80,16 +80,16 @@ Admin::menu('settings', '/admin/settings', '设置', 70, '系统');
 // 核心自带的特殊页面。注册在插件之后，插件不能顶掉它。
 // title 存键原文，渲染时才翻译 —— 插件在清单里写的标题同样吃这套
 \Nomen\Src\SpecialPages::add('version', [
-    'title' => '版本',
+    'title' => 'Version',
     'handler' => [\Nomen\Src\Special\Version::class, 'render'],
 ]);
 \Nomen\Src\SpecialPages::add('plugins', [
-    'title' => '插件',
+    'title' => 'Plugins',
     'access' => 'admin',
     'handler' => [\Nomen\Src\Special\Plugins::class, 'render'],
 ]);
 \Nomen\Src\SpecialPages::add('lang', [
-    'title' => '语言',
+    'title' => 'Language',
     'handler' => [\Nomen\Src\Special\Lang::class, 'render'],
 ]);
 
