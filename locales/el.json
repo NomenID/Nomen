@@ -1414,5 +1414,6 @@
   "database/schema*.sql are incomplete — extract the release package again.": "Τα database/schema*.sql είναι ελλιπή — αποσυμπιέστε ξανά το πακέτο έκδοσης.",
   "public/assets/ is not writable, so avatar uploads are unavailable — paste an image URL instead.": "Το public/assets/ δεν είναι εγγράψιμο, η αποστολή avatar μη διαθέσιμη — επικολλήστε URL εικόνας αντί αυτού.",
   "public/nomen-install/ is still there — delete it once the site is verified": "Το public/nomen-install/ υπάρχει ακόμα — διαγράψτε το αφού επιβεβαιώσετε τον ιστότοπο",
-  "{:name} is up and running.": "«{:name}» λειτουργεί."
+  "{:name} is up and running.": "«{:name}» λειτουργεί.",
+  "Demo": "Επίδειξη"
 }

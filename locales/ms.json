@@ -1414,5 +1414,6 @@
   "database/schema*.sql are incomplete — extract the release package again.": "database/schema*.sql tidak lengkap — nyahzip semula pakej keluaran.",
   "public/assets/ is not writable, so avatar uploads are unavailable — paste an image URL instead.": "public/assets/ tidak boleh ditulis, muat naik avatar tidak tersedia — tampal URL imej sebaliknya.",
   "public/nomen-install/ is still there — delete it once the site is verified": "public/nomen-install/ masih di situ — padam selepas laman disahkan",
-  "{:name} is up and running.": "„{:name}\" sudah beroperasi."
+  "{:name} is up and running.": "„{:name}\" sudah beroperasi.",
+  "Demo": "Demo"
 }

@@ -1414,5 +1414,6 @@
   "database/schema*.sql are incomplete — extract the release package again.": "database/schema*.sql неповні — розпакуйте релізний пакет знову.",
   "public/assets/ is not writable, so avatar uploads are unavailable — paste an image URL instead.": "public/assets/ недоступний для запису, завантаження аватарів не працює — вставте посилання на зображення.",
   "public/nomen-install/ is still there — delete it once the site is verified": "public/nomen-install/ ще на місці — видаліть, коли переконаєтеся, що сайт працює",
-  "{:name} is up and running.": "«{:name}» працює."
+  "{:name} is up and running.": "«{:name}» працює.",
+  "Demo": "Демо"
 }

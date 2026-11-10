@@ -1,8 +1,8 @@
 <?php
 /*
  * Copyright (c) 2025-2026 Yunyun (Wang Yaoze)
- * Licensed under the GNU General Public License, version 3 only, with
- * additional attribution terms in the NOTICE file.
+ * Licensed under the GNU General Public License, version 3 only.
+ * Attribution requests are in the NOTICE file.
  * Source: https://github.com/NomenID/Nomen
  * Project: https://nomenid.org/
  */
@@ -24,8 +24,8 @@ $title = $home['title'] !== '' ? $home['title'] : (string)$brand['name'];
 $subtitle = $home['subtitle'] !== '' ? $home['subtitle'] : t('A galaxy of accounts');
 $primaryLabel = $home['primary_label'] !== '' ? $home['primary_label'] : t('Download');
 $primaryHref = $home['primary_url'] !== '' ? $home['primary_url'] : '/w/download';
-$secondaryLabel = $home['secondary_label'] !== '' ? $home['secondary_label'] : t('Docs');
-$secondaryHref = $home['secondary_url'] !== '' ? $home['secondary_url'] : (Plugins::mountUrl('pages') ?? '/w');
+$secondaryLabel = $home['secondary_label'] !== '' ? $home['secondary_label'] : t('Demo');
+$secondaryHref = $home['secondary_url'] !== '' ? $home['secondary_url'] : '/login';
 $links = Homepage::links();
 
 $docs = Plugins::mountUrl('pages') ?? '/w';

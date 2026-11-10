@@ -1414,5 +1414,6 @@
   "database/schema*.sql are incomplete — extract the release package again.": "database/schema*.sql ไม่ครบ — แตกแพ็กเกจเผยแพร่ใหม่",
   "public/assets/ is not writable, so avatar uploads are unavailable — paste an image URL instead.": "public/assets/ เขียนไม่ได้ อัปโหลดรูปโปรไฟล์ใช้ไม่ได้ — วาง URL รูปแทน",
   "public/nomen-install/ is still there — delete it once the site is verified": "public/nomen-install/ ยังอยู่ — ลบหลังจากตรวจว่าเว็บใช้งานได้แล้ว",
-  "{:name} is up and running.": "„{:name}\" ทำงานอยู่แล้ว"
+  "{:name} is up and running.": "„{:name}\" ทำงานอยู่แล้ว",
+  "Demo": "เดโม"
 }

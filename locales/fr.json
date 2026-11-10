@@ -1414,5 +1414,6 @@
   "database/schema*.sql are incomplete — extract the release package again.": "database/schema*.sql sont incomplets — réextrayez le paquet de publication.",
   "public/assets/ is not writable, so avatar uploads are unavailable — paste an image URL instead.": "public/assets/ n'est pas inscriptible, l'envoi d'avatars est indisponible — collez plutôt une URL d'image.",
   "public/nomen-install/ is still there — delete it once the site is verified": "public/nomen-install/ est toujours là — supprimez-le une fois le site vérifié",
-  "{:name} is up and running.": "« {:name} » est en ligne."
+  "{:name} is up and running.": "« {:name} » est en ligne.",
+  "Demo": "Démo"
 }

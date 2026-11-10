@@ -1414,5 +1414,6 @@
   "database/schema*.sql are incomplete — extract the release package again.": "database/schema*.sql अधूरे हैं — रिलीज़ पैकेज दोबारा निकालें।",
   "public/assets/ is not writable, so avatar uploads are unavailable — paste an image URL instead.": "public/assets/ लिखने योग्य नहीं है, अवतार अपलोड उपलब्ध नहीं — इसकी जगह चित्र URL चिपकाएँ।",
   "public/nomen-install/ is still there — delete it once the site is verified": "public/nomen-install/ अभी भी वहीं है — साइट जाँच लेने के बाद मिटा दें",
-  "{:name} is up and running.": "«{:name}» चल रहा है।"
+  "{:name} is up and running.": "«{:name}» चल रहा है।",
+  "Demo": "डेमो"
 }

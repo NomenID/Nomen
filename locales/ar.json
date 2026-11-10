@@ -1414,5 +1414,6 @@
   "database/schema*.sql are incomplete — extract the release package again.": "ملفات database/schema*.sql غير مكتملة — فك ضغط حزمة الإصدار من جديد.",
   "public/assets/ is not writable, so avatar uploads are unavailable — paste an image URL instead.": "المجلد public/assets/ غير قابل للكتابة، فرفع الصور الشخصية غير متاح — الصق رابط صورة بدلًا من ذلك.",
   "public/nomen-install/ is still there — delete it once the site is verified": "ما زال public/nomen-install/ موجودًا — احذفه بعد التأكد من سلامة الموقع",
-  "{:name} is up and running.": "«{:name}» يعمل الآن."
+  "{:name} is up and running.": "«{:name}» يعمل الآن.",
+  "Demo": "عرض توضيحي"
 }

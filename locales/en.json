@@ -1414,5 +1414,6 @@
     "{:n} unused": "{:n} unused",
     "{:n} used": "{:n} used",
     "{:sitename} does not accept email addresses on this domain.": "{:sitename} does not accept email addresses on this domain.",
-    "»": "»"
+    "»": "»",
+    "Demo": "Demo"
 }

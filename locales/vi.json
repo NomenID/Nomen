@@ -1414,5 +1414,6 @@
   "database/schema*.sql are incomplete — extract the release package again.": "database/schema*.sql chưa đủ — giải nén lại gói phát hành.",
   "public/assets/ is not writable, so avatar uploads are unavailable — paste an image URL instead.": "public/assets/ không ghi được, tải ảnh đại diện không khả dụng — dán URL ảnh thay thế.",
   "public/nomen-install/ is still there — delete it once the site is verified": "public/nomen-install/ vẫn còn đó — xóa khi đã kiểm tra trang xong",
-  "{:name} is up and running.": "„{:name}\" đã hoạt động."
+  "{:name} is up and running.": "„{:name}\" đã hoạt động.",
+  "Demo": "Bản demo"
 }

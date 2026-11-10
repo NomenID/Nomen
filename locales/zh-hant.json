@@ -1414,5 +1414,6 @@
   "database/schema*.sql are incomplete — extract the release package again.": "database/schema*.sql 不全，重新解壓發布包。",
   "public/assets/ is not writable, so avatar uploads are unavailable — paste an image URL instead.": "public/assets/ 不可寫，頭像上傳用不了，先填圖片連結。",
   "public/nomen-install/ is still there — delete it once the site is verified": "public/nomen-install/ 還留著，確認網站沒問題後刪掉",
-  "{:name} is up and running.": "「{:name}」正在運行。"
+  "{:name} is up and running.": "「{:name}」正在運行。",
+  "Demo": "演示"
 }

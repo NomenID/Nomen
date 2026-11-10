@@ -1414,5 +1414,6 @@
   "database/schema*.sql are incomplete — extract the release package again.": "database/schema*.sql이 완전하지 않습니다. 릴리스 패키지를 다시 풀어 주세요.",
   "public/assets/ is not writable, so avatar uploads are unavailable — paste an image URL instead.": "public/assets/를 쓸 수 없어 아바타 업로드를 사용할 수 없습니다. 이미지 URL을 입력하세요.",
   "public/nomen-install/ is still there — delete it once the site is verified": "public/nomen-install/이 아직 남아 있습니다. 사이트를 확인한 뒤 삭제하세요",
-  "{:name} is up and running.": "\"{:name}\"이(가) 실행 중입니다."
+  "{:name} is up and running.": "\"{:name}\"이(가) 실행 중입니다.",
+  "Demo": "데모"
 }

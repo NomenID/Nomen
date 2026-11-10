@@ -1414,5 +1414,6 @@
   "database/schema*.sql are incomplete — extract the release package again.": "database/schema*.sql zijn incompleet — pak het releasepakket opnieuw uit.",
   "public/assets/ is not writable, so avatar uploads are unavailable — paste an image URL instead.": "public/assets/ is niet beschrijfbaar, avatar-uploads zijn niet mogelijk — plak in plaats daarvan een afbeeldings-URL.",
   "public/nomen-install/ is still there — delete it once the site is verified": "public/nomen-install/ staat er nog — verwijder het zodra de site is gecontroleerd",
-  "{:name} is up and running.": "\"{:name}\" draait."
+  "{:name} is up and running.": "\"{:name}\" draait.",
+  "Demo": "Demo"
 }

@@ -1414,5 +1414,6 @@
   "database/schema*.sql are incomplete — extract the release package again.": "database/schema*.sql অসম্পূর্ণ — রিলিজ প্যাকেজ আবার আনজিপ করুন।",
   "public/assets/ is not writable, so avatar uploads are unavailable — paste an image URL instead.": "public/assets/-এ লেখার অনুমতি নেই, অ্যাভাটার আপলোড চলবে না — এর বদলে ছবির URL পেস্ট করুন।",
   "public/nomen-install/ is still there — delete it once the site is verified": "public/nomen-install/ এখনো আছে — সাইট ঠিক আছে নিশ্চিত হয়ে মুছে দিন",
-  "{:name} is up and running.": "„{:name}\" চলছে।"
+  "{:name} is up and running.": "„{:name}\" চলছে।",
+  "Demo": "ডেমো"
 }

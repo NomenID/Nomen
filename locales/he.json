@@ -1414,5 +1414,6 @@
   "database/schema*.sql are incomplete — extract the release package again.": "קבצי database/schema*.sql אינם מלאים — חלצו את חבילת ההפצה שוב.",
   "public/assets/ is not writable, so avatar uploads are unavailable — paste an image URL instead.": "public/assets/ אינו ניתן לכתיבה, העלאת תמונות פרופיל לא זמינה — הדביקו כתובת תמונה במקום.",
   "public/nomen-install/ is still there — delete it once the site is verified": "public/nomen-install/ עדיין שם — מחקו אחרי שאישרתם שהאתר תקין",
-  "{:name} is up and running.": "„{:name}\" פעיל."
+  "{:name} is up and running.": "„{:name}\" פעיל.",
+  "Demo": "הדגמה"
 }
