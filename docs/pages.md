@@ -37,6 +37,7 @@ php bin/nomen plugins pages:import docs --prefix=local-docs
 
 把目录里的 Markdown 按相对路径导成页面（`install.md` → `local-docs/install`，
 目录根的 `README.md` → `local-docs/index`），只补缺、不覆盖库里改过的页面。
+加 `--update` 才会覆盖已有的同名页面，用来把站内副本跟 `docs/` 同步。
 
 挂载路径在 `config/plugins/pages.json` 的 `base_path`，也可以去后台「接入点」页改。
 改完列表、页内链接、首页的「文档」入口、`/sitemap.xml` 都跟着变。
