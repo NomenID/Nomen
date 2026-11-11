@@ -1008,7 +1008,6 @@
   "Translation fixes and new languages are welcome on GitHub.": "Perbaikan terjemahan dan bahasa baru diterima di GitHub.",
   "Upstream projects": "Proyek hulu",
   "Nomen runs on PHP and a database, and links the libraries listed on the version info page.": "Nomen berjalan di atas PHP dan basis data, serta menautkan pustaka yang tercantum di halaman info versi.",
-  "A version with +qb.<date> is a quickbuild: it is built from the development line, not from a tagged release.": "Versi dengan +qb.<date> adalah quickbuild: dibangun dari jalur pengembangan, bukan dari rilis bertag.",
   "This third-party account is already linked to another account": "Akun pihak ketiga ini sudah terikat ke akun lain",
   "This verification link has expired — resend it from settings": "Tautan verifikasi kedaluwarsa, kirim ulang dari halaman pengaturan",
   "This verification link has expired — send a new one": "Tautan verifikasi kedaluwarsa, kirim ulang",

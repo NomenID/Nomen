@@ -1008,7 +1008,6 @@
   "Translation fixes and new languages are welcome on GitHub.": "Διορθώσεις μεταφράσεων και νέες γλώσσες είναι ευπρόσδεκτες στο GitHub.",
   "Upstream projects": "Έργα upstream",
   "Nomen runs on PHP and a database, and links the libraries listed on the version info page.": "Το Nomen τρέχει σε PHP και βάση δεδομένων και χρησιμοποιεί τις βιβλιοθήκες που αναφέρονται στη σελίδα πληροφοριών έκδοσης.",
-  "A version with +qb.<date> is a quickbuild: it is built from the development line, not from a tagged release.": "Μια έκδοση με +qb.<date> είναι quickbuild: χτίζεται από τη γραμμή ανάπτυξης, όχι από έκδοση με tag.",
   "This third-party account is already linked to another account": "Αυτός ο λογαριασμός τρίτου είναι ήδη συνδεδεμένος με άλλον λογαριασμό",
   "This verification link has expired — resend it from settings": "Ο σύνδεσμος επαλήθευσης έληξε· στείλτε νέο από τη σελίδα ρυθμίσεων",
   "This verification link has expired — send a new one": "Ο σύνδεσμος επαλήθευσης έληξε· στείλτε νέο",

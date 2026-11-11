@@ -1008,7 +1008,6 @@
   "Translation fixes and new languages are welcome on GitHub.": "תיקוני תרגום ושפות חדשות יתקבלו בברכה ב-GitHub.",
   "Upstream projects": "פרויקטי מקור",
   "Nomen runs on PHP and a database, and links the libraries listed on the version info page.": "Nomen פועל על PHP ומסד נתונים, ומקשר את הספריות המופיעות בעמוד פרטי הגרסה.",
-  "A version with +qb.<date> is a quickbuild: it is built from the development line, not from a tagged release.": "גרסה עם +qb.<date> היא quickbuild: היא נבנית מקו הפיתוח, לא מגרסה מתויגת.",
   "This third-party account is already linked to another account": "חשבון הצד השלישי הזה כבר מקושר לחשבון אחר",
   "This verification link has expired — resend it from settings": "קישור האימות פג תוקף — שלחו אותו שוב מדף ההגדרות",
   "This verification link has expired — send a new one": "קישור האימות פג תוקף — שלחו קישור חדש",

@@ -101,8 +101,7 @@ class Version
         }
 
         return '<h2>' . t('Installed software') . '</h2>'
-            . self::table([t('Product'), t('Version')], $rows)
-            . ($build === null ? '' : '<p>' . t('A version with +qb.<date> is a quickbuild: it is built from the development line, not from a tagged release.') . '</p>');
+            . self::table([t('Product'), t('Version')], $rows);
     }
 
     private static function entryPoints(array $config): string

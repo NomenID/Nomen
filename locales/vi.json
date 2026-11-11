@@ -1008,7 +1008,6 @@
   "Translation fixes and new languages are welcome on GitHub.": "Rất hoan nghênh các bản sửa bản dịch và ngôn ngữ mới trên GitHub.",
   "Upstream projects": "Dự án thượng nguồn",
   "Nomen runs on PHP and a database, and links the libraries listed on the version info page.": "Nomen chạy trên PHP và cơ sở dữ liệu, đồng thời dùng các thư viện được liệt kê ở trang thông tin phiên bản.",
-  "A version with +qb.<date> is a quickbuild: it is built from the development line, not from a tagged release.": "Phiên bản có +qb.<date> là quickbuild: được dựng từ nhánh phát triển, không phải từ bản phát hành đã gắn thẻ.",
   "This third-party account is already linked to another account": "Tài khoản bên thứ ba này đã được liên kết với tài khoản khác",
   "This verification link has expired — resend it from settings": "Liên kết xác minh đã hết hạn, vui lòng gửi lại từ trang cài đặt",
   "This verification link has expired — send a new one": "Liên kết xác minh đã hết hạn, vui lòng gửi lại",

@@ -1186,7 +1186,6 @@
     "Translation fixes and new languages are welcome on GitHub.": "Translation fixes and new languages are welcome on GitHub.",
     "Upstream projects": "Upstream projects",
     "Nomen runs on PHP and a database, and links the libraries listed on the version info page.": "Nomen runs on PHP and a database, and links the libraries listed on the version info page.",
-    "A version with +qb.<date> is a quickbuild: it is built from the development line, not from a tagged release.": "A version with +qb.<date> is a quickbuild: it is built from the development line, not from a tagged release.",
     "This third-party account is already linked to another account": "This third-party account is already linked to another account",
     "This verification link has expired — resend it from settings": "This verification link has expired — resend it from settings",
     "This verification link has expired — send a new one": "This verification link has expired — send a new one",

@@ -1008,7 +1008,6 @@
   "Translation fixes and new languages are welcome on GitHub.": "翻訳の修正や新しい言語は GitHub で歓迎します。",
   "Upstream projects": "上流プロジェクト",
   "Nomen runs on PHP and a database, and links the libraries listed on the version info page.": "Nomen は PHP とデータベース上で動作し、バージョン情報ページに載っているライブラリを利用しています。",
-  "A version with +qb.<date> is a quickbuild: it is built from the development line, not from a tagged release.": "バージョンに +qb.<date> が付いているのは quickbuild です。タグ付きリリースではなく、開発ブランチから直接ビルドしたものです。",
   "This third-party account is already linked to another account": "このサードパーティアカウントは別のアカウントにバインド済みです",
   "This verification link has expired — resend it from settings": "確認リンクの有効期限が切れました。設定ページから再送信してください",
   "This verification link has expired — send a new one": "確認リンクの有効期限が切れました。再送信してください",

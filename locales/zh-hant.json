@@ -1008,7 +1008,6 @@
   "Translation fixes and new languages are welcome on GitHub.": "翻譯修正和新語言歡迎在 GitHub 上提交。",
   "Upstream projects": "上游專案",
   "Nomen runs on PHP and a database, and links the libraries listed on the version info page.": "Nomen 執行在 PHP 和資料庫之上，並連結版本資訊頁列出的那些程式庫。",
-  "A version with +qb.<date> is a quickbuild: it is built from the development line, not from a tagged release.": "版本號裡帶 +qb.<日期> 的是 quickbuild：從開發線直接建置的包，不是正式發版。",
   "This third-party account is already linked to another account": "這個第三方帳號已經綁定到另一個帳號了",
   "This verification link has expired — resend it from settings": "驗證連結已過期，請在設定頁面重新傳送",
   "This verification link has expired — send a new one": "驗證連結已過期，請重新傳送",
