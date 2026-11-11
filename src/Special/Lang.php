@@ -53,12 +53,12 @@ class Lang
     private static function apply(string $slug): void
     {
         $target = self::returnTo();
-        if ($target === '' || !I18n::switchingAllowed() || !I18n::isValid($slug)) {
+        if (!I18n::switchingAllowed() || !I18n::isValid($slug)) {
             Response::redirect($target !== '' ? $target : '/');
             return;
         }
         I18n::applyChoice($slug);
-        Response::redirect($target);
+        Response::redirect($target !== '' ? $target : '/');
     }
 
     /** 来源页只收本站路径，防开放重定向 */
