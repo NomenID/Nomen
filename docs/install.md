@@ -1,6 +1,6 @@
 # 安装与升级
 
-完整的安装步骤、数据库准备和 nginx 配置在仓库根目录的 [INSTALL.md](../INSTALL.md)。这一页只列文档集里需要反复用到的部分。
+完整的安装步骤、数据库准备和 nginx 配置在仓库根目录的 [INSTALL.md](https://github.com/NomenID/Nomen/blob/main/INSTALL.md)。这一页只列文档集里需要反复用到的部分。
 
 ## 环境要求
 

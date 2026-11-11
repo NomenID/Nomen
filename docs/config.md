@@ -17,7 +17,7 @@ config/*.php                （程序默认值，通常只改 brand.php 和开�
 可选文件，放项目根。格式是 `KEY=value`，`#` 开头为注释，值两边的引号会被去掉。
 `config/app.php` 每次请求都会读它，所以改完刷新页面就生效。
 
-可用的键见仓库根的 [.env.example](../.env.example)，常用的有：
+可用的键见仓库根的 [.env.example](https://github.com/NomenID/Nomen/blob/main/.env.example)，常用的有：
 
 | 键 | 对应配置 |
 |---|---|

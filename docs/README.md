@@ -45,4 +45,4 @@
 
 ## 许可
 
-`docs/` 下的文档与帮助文本以 [CaelLab Zero Subject License, Version 1](../LICENSES/CZS-v1.txt)（CZS v1）授权。Nomen 软件本身按 GPL-3.0-only 授权；随包的插件和官方皮肤是独立项目，按 Apache-2.0 授权，各自的 `LICENSE` 在它们自己的仓库里。
+`docs/` 下的文档与帮助文本以 [CaelLab Zero Subject License, Version 1](https://www.caellab.com/license/czs-v1)（CZS v1）授权。Nomen 软件本身按 GPL-3.0-only 授权；随包的插件和官方皮肤是独立项目，按 Apache-2.0 授权，各自的 `LICENSE` 在它们自己的仓库里。
