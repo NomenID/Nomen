@@ -46,7 +46,9 @@ class Version
                 'link' => '<a href="' . self::PROJECT_URL . '">Nomen</a>',
                 'year' => date('Y'),
             ]) . '</p>'
-            . '<p>' . t('Nomen is developed by the NomenID Team and other contributors to its core, plugins and skins.') . '</p>'
+            . '<p>' . t('Nomen is developed by the NomenID Team and {:others} to its core, plugins and skins.', [
+                'others' => '<a href="/special/version/credits">' . t('other contributors') . '</a>',
+            ]) . '</p>'
             . '<p>' . t('Thanks to all the translators who helped translate Nomen core and its plugins.') . '</p>'
             . '<p>' . t('Nomen is free software; you may redistribute and/or modify it under the terms of version 3 of the GNU General Public License as published by the Free Software Foundation.') . '</p>'
             . '<p>' . t('Nomen is distributed in the hope that it will be useful, but with <em>no warranty</em>; without even the implied warranty of <strong>merchantability</strong> or <strong>fitness for a particular purpose</strong>. See the GNU General Public License for more details.') . '</p>'
@@ -66,7 +68,7 @@ class Version
 
         $build = Build::summary((string)($config['version'] ?? ''));
         if ($build !== null) {
-            $rows[] = [t('Build'), self::esc($build)];
+            $rows[] = [t('Build'), self::esc('quickbuild · ' . $build)];
         }
 
         $rows[] = [
@@ -98,7 +100,9 @@ class Version
             $rows[] = [t('Database'), '—'];
         }
 
-        return '<h2>' . t('Installed software') . '</h2>' . self::table([t('Product'), t('Version')], $rows);
+        return '<h2>' . t('Installed software') . '</h2>'
+            . self::table([t('Product'), t('Version')], $rows)
+            . ($build === null ? '' : '<p>' . t('A version with +qb.<date> is a quickbuild: it is built from the development line, not from a tagged release.') . '</p>');
     }
 
     private static function entryPoints(array $config): string

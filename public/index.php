@@ -205,6 +205,8 @@ $router->get('/special/version/{type}/{name}/notice', function (string $type, st
 $router->get('/special/version/{type}/{name}/readme', function (string $type, string $name) {
     \Nomen\Src\Special\License::renderReadme($type, $name);
 });
+// 贡献者名单：/special/version/credits
+$router->get('/special/version/credits', fn() => \Nomen\Src\Special\Credits::render());
 $router->get('/special/{page}', function (string $page) {
     \Nomen\Src\SpecialPages::render($page);
 });
