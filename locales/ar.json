@@ -1415,5 +1415,8 @@
   "public/assets/ is not writable, so avatar uploads are unavailable — paste an image URL instead.": "المجلد public/assets/ غير قابل للكتابة، فرفع الصور الشخصية غير متاح — الصق رابط صورة بدلًا من ذلك.",
   "public/nomen-install/ is still there — delete it once the site is verified": "ما زال public/nomen-install/ موجودًا — احذفه بعد التأكد من سلامة الموقع",
   "{:name} is up and running.": "«{:name}» يعمل الآن.",
-  "Demo": "عرض توضيحي"
+  "Demo": "عرض توضيحي",
+  "You can also continue without it: the site will use index.php?page= links, and you can switch later in config/installed.php.": "يمكنك المتابعة بدونه أيضًا: سيستخدم الموقع روابط بالشكل index.php?page=، ويمكنك التبديل لاحقًا من config/installed.php.",
+  "Short addresses (/login)": "عناوين قصيرة (/login)",
+  "Turn this off when the server has no rewrite rules; links will look like index.php?page=login. Stored in config/installed.php, so you can change it later.": "أوقف هذا الخيار إذا لم تكن لدى الخادم قواعد إعادة كتابة: ستبدو الروابط مثل index.php?page=login. يُحفظ الإعداد في config/installed.php ويمكن تغييره لاحقًا."
 }

@@ -19,6 +19,8 @@ PHP 依赖已经在发布包的 `vendor/` 里，不用在服务器上跑 Compose
 1. **web root 指到 `public/`**。指到项目根会看到根目录的 `index.html` 提示页，那不是站点。
 2. **伪静态**：`try_files $uri $uri/ /index.php$is_args$args;`。`$uri/` 不能省，否则目录地址 404。
    装之前可以访问 `/__rewrite_probe`，返回 `ok` 就对了。
+   加不了伪静态也能装：向导里把「短地址」关掉，地址会变成 `index.php?page=login` 这种，功能一样。
+   开关是 `config/installed.php` 的 `app.pretty_urls`（`false` = 查询串模式；**没写这一项按短地址处理**）。
 3. **`public/nomen-install/` 装完删掉或改名**。留着等于把安装入口开放给所有人。
 
 `config/`、`data/`、`public/assets/avatars/`、`public/assets/recovery/`、`public/assets/develops/`

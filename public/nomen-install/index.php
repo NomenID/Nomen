@@ -67,7 +67,7 @@ header('Cache-Control: no-store, max-age=0');
 })();
 </script>
 <?php if ($installDict !== []): ?>
-<script>window.__NOMEN_INSTALL_I18N__<?= json_encode($installDict, $jsonFlags) ?>;</script>
+<script>window.__NOMEN_INSTALL_I18N__=<?= json_encode($installDict, $jsonFlags) ?>;</script>
 <?php endif; ?>
 <?= $assets ?>
 </head>

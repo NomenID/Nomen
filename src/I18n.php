@@ -364,7 +364,11 @@ class I18n
         $file = __DIR__ . '/../locales/' . $slug . '.json';
         $v = is_file($file) ? substr(md5_file($file), 0, 8) : '0';
         $v .= '-' . substr(md5(implode(',', self::extensionDictDirs())), 0, 8);
-        return '/i18n/' . rawurlencode($slug) . '?v=' . $v;
+
+        // 词典脚本是 immutable 缓存，里面带着地址模式；模式不同的 URL 必须不一样
+        $url = '/i18n/' . rawurlencode($slug) . '?v=' . $v;
+
+        return Url::queryMode() ? $url . '&m=query' : $url;
     }
 
     /** GET /i18n/{slug}.js —— 给 app.js 和 Vue 共用的词典（管理后台不挂，按键原样显示中文） */
@@ -404,6 +408,21 @@ class I18n
         echo 'window.NOMEN_LOCALE=' . json_encode($slug) . ';';
         echo 'window.NOMEN_LANG=' . json_encode(self::code($slug)) . ';';
         echo 'window.NOMEN_DIR=' . json_encode(self::dir($slug)) . ';';
+        // 前端拼站内地址用：有伪静态时原样，没有时换成 index.php?page=
+        echo 'window.NOMEN_URL_MODE=' . json_encode(Url::queryMode() ? 'query' : 'pretty') . ';';
+        echo 'window.NOMEN_URL_BASE=' . json_encode(Url::base()) . ';';
+        echo 'window.Nomen=window.Nomen||{};window.Nomen.url=function(p){'
+            . 'if(!p||p.charAt(0)!=="/"||p.slice(0,2)==="//")return p;'
+            . 'var b=window.NOMEN_URL_BASE||"";'
+            . 'if(window.NOMEN_URL_MODE!=="query")return b+p;'
+            . 'var f="",q="",i=p.indexOf("#");'
+            . 'if(i>=0){f=p.slice(i);p=p.slice(0,i);}'
+            . 'i=p.indexOf("?");'
+            . 'if(i>=0){q=p.slice(i+1);p=p.slice(0,i);}'
+            . 'var t=b+"/index.php";'
+            . 'if(p!==""&&p!=="/"){t+="?page="+encodeURI(p.replace(/^\/+/,""))+(q?"&"+q:"")}'
+            . 'else if(q){t+="?"+q}'
+            . 'return t+f;};';
         exit;
     }
 }

@@ -42,7 +42,7 @@ class Plugins
 
     public static function dir(): string
     {
-        return dirname(__DIR__) . '/plugins';
+        return LocalPaths::get('plugins', dirname(__DIR__) . '/plugins');
     }
 
     /**
@@ -281,7 +281,7 @@ class Plugins
         $version = is_file($file) ? (string)filemtime($file) : '0';
         $encoded = implode('/', array_map('rawurlencode', explode('/', $path)));
 
-        return '/plugin-assets/' . rawurlencode($slug) . '/' . $encoded . '?v=' . $version;
+        return Url::to('/plugin-assets/' . rawurlencode($slug) . '/' . $encoded, ['v' => $version]);
     }
 
     public static function style(string $slug, string $path): void

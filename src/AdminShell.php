@@ -29,7 +29,7 @@ final class AdminShell
         foreach (Admin::menuItems() as $key => $item) {
             $menu[] = [
                 'key'   => $key,
-                'href'  => (string)$item['href'],
+                'href'  => Url::to((string)$item['href']),
                 'label' => (string)$item['label'],
                 'group' => (string)($item['group'] ?? ''),
             ];

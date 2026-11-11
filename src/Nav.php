@@ -49,7 +49,7 @@ class Nav
             $out[] = [
                 'key'   => $key,
                 'label' => t((string)$item['label']),
-                'href'  => (string)$item['href'],
+                'href'  => Url::to((string)$item['href']),
                 'icon'  => (string)$item['icon'],
                 'spa'   => (bool)$item['spa'],
                 'order' => (int)$item['order'],

@@ -8,6 +8,10 @@
 
 // 注册页面脚本
 // 状态标记走独立 SVG 图标：只换 class 与 data-state，供 CSS 上色
+function appUrl(path) {
+    return window.Nomen && typeof window.Nomen.url === 'function' ? window.Nomen.url(path) : path;
+}
+
 function setMark(el, state) {
     if (state === 'ok') el.innerHTML = '<span class="icon icon-check"></span>';
     else if (state === 'bad') el.innerHTML = '<span class="icon icon-close"></span>';
@@ -67,7 +71,7 @@ document.getElementById('username').addEventListener('input', function(e) {
     hint.className = 'form-hint';
 
     usernameCheckTimer = setTimeout(() => {
-        fetch('/api/check-username?username=' + encodeURIComponent(username))
+        fetch(appUrl('/api/check-username?username=' + encodeURIComponent(username)))
             .then(res => res.json())
             .then(data => {
                 if (data.available) {

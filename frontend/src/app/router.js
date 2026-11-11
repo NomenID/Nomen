@@ -6,7 +6,8 @@
  * Project: https://nomenid.org/
  */
 
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, createMemoryHistory } from 'vue-router'
+import { currentPagePath, installQueryNavigation } from '../lib/url.js'
 import DashboardPage from './pages/DashboardPage.vue'
 import SettingsPage from './pages/SettingsPage.vue'
 import FamilyPage from './pages/FamilyPage.vue'
@@ -27,9 +28,18 @@ export const routes = [
 ]
 
 export function createAppRouter() {
-  return createRouter({
-    history: createWebHistory(),
+  const queryPath = currentPagePath()
+  const router = createRouter({
+    history: queryPath ? createMemoryHistory() : createWebHistory(),
     routes,
     scrollBehavior: () => ({ top: 0 }),
   })
+
+  if (queryPath) {
+    // 先在没有覆盖的情况下落到服务端渲染的那个页面，再接管后续跳转
+    router.push(queryPath)
+    installQueryNavigation(router)
+  }
+
+  return router
 }

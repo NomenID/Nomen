@@ -11,6 +11,7 @@ import { onMounted, reactive, ref } from 'vue'
 import BaseAlert from '../../components/BaseAlert.vue'
 import { useT } from '../../composables/useT.js'
 import { toast } from '../../lib/toast.js'
+import { url } from '../../lib/url.js'
 import BiometricsSection from '../settings/BiometricsSection.vue'
 import EmailSetSection from '../settings/EmailSetSection.vue'
 import RecoveryCodesSection from '../settings/RecoveryCodesSection.vue'
@@ -52,7 +53,7 @@ async function savePassword() {
     data.append('current_password', '')
     data.append('new_password', passwordForm.next)
     data.append('confirm_password', passwordForm.confirm)
-    const response = await fetch('/settings/password', {
+    const response = await fetch(url('/settings/password'), {
       method: 'POST',
       body: data,
       headers: { 'X-Requested-With': 'XMLHttpRequest' },

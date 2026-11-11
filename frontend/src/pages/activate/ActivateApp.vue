@@ -11,6 +11,7 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useT } from '../../composables/useT.js'
 const { t } = useT()
 import BaseAlert from '../../components/BaseAlert.vue'
+import { url } from '../../lib/url.js'
 
 const props = defineProps({
   csrf: { type: String, default: '' },
@@ -66,7 +67,7 @@ async function sendVerification() {
   body.set('_csrf', props.csrf)
 
   try {
-    const response = await fetch('/activate/send', {
+    const response = await fetch(url('/activate/send'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',

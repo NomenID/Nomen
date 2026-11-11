@@ -39,18 +39,25 @@ if (!preg_match("/'version'\s*=>\s*'([^']+)'/", (string)file_get_contents($root 
 }
 $version = $m[1];
 
-// 插件和官方皮肤不在核心仓库里，打包机上得先 clone 到 plugins/、skins/；漏了就报错
+// 插件和官方皮肤是独立仓库。默认在 plugins/、skins/ 下找；本机把源码放在仓库外时，
+// 由不进 git 的 paths.local.php 指出位置（见 src/LocalPaths.php）。
+$paths = is_file($root . '/paths.local.php') ? (array)(require $root . '/paths.local.php') : [];
+$localPlugins = rtrim(str_replace('\\', '/', (string)($paths['plugins'] ?? '')), '/');
+$localSkins = rtrim(str_replace('\\', '/', (string)($paths['skins'] ?? '')), '/');
+$pluginsDir = $localPlugins === '' ? $root . '/plugins' : $localPlugins;
+$skinsDir = $localSkins === '' ? $root . '/skins' : $localSkins;
+
 $bundledPlugins = ['pages', 'open-platform', 'geoip', 'totp-qr'];
 $bundledSkins = ['nomen-2026', 'nomen-ssr'];
 foreach ($bundledPlugins as $bundled) {
-    if (!is_file($root . '/plugins/' . $bundled . '/plugin.json')) {
-        fwrite(STDERR, '缺插件：plugins/' . $bundled . '（见 plugins/README.md，先 clone 到 plugins/）' . PHP_EOL);
+    if (!is_file($pluginsDir . '/' . $bundled . '/plugin.json')) {
+        fwrite(STDERR, '缺插件：' . $pluginsDir . '/' . $bundled . '（见 plugins/README.md）' . PHP_EOL);
         exit(1);
     }
 }
 foreach ($bundledSkins as $bundled) {
-    if (!is_file($root . '/skins/' . $bundled . '/skin.json')) {
-        fwrite(STDERR, '缺皮肤：skins/' . $bundled . '（见 skins/README.md，先 clone 到 skins/）' . PHP_EOL);
+    if (!is_file($skinsDir . '/' . $bundled . '/skin.json')) {
+        fwrite(STDERR, '缺皮肤：' . $skinsDir . '/' . $bundled . '（见 skins/README.md）' . PHP_EOL);
         exit(1);
     }
 }
@@ -69,6 +76,7 @@ $skip = [
     '.gitignore',
     'AGENTS.md',
     'CLAUDE.md',
+    'paths.local.php',
     'config/installed.php',
     'config/home-nomenid.php',
     'public/assets/avatars',
@@ -76,6 +84,7 @@ $skip = [
     'public/docs',
 ];
 
+/** @var array<string, string> $files 包内路径 => 源文件绝对路径 */
 $files = [];
 $walk = static function (string $dir, string $rel) use (&$walk, &$files, $skip, $bundledPlugins, $bundledSkins): void {
     foreach (scandir($dir) ?: [] as $name) {
@@ -83,7 +92,7 @@ $walk = static function (string $dir, string $rel) use (&$walk, &$files, $skip, 
             continue;
         }
         // 插件是独立仓库，plugins/<slug>/.git 不是发布内容
-        if ($name === '.git') {
+        if ($name === '.git' || $name === 'node_modules') {
             continue;
         }
         // plugins/、skins/ 顶层只打清单内的，本地多 clone 的（如只在个别实例部署的插件）不进包
@@ -101,10 +110,18 @@ $walk = static function (string $dir, string $rel) use (&$walk, &$files, $skip, 
             $walk($dir . '/' . $name, $path);
             continue;
         }
-        $files[] = $path;
+        $files[$path] = $dir . '/' . $name;
     }
 };
 $walk($root, '');
+
+// 插件 / 皮肤源码在仓库外时，按包内路径 plugins/<slug>、skins/<slug> 补进来
+foreach ($bundledPlugins as $bundled) {
+    $walk($pluginsDir . '/' . $bundled, 'plugins/' . $bundled);
+}
+foreach ($bundledSkins as $bundled) {
+    $walk($skinsDir . '/' . $bundled, 'skins/' . $bundled);
+}
 
 $out = $root . '/dist/nomen-' . $version . '.zip';
 if (!is_dir($root . '/dist')) {
@@ -119,8 +136,8 @@ if ($zip->open($out, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
     fwrite(STDERR, '打不开输出文件：' . $out . PHP_EOL);
     exit(1);
 }
-foreach ($files as $rel) {
-    $zip->addFile($root . '/' . $rel, $rel);
+foreach ($files as $rel => $source) {
+    $zip->addFile($source, $rel);
 }
 $zip->close();
 

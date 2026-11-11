@@ -1415,5 +1415,8 @@
   "public/assets/ is not writable, so avatar uploads are unavailable — paste an image URL instead.": "public/assets/를 쓸 수 없어 아바타 업로드를 사용할 수 없습니다. 이미지 URL을 입력하세요.",
   "public/nomen-install/ is still there — delete it once the site is verified": "public/nomen-install/이 아직 남아 있습니다. 사이트를 확인한 뒤 삭제하세요",
   "{:name} is up and running.": "\"{:name}\"이(가) 실행 중입니다.",
-  "Demo": "데모"
+  "Demo": "데모",
+  "You can also continue without it: the site will use index.php?page= links, and you can switch later in config/installed.php.": "그대로 계속할 수도 있습니다. 사이트는 index.php?page= 형식의 링크를 사용하며, 나중에 config/installed.php에서 바꿀 수 있습니다.",
+  "Short addresses (/login)": "짧은 주소(/login)",
+  "Turn this off when the server has no rewrite rules; links will look like index.php?page=login. Stored in config/installed.php, so you can change it later.": "서버에 rewrite 규칙이 없으면 끄세요. 링크가 index.php?page=login 형식이 됩니다. 설정은 config/installed.php에 저장되며 나중에 변경할 수 있습니다."
 }

@@ -17,7 +17,7 @@ class Skins
 
     public static function dir(): string
     {
-        return dirname(__DIR__) . '/skins';
+        return LocalPaths::get('skins', dirname(__DIR__) . '/skins');
     }
 
     /**

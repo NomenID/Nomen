@@ -9,6 +9,8 @@
 // 应用区 SPA 的请求层。所有页面数据与动作都走这里：
 // - 统一带 X-Requested-With（服务端据此回 JSON 而不是 redirect+flash）
 // - 响应不是 JSON（如会话过期被 302 到登录页）时整页跟过去
+import { url } from '../lib/url.js'
+
 let csrfToken = ''
 
 export function setCsrf(token) {
@@ -30,7 +32,7 @@ async function handle(response) {
 }
 
 export async function apiGet(path) {
-  const response = await fetch(path, {
+  const response = await fetch(url(path), {
     headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' },
     credentials: 'same-origin',
   })
@@ -43,7 +45,7 @@ export async function apiPost(path, params = {}) {
   for (const [key, value] of Object.entries(params)) {
     if (value !== undefined && value !== null) body.set(key, String(value))
   }
-  const response = await fetch(path, {
+  const response = await fetch(url(path), {
     method: 'POST',
     body,
     credentials: 'same-origin',
@@ -59,7 +61,7 @@ export async function apiPost(path, params = {}) {
 // 带文件（图标等）的提交：FormData 自己带 boundary，不能再设 Content-Type
 export async function apiPostForm(path, formData) {
   formData.set('_csrf', csrfToken)
-  const response = await fetch(path, {
+  const response = await fetch(url(path), {
     method: 'POST',
     body: formData,
     credentials: 'same-origin',

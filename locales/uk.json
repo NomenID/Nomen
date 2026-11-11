@@ -1415,5 +1415,8 @@
   "public/assets/ is not writable, so avatar uploads are unavailable — paste an image URL instead.": "public/assets/ недоступний для запису, завантаження аватарів не працює — вставте посилання на зображення.",
   "public/nomen-install/ is still there — delete it once the site is verified": "public/nomen-install/ ще на місці — видаліть, коли переконаєтеся, що сайт працює",
   "{:name} is up and running.": "«{:name}» працює.",
-  "Demo": "Демо"
+  "Demo": "Демо",
+  "You can also continue without it: the site will use index.php?page= links, and you can switch later in config/installed.php.": "Можна продовжити й без нього: сайт використовуватиме посилання виду index.php?page=, а перемкнути можна пізніше в config/installed.php.",
+  "Short addresses (/login)": "Короткі адреси (/login)",
+  "Turn this off when the server has no rewrite rules; links will look like index.php?page=login. Stored in config/installed.php, so you can change it later.": "Вимкніть, якщо на сервері немає правил переписування: посилання матимуть вигляд index.php?page=login. Налаштування зберігається в config/installed.php, його можна змінити пізніше."
 }

@@ -42,7 +42,7 @@ final class Footer
             $html = (string)ob_get_clean();
         }
 
-        return (string)Hooks::filter('footer.html', $html, $layout, $brand, $links);
+        return Url::filterHtml((string)Hooks::filter('footer.html', $html, $layout, $brand, $links));
     }
 
     private static function partialFile(): ?string

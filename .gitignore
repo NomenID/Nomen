@@ -12,6 +12,9 @@ node_modules/
 /skins/*
 !/skins/README.md
 
+# 本机扩展源码目录（插件 / 皮肤仓库放在核心仓库外面时用）
+/paths.local.php
+
 /data/
 /public/assets/recovery/
 /public/assets/avatars/

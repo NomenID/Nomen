@@ -1415,5 +1415,8 @@
   "public/assets/ is not writable, so avatar uploads are unavailable — paste an image URL instead.": "public/assets/ אינו ניתן לכתיבה, העלאת תמונות פרופיל לא זמינה — הדביקו כתובת תמונה במקום.",
   "public/nomen-install/ is still there — delete it once the site is verified": "public/nomen-install/ עדיין שם — מחקו אחרי שאישרתם שהאתר תקין",
   "{:name} is up and running.": "„{:name}\" פעיל.",
-  "Demo": "הדגמה"
+  "Demo": "הדגמה",
+  "You can also continue without it: the site will use index.php?page= links, and you can switch later in config/installed.php.": "אפשר להמשיך גם בלי זה: האתר ישתמש בקישורים מהצורה index.php?page=, ואפשר להחליף מאוחר יותר ב-config/installed.php.",
+  "Short addresses (/login)": "כתובות קצרות (/login)",
+  "Turn this off when the server has no rewrite rules; links will look like index.php?page=login. Stored in config/installed.php, so you can change it later.": "כבו זאת אם לשרת אין כללי rewrite: הקישורים ייראו כמו index.php?page=login. ההגדרה נשמרת ב-config/installed.php ואפשר לשנות אותה מאוחר יותר."
 }

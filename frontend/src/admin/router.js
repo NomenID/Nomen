@@ -6,7 +6,8 @@
  * Project: https://nomenid.org/
  */
 
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, createMemoryHistory } from 'vue-router'
+import { currentPagePath, installQueryNavigation } from '../lib/url.js'
 import DashboardPage from './pages/DashboardPage.vue'
 import HomePage from './pages/HomePage.vue'
 import UsersPage from './pages/UsersPage.vue'
@@ -43,11 +44,17 @@ export const routes = [
 ]
 
 export function createAdminRouter(brandName = 'Nomen') {
+  const queryPath = currentPagePath()
   const router = createRouter({
-    history: createWebHistory(),
+    history: queryPath ? createMemoryHistory() : createWebHistory(),
     routes,
     scrollBehavior: () => ({ top: 0 }),
   })
+
+  if (queryPath) {
+    router.push(queryPath)
+    installQueryNavigation(router)
+  }
 
   router.afterEach((to) => {
     const title = to.meta?.title

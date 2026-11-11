@@ -11,6 +11,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import BaseAlert from '../../components/BaseAlert.vue'
 import Icon from '../../components/Icon.vue'
 import { toast } from '../../lib/toast.js'
+import { url } from '../../lib/url.js'
 import { isSvgFile, svgToPngFile, SVG_PNG_SIZE } from '../../lib/svg.js'
 import { generateStrongPassword, passwordStrength, copyText } from '../../composables/usePasswordTools.js'
 import { useT } from '../../composables/useT.js'
@@ -67,7 +68,7 @@ async function unlinkIdentity(item) {
   const body = new URLSearchParams()
   body.set('_csrf', props.csrf)
   body.set('provider_id', String(item.provider_id))
-  const response = await fetch('/settings/identities/unlink', {
+  const response = await fetch(url('/settings/identities/unlink'), {
     method: 'POST',
     body,
     credentials: 'same-origin',

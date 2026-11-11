@@ -150,7 +150,7 @@ final class ErrorPage
         }
 
         try {
-            echo self::html($code, $message, $e, $id);
+            echo Url::filterHtml(self::html($code, $message, $e, $id));
         } catch (\Throwable) {
             // 报错页自己也坏了：退回一行纯文本，至少把状态码和原因留下
             echo '<!doctype html><meta charset="utf-8"><p>' . $code . ' error.</p>';

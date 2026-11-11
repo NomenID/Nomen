@@ -34,7 +34,7 @@ class EmailTemplate
 
     public static function url(string $path = ''): string
     {
-        return self::site() . '/' . ltrim($path, '/');
+        return self::site() . Url::to('/' . ltrim($path, '/'));
     }
 
     public static function privacyUrl(): string
@@ -73,7 +73,7 @@ class EmailTemplate
         $blocks    = $opts['blocks'] ?? [];
         $button    = $opts['button'] ?? null;
         $footnote  = $x((string)($opts['footnote'] ?? ''));
-        $prefsUrl  = (string)($opts['prefs_url'] ?? (self::site() . '/settings#sec-notifications'));
+        $prefsUrl  = (string)($opts['prefs_url'] ?? self::url('/settings#sec-notifications'));
 
         foreach ($blocks as $i => $b) {
             switch ($b['type'] ?? 'paragraph') {
@@ -360,7 +360,7 @@ HTML;
             }
         }
 
-        $url = $link ? (str_starts_with($link, 'http') ? $link : self::site() . $link) : self::site() . '/notifications';
+        $url = $link ? (str_starts_with($link, 'http') ? $link : self::url($link)) : self::url('/notifications');
 
         return self::render([
             'preheader'  => $title,
@@ -368,7 +368,7 @@ HTML;
             'title'      => $title,
             'blocks'     => $blocks,
             'button'     => ['text' => I18n::tIn($locale, 'Open in Nomen'), 'url' => $url],
-            'prefs_url'  => self::site() . '/settings#sec-notifications',
+            'prefs_url'  => self::url('/settings#sec-notifications'),
         ], $locale);
     }
 }

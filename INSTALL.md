@@ -31,6 +31,18 @@ Apache：`public/.htaccess` 已经带了规则，确认 `mod_rewrite` 开了、�
 
 装完打开 `/login` 是 404 或者直接报错，先回来看这里，不用怀疑程序。
 
+### 加不了伪静态也能用
+
+虚拟主机不让改配置时，安装向导里不加伪静态也能装完：站点改用查询串地址
+（`index.php?page=login`、`index.php?page=admin`），功能一样，只是地址长一点。
+
+开关在 `config/installed.php` 的 `app.pretty_urls`：`false` 表示查询串模式，`true` 表示短地址。
+**没写这一项时按短地址处理**，所以老站升级不会因为少了这个键就整站换地址。
+以后配好伪静态，把这一项改成 `true` 即可。
+
+注意：OAuth 应用登记的授权地址要跟着变，查询串模式下是
+`https://你的域名/index.php?page=oauth/authorize`（回调地址不变）。
+
 ## 方式一：网页向导
 
 1. 把代码放到站点目录（发布 zip 解压即可，`vendor/` 和前端产物都在里面）

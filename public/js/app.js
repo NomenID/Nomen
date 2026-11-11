@@ -8,6 +8,11 @@
 
 'use strict';
 
+// 站内地址：没有伪静态时由服务端注入的 window.Nomen.url 换成 index.php?page=…
+function appUrl(path) {
+    return window.Nomen && typeof window.Nomen.url === 'function' ? window.Nomen.url(path) : path;
+}
+
 // 图标：独立 SVG 文件 + CSS mask，页面上只留一个带图标名的 span
 function iconTag(name, extraClass) {
     return '<span class="icon icon-' + name + (extraClass ? ' ' + extraClass : '') + '"></span>';
@@ -678,7 +683,7 @@ function handleLogout() {
         cancelText: t('Cancel')
     }).then(function(confirmed) {
         if (confirmed) {
-            window.location.href = '/logout';
+            window.location.href = appUrl('/logout');
         }
     });
 }
@@ -1997,7 +2002,7 @@ function initLoginPage() {
         var captchaInput = document.getElementById('code-captcha');
         if (captchaInput) formData.append('captcha', captchaInput.value.trim());
 
-        fetch('/login/send-code', {
+        fetch(appUrl('/login/send-code'), {
             method: 'POST',
             body: formData,
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
@@ -2097,7 +2102,7 @@ function initBiometricLogin(onFail) {
         if (btnText) btnText.textContent = t('Preparing...');
         setStatus('');
 
-        fetch(optionsUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        fetch(appUrl(optionsUrl), { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
             .then(parseJsonResponse)
             .then(function(data) {
                 if (!data.success) {
@@ -2125,7 +2130,7 @@ function initBiometricLogin(onFail) {
                 }
 
                 var response = credential.response;
-                return fetch('/biometric/auth/verify', {
+                return fetch(appUrl('/biometric/auth/verify'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -2391,7 +2396,7 @@ function initEmailSet() {
         body.append('_csrf', csrfToken);
         Object.keys(params).forEach(function(key) { body.append(key, params[key]); });
 
-        fetch(url, {
+        fetch(appUrl(url), {
             method: 'POST',
             body: body,
             headers: { 'X-Requested-With': 'XMLHttpRequest' }

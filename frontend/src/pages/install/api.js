@@ -69,3 +69,14 @@ export async function fetchI18n(target) {
   const query = target ? '&set=' + encodeURIComponent(target) : ''
   return request('i18n', null, { method: 'GET', query })
 }
+
+/** 探一下伪静态：'ok' 说明 /login 这类地址能进 index.php，'fail' 说明只能走查询串。 */
+export async function probeRewrite() {
+  try {
+    const response = await fetch('/__rewrite_probe', { cache: 'no-store', credentials: 'same-origin' })
+    const text = response.ok ? (await response.text()).trim() : ''
+    return text === 'ok' ? 'ok' : 'fail'
+  } catch (err) {
+    return 'unknown'
+  }
+}

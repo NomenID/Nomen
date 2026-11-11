@@ -24,6 +24,7 @@ export const wizard = reactive({
   defaultLogo: '/assets/brand/nomen-icon.svg',
   done: null,
   lang: 'en',
+  probe: 'unknown',
 })
 
 export function initWizard(payload) {

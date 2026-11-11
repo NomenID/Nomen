@@ -11,6 +11,7 @@ import { computed, inject, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { apiPost } from './api'
 import { useT } from '../composables/useT.js'
+import { url } from '../lib/url.js'
 
 const { t } = useT()
 const router = useRouter()
@@ -37,7 +38,7 @@ const langHref = (slug) => {
 const onPoweredClick = (e) => {
   if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
   e.preventDefault()
-  window.location.href = '/special/version'
+  window.location.href = url('/special/version')
 }
 
 const filteredLocales = computed(() => {
@@ -78,7 +79,7 @@ async function logout() {
     confirmText: t('Sign out'),
     cancelText: t('Cancel'),
   })
-  if (confirmed) window.location.href = '/logout'
+  if (confirmed) window.location.href = url('/logout')
 }
 
 function onDrawerNav() {

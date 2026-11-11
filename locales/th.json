@@ -1415,5 +1415,8 @@
   "public/assets/ is not writable, so avatar uploads are unavailable — paste an image URL instead.": "public/assets/ เขียนไม่ได้ อัปโหลดรูปโปรไฟล์ใช้ไม่ได้ — วาง URL รูปแทน",
   "public/nomen-install/ is still there — delete it once the site is verified": "public/nomen-install/ ยังอยู่ — ลบหลังจากตรวจว่าเว็บใช้งานได้แล้ว",
   "{:name} is up and running.": "„{:name}\" ทำงานอยู่แล้ว",
-  "Demo": "เดโม"
+  "Demo": "เดโม",
+  "You can also continue without it: the site will use index.php?page= links, and you can switch later in config/installed.php.": "คุณข้ามไปต่อได้เลย: เว็บไซต์จะใช้ลิงก์รูปแบบ index.php?page= และเปลี่ยนภายหลังได้ใน config/installed.php",
+  "Short addresses (/login)": "ที่อยู่สั้น (/login)",
+  "Turn this off when the server has no rewrite rules; links will look like index.php?page=login. Stored in config/installed.php, so you can change it later.": "ปิดตัวเลือกนี้หากเซิร์ฟเวอร์ไม่มีกฎ rewrite: ลิงก์จะมีลักษณะเป็น index.php?page=login การตั้งค่าอยู่ใน config/installed.php และเปลี่ยนภายหลังได้"
 }

@@ -36,14 +36,21 @@ class Router
     public function dispatch(): void
     {
         $method = $_SERVER['REQUEST_METHOD'];
-        $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-        // 去掉 base path
-        $base = dirname($_SERVER['SCRIPT_NAME']);
-        if ($base !== '/' && $base !== '\\') {
-            $uri = substr($uri, strlen($base));
+        if (Url::queryMode()) {
+            // 没有伪静态：所有页面请求都落在 index.php 上，路径从 ?page= 里取
+            $page = $_GET['page'] ?? '';
+            $uri = '/' . trim(is_string($page) ? $page : '', '/');
+        } else {
+            $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+
+            // 去掉 base path
+            $base = dirname($_SERVER['SCRIPT_NAME']);
+            if ($base !== '/' && $base !== '\\') {
+                $uri = substr($uri, strlen($base));
+            }
+            $uri = '/' . trim($uri, '/');
         }
-        $uri = '/' . trim($uri, '/');
 
         // 尝试精确匹配
         if (isset($this->routes[$method][$uri])) {

@@ -23,6 +23,7 @@ const form = reactive({
   logo: saved.logo || '',
   language_default: saved.language_default || wizard.lang || 'en',
   language_allow_switch: saved.language_allow_switch !== false,
+  pretty_urls: saved.pretty_urls !== undefined ? saved.pretty_urls !== false : wizard.probe !== 'fail',
 })
 
 const optionalOpen = computed(() =>
@@ -126,6 +127,17 @@ async function save() {
           <span class="switch__track"></span>
           <span>{{ t('Let visitors switch the interface language') }}</span>
         </label>
+      </div>
+
+      <div class="field">
+        <label class="switch">
+          <input v-model="form.pretty_urls" type="checkbox">
+          <span class="switch__track"></span>
+          <span>{{ t('Short addresses (/login)') }}</span>
+        </label>
+        <div class="hint">
+          {{ t('Turn this off when the server has no rewrite rules; links will look like index.php?page=login. Stored in config/installed.php, so you can change it later.') }}
+        </div>
       </div>
       <div class="field">
         <label for="site_logo">{{ t('Icon URL (optional)') }}</label>

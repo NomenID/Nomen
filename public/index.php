@@ -177,7 +177,7 @@ $router->get('/sitemap.xml', function () {
     }
 
     echo '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><sitemap><loc>'
-        . htmlspecialchars($base . $docs . '/sitemap')
+        . htmlspecialchars($base . \Nomen\Src\Url::to($docs . '/sitemap'))
         . '</loc></sitemap></sitemapindex>';
 });
 
@@ -185,7 +185,7 @@ $router->get('/robots.txt', function () {
     $base = rtrim((string)\Nomen\Src\Brand::get('base_url'), '/');
 
     header('Content-Type: text/plain; charset=utf-8');
-    echo "User-agent: *\nAllow: /\n\nSitemap: " . $base . "/sitemap.xml\n";
+    echo "User-agent: *\nAllow: /\n\nSitemap: " . $base . \Nomen\Src\Url::to('/sitemap.xml') . "\n";
 });
 
 // 人机验证

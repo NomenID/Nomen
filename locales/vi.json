@@ -1415,5 +1415,8 @@
   "public/assets/ is not writable, so avatar uploads are unavailable — paste an image URL instead.": "public/assets/ không ghi được, tải ảnh đại diện không khả dụng — dán URL ảnh thay thế.",
   "public/nomen-install/ is still there — delete it once the site is verified": "public/nomen-install/ vẫn còn đó — xóa khi đã kiểm tra trang xong",
   "{:name} is up and running.": "„{:name}\" đã hoạt động.",
-  "Demo": "Bản demo"
+  "Demo": "Bản demo",
+  "You can also continue without it: the site will use index.php?page= links, and you can switch later in config/installed.php.": "Bạn cũng có thể tiếp tục mà không cần: trang sẽ dùng liên kết dạng index.php?page=, và có thể đổi sau trong config/installed.php.",
+  "Short addresses (/login)": "Địa chỉ ngắn (/login)",
+  "Turn this off when the server has no rewrite rules; links will look like index.php?page=login. Stored in config/installed.php, so you can change it later.": "Tắt nếu máy chủ không có quy tắc rewrite: liên kết sẽ trông như index.php?page=login. Cài đặt lưu trong config/installed.php và có thể đổi sau."
 }

@@ -63,7 +63,7 @@ final class AppData
             'latestUnread' => $latest ? [
                 'id' => (int)$latest['id'],
                 'title' => (string)$latest['title'],
-                'link' => (string)($latest['link'] ?: ('/notifications/' . (int)$latest['id'])),
+                'link' => Url::to((string)($latest['link'] ?: ('/notifications/' . (int)$latest['id']))),
             ] : null,
         ];
 

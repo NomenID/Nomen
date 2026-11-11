@@ -1415,5 +1415,8 @@
   "public/assets/ is not writable, so avatar uploads are unavailable — paste an image URL instead.": "public/assets/ 不可写，头像上传用不了，先填图片链接。",
   "public/nomen-install/ is still there — delete it once the site is verified": "public/nomen-install/ 还留着，确认站点没问题后删掉",
   "{:name} is up and running.": "「{:name}」正在运行。",
-  "Demo": "演示"
+  "Demo": "演示",
+  "You can also continue without it: the site will use index.php?page= links, and you can switch later in config/installed.php.": "也可以直接继续：站点会改用 index.php?page= 形式的链接，之后可以在 config/installed.php 里改回来。",
+  "Short addresses (/login)": "短地址（/login）",
+  "Turn this off when the server has no rewrite rules; links will look like index.php?page=login. Stored in config/installed.php, so you can change it later.": "服务器没有伪静态时关掉它，链接会变成 index.php?page=login 的样子。这项存在 config/installed.php，之后可以改。"
 }

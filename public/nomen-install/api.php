@@ -152,6 +152,7 @@ try {
             'logo' => $text($data, 'logo'),
             'language_default' => $text($data, 'language_default', 'zh-hans'),
             'language_allow_switch' => !empty($data['language_allow_switch']),
+            'pretty_urls' => !empty($data['pretty_urls']),
         ];
 
         $scheme = strtolower((string)parse_url($site['base_url'], PHP_URL_SCHEME));
@@ -388,6 +389,7 @@ try {
                 'logo' => $site['logo'] ?? '',
                 'language_default' => $site['language_default'] ?? 'zh-hans',
                 'language_allow_switch' => (bool)($site['language_allow_switch'] ?? true),
+                'pretty_urls' => (bool)($site['pretty_urls'] ?? false),
                 'features' => [
                     'guardians' => (bool)($features['guardians'] ?? false),
                     'country' => (bool)($features['country'] ?? false),

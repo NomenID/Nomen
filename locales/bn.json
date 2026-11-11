@@ -1415,5 +1415,8 @@
   "public/assets/ is not writable, so avatar uploads are unavailable — paste an image URL instead.": "public/assets/-এ লেখার অনুমতি নেই, অ্যাভাটার আপলোড চলবে না — এর বদলে ছবির URL পেস্ট করুন।",
   "public/nomen-install/ is still there — delete it once the site is verified": "public/nomen-install/ এখনো আছে — সাইট ঠিক আছে নিশ্চিত হয়ে মুছে দিন",
   "{:name} is up and running.": "„{:name}\" চলছে।",
-  "Demo": "ডেমো"
+  "Demo": "ডেমো",
+  "You can also continue without it: the site will use index.php?page= links, and you can switch later in config/installed.php.": "এটি ছাড়াও চালিয়ে যেতে পারেন: সাইটটি index.php?page= ধরনের লিংক ব্যবহার করবে, আর পরে config/installed.php-এ বদলাতে পারবেন।",
+  "Short addresses (/login)": "ছোট ঠিকানা (/login)",
+  "Turn this off when the server has no rewrite rules; links will look like index.php?page=login. Stored in config/installed.php, so you can change it later.": "সার্ভারে rewrite নিয়ম না থাকলে এটি বন্ধ করুন: লিংক index.php?page=login-এর মতো দেখাবে। সেটিংটি config/installed.php-এ থাকে, পরে বদলানো যায়।"
 }

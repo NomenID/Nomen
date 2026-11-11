@@ -1415,5 +1415,8 @@
   "public/assets/ is not writable, so avatar uploads are unavailable — paste an image URL instead.": "public/assets/ is niet beschrijfbaar, avatar-uploads zijn niet mogelijk — plak in plaats daarvan een afbeeldings-URL.",
   "public/nomen-install/ is still there — delete it once the site is verified": "public/nomen-install/ staat er nog — verwijder het zodra de site is gecontroleerd",
   "{:name} is up and running.": "\"{:name}\" draait.",
-  "Demo": "Demo"
+  "Demo": "Demo",
+  "You can also continue without it: the site will use index.php?page= links, and you can switch later in config/installed.php.": "Je kunt ook doorgaan zonder: de site gebruikt dan links als index.php?page=, later aan te passen in config/installed.php.",
+  "Short addresses (/login)": "Korte adressen (/login)",
+  "Turn this off when the server has no rewrite rules; links will look like index.php?page=login. Stored in config/installed.php, so you can change it later.": "Zet dit uit als de server geen rewrite-regels heeft: links zien er dan uit als index.php?page=login. De instelling staat in config/installed.php en is later aan te passen."
 }

@@ -1415,5 +1415,8 @@
   "public/assets/ is not writable, so avatar uploads are unavailable — paste an image URL instead.": "public/assets/ が書き込み不可のため、アバターアップロードは使えません。画像 URL を貼ってください。",
   "public/nomen-install/ is still there — delete it once the site is verified": "public/nomen-install/ が残っています。サイトの動作を確認したら削除してください",
   "{:name} is up and running.": "「{:name}」が稼働中です。",
-  "Demo": "デモ"
+  "Demo": "デモ",
+  "You can also continue without it: the site will use index.php?page= links, and you can switch later in config/installed.php.": "そのまま続けることもできます。サイトは index.php?page= 形式のリンクを使い、あとから config/installed.php で切り替えられます。",
+  "Short addresses (/login)": "短いアドレス（/login）",
+  "Turn this off when the server has no rewrite rules; links will look like index.php?page=login. Stored in config/installed.php, so you can change it later.": "サーバーにリライト設定がない場合はオフにしてください。リンクは index.php?page=login の形式になります。設定は config/installed.php に保存され、あとから変更できます。"
 }

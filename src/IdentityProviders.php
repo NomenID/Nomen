@@ -188,7 +188,7 @@ class IdentityProviders
 
     public static function callbackUrl(string $slug): string
     {
-        return rtrim((string)Brand::get('base_url'), '/') . '/auth/' . rawurlencode($slug) . '/callback';
+        return rtrim((string)Brand::get('base_url'), '/') . Url::to('/auth/' . rawurlencode($slug) . '/callback');
     }
 
     private static function db(): PDO

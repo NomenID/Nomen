@@ -9,6 +9,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
+import { url } from '../lib/url.js'
 
 const props = defineProps({
   viewer: { type: Object, default: () => ({}) },
@@ -48,7 +49,7 @@ async function logout() {
     confirmText: '退出',
     cancelText: '取消',
   })
-  if (ok) window.location.href = '/logout'
+  if (ok) window.location.href = url('/logout')
 }
 
 const userInitial = computed(() => {

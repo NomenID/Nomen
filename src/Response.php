@@ -22,7 +22,7 @@ class Response
     public static function redirect(string $url, int $status = 302): void
     {
         http_response_code($status);
-        header("Location: $url");
+        header('Location: ' . Url::to($url));
         exit;
     }
 
@@ -54,7 +54,8 @@ class Response
         // 由全局处理器丢掉并换成干净的 500，而不是把 200 + 半截 HTML 发给访客
         ob_start();
         require $layoutFile;
-        ob_end_flush();
+        $html = (string)ob_get_clean();
+        echo Url::filterHtml($html);
     }
 
     public static function viewPartial(string $template, array $data = []): string

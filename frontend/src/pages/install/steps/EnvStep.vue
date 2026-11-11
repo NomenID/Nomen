@@ -11,6 +11,7 @@ import { computed, onMounted, ref } from 'vue'
 import StepHead from '../StepHead.vue'
 import CheckRow from '../CheckRow.vue'
 import { t } from '../i18n'
+import { probeRewrite } from '../api'
 import { go, refreshEnv, wizard } from '../wizard'
 
 const probing = ref(true)
@@ -19,7 +20,6 @@ const probe = ref('pending')
 const required = computed(() => wizard.env?.required || [])
 const optional = computed(() => wizard.env?.optional || [])
 const envOk = computed(() => required.value.every((row) => row.pass))
-const canContinue = computed(() => envOk.value && probe.value === 'ok')
 
 const probeState = computed(() => {
   if (probing.value) return 'pending'
@@ -51,18 +51,9 @@ RewriteRule ^ index.php [L]`
 
 async function runProbe() {
   probing.value = true
-  try {
-    const response = await fetch('/__rewrite_probe', {
-      cache: 'no-store',
-      credentials: 'same-origin',
-    })
-    const text = response.ok ? (await response.text()).trim() : ''
-    probe.value = text === 'ok' ? 'ok' : 'fail'
-  } catch (err) {
-    probe.value = 'unknown'
-  } finally {
-    probing.value = false
-  }
+  probe.value = await probeRewrite()
+  wizard.probe = probe.value
+  probing.value = false
 }
 
 async function recheck() {
@@ -88,12 +79,15 @@ onMounted(runProbe)
   <div v-if="probe === 'fail' && !probing" class="alert alert--error" style="margin-top:18px">
     <strong>{{ t('URL rewriting is not active.') }}</strong>
     {{ t('Addresses other than the home page, such as /login and /special/version, return 404. Add the rules below, reload, then click "Check again".') }}
+    <p style="margin:10px 0 0">
+      {{ t('You can also continue without it: the site will use index.php?page= links, and you can switch later in config/installed.php.') }}
+    </p>
     <pre class="code">{{ snippet }}</pre>
   </div>
 
   <div class="actions">
-    <button v-if="canContinue" class="btn btn-primary" type="button" @click="go('db')">{{ t('Continue') }}</button>
-    <button v-else class="btn btn-ghost" type="button" :class="{ 'is-busy': wizard.busy }"
+    <button v-if="envOk" class="btn btn-primary" type="button" @click="go('db')">{{ t('Continue') }}</button>
+    <button v-if="!envOk || probe !== 'ok'" class="btn btn-ghost" type="button" :class="{ 'is-busy': wizard.busy }"
       :disabled="wizard.busy" @click="recheck">{{ t('Check again') }}</button>
   </div>
 

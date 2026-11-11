@@ -1415,5 +1415,8 @@
   "public/assets/ is not writable, so avatar uploads are unavailable — paste an image URL instead.": "public/assets/ tidak dapat ditulisi, unggahan avatar tidak tersedia — tempel URL gambar sebagai gantinya.",
   "public/nomen-install/ is still there — delete it once the site is verified": "public/nomen-install/ masih ada — hapus setelah situs terverifikasi",
   "{:name} is up and running.": "„{:name}\" sudah berjalan.",
-  "Demo": "Demo"
+  "Demo": "Demo",
+  "You can also continue without it: the site will use index.php?page= links, and you can switch later in config/installed.php.": "Anda juga bisa lanjut tanpanya: situs akan memakai tautan berbentuk index.php?page=, dan bisa diubah nanti di config/installed.php.",
+  "Short addresses (/login)": "Alamat pendek (/login)",
+  "Turn this off when the server has no rewrite rules; links will look like index.php?page=login. Stored in config/installed.php, so you can change it later.": "Matikan jika server tidak punya aturan rewrite: tautan akan tampak seperti index.php?page=login. Pengaturan disimpan di config/installed.php dan bisa diubah nanti."
 }
