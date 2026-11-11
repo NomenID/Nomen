@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{ActivityLog, AuthController, Csrf, Database, Hooks, IdentityAuth, IdentityProviders, LoginMethods, Response, Session, Unid};
+use Nomen\Src\{ActivityLog, Csrf, Database, Hooks, IdentityAuth, IdentityProviders, LoginMethods, Response, Session, Unid};
 use PDO;
 use Throwable;
 
