@@ -11,6 +11,7 @@ namespace Nomen\Src\Cli;
 
 use Nomen\Src\Database;
 use Nomen\Src\Installer\Database as InstallDb;
+use Nomen\Src\Unid;
 use Nomen\Src\Upgrade as AppUpgrade;
 use PDO;
 use PDOException;
@@ -73,6 +74,11 @@ class Migrate
 
             echo 'ok', PHP_EOL;
             $applied++;
+        }
+
+        $backfilled = Unid::backfill($pdo);
+        if ($backfilled > 0) {
+            echo '  补齐 UNID：', $backfilled, ' 行', PHP_EOL;
         }
 
         AppUpgrade::record($pdo, (string)($config['version'] ?? ''));

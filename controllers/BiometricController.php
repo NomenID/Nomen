@@ -224,6 +224,8 @@ class BiometricController
             Response::json(['success' => false, 'message' => t('Missing credential data')]);
         }
 
+        $temporary = !empty($postData['temporary']);
+
         $challenge = Session::get('webauthn_authentication_challenge');
         $expectedUserId = Session::get('webauthn_auth_user_id');
 
@@ -307,11 +309,11 @@ class BiometricController
 
         // 与密码 / 邮箱验证码登录走同一套两步验证判定
         Session::regenerate();
-        if (AuthController::beginSecondFactorIfNeeded($user, 'biometric', $redirect, false)) {
+        if (AuthController::beginSecondFactorIfNeeded($user, 'biometric', $redirect, $temporary)) {
             Response::json(['success' => true, 'message' => t('Two-step verification required'), 'redirect' => '/2fa/verify']);
         }
 
-        AuthController::finishLogin($user, $redirect, false, true, [], 'biometric');
+        AuthController::finishLogin($user, $redirect, $temporary, true, [], 'biometric');
     }
 
     /**

@@ -36,7 +36,7 @@ const statusLabel = {
   completed: '已完成',
 }
 
-const requestId = computed(() => Number(route.params.id))
+const requestId = computed(() => String(route.params.id))
 
 async function load() {
   loading.value = true
@@ -67,7 +67,7 @@ async function act(mode) {
   busy.value = mode
   try {
     const result = await apiPost(`/admin/recovery/${mode}`, {
-      request_id: requestId.value,
+      request_unid: requestId.value,
       admin_note: note.value,
     })
     window.Nomen.toast(result.message, result.success ? 'success' : 'error')
@@ -121,7 +121,7 @@ onMounted(load)
       <div class="a-grid a-grid--2">
         <AdminCard title="申请信息">
           <dl class="a-kv">
-            <dt>账号</dt><dd><router-link class="a-link" :to="`/admin/users/${data.request.user_id}`">{{ data.request.username }}</router-link></dd>
+            <dt>账号</dt><dd><router-link v-if="data.user.unid" class="a-link" :to="`/admin/users/${data.user.unid}`">{{ data.request.username }}</router-link><span v-else>{{ data.request.username }}</span></dd>
             <dt>账号邮箱</dt><dd>{{ data.request.account_email || '—' }}</dd>
             <dt>联系邮箱</dt><dd>{{ data.request.contact_email }}</dd>
             <dt>出生日期</dt>
@@ -178,8 +178,8 @@ onMounted(load)
           <table class="a-table">
             <thead><tr><th>时间</th><th>分类</th><th>动作</th><th>说明</th><th>设备</th></tr></thead>
             <tbody>
-              <tr v-for="log in data.recentLogs" :key="log.id">
-                <td class="a-nowrap"><router-link class="a-link" :to="`/admin/logs/${log.id}`">{{ log.created_at }}</router-link></td>
+              <tr v-for="log in data.recentLogs" :key="log.unid">
+                <td class="a-nowrap"><router-link class="a-link" :to="`/admin/logs/${log.unid}`">{{ log.created_at }}</router-link></td>
                 <td>{{ log.category_label }}</td>
                 <td>{{ log.action_label }}</td>
                 <td class="a-cell-summary">{{ log.summary }}</td>

@@ -125,8 +125,8 @@ onMounted(() => {
               <tr><th>时间</th><th>操作者</th><th>分类</th><th>动作</th><th>说明</th></tr>
             </thead>
             <tbody>
-              <tr v-for="log in data.recentLogs" :key="log.id">
-                <td class="a-nowrap"><router-link class="a-link" :to="`/admin/logs/${log.id}`">{{ log.created_at }}</router-link></td>
+              <tr v-for="log in data.recentLogs" :key="log.unid">
+                <td class="a-nowrap"><router-link class="a-link" :to="`/admin/logs/${log.unid}`">{{ log.created_at }}</router-link></td>
                 <td>
                   <router-link v-if="log.actor_url" class="a-link" :to="log.actor_url">{{ log.actor_username || '系统' }}</router-link>
                   <span v-else>{{ log.actor_username || '系统' }}</span>

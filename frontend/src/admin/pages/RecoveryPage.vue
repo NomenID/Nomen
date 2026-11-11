@@ -108,10 +108,10 @@ onMounted(() => load(1))
             <tr><th>#</th><th>用户</th><th>联系邮箱</th><th>状态</th><th>提交时间</th><th>审核时间</th><th>说明</th></tr>
           </thead>
           <tbody>
-            <tr v-for="req in data.requests" :key="req.id">
-              <td><router-link class="a-link a-link--strong" :to="`/admin/recovery/${req.id}`">#{{ req.id }}</router-link></td>
+            <tr v-for="req in data.requests" :key="req.unid">
+              <td><router-link class="a-link a-link--strong" :to="`/admin/recovery/${req.unid}`">#{{ req.unid }}</router-link></td>
               <td>
-                <router-link class="a-link" :to="`/admin/users/${req.user_id}`">{{ req.username }}</router-link>
+                <router-link class="a-link" :to="`/admin/users/${req.user_unid}`">{{ req.username }}</router-link>
               </td>
               <td>{{ req.contact_email }}</td>
               <td><AdminBadge :tone="statusTone[req.status] || ''">{{ statusLabel(req.status) }}</AdminBadge></td>

@@ -88,9 +88,10 @@ class Database
         $pdo->beginTransaction();
 
         $pdo->prepare(
-            'INSERT INTO users (username, email, email_verified, password_hash, display_name, role, status)
-             VALUES (?, ?, 1, ?, ?, \'admin\', 1)'
+            'INSERT INTO users (unid, username, email, email_verified, password_hash, display_name, role, status)
+             VALUES (?, ?, ?, 1, ?, ?, \'admin\', 1)'
         )->execute([
+            \Nomen\Src\Unid::generate(),
             $username,
             $email,
             password_hash($password . $pepper, PASSWORD_ARGON2ID),

@@ -178,7 +178,7 @@ class ActivationController
 
         // 查找用户
         $stmt = $this->db->prepare(
-            'SELECT id, email, email_verified, email_verify_token_expires_at FROM users WHERE email_verify_token = :token'
+            'SELECT id, username, email, email_verified, email_verify_token_expires_at FROM users WHERE email_verify_token = :token'
         );
         $stmt->execute([':token' => $token]);
         $user = $stmt->fetch();
@@ -197,6 +197,8 @@ class ActivationController
             // 已经验证过了，直接登录
             Session::regenerate();
             Session::set('user_id', $user['id']);
+            Session::markSignedIn(false);
+            AuthController::touchLogin((int)$user['id']);
             Response::redirect('/dashboard');
         }
 
@@ -256,6 +258,9 @@ class ActivationController
         // 自动登录
         Session::regenerate();
         Session::set('user_id', $user['id']);
+        Session::set('username', $user['username'] ?? '');
+        Session::markSignedIn(false);
+        AuthController::touchLogin((int)$user['id']);
 
         Session::flash('success', t('Email verified!'));
         Response::redirect('/dashboard');

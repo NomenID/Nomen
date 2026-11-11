@@ -26,7 +26,7 @@ async function load() {
   loading.value = true
   error.value = ''
   try {
-    const data = await apiGet(`/api/admin/logs/${Number(route.params.id)}`)
+    const data = await apiGet(`/api/admin/logs/${route.params.id}`)
     log.value = data.log
   } catch (err) {
     error.value = '日志不存在或加载失败'
@@ -53,7 +53,7 @@ onMounted(load)
     <div v-else-if="loading" class="a-loading">加载中…</div>
 
     <template v-else-if="log">
-      <AdminCard :title="`#${log.id}`">
+      <AdminCard :title="`#${log.unid}`">
         <template #actions>
           <AdminBadge>{{ log.category_label }}</AdminBadge>
           <AdminBadge tone="muted">{{ log.action }}</AdminBadge>
@@ -69,8 +69,8 @@ onMounted(load)
           <dt>动作</dt><dd>{{ log.action_label }} <code class="a-mono">{{ log.action }}</code></dd>
           <dt>目标</dt>
           <dd>
-            <router-link v-if="log.target_url" class="a-link" :to="log.target_url">{{ log.target_name || log.target_id }}</router-link>
-            <span v-else>{{ log.target_name || log.target_id || '—' }}</span>
+            <router-link v-if="log.target_url" class="a-link" :to="log.target_url">{{ log.target_name || log.target_unid }}</router-link>
+            <span v-else>{{ log.target_name || log.target_unid || '—' }}</span>
             <span v-if="log.target_type_label" class="a-text--muted">（{{ log.target_type_label }}）</span>
           </dd>
           <dt>说明</dt><dd>{{ log.summary || '—' }}</dd>

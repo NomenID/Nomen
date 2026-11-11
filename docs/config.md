@@ -76,9 +76,10 @@ return [
 | `pepper` | `APP_PEPPER` | 参与密码哈希，上线后不可更改 |
 | `secret_key` | `APP_SECRET` | 预留，当前没有代码使用 |
 | `csrf_enabled` | `true` | 保持开启 |
-| `session_lifetime` | `7200` | 会话有效期（秒） |
+| `session_lifetime` | `7200` | 未登录访客的会话有效期（秒） |
 | `session_name` | `NOMEN_SESSION` | 会话 cookie 名 |
-| `remember_me_ttl` | `2592000` | 「记住我」有效期（30 天） |
+| `login_ttl` | `2592000` | 登录后多久没访问需要重新登录（30 天，每次访问自动续期） |
+| `login_max_ttl` | `7776000` | 从登录时刻起的最长登录期（90 天，到点必须重新登录） |
 | `login_captcha_threshold` | `5` | 单 IP 每分钟登录尝试超过该值要求验证码 |
 | `login_ip_hard_limit` | `20` | 单 IP 每分钟登录尝试硬上限 |
 | `two_factor_pending_ttl` | `600` | 二验待验证会话有效期（秒） |

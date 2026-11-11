@@ -47,8 +47,10 @@
 
 | 项 | 默认 | 位置 |
 |---|---|---|
-| 会话有效期 | 2 小时 | `config/app.php` 的 `session_lifetime` |
-| 「记住我」 | 30 天 | `remember_me_ttl` |
+| 未登录访客的会话 | 2 小时 | `config/app.php` 的 `session_lifetime` |
+| 登录保持 | 30 天没访问就重新登录，每次访问自动续期 | `login_ttl` |
+| 最长登录期 | 从登录时刻起 90 天 | `login_max_ttl` |
+| 公共设备 | 勾选后只发浏览器会话 cookie，关浏览器即退出 | 登录页 |
 | 可信设备判定 | 90 天内验证过 | `src/DeviceController.php` |
 | 会话 cookie 名 | `NOMEN_SESSION` | `BRAND` 的 `session_name` / `SESSION_NAME` |
 

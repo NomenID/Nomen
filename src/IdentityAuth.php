@@ -20,7 +20,7 @@ class IdentityAuth
     private const SESSION_KEY = 'identity_oauth';
     private const STATE_TTL = 600;
 
-    public static function begin(array $provider, bool $link = false, string $redirect = '/dashboard'): string
+    public static function begin(array $provider, bool $link = false, string $redirect = '/dashboard', bool $temporary = false): string
     {
         $state = bin2hex(random_bytes(24));
         $verifier = bin2hex(random_bytes(32));
@@ -32,6 +32,7 @@ class IdentityAuth
             'verifier' => $verifier,
             'link'     => $link,
             'redirect' => $redirect,
+            'temporary' => $temporary,
             'at'       => time(),
         ]);
 

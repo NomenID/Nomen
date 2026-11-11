@@ -14,6 +14,8 @@ use Redis;
 class Session
 {
     private static int $defaultLifetime = 7200;
+    private static int $loginTtl = 30 * 24 * 3600;
+    private static int $loginMaxTtl = 90 * 24 * 3600;
 
     private const INDEX_PREFIX = 'user_sessions:';
     private const INDEX_READY_KEY = 'nomen:session_index_ready';
@@ -27,27 +29,106 @@ class Session
         }
 
         $config = require __DIR__ . '/../config/app.php';
-        self::$defaultLifetime = $config['session_lifetime'] ?? 7200;
+        self::$defaultLifetime = (int)($config['session_lifetime'] ?? 7200);
+        self::$loginTtl = (int)($config['login_ttl'] ?? 30 * 24 * 3600);
+        self::$loginMaxTtl = max(self::$loginTtl, (int)($config['login_max_ttl'] ?? 90 * 24 * 3600));
 
-        // gc_maxlifetime 必须覆盖「记住我」的最长有效期，否则服务端会提前回收 session，
-        // 长有效期 cookie 的后半段就是空壳了
-        $rememberTtl = (int)($config['remember_me_ttl'] ?? 30 * 24 * 3600);
-        $maxLifetime = max(self::$defaultLifetime, $rememberTtl);
-        ini_set('session.gc_maxlifetime', (string)$maxLifetime);
+        // 服务端回收时间必须覆盖最长登录期，否则 90 天期限没到、session 先被 gc 掉
+        ini_set('session.gc_maxlifetime', (string)self::$loginMaxTtl);
 
         self::useSharedStorage($config);
 
+        // cookie 由 refreshCookie() 自己发：PHP 每次 session_start 都会重发一条同名的，
+        // 会和这里的有效期打架（两条 Set-Cookie 谁在后看实现，不可靠）
+        ini_set('session.use_cookies', '0');
+
         session_name($config['session_name']);
-        session_set_cookie_params([
-            'lifetime' => self::$defaultLifetime,
+        $sid = $_COOKIE[$config['session_name']] ?? '';
+        if (is_string($sid) && preg_match('/^[A-Za-z0-9,-]{22,256}$/', $sid)) {
+            session_id($sid);
+        }
+
+        session_start();
+
+        self::refreshCookie();
+    }
+
+    /**
+     * 登录成功后登记会话性质：持久（默认）或本次临时
+     *
+     * 临时会话发的是浏览器会话 cookie（没有 expires），关掉浏览器就没了；
+     * 持久会话按 login_ttl 滑动续期，从登录时刻起最长 login_max_ttl。
+     */
+    public static function markSignedIn(bool $temporary): void
+    {
+        $_SESSION['_persistent'] = !$temporary;
+        $_SESSION['_login_at'] = time();
+
+        self::sendCookie(self::cookieExpiry());
+    }
+
+    /** 按当前会话状态重发 cookie（PHP 的自动 cookie 已关掉） */
+    private static function refreshCookie(): void
+    {
+        $userId = (int)($_SESSION['user_id'] ?? 0);
+
+        if ($userId <= 0) {
+            self::sendCookie(time() + self::$defaultLifetime);
+            return;
+        }
+
+        if (empty($_SESSION['_persistent'])) {
+            self::sendCookie(0);
+            return;
+        }
+
+        $loginAt = (int)($_SESSION['_login_at'] ?? 0);
+        if ($loginAt <= 0) {
+            // 升级前就存在的会话：没有登录时刻，按本次访问起算，别把在线用户直接踢掉
+            $loginAt = time();
+            $_SESSION['_login_at'] = $loginAt;
+        }
+
+        if (time() >= $loginAt + self::$loginMaxTtl) {
+            // 90 天上限到了：会话作废，下次请求就是一个干净的匿名 session
+            $_SESSION = [];
+            self::sendCookie(time() + self::$defaultLifetime);
+            return;
+        }
+
+        self::sendCookie(self::cookieExpiry());
+    }
+
+    /**
+     * 当前会话该用的 cookie 到期时间戳（0 = 浏览器会话 cookie）
+     */
+    private static function cookieExpiry(): int
+    {
+        if (empty($_SESSION['user_id']) || empty($_SESSION['_persistent'])) {
+            return 0;
+        }
+
+        $loginAt = (int)($_SESSION['_login_at'] ?? time());
+        $sliding = time() + self::$loginTtl;
+        $absolute = $loginAt + self::$loginMaxTtl;
+
+        return min($sliding, $absolute);
+    }
+
+    private static function sendCookie(int $expires): void
+    {
+        if (session_id() === '') {
+            return;
+        }
+
+        setcookie(session_name(), session_id(), [
+            'expires'  => $expires,
             'path'     => '/',
             'domain'   => '',
             'secure'   => true,
-            'httponly'  => true,
-            'samesite'  => 'Lax',
+            'httponly' => true,
+            'samesite' => 'Lax',
         ]);
-
-        session_start();
     }
 
     /**
@@ -331,30 +412,6 @@ class Session
         return $deleted;
     }
 
-    /**
-     * 延长 session 有效期（在 session 已启动后用 setcookie 刷新）
-     */
-    public static function extendLifetime(int $seconds): void
-    {
-        $lifetime = max(self::$defaultLifetime, $seconds);
-
-        // session_set_cookie_params / ini_set 只在 session_start 之前生效
-        // 已启动的 session 需要用 setcookie 直接刷新 cookie
-        $params = session_get_cookie_params();
-        setcookie(
-            session_name(),
-            session_id(),
-            [
-                'expires'  => time() + $lifetime,
-                'path'     => $params['path'] ?? '/',
-                'domain'   => $params['domain'] ?? '',
-                'secure'   => $params['secure'] ?? true,
-                'httponly'  => $params['httponly'] ?? true,
-                'samesite'  => $params['samesite'] ?? 'Lax',
-            ]
-        );
-    }
-
     public static function get(string $key, $default = null)
     {
         return $_SESSION[$key] ?? $default;
@@ -393,6 +450,16 @@ class Session
 
         session_destroy();
         $_SESSION = [];
+
+        // PHP 的自动 cookie 已关，销毁时得自己把它撤掉
+        setcookie(session_name(), '', [
+            'expires'  => time() - 3600,
+            'path'     => '/',
+            'domain'   => '',
+            'secure'   => true,
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
     }
 
     public static function flash(string $key, $value): void
@@ -420,18 +487,6 @@ class Session
             self::indexSession($userId);
         }
 
-        $params = session_get_cookie_params();
-        setcookie(
-            session_name(),
-            session_id(),
-            [
-                'expires'  => time() + self::$defaultLifetime,
-                'path'     => $params['path'] ?? '/',
-                'domain'   => $params['domain'] ?? '',
-                'secure'   => $params['secure'] ?? true,
-                'httponly'  => $params['httponly'] ?? true,
-                'samesite'  => $params['samesite'] ?? 'Lax',
-            ]
-        );
+        self::sendCookie((int)($_SESSION['user_id'] ?? 0) > 0 ? self::cookieExpiry() : time() + self::$defaultLifetime);
     }
 }

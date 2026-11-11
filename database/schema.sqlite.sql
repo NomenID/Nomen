@@ -6,6 +6,7 @@ PRAGMA foreign_keys = OFF;
 DROP TABLE IF EXISTS account_recovery_requests;
 CREATE TABLE account_recovery_requests (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
+  unid TEXT NOT NULL,
   user_id INTEGER NOT NULL,
   username TEXT COLLATE NOCASE NOT NULL,
   account_email TEXT COLLATE NOCASE DEFAULT NULL,
@@ -32,10 +33,11 @@ CREATE TABLE account_recovery_requests (
 CREATE INDEX idx_account_recovery_requests_user ON account_recovery_requests (user_id);
 CREATE INDEX idx_account_recovery_requests_status_created ON account_recovery_requests (status, created_at);
 CREATE INDEX idx_account_recovery_requests_token ON account_recovery_requests (recovery_token_hash);
-
+CREATE UNIQUE INDEX idx_account_recovery_requests_unid ON account_recovery_requests (unid);
 DROP TABLE IF EXISTS activity_logs;
 CREATE TABLE activity_logs (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
+  unid TEXT NOT NULL,
   actor_type TEXT NOT NULL DEFAULT 'user',
   actor_id INTEGER DEFAULT NULL,
   actor_username TEXT DEFAULT NULL,
@@ -56,7 +58,7 @@ CREATE INDEX idx_activity_logs_actor ON activity_logs (actor_type, actor_id, cre
 CREATE INDEX idx_activity_logs_action ON activity_logs (action, created_at);
 CREATE INDEX idx_activity_logs_category ON activity_logs (category, created_at);
 CREATE INDEX idx_activity_logs_created ON activity_logs (created_at);
-
+CREATE UNIQUE INDEX idx_activity_logs_unid ON activity_logs (unid);
 DROP TABLE IF EXISTS developers;
 CREATE TABLE developers (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -74,12 +76,13 @@ CREATE UNIQUE INDEX idx_developers_user ON developers (user_id);
 DROP TABLE IF EXISTS family_groups;
 CREATE TABLE family_groups (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
+  unid TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'unclaimed',
   created_at TEXT NOT NULL DEFAULT '',
   claimed_at TEXT DEFAULT NULL,
   updated_at TEXT NOT NULL DEFAULT ''
 );
-
+CREATE UNIQUE INDEX idx_family_groups_unid ON family_groups (unid);
 DROP TABLE IF EXISTS family_members;
 CREATE TABLE family_members (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -361,6 +364,7 @@ CREATE UNIQUE INDEX idx_user_totp_secrets_user ON user_totp_secrets (user_id);
 DROP TABLE IF EXISTS users;
 CREATE TABLE users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
+  unid TEXT NOT NULL,
   oauth_id TEXT COLLATE NOCASE DEFAULT NULL,
   username TEXT COLLATE NOCASE NOT NULL,
   email TEXT COLLATE NOCASE DEFAULT NULL,
@@ -399,7 +403,7 @@ CREATE INDEX idx_users_email_2 ON users (email);
 CREATE INDEX idx_users_username_2 ON users (username);
 CREATE INDEX idx_users_email_verify_token ON users (email_verify_token);
 CREATE INDEX idx_users_pending_email_token ON users (pending_email_token);
-
+CREATE UNIQUE INDEX idx_users_unid ON users (unid);
 -- 时间列默认值 / 自动更新（等价于 MySQL 的 DEFAULT CURRENT_TIMESTAMP、ON UPDATE）
 CREATE TRIGGER account_recovery_requests__insert_defaults AFTER INSERT ON account_recovery_requests
 BEGIN

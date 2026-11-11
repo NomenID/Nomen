@@ -239,6 +239,20 @@ php bin/nomen upgrade
 
 已经发布的迁移文件不会再执行，重复跑 `upgrade` 是安全的。
 
+### 升级到 1.4.0
+
+这个版本不需要手动改库，但**必须跑一次 `php bin/nomen upgrade`**（只覆盖文件不跑它，登录和日志会报错）：
+
+- 四张表会加对外编号列 `unid`：`users`、`activity_logs`、`account_recovery_requests`、`family_groups`，
+  老数据由 `upgrade` 自动补号。日志表大的站点这一步会慢一点（每批 500 行），别中途打断。
+- 后台地址从 `/admin/users/3` 这类自增号换成 `/admin/users/01M7…`，旧书签会回到后台首页。
+- 登录行为变了：默认登录保持 30 天（每次访问续期，最长 90 天），登录页的「记住我」换成
+  「这是公共设备」。升级前已经登录的会话会在浏览器关闭后失效，重新登录一次就会拿到新的 30 天会话。
+- `config/app.php` 里 `remember_me_ttl` 换成了 `login_ttl`（30 天）和 `login_max_ttl`（90 天）；
+  自己改过这份文件的，把这两行合并进去。
+- 回滚：旧版程序配新库（多出的 `unid` 列可空）能继续跑；但**新装站**的 schema 里 `unid` 是
+  `NOT NULL`，不要直接降级到 1.3.x，老代码不会写这个列。
+
 ## 排错
 
 | 现象 | 原因 |

@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{ActivityLog, AppData, Csrf, Database, Email, EmailTemplate, EmailPolicy, FamilyHelper, I18n, NotificationHelper, RateLimiter, RecoveryHelper, Response, Session, VerifyCode};
+use Nomen\Src\{ActivityLog, AppData, Csrf, Database, Email, EmailTemplate, EmailPolicy, FamilyHelper, I18n, NotificationHelper, RateLimiter, RecoveryHelper, Response, Session, VerifyCode, Unid};
 use PDO;
 
 /**
@@ -243,10 +243,11 @@ class FamilyController
         $childId = 0;
         try {
             $stmt = $this->db->prepare(
-                'INSERT INTO users (username, email, password_hash, display_name, email_verified, country, birth_date, gender, locale)
-                 VALUES (:u, NULL, :p, :d, 1, :c, :bd, :g, :loc)'
+                'INSERT INTO users (unid, username, email, password_hash, display_name, email_verified, country, birth_date, gender, locale)
+                 VALUES (:unid, :u, NULL, :p, :d, 1, :c, :bd, :g, :loc)'
             );
             $stmt->execute([
+                ':unid' => Unid::generate(),
                 ':u'  => $username,
                 ':p'  => password_hash($password . ($config['pepper'] ?? ''), PASSWORD_ARGON2ID),
                 ':d'  => $username,

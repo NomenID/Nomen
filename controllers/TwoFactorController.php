@@ -99,7 +99,7 @@ class TwoFactorController
                 Session::destroy();
                 Response::redirect('/login');
             }
-            AuthController::finishLogin($user, self::safeRedirect($pending['redirect_to'] ?? '/dashboard'), !empty($pending['remember_me']));
+            AuthController::finishLogin($user, self::safeRedirect($pending['redirect_to'] ?? '/dashboard'), !empty($pending['temporary']));
             return;
         }
 
@@ -201,7 +201,7 @@ class TwoFactorController
         AuthController::finishLogin(
             $user,
             self::safeRedirect($pending['redirect_to'] ?? '/dashboard'),
-            !empty($pending['remember_me']),
+            !empty($pending['temporary']),
             true,
             [],
             '2fa',

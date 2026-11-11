@@ -125,8 +125,8 @@ onMounted(() => load(1))
         <table class="a-table">
           <thead><tr><th>时间</th><th>操作者</th><th>分类</th><th>动作</th><th>目标</th><th>说明</th></tr></thead>
           <tbody>
-            <tr v-for="log in data.logs" :key="log.id">
-              <td class="a-nowrap"><router-link class="a-link" :to="`/admin/logs/${log.id}`">{{ log.created_at }}</router-link></td>
+            <tr v-for="log in data.logs" :key="log.unid">
+              <td class="a-nowrap"><router-link class="a-link" :to="`/admin/logs/${log.unid}`">{{ log.created_at }}</router-link></td>
               <td>
                 <router-link v-if="log.actor_url" class="a-link" :to="log.actor_url">{{ log.actor_username || '系统' }}</router-link>
                 <span v-else>{{ log.actor_username || '系统' }}</span>
@@ -135,8 +135,8 @@ onMounted(() => load(1))
               <td>{{ log.category_label }}</td>
               <td>{{ log.action_label }}</td>
               <td>
-                <router-link v-if="log.target_url" class="a-link" :to="log.target_url">{{ log.target_name || log.target_id }}</router-link>
-                <span v-else>{{ log.target_name || log.target_id || '—' }}</span>
+                <router-link v-if="log.target_url" class="a-link" :to="log.target_url">{{ log.target_name || log.target_unid }}</router-link>
+                <span v-else>{{ log.target_name || log.target_unid || '—' }}</span>
               </td>
               <td class="a-cell-summary">{{ log.summary }}</td>
             </tr>

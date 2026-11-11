@@ -214,10 +214,11 @@ class ActivityLog
         try {
             self::db()->prepare(
                 'INSERT INTO activity_logs
-                 (actor_type, actor_id, actor_username, action, category, target_type, target_id,
+                 (unid, actor_type, actor_id, actor_username, action, category, target_type, target_id,
                   target_name, summary, changes, ip_address, user_agent, device_name)
-                 VALUES (:at, :ai, :an, :ac, :cg, :tt, :ti, :tn, :sm, :ch, :ip, :ua, :dn)'
+                 VALUES (:unid, :at, :ai, :an, :ac, :cg, :tt, :ti, :tn, :sm, :ch, :ip, :ua, :dn)'
             )->execute([
+                ':unid' => Unid::generate(),
                 ':at' => $actorType,
                 ':ai' => $actorId !== null ? (int)$actorId : null,
                 ':an' => $actorName !== null ? mb_substr((string)$actorName, 0, 64, 'UTF-8') : null,
@@ -374,10 +375,10 @@ class ActivityLog
         return $stmt->fetchAll();
     }
 
-    public static function find(int $id): ?array
+    public static function findByUnid(string $unid): ?array
     {
-        $stmt = self::db()->prepare('SELECT * FROM activity_logs WHERE id = :id LIMIT 1');
-        $stmt->execute([':id' => $id]);
+        $stmt = self::db()->prepare('SELECT * FROM activity_logs WHERE unid = :unid LIMIT 1');
+        $stmt->execute([':unid' => $unid]);
         $row = $stmt->fetch();
 
         return $row ?: null;

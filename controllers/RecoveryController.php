@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{ActivityLog, Csrf, Database, Email, EmailTemplate, EmailPolicy, EmailSet, I18n, RateLimiter, RecoveryHelper, Response, Session, FamilyHelper, Features};
+use Nomen\Src\{ActivityLog, Csrf, Database, Email, EmailTemplate, EmailPolicy, EmailSet, I18n, RateLimiter, RecoveryHelper, Response, Session, FamilyHelper, Features, Unid};
 use PDO;
 
 /**
@@ -240,10 +240,11 @@ class RecoveryController
 
         $this->db->prepare(
             'INSERT INTO account_recovery_requests
-             (user_id, username, account_email, birth_date_input, gender_input, birth_date_match,
+             (unid, user_id, username, account_email, birth_date_input, gender_input, birth_date_match,
               gender_match, description, contact_email, ip_address, user_agent)
-             VALUES (:uid, :un, :ae, :bd, :gd, :bm, :gm, :ds, :ce, :ip, :ua)'
+             VALUES (:unid, :uid, :un, :ae, :bd, :gd, :bm, :gm, :ds, :ce, :ip, :ua)'
         )->execute([
+            ':unid' => Unid::generate(),
             ':uid' => $userId,
             ':un'  => (string)$ctx['username'],
             ':ae'  => $ctx['email'] ?: null,
@@ -564,6 +565,8 @@ class RecoveryController
         Session::set('user_id', $userId);
         Session::set('username', $user['username']);
         Session::set('role', $user['role'] ?? 'user');
+        Session::markSignedIn(false);
+        AuthController::touchLogin($userId);
         RecoveryHelper::begin($userId, (string)$user['username'], (string)($user['role'] ?? 'user'));
 
         ActivityLog::record([

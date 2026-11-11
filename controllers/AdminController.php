@@ -10,7 +10,10 @@ use PDO;
  */
 class AdminController
 {
-    private const PER_PAGE = 30;
+    private const PER_PAGE = 20;
+
+    /** 日志页把内部 id 换成 UNID 时的请求内缓存 */
+    private static array $unidCache = [];
     private const LOGS_PER_PAGE = 50;
 
     private PDO $db;
@@ -221,7 +224,7 @@ class AdminController
 
         $offset = ($page - 1) * self::PER_PAGE;
         $stmt = $this->db->prepare(
-            "SELECT id, username, display_name, email, email_verified, role, status, country,
+            "SELECT id, unid, username, display_name, email, email_verified, role, status, country,
                     birth_date, gender, created_at, last_login_at, last_login_ip,
                     (SELECT COUNT(*) FROM user_biometrics b WHERE b.user_id = users.id AND b.revoked = 0) AS biometric_count,
                     (SELECT COUNT(*) FROM user_totp_secrets t WHERE t.user_id = users.id AND t.verified = 1) AS totp_count,
@@ -262,18 +265,18 @@ class AdminController
     public function userDetail(string $id): void
     {
         $admin = $this->requireAdmin();
-        $userId = (int)$id;
 
         $stmt = $this->db->prepare(
-            'SELECT id, username, display_name, email, email_verified, role, status, country,
+            'SELECT id, unid, username, display_name, email, email_verified, role, status, country,
                     birth_date, gender, created_at, last_login_at, last_login_ip, two_factor_policy
-             FROM users WHERE id = :id LIMIT 1'
+             FROM users WHERE unid = :unid LIMIT 1'
         );
-        $stmt->execute([':id' => $userId]);
+        $stmt->execute([':unid' => $id]);
         $user = $stmt->fetch();
         if (!$user) {
             Response::error(404, '用户不存在');
         }
+        $userId = (int)$user['id'];
 
         $groups = RecoveryHelper::groupedMethods($userId);
 
@@ -328,10 +331,10 @@ class AdminController
             Response::json(['success' => false, 'message' => '请求无效'], 403);
         }
 
-        $userId = (int)($_POST['user_id'] ?? 0);
-        $stmt = $this->db->prepare('SELECT id, username, role, status FROM users WHERE id = :id LIMIT 1');
-        $stmt->execute([':id' => $userId]);
+        $stmt = $this->db->prepare('SELECT id, username, role, status FROM users WHERE unid = :unid LIMIT 1');
+        $stmt->execute([':unid' => (string)($_POST['user_unid'] ?? '')]);
         $target = $stmt->fetch();
+        $userId = $target ? (int)$target['id'] : 0;
 
         if (!$target) {
             Response::json(['success' => false, 'message' => '用户不存在']);
@@ -377,10 +380,10 @@ class AdminController
             Response::json(['success' => false, 'message' => '请求无效'], 403);
         }
 
-        $userId = (int)($_POST['user_id'] ?? 0);
-        $stmt = $this->db->prepare('SELECT id, username, role FROM users WHERE id = :id LIMIT 1');
-        $stmt->execute([':id' => $userId]);
+        $stmt = $this->db->prepare('SELECT id, username, role FROM users WHERE unid = :unid LIMIT 1');
+        $stmt->execute([':unid' => (string)($_POST['user_unid'] ?? '')]);
         $target = $stmt->fetch();
+        $userId = $target ? (int)$target['id'] : 0;
 
         if (!$target) {
             Response::json(['success' => false, 'message' => '用户不存在']);
@@ -455,9 +458,16 @@ class AdminController
         $stmt->bindValue(':off', ($page - 1) * self::PER_PAGE, PDO::PARAM_INT);
         $stmt->execute();
 
+        $rows = $stmt->fetchAll();
+        $userUnids = self::unidsFor('users', array_column($rows, 'user_id'));
+        foreach ($rows as &$row) {
+            $row['user_unid'] = $userUnids[(int)$row['user_id']] ?? '';
+        }
+        unset($row);
+
         Response::json([
             'success'    => true,
-            'requests'   => $stmt->fetchAll(),
+            'requests'   => $rows,
             'status'     => $status,
             'search'     => $search,
             'pagination' => ['page' => $page, 'pages' => max(1, (int)ceil($total / self::PER_PAGE)), 'total' => $total],
@@ -469,15 +479,15 @@ class AdminController
     {
         $admin = $this->requireAdmin();
 
-        $stmt = $this->db->prepare('SELECT * FROM account_recovery_requests WHERE id = :id LIMIT 1');
-        $stmt->execute([':id' => (int)$id]);
+        $stmt = $this->db->prepare('SELECT * FROM account_recovery_requests WHERE unid = :unid LIMIT 1');
+        $stmt->execute([':unid' => $id]);
         $request = $stmt->fetch();
         if (!$request) {
             Response::error(404, '工单不存在');
         }
 
         $stmt = $this->db->prepare(
-            'SELECT id, username, email, email_verified, status, birth_date, gender, created_at, last_login_at
+            'SELECT id, unid, username, email, email_verified, status, birth_date, gender, created_at, last_login_at
              FROM users WHERE id = :id LIMIT 1'
         );
         $stmt->execute([':id' => (int)$request['user_id']]);
@@ -526,16 +536,16 @@ class AdminController
             $this->reviewFail($isAjax, '请求无效');
         }
 
-        $requestId = (int)($_POST['request_id'] ?? 0);
         $note = trim((string)($_POST['admin_note'] ?? ''));
 
-        $stmt = $this->db->prepare('SELECT * FROM account_recovery_requests WHERE id = :id LIMIT 1');
-        $stmt->execute([':id' => $requestId]);
+        $stmt = $this->db->prepare('SELECT * FROM account_recovery_requests WHERE unid = :unid LIMIT 1');
+        $stmt->execute([':unid' => (string)($_POST['request_unid'] ?? '')]);
         $request = $stmt->fetch();
 
         if (!$request) {
             $this->reviewFail($isAjax, '工单不存在');
         }
+        $requestId = (int)$request['id'];
 
         if ($mode === 'reject') {
             if ($note === '') {
@@ -643,7 +653,7 @@ class AdminController
     public function logDetail(string $id): void
     {
         $admin = $this->requireAdmin();
-        $log = ActivityLog::find((int)$id);
+        $log = ActivityLog::findByUnid($id);
 
         if ($log === null) {
             Response::error(404, '这条日志不存在');
@@ -667,21 +677,35 @@ class AdminController
 
         $out = fopen('php://output', 'w');
         fwrite($out, "\xEF\xBB\xBF");
-        fputcsv($out, ['编号', '时间', '操作者类型', '操作者 ID', '操作者', '日志类型', '动作', '动作代码',
-            '目标类型', '目标 ID', '目标名称', '摘要', '变动', 'IP', '设备', 'User-Agent']);
+        fputcsv($out, ['编号', '时间', '操作者类型', '操作者编号', '操作者', '日志类型', '动作', '动作代码',
+            '目标类型', '目标编号', '目标名称', '摘要', '变动', 'IP', '设备', 'User-Agent']);
+
+        $userUnids = self::unidsFor('users', array_column($rows, 'actor_id'));
+        $requestUnids = self::unidsFor(
+            'account_recovery_requests',
+            array_map(
+                static fn(array $row): int => ($row['target_type'] ?? '') === 'recovery_request' ? (int)($row['target_id'] ?? 0) : 0,
+                $rows
+            )
+        );
 
         foreach ($rows as $row) {
+            $targetType = (string)($row['target_type'] ?? '');
+            $targetUnid = $targetType === 'user'
+                ? ($userUnids[(int)($row['target_id'] ?? 0)] ?? '')
+                : ($targetType === 'recovery_request' ? ($requestUnids[(int)($row['target_id'] ?? 0)] ?? '') : (string)($row['target_id'] ?? ''));
+
             fputcsv($out, array_map(static fn($value): string => self::csvCell($value), [
-                $row['id'],
+                $row['unid'] ?? '',
                 $row['created_at'],
                 ActivityLog::actorLabel($row),
-                $row['actor_id'],
+                $userUnids[(int)($row['actor_id'] ?? 0)] ?? '',
                 $row['actor_username'],
                 \Nomen\Src\I18n::tIn('zh-hans', ActivityLog::categoryLabel((string)$row['category'])),
                 \Nomen\Src\I18n::tIn('zh-hans', ActivityLog::actionLabel((string)$row['action'])),
                 $row['action'],
                 $row['target_type'] ? self::targetTypeLabel((string)$row['target_type']) : '',
-                $row['target_id'],
+                $targetUnid,
                 $row['target_name'],
                 $row['summary'],
                 self::changesText($row['changes'] ?? null),
@@ -703,24 +727,46 @@ class AdminController
      */
     private static function logRows(array $rows, bool $full = false): array
     {
-        return array_map(static function (array $row) use ($full): array {
+        $userIds = [];
+        $requestIds = [];
+        foreach ($rows as $row) {
+            $userIds[] = (int)($row['actor_id'] ?? 0);
+            if (($row['target_type'] ?? '') === 'user') {
+                $userIds[] = (int)($row['target_id'] ?? 0);
+            } elseif (($row['target_type'] ?? '') === 'recovery_request') {
+                $requestIds[] = (int)($row['target_id'] ?? 0);
+            }
+        }
+        $userUnids = self::unidsFor('users', $userIds);
+        $requestUnids = self::unidsFor('account_recovery_requests', $requestIds);
+
+        return array_map(static function (array $row) use ($full, $userUnids, $requestUnids): array {
+            $targetType = (string)($row['target_type'] ?? '');
+            $actorUnid = $userUnids[(int)($row['actor_id'] ?? 0)] ?? '';
+            $targetUnid = '';
+            if ($targetType === 'user') {
+                $targetUnid = $userUnids[(int)($row['target_id'] ?? 0)] ?? '';
+            } elseif ($targetType === 'recovery_request') {
+                $targetUnid = $requestUnids[(int)($row['target_id'] ?? 0)] ?? '';
+            }
+
             return [
-                'id'               => (int)$row['id'],
+                'unid'             => (string)($row['unid'] ?? ''),
                 'created_at'       => (string)$row['created_at'],
                 'actor_type'       => (string)($row['actor_type'] ?? ''),
-                'actor_id'         => (int)($row['actor_id'] ?? 0),
+                'actor_unid'       => $actorUnid,
                 'actor_username'   => (string)($row['actor_username'] ?? ''),
                 'actor_label'      => ActivityLog::actorLabel($row),
-                'actor_url'        => self::actorUrl($row),
+                'actor_url'        => $actorUnid !== '' ? '/admin/users/' . $actorUnid : null,
                 'category'         => (string)$row['category'],
                 'category_label'   => \Nomen\Src\I18n::tIn('zh-hans', ActivityLog::categoryLabel((string)$row['category'])),
                 'action'           => (string)$row['action'],
                 'action_label'     => \Nomen\Src\I18n::tIn('zh-hans', ActivityLog::actionLabel((string)$row['action'])),
-                'target_type'      => (string)($row['target_type'] ?? ''),
-                'target_type_label' => ($row['target_type'] ?? '') !== '' ? self::targetTypeLabel((string)$row['target_type']) : '',
-                'target_id'        => (string)($row['target_id'] ?? ''),
+                'target_type'      => $targetType,
+                'target_type_label' => $targetType !== '' ? self::targetTypeLabel($targetType) : '',
+                'target_unid'      => $targetUnid,
                 'target_name'      => (string)($row['target_name'] ?? ''),
-                'target_url'       => self::targetUrl($row),
+                'target_url'       => self::targetUrl($row, $targetUnid),
                 'summary'          => (string)($row['summary'] ?? ''),
                 'ip_address'       => (string)($row['ip_address'] ?? ''),
                 'device_name'      => (string)($row['device_name'] ?? ''),
@@ -730,6 +776,40 @@ class AdminController
                     : self::changesText($row['changes'] ?? null),
             ];
         }, $rows);
+    }
+
+    /**
+     * 一批内部 id → UNID。日志只存了内部 id，展示前统一换掉，别让自增号露到界面上。
+     *
+     * @param  int[] $ids
+     * @return array<int, string>
+     */
+    private static function unidsFor(string $table, array $ids): array
+    {
+        $ids = array_values(array_unique(array_filter(array_map('intval', $ids))));
+        if (!$ids) {
+            return [];
+        }
+
+        $known = self::$unidCache[$table] ?? [];
+        $missing = array_values(array_diff($ids, array_keys($known)));
+        if (!$missing) {
+            return $known;
+        }
+
+        $db = Database::getInstance();
+        foreach (array_chunk($missing, 900) as $chunk) {
+            $in = implode(',', array_fill(0, count($chunk), '?'));
+            $stmt = $db->prepare("SELECT id, unid FROM {$table} WHERE id IN ({$in})");
+            $stmt->execute($chunk);
+            foreach ($stmt->fetchAll() as $row) {
+                $known[(int)$row['id']] = (string)$row['unid'];
+            }
+        }
+
+        self::$unidCache[$table] = $known;
+
+        return $known;
     }
 
     /** @return array<int, array{field: string, label: string, old: string, new: string}> */
@@ -848,20 +928,20 @@ class AdminController
         return self::TARGET_LABELS[$type] ?? $type;
     }
 
-    public static function targetUrl(array $log): ?string
+    public static function targetUrl(array $log, string $targetUnid = ''): ?string
     {
         $type = (string)($log['target_type'] ?? '');
         $id   = (string)($log['target_id'] ?? '');
         $name = (string)($log['target_name'] ?? '');
 
-        if ($type === 'user' && ctype_digit($id)) {
-            return '/admin/users/' . $id;
+        if ($type === 'user' && $targetUnid !== '') {
+            return '/admin/users/' . $targetUnid;
         }
         if ($type === 'oauth_client' && $id !== '') {
             return '/admin/apps/' . rawurlencode($id);
         }
-        if ($type === 'recovery_request' && ctype_digit($id)) {
-            return '/admin/recovery/' . $id;
+        if ($type === 'recovery_request' && $targetUnid !== '') {
+            return '/admin/recovery/' . $targetUnid;
         }
         if ($type === 'page' && $name !== '') {
             $base = Plugins::mountUrl('pages');
@@ -871,13 +951,6 @@ class AdminController
         }
 
         return null;
-    }
-
-    public static function actorUrl(array $log): ?string
-    {
-        $id = (int)($log['actor_id'] ?? 0);
-
-        return $id > 0 ? '/admin/users/' . $id : null;
     }
 
     /**

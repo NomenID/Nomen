@@ -23,8 +23,8 @@ pepper 还在用默认值时，PHP 错误日志会记一条 `[SECURITY]` 警告�
 
 | 项 | 默认 |
 |---|---|
-| 会话有效期 | 2 小时 |
-| 「记住我」 | 30 天 |
+| 未登录访客的会话 | 2 小时 |
+| 登录保持 | 30 天滑动续期，最长 90 天；勾「这是公共设备」则为浏览器会话 |
 | 会话 cookie 名 | `NOMEN_SESSION` |
 | CSRF | 所有 POST 校验 `_csrf`，`csrf_enabled` 保持 `true` |
 | 响应头 | `X-Content-Type-Options: nosniff`、`X-Frame-Options: DENY`、`Referrer-Policy: strict-origin-when-cross-origin`、CSP `frame-ancestors 'none'` |

@@ -14,6 +14,7 @@ DROP TABLE IF EXISTS `account_recovery_requests`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `account_recovery_requests` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `unid` char(26) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   `user_id` int unsigned NOT NULL,
   `username` varchar(64) NOT NULL,
   `account_email` varchar(255) DEFAULT NULL,
@@ -35,6 +36,7 @@ CREATE TABLE `account_recovery_requests` (
   `ip_address` varchar(45) DEFAULT NULL,
   `user_agent` varchar(500) DEFAULT NULL,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY `uk_unid` (`unid`),
   PRIMARY KEY (`id`),
   KEY `idx_user` (`user_id`),
   KEY `idx_status_created` (`status`,`created_at`),
@@ -46,6 +48,7 @@ DROP TABLE IF EXISTS `activity_logs`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `activity_logs` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `unid` char(26) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   `actor_type` enum('user','admin','system') NOT NULL DEFAULT 'user',
   `actor_id` int unsigned DEFAULT NULL,
   `actor_username` varchar(64) DEFAULT NULL,
@@ -60,6 +63,7 @@ CREATE TABLE `activity_logs` (
   `user_agent` varchar(500) DEFAULT NULL,
   `device_name` varchar(100) DEFAULT NULL,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY `uk_unid` (`unid`),
   PRIMARY KEY (`id`),
   KEY `idx_actor` (`actor_type`,`actor_id`,`created_at`),
   KEY `idx_action` (`action`,`created_at`),
@@ -89,10 +93,12 @@ DROP TABLE IF EXISTS `family_groups`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `family_groups` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `unid` char(26) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   `status` varchar(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'unclaimed',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `claimed_at` datetime DEFAULT NULL,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY `uk_unid` (`unid`),
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -428,6 +434,7 @@ DROP TABLE IF EXISTS `users`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `users` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `unid` char(26) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   `oauth_id` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `username` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL,
   `email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -456,6 +463,7 @@ CREATE TABLE `users` (
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `password_reset_code` varchar(6) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `password_reset_code_expires_at` datetime DEFAULT NULL,
+  UNIQUE KEY `uk_unid` (`unid`),
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`),
   UNIQUE KEY `email` (`email`),

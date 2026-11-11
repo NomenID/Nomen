@@ -81,9 +81,9 @@ $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APO
                 </div>
                 <div class="form-group form-group--inline">
                     <label class="checkbox-label">
-                        <input type="checkbox" name="remember_me" value="1">
+                        <input type="checkbox" name="temporary" value="1">
                         <span class="checkmark"></span>
-                        <span><?= t('Remember me') ?></span>
+                        <span><?= t('This is a public device') ?></span>
                     </label>
                 </div>
                 <?php if ($requireCaptcha): ?>

@@ -22,7 +22,7 @@ const error = ref('')
 const data = ref(null)
 const busy = ref(false)
 
-const userId = computed(() => Number(route.params.id))
+const userId = computed(() => String(route.params.id))
 
 async function load() {
   loading.value = true
@@ -47,7 +47,7 @@ async function toggleStatus() {
   if (!ok) return
   busy.value = true
   try {
-    const result = await apiPost('/admin/users/toggle-status', { user_id: user.id })
+    const result = await apiPost('/admin/users/toggle-status', { user_unid: user.unid })
     window.Nomen.toast(result.message, result.success ? 'success' : 'error')
     if (result.success) await load()
   } finally {
@@ -66,7 +66,7 @@ async function toggleAdmin() {
   if (!ok) return
   busy.value = true
   try {
-    const result = await apiPost('/admin/users/toggle-admin', { user_id: user.id })
+    const result = await apiPost('/admin/users/toggle-admin', { user_unid: user.unid })
     window.Nomen.toast(result.message, result.success ? 'success' : 'error')
     if (result.success) await load()
   } finally {
@@ -102,7 +102,7 @@ onMounted(load)
         <div class="a-profile__avatar">{{ (data.user.username || '?').slice(0, 1).toUpperCase() }}</div>
         <div>
           <h2>{{ data.user.display_name || data.user.username }}</h2>
-          <p class="a-text a-text--muted">@{{ data.user.username }} · ID {{ data.user.id }}</p>
+          <p class="a-text a-text--muted">@{{ data.user.username }} · UNID {{ data.user.unid }}</p>
           <div class="a-badges">
             <AdminBadge :tone="data.user.role === 'admin' ? 'primary' : ''">{{ data.user.role === 'admin' ? '管理员' : '普通用户' }}</AdminBadge>
             <AdminBadge :tone="Number(data.user.status) === 1 ? 'success' : 'danger'">{{ Number(data.user.status) === 1 ? '正常' : '已禁用' }}</AdminBadge>
@@ -174,8 +174,8 @@ onMounted(load)
           <table class="a-table">
             <thead><tr><th>#</th><th>状态</th><th>联系邮箱</th><th>提交时间</th><th>审核时间</th></tr></thead>
             <tbody>
-              <tr v-for="req in data.recoveryHistory" :key="req.id">
-                <td><router-link class="a-link" :to="`/admin/recovery/${req.id}`">#{{ req.id }}</router-link></td>
+              <tr v-for="req in data.recoveryHistory" :key="req.unid">
+                <td><router-link class="a-link" :to="`/admin/recovery/${req.unid}`">#{{ req.unid }}</router-link></td>
                 <td><AdminBadge>{{ req.status }}</AdminBadge></td>
                 <td>{{ req.contact_email }}</td>
                 <td class="a-nowrap">{{ req.created_at }}</td>
@@ -188,14 +188,14 @@ onMounted(load)
 
       <AdminCard v-if="data.membership || data.ownedGroups.length" title="家庭 / 监护">
         <dl v-if="data.membership" class="a-kv">
-          <dt>所在家庭</dt><dd>#{{ data.membership.group_id }}（{{ data.membership.status }}）</dd>
+          <dt>所在家庭</dt><dd>#{{ data.membership.group_unid }}（{{ data.membership.status }}）</dd>
           <dt>监护人</dt><dd>{{ (data.familyGuardians || []).map(g => g.email || g.username || g.id).join('、') || '—' }}</dd>
         </dl>
         <div v-if="data.ownedGroups.length">
           <p class="a-text a-text--muted">作为监护人的家庭：</p>
           <ul class="a-list">
             <li v-for="group in data.ownedGroups" :key="group.id">
-              #{{ group.id }} · {{ group.status }}
+              #{{ group.unid }} · {{ group.status }}
               <span v-if="data.ownedGroupsChildren[group.id]">
                 · 孩子 {{ data.ownedGroupsChildren[group.id].length }} 人
               </span>
@@ -210,8 +210,8 @@ onMounted(load)
           <table class="a-table">
             <thead><tr><th>时间</th><th>分类</th><th>动作</th><th>说明</th><th>设备</th></tr></thead>
             <tbody>
-              <tr v-for="log in data.recentLogs" :key="log.id">
-                <td class="a-nowrap"><router-link class="a-link" :to="`/admin/logs/${log.id}`">{{ log.created_at }}</router-link></td>
+              <tr v-for="log in data.recentLogs" :key="log.unid">
+                <td class="a-nowrap"><router-link class="a-link" :to="`/admin/logs/${log.unid}`">{{ log.created_at }}</router-link></td>
                 <td>{{ log.category_label }}</td>
                 <td>{{ log.action_label }}</td>
                 <td class="a-cell-summary">{{ log.summary }}</td>

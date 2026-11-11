@@ -39,7 +39,7 @@ $feature = static function (string $envKey, string $configKey) use ($appConf): b
 return [
     // 基本信息
     'name'         => $brand['name'],
-    'version'      => '1.3.10',
+    'version'      => '1.4.0',
     'base_url'     => $brand['base_url'],
 
     // 安全
@@ -51,11 +51,12 @@ return [
     'csrf_enabled' => true,
 
     // Session
-    'session_lifetime' => 7200, // 2小时
+    'session_lifetime' => 7200, // 未登录访客的 cookie 有效期：2小时
     'session_name'     => $brand['session_name'],
-    // 「记住我」有效期。注意 Session::start() 会把它算进 gc_maxlifetime，
-    // 否则服务端提前回收 session，长有效期 cookie 后半段是空壳
-    'remember_me_ttl'  => 30 * 24 * 3600, // 30天
+    // 登录后的默认有效期：30 天内没再来就重新登录，每次访问自动续期
+    'login_ttl'        => 30 * 24 * 3600,
+    // 从登录那一刻起最长保留 90 天，到点必须重新登录
+    'login_max_ttl'    => 90 * 24 * 3600,
 
     // 登录防护
     'login_captcha_threshold' => 5,  // 单 IP 每分钟登录尝试超过该值才要求图片验证码

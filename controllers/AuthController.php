@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{ActivityLog, Database, Session, Csrf, Response, RateLimiter, Email, EmailTemplate, Captcha, GeoIP, I18n, RecoveryHelper, VerifyCode, FamilyHelper, EmailPolicy, EmailSet, Settings, Skins, Hooks, Features, LoginMethods};
+use Nomen\Src\{ActivityLog, Database, Session, Csrf, Response, RateLimiter, Email, EmailTemplate, Captcha, GeoIP, I18n, RecoveryHelper, VerifyCode, FamilyHelper, EmailPolicy, EmailSet, Settings, Skins, Hooks, Features, LoginMethods, Unid};
 use Nomen\Controllers\{DeviceController, DashboardController};
 use PDO;
 
@@ -163,16 +163,16 @@ class AuthController
 
         // 临时密钥属于应急通道，不参与两步验证策略
         if ($isTempKeyLogin) {
-            self::finishLogin($user, $redirect_to, !empty($_POST['remember_me']), $isAjax, [], 'temp_key');
+            self::finishLogin($user, $redirect_to, !empty($_POST['temporary']), $isAjax, [], 'temp_key');
             return;
         }
 
         Session::regenerate();
-        if (self::beginSecondFactorIfNeeded($user, 'password', $redirect_to, !empty($_POST['remember_me']))) {
+        if (self::beginSecondFactorIfNeeded($user, 'password', $redirect_to, !empty($_POST['temporary']))) {
             Response::redirect('/2fa/verify');
         }
 
-        self::finishLogin($user, $redirect_to, !empty($_POST['remember_me']), $isAjax);
+        self::finishLogin($user, $redirect_to, !empty($_POST['temporary']), $isAjax);
     }
 
     // ========== 登录统一链路 ==========
@@ -458,7 +458,7 @@ class AuthController
      * @param array  $user        必须包含 id / username / role / two_factor_policy
      * @param string $firstFactor 已通过的第一因素，二验候选里会排除它
      */
-    public static function beginSecondFactorIfNeeded(array $user, string $firstFactor, string $redirect_to, bool $rememberMe): bool
+    public static function beginSecondFactorIfNeeded(array $user, string $firstFactor, string $redirect_to, bool $temporary): bool
     {
         $userId = (int)$user['id'];
         $policy = $user['two_factor_policy'] ?? 'new_device';
@@ -494,7 +494,7 @@ class AuthController
             'username'     => $user['username'],
             'role'         => $user['role'] ?? 'user',
             'redirect_to'  => $redirect_to,
-            'remember_me'  => $rememberMe,
+            'temporary'    => $temporary,
             'first_factor' => $firstFactor,
             'action'       => 'login',
             'nonce'        => bin2hex(random_bytes(16)),
@@ -510,8 +510,9 @@ class AuthController
      * @param array       $extraSession     额外写入 session 的键值（如临时密钥上下文）
      * @param string      $method           本次登录方式，用于活动日志
      * @param string|null $rememberedMethod 交给浏览器记住的方式；走两步验证时传第一因素
+     * @param bool        $temporary        「这是公共设备」：只发浏览器会话 cookie，关掉即退出
      */
-    public static function finishLogin(array $user, string $redirect_to, bool $rememberMe, bool $json = false, array $extraSession = [], string $method = 'password', ?string $rememberedMethod = null): void
+    public static function finishLogin(array $user, string $redirect_to, bool $temporary = false, bool $json = false, array $extraSession = [], string $method = 'password', ?string $rememberedMethod = null): void
     {
         $userId = (int)$user['id'];
 
@@ -524,6 +525,8 @@ class AuthController
             Session::regenerate();
             Session::set('user_id', $userId);
             Session::set('username', $user['username']);
+            Session::markSignedIn($temporary);
+            self::touchLogin($userId);
             Response::redirect('/activate');
         }
 
@@ -585,10 +588,8 @@ class AuthController
             ]);
         }
 
-        if ($rememberMe) {
-            $config = require __DIR__ . '/../config/app.php';
-            Session::extendLifetime((int)($config['remember_me_ttl'] ?? 30 * 24 * 3600));
-        }
+        // 默认持久登录（30 天滑动、最长 90 天）；勾了「这是公共设备」才降级成临时会话
+        Session::markSignedIn($temporary);
 
         // 先落盘 session，确保跳转后能读到
         session_write_close();
@@ -603,8 +604,7 @@ class AuthController
         $identity = $identity->fetch() ?: [];
         self::setLoginHandoffCookie($rememberedMethod ?? $method, (string)($identity['username'] ?? ''), (string)($identity['email'] ?? ''));
 
-        $db->prepare('UPDATE users SET last_login_at = NOW(), last_login_ip = :ip WHERE id = :id')
-            ->execute([':ip' => $_SERVER['REMOTE_ADDR'] ?? '', ':id' => $userId]);
+        self::touchLogin($userId);
 
         if ($deviceId) {
             $db->prepare('UPDATE user_devices SET last_seen_at = NOW(), device_name = :n WHERE user_id = :u AND device_id = :d')
@@ -620,6 +620,23 @@ class AuthController
         }
 
         Response::redirect($redirect_to);
+    }
+
+    /**
+     * 记录「这个人刚刚登录了」
+     *
+     * 所有建立登录会话的路径都必须调它：注册后自动登录、点激活链接、恢复凭证登录
+     * 都是直接写 session 的，别只靠 finishLogin 那一处，否则后台会显示「从未登录」。
+     */
+    public static function touchLogin(int $userId): void
+    {
+        if ($userId <= 0) {
+            return;
+        }
+
+        Database::getInstance()
+            ->prepare('UPDATE users SET last_login_at = NOW(), last_login_ip = :ip WHERE id = :id')
+            ->execute([':ip' => $_SERVER['REMOTE_ADDR'] ?? '', ':id' => $userId]);
     }
 
     /**
@@ -1014,11 +1031,11 @@ class AuthController
         VerifyCode::clear(VerifyCode::LOGIN, (int)$user['id']);
 
         Session::regenerate();
-        if (self::beginSecondFactorIfNeeded($user, 'email_code', $redirect_to, !empty($_POST['remember_me']))) {
+        if (self::beginSecondFactorIfNeeded($user, 'email_code', $redirect_to, !empty($_POST['temporary']))) {
             Response::redirect('/2fa/verify');
         }
 
-        self::finishLogin($user, $redirect_to, !empty($_POST['remember_me']), false, [], 'email_code');
+        self::finishLogin($user, $redirect_to, !empty($_POST['temporary']), false, [], 'email_code');
     }
 
     /**
@@ -1106,7 +1123,7 @@ class AuthController
         }
 
         Session::regenerate();
-        self::finishLogin($user, $redirect_to, false, false, [
+        self::finishLogin($user, $redirect_to, !empty($_POST['temporary']), false, [
             'temp_key_login'      => true,
             'temp_key_id'         => (int)$tempKeyData['id'],
             'temp_key_expires_at' => $tempKeyData['expires_at'],
@@ -1347,9 +1364,10 @@ class AuthController
         $pepper = $config['pepper'] ?? '';
         $passwordHash = password_hash($password . $pepper, PASSWORD_ARGON2ID);
             $stmt = $this->db->prepare(
-                'INSERT INTO users (username, email, password_hash, display_name, email_verified, country, birth_date, gender, locale) VALUES (:u, :e, :p, :d, 0, :c, :bd, :g, :loc)'
+                'INSERT INTO users (unid, username, email, password_hash, display_name, email_verified, country, birth_date, gender, locale) VALUES (:unid, :u, :e, :p, :d, 0, :c, :bd, :g, :loc)'
         );
         $stmt->execute([
+            ':unid' => Unid::generate(),
             ':u' => $username,
             ':e' => $email,
             ':p' => $passwordHash,
@@ -1418,6 +1436,8 @@ class AuthController
         Session::set('user_id', $userId);
         Session::set('username', $username);
         Session::set('role', 'user');
+        Session::markSignedIn(false);
+        self::touchLogin($userId);
 
         if ($useGuardianEmail) {
             Session::flash('success', t('Account created. Press Send verification email below — the mail goes to {:email}. The account activates once a parent confirms.', ['email' => RecoveryHelper::maskEmail($parent_email)]));
@@ -1653,9 +1673,10 @@ class AuthController
             }
 
             $stmt = $this->db->prepare(
-                'INSERT INTO users (username, email, password_hash, display_name, email_verified, country, birth_date, gender, locale) VALUES (:u, :e, :p, :d, 1, :c, :bd, :g, :loc)'
+                'INSERT INTO users (unid, username, email, password_hash, display_name, email_verified, country, birth_date, gender, locale) VALUES (:unid, :u, :e, :p, :d, 1, :c, :bd, :g, :loc)'
             );
             $stmt->execute([
+                ':unid' => Unid::generate(),
                 ':u'  => $row['username'],
                 ':e'  => $email,
                 ':p'  => $row['password_hash'],

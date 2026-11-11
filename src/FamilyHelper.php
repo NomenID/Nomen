@@ -372,7 +372,7 @@ class FamilyHelper
     public static function childMembership(int $childUserId): ?array
     {
         $stmt = self::db()->prepare(
-            'SELECT m.*, g.status AS group_status, g.claimed_at
+            'SELECT m.*, g.status AS group_status, g.claimed_at, g.unid AS group_unid
                FROM family_members m
                JOIN family_groups g ON g.id = m.group_id
               WHERE m.user_id = :uid AND m.kind = :ck
@@ -571,8 +571,8 @@ class FamilyHelper
             $db->beginTransaction();
         }
         try {
-            $db->prepare('INSERT INTO family_groups (status) VALUES (:st)')
-               ->execute([':st' => self::GROUP_UNCLAIMED]);
+            $db->prepare('INSERT INTO family_groups (unid, status) VALUES (:unid, :st)')
+               ->execute([':unid' => Unid::generate(), ':st' => self::GROUP_UNCLAIMED]);
             $groupId = (int)$db->lastInsertId();
 
             $db->prepare(

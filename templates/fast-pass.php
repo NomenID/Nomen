@@ -52,6 +52,14 @@ $title = t('Temp key sign-in');
                 <?= t('Create and manage temp keys in account settings.') ?>
             </p>
 
+            <div class="form-group form-group--inline">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="temporary" value="1">
+                    <span class="checkmark"></span>
+                    <span><?= t('This is a public device') ?></span>
+                </label>
+            </div>
+
             <div class="form-group">
                 <label><?= t('Code') ?></label>
                 <div class="input-with-button">

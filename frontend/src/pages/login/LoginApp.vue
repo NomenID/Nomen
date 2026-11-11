@@ -55,6 +55,11 @@ function available(method) {
   return true
 }
 
+function providerUrl(slug) {
+  const base = `/auth/${slug}/redirect?redirect_to=${encodeURIComponent(props.redirectTo)}`
+  return form.temporary ? base + '&temporary=1' : base
+}
+
 const localMethods = ['password', 'email_code', 'biometric']
 const localAvailable = computed(() => localMethods.filter(available))
 const moreAvailable = computed(() =>
@@ -77,8 +82,7 @@ const form = reactive({
   password: '',
   email: props.initialEmail || remembered?.e || '',
   code: '',
-  rememberPassword: false,
-  rememberCode: false,
+  temporary: false,
   captchaPassword: '',
   captchaCode: '',
 })
@@ -307,6 +311,7 @@ async function biometricLogin() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        temporary: form.temporary,
         credential: {
           id: credential.id,
           type: credential.type,
@@ -380,10 +385,22 @@ onBeforeUnmount(() => {
 
     <p v-show="switchHint" class="login-switch-hint" id="login-switch-hint">{{ switchHint }}</p>
 
+    <div
+      v-show="current !== null || (props.methods.oauth && props.providers.length)"
+      class="form-group form-group--inline login-device"
+    >
+      <label class="checkbox-label">
+        <input v-model="form.temporary" type="checkbox" id="temporary-login">
+        <span class="checkmark"></span>
+        <span>{{ t('This is a public device') }}</span>
+      </label>
+    </div>
+
     <div class="login-primary" v-show="current !== null">
       <form method="POST" action="/login" class="auth-form" id="password-form" v-show="current === 'password'">
         <input type="hidden" name="_csrf" :value="csrf">
         <input type="hidden" name="redirect_to" :value="redirectTo">
+        <input type="hidden" name="temporary" :value="form.temporary ? '1' : ''">
 
         <div class="form-group">
           <label for="username">{{ t('Username or email') }}</label>
@@ -410,14 +427,6 @@ onBeforeUnmount(() => {
           >
         </div>
 
-        <div class="form-group form-group--inline">
-          <label class="checkbox-label">
-            <input v-model="form.rememberPassword" type="checkbox" name="remember_me" value="1">
-            <span class="checkmark"></span>
-            <span>{{ t('Remember me') }}</span>
-          </label>
-        </div>
-
         <div v-if="requireCaptcha" class="form-group">
           <label>{{ t('CAPTCHA') }}</label>
           <CaptchaInput
@@ -434,6 +443,7 @@ onBeforeUnmount(() => {
       <form method="POST" action="/login/code" class="auth-form" id="code-form" v-show="current === 'email_code'">
         <input type="hidden" name="_csrf" :value="csrf">
         <input type="hidden" name="redirect_to" :value="redirectTo">
+        <input type="hidden" name="temporary" :value="form.temporary ? '1' : ''">
 
         <div class="form-group">
           <label for="email">{{ t('Email or username') }}</label>
@@ -513,14 +523,6 @@ onBeforeUnmount(() => {
               @click="onSendClick"
             >{{ sendCodeText }}</button>
           </div>
-        </div>
-
-        <div class="form-group form-group--inline">
-          <label class="checkbox-label">
-            <input v-model="form.rememberCode" type="checkbox" name="remember_me" value="1">
-            <span class="checkmark"></span>
-            <span>{{ t('Remember me') }}</span>
-          </label>
         </div>
 
         <div v-if="requireCaptcha" class="form-group">
@@ -613,7 +615,7 @@ onBeforeUnmount(() => {
           v-for="provider in props.providers"
           :key="provider.slug"
           class="auth-provider"
-          :href="`/auth/${provider.slug}/redirect?redirect_to=${encodeURIComponent(props.redirectTo)}`"
+          :href="providerUrl(provider.slug)"
         >
           <span v-if="provider.logo" class="auth-provider__mark auth-provider__mark--logo"><img :src="provider.logo" alt=""></span>
           <span v-else class="auth-provider__mark">{{ provider.name.slice(0, 1) }}</span>

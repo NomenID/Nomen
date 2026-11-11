@@ -55,9 +55,9 @@ async function toggleStatus(user) {
     { confirmText: disabling ? '禁用' : '启用', cancelText: '取消' },
   )
   if (!ok) return
-  busyId.value = user.id
+  busyId.value = user.unid
   try {
-    const result = await apiPost('/admin/users/toggle-status', { user_id: user.id })
+    const result = await apiPost('/admin/users/toggle-status', { user_unid: user.unid })
     if (result.success) {
       user.status = result.status
       window.Nomen.toast(result.message, 'success')
@@ -77,9 +77,9 @@ async function toggleAdmin(user) {
     { confirmText: granting ? '设为管理员' : '撤销', cancelText: '取消' },
   )
   if (!ok) return
-  busyId.value = user.id
+  busyId.value = user.unid
   try {
-    const result = await apiPost('/admin/users/toggle-admin', { user_id: user.id })
+    const result = await apiPost('/admin/users/toggle-admin', { user_unid: user.unid })
     if (result.success) {
       user.role = result.role
       window.Nomen.toast(result.message, 'success')
@@ -133,9 +133,9 @@ onMounted(() => load(1))
             </tr>
           </thead>
           <tbody>
-            <tr v-for="user in data.users" :key="user.id">
+            <tr v-for="user in data.users" :key="user.unid">
               <td>
-                <router-link class="a-link a-link--strong" :to="`/admin/users/${user.id}`">{{ user.username }}</router-link>
+                <router-link class="a-link a-link--strong" :to="`/admin/users/${user.unid}`">{{ user.username }}</router-link>
                 <div v-if="user.display_name" class="a-sub">{{ user.display_name }}</div>
               </td>
               <td>
@@ -154,11 +154,11 @@ onMounted(() => load(1))
                 <div v-if="user.last_login_ip" class="a-sub a-mono">{{ user.last_login_ip }}</div>
               </td>
               <td class="a-td-actions">
-                <router-link class="a-btn a-btn--ghost a-btn--sm" :to="`/admin/users/${user.id}`">详情</router-link>
-                <button class="a-btn a-btn--ghost a-btn--sm" type="button" :disabled="busyId === user.id" @click="toggleStatus(user)">
+                <router-link class="a-btn a-btn--ghost a-btn--sm" :to="`/admin/users/${user.unid}`">详情</router-link>
+                <button class="a-btn a-btn--ghost a-btn--sm" type="button" :disabled="busyId === user.unid" @click="toggleStatus(user)">
                   {{ Number(user.status) === 1 ? '禁用' : '启用' }}
                 </button>
-                <button class="a-btn a-btn--ghost a-btn--sm" type="button" :disabled="busyId === user.id" @click="toggleAdmin(user)">
+                <button class="a-btn a-btn--ghost a-btn--sm" type="button" :disabled="busyId === user.unid" @click="toggleAdmin(user)">
                   {{ user.role === 'admin' ? '撤销管理员' : '设为管理员' }}
                 </button>
               </td>

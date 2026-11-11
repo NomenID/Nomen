@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{ActivityLog, AuthController, Csrf, Database, Hooks, IdentityAuth, IdentityProviders, LoginMethods, Response, Session};
+use Nomen\Src\{ActivityLog, AuthController, Csrf, Database, Hooks, IdentityAuth, IdentityProviders, LoginMethods, Response, Session, Unid};
 use PDO;
 use Throwable;
 
@@ -27,7 +27,7 @@ class IdentityController
         $link = $loggedIn && ($_GET['link'] ?? '') !== 'no';
         $redirectTo = $link ? '/settings' : $this->safeRedirect((string)($_GET['redirect_to'] ?? '/dashboard'));
 
-        Response::redirect(IdentityAuth::begin($provider, $link, $redirectTo));
+        Response::redirect(IdentityAuth::begin($provider, $link, $redirectTo, !empty($_GET['temporary'])));
     }
 
     public function callback(string $slug): void
@@ -88,13 +88,15 @@ class IdentityController
             return;
         }
 
-        if (AuthController::beginSecondFactorIfNeeded($user, 'social', $redirectTo, false)) {
+        $temporary = !empty($pending['temporary']);
+
+        if (AuthController::beginSecondFactorIfNeeded($user, 'social', $redirectTo, $temporary)) {
             Response::redirect('/2fa/verify');
             return;
         }
 
         Session::regenerate();
-        AuthController::finishLogin($user, $redirectTo, false, false, [], 'social');
+        AuthController::finishLogin($user, $redirectTo, $temporary, false, [], 'social');
     }
 
     public function unlink(): void
@@ -229,11 +231,12 @@ class IdentityController
         $passwordHash = password_hash(bin2hex(random_bytes(32)) . (string)($config['pepper'] ?? ''), PASSWORD_ARGON2ID);
 
         $stmt = $db->prepare(
-            'INSERT INTO users (username, email, password_hash, display_name, avatar, email_verified, locale)
-             VALUES (:u, :e, :p, :d, :a, :v, :l)'
+            'INSERT INTO users (unid, username, email, password_hash, display_name, avatar, email_verified, locale)
+             VALUES (:unid, :u, :e, :p, :d, :a, :v, :l)'
         );
         try {
             $stmt->execute([
+                ':unid' => Unid::generate(),
                 ':u' => $username,
                 ':e' => $email,
                 ':p' => $passwordHash,
