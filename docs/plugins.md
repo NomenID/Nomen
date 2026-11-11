@@ -3,7 +3,9 @@
 一个插件是一个目录 `plugins/<slug>/`，里面必须有 `plugin.json`。装插件不用改核心代码：
 放进 `plugins/`，再写进 `config/plugins.php` 的 `enabled` 列表。
 
-官方三个插件（`pages`、`open-platform`、`geoip`）是独立仓库，主仓 `plugins/` 下只有 README。
+官方的四个插件（`pages`、`open-platform`、`geoip`、`totp-qr`）是独立仓库，主仓 `plugins/` 下只有 README，
+插件自己的代码和许可都在各自的仓库里（Apache-2.0，和核心的 GPL-3.0-only 无关）。
+本地开发时把仓库 clone 到核心仓外面，由不进 git 的 `paths.local.php` 指过去；没有这个文件就回落 `plugins/`。
 打包时 `code-scripts/build-dist.php` 只打清单里的插件，本地多 clone 的不会进包。
 
 ## 清单 `plugin.json`
@@ -13,7 +15,7 @@
     "name": "Example",
     "version": "0.1.0",
     "description": "一句话说明",
-    "license": "GPL-3.0-only",
+    "license": "Apache-2.0",
     "author": ["Your Name"],
     "requires": {
         "Nomen": ">=1.0",

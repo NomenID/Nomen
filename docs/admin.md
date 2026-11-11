@@ -17,7 +17,7 @@
 | 恢复工单 | `/admin/recovery` | 账号恢复申诉的审核 |
 | 活动日志 | `/admin/logs` | 操作日志，可筛选、看详情、导出 |
 | 设置 | `/admin/settings` | 两步验证策略、缓存后端、站点 API 开关 |
-| 内容 | `/admin/content` | Pages 插件页；全部 / 已发布 / 草稿 |
+| 内容 | `/admin/content` | Pages 插件页；全部 / 已发布 / 草稿 / **目录**（每个目录的侧边栏） |
 | 开发者 | `/admin/developers` | 开放平台插件页；开发者与名下应用 |
 
 插件用 `Admin::page()` 注册的页面也出现在这里，分组和顺序由插件清单决定。

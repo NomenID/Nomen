@@ -100,6 +100,7 @@ return [
 | `features` | 全 `false` | `guardians` / `country` 两个可选功能 |
 | `language_default` | `zh-hans` | 默认语言，`APP_LANGUAGE` 优先 |
 | `language_allow_switch` | `true` | 是否允许访客和用户切换语言 |
+| `pretty_urls` | `true` | 站点能不能用 `/login` 这类短地址。`false` 时改用 `index.php?page=login`；**不写这一项按 `true`**，老站升级不受影响 |
 | `db` / `redis` | 见上 | 数据库与 Redis 连接 |
 | `scopes` | `openid` / `profile` / `email` | 对 OAuth 客户端开放的 scope 及说明。**改键会让现有客户端失效** |
 | `webauthn_origin` / `webauthn_rp_name` | 品牌地址 / 品牌名 | 生物识别的来源与显示名 |

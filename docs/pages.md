@@ -10,10 +10,33 @@
 | 地址 | 作用 |
 |---|---|
 | `/w` | 页面列表 |
-| `/w/<slug>` | 单页 |
+| `/w/<slug>` | 单页；**slug 可以带层级**，如 `/w/local-docs/install` |
+| `/w/<目录>` | 目录地址：先找该目录的 `index` 页，没有就跳目录第一条 |
 | `/w/<slug>/edit` | 编辑（管理员） |
 | `/w/new` | 新建（管理员） |
 | `/w/sitemap` | 页面 sitemap（XML） |
+
+## 侧边栏
+
+侧边栏按目录配置，一个目录一份，后台「内容 → 目录」里编辑。一行一个条目：
+
+```
+概览 | local-docs/index
+  安装 | local-docs/install
+  内部草稿 | local-docs/draft | hide
+```
+
+缩进两个空格表示下一级，第三列写 `hide` 就不在公开页面显示，目标也可以写完整网址。
+**没挂菜单的目录不显示侧边栏**，正文自动占满；子目录可以有自己的菜单。
+
+## 从目录导入
+
+```bash
+php bin/nomen plugins pages:import docs --prefix=local-docs
+```
+
+把目录里的 Markdown 按相对路径导成页面（`install.md` → `local-docs/install`，
+目录根的 `README.md` → `local-docs/index`），只补缺、不覆盖库里改过的页面。
 
 挂载路径在 `config/plugins/pages.json` 的 `base_path`，也可以去后台「接入点」页改。
 改完列表、页内链接、首页的「文档」入口、`/sitemap.xml` 都跟着变。

@@ -15,7 +15,7 @@ php bin/nomen help
 | `migrate` | 只跑 `database/migrations/` 下没跑过的核心迁移 |
 | `plugins list` | 列出插件、启用状态和插件注册的命令 |
 | `plugins migrate` | 跑插件自己的 `database/migrations` |
-| `plugins <命令>` | 跑插件注册的命令，例如 `plugins pages:sync` |
+| `plugins <命令>` | 跑插件注册的命令，例如 `plugins pages:sync`、`plugins pages:import docs --prefix=local-docs` |
 | `auth:reset` | 登录方式全关、进不去后台时恢复默认（全部开启） |
 
 ## 常见用法

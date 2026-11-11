@@ -1,6 +1,8 @@
 # 皮肤开发
 
 一个皮肤是一个目录 `skins/<slug>/`，里面必须有 `skin.json`。皮肤只改外观，不改行为。
+官方两个皮肤（`nomen-2026`、`nomen-ssr`）是独立仓库，代码和许可在各自仓里（Apache-2.0）。
+本地开发时把它们放在核心仓外面，由不进 git 的 `paths.local.php` 指过去。
 
 ## 清单
 
@@ -9,7 +11,7 @@
     "name": "My Skin",
     "version": "1.0.0",
     "description": "Describe it in one English sentence",
-    "license": "GPL-3.0-only",
+    "license": "Apache-2.0",
     "author": ["Your Name"]
 }
 ```
