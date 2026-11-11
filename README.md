@@ -240,6 +240,8 @@ Nomen 将功能与外观分开管理。你可以扩展系统功能，也可以�
 
 文档与帮助文本以 CaelLab Zero Subject License, Version 1（CZS v1）授权，全文见 [LICENSES/CZS-v1.txt](LICENSES/CZS-v1.txt)。官方站的站内文档（`/w`）同样按 CZS v1 授权。
 
+代码、插件、皮肤、文档和语言词条由 NomenID Team 与其它贡献者共同完成；版权行署的是版权持有人，不是作者全名单。
+
 另外，[NOTICE](NOTICE) 不是许可，也不附加任何条件——它只是一份建议：
 
 - 保留版权声明、许可声明和作者署名：分发时 GPLv3 本来就要求，运行部署时只是建议。
