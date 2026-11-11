@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{Database, FamilyHelper, Features, Response, RateLimiter, Hooks, Special\Version};
+use Nomen\Src\{Build, Database, FamilyHelper, Features, Response, RateLimiter, Hooks, Special\Version};
 use PDO;
 
 class ApiController
@@ -144,8 +144,9 @@ class ApiController
     }
 
     /**
-     * GET /api/version - 本站运行的 Nomen 版本（公开）。
-     * 官方站（nomenid.org）发版即升级，其它实例把它当更新源查最新正式版。
+     * GET /api/version - 版本号（公开）。
+     * 不带参数报最近一次正式发版的版本号：其它实例把它当更新源，quickbuild
+     * 不能让它误报「有新版本」。本站实际在跑的版本要加 ?action=thissite。
      */
     public function siteVersion(): void
     {
@@ -158,9 +159,11 @@ class ApiController
         }
 
         $config = require __DIR__ . '/../config/app.php';
+        $version = (string)($config['version'] ?? '');
+
         Response::json([
             'product' => 'Nomen',
-            'version' => (string)($config['version'] ?? ''),
+            'version' => ($_GET['action'] ?? '') === 'thissite' ? $version : Build::release($version),
             'url'     => Version::PROJECT_URL,
         ]);
     }

@@ -81,7 +81,7 @@ GET /nomen-api?action=query&meta=siteinfo&format=json
 |---|---|
 | `/nomen-api` | 读站点内容与元信息，管理员模块也能读管理数据 |
 | `/api/userinfo`、`/api/token-info` | OAuth 接入方读当前登录用户的身份 |
-| `/api/version` | 公开的版本号，更新检查用 |
+| `/api/version` | 公开的版本号。不带参数报最近一次正式发版的号，其它实例拿它查更新；`?action=thissite` 报本站实际在跑的号（quickbuild 时带 `+qb.<日期>`） |
 
 ## 插件扩展
 

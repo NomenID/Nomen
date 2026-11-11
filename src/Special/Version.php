@@ -9,7 +9,7 @@
 
 namespace Nomen\Src\Special;
 
-use Nomen\Src\{Brand, Cache, Database, I18n, Plugins, Skins, Upgrade};
+use Nomen\Src\{Brand, Build, Cache, Database, I18n, Plugins, Skins, Upgrade};
 
 class Version
 {
@@ -64,9 +64,9 @@ class Version
             self::esc(self::plain($config['version'] ?? '')),
         ]];
 
-        $build = self::buildInfo();
-        if ($build !== []) {
-            $rows[] = [t('Build'), self::esc($build['sha8'] . ' · ' . $build['time'])];
+        $build = Build::summary((string)($config['version'] ?? ''));
+        if ($build !== null) {
+            $rows[] = [t('Build'), self::esc($build)];
         }
 
         $rows[] = [
@@ -99,31 +99,6 @@ class Version
         }
 
         return '<h2>' . t('Installed software') . '</h2>' . self::table([t('Product'), t('Version')], $rows);
-    }
-
-    /**
-     * data/build.json 由 quickbuild 部署时写入，记录本次发布包的 sha256 与构建时间；
-     * 正式发版的包不带它，也就不会显示这一行。
-     */
-    private static function buildInfo(): array
-    {
-        $file = dirname(__DIR__, 2) . '/data/build.json';
-        if (!is_file($file)) {
-            return [];
-        }
-
-        $data = json_decode((string)file_get_contents($file), true);
-        if (!is_array($data)) {
-            return [];
-        }
-
-        $sha = strtolower(trim((string)($data['sha256'] ?? '')));
-        $time = trim((string)($data['built_at'] ?? ''));
-        if (preg_match('/^[0-9a-f]{64}$/', $sha) !== 1 || $time === '') {
-            return [];
-        }
-
-        return ['sha8' => substr($sha, 0, 8), 'time' => mb_substr($time, 0, 40)];
     }
 
     private static function entryPoints(array $config): string
