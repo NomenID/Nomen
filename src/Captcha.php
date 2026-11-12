@@ -9,82 +9,70 @@
 
 namespace Nomen\Src;
 
-class Captcha
+/**
+ * 算术验证码：给自部署的小站挡批量脚本，不依赖 GD，也不往第三方服务送数据。
+ * 题目和答案都放在会话里，答一次就作废。
+ */
+final class Captcha
 {
-    /**
-     * GD 没装就没有验证码：登录退化成只靠限流，注册不再拦验证码。
-     */
+    private const SESSION_ANSWER = 'captcha_answer';
+    private const SESSION_QUESTION = 'captcha_question';
+
+    /** 保留这个判断给调用方：算术题不需要任何扩展。 */
     public static function available(): bool
     {
-        return function_exists('imagecreatetruecolor') && function_exists('imagepng');
+        return true;
     }
 
-    /**
-     * 生成验证码图片并输出到浏览器
-     */
+    /** 生成一道题并记到会话里，返回题面。 */
+    public static function question(): string
+    {
+        $a = random_int(2, 9);
+        $b = random_int(1, 9);
+
+        if (random_int(0, 1) === 0) {
+            $text = $a . ' + ' . $b . ' = ?';
+            $answer = $a + $b;
+        } else {
+            if ($b > $a) {
+                [$a, $b] = [$b, $a];
+            }
+            $text = $a . ' − ' . $b . ' = ?';
+            $answer = $a - $b;
+        }
+
+        Session::set(self::SESSION_QUESTION, $text);
+        Session::set(self::SESSION_ANSWER, (string)$answer);
+
+        return $text;
+    }
+
+    /** GET /captcha：前端拿题面用。 */
     public static function generate(): void
     {
-        if (!self::available()) {
-            http_response_code(404);
-            exit;
-        }
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-store');
 
-        $chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-        $code = '';
-        for ($i = 0; $i < 4; $i++) {
-            $code .= $chars[random_int(0, strlen($chars) - 1)];
-        }
-
-        // 存 session（小写，不区分大小写）
-        Session::set('captcha_code', strtolower($code));
-
-        $width = 120;
-        $height = 40;
-        $img = imagecreatetruecolor($width, $height);
-
-        $bg = imagecolorallocate($img, 245, 245, 245);
-        imagefilledrectangle($img, 0, 0, $width, $height, $bg);
-
-        // 干扰线
-        for ($i = 0; $i < 5; $i++) {
-            $lineColor = imagecolorallocate($img, random_int(100, 200), random_int(100, 200), random_int(100, 200));
-            imageline($img, random_int(0, $width), random_int(0, $height), random_int(0, $width), random_int(0, $height), $lineColor);
-        }
-
-        // 干扰点
-        for ($i = 0; $i < 50; $i++) {
-            $dotColor = imagecolorallocate($img, random_int(150, 220), random_int(150, 220), random_int(150, 220));
-            imagesetpixel($img, random_int(0, $width), random_int(0, $height), $dotColor);
-        }
-
-        // 文字
-        for ($i = 0; $i < 4; $i++) {
-            $textColor = imagecolorallocate($img, random_int(30, 100), random_int(30, 100), random_int(30, 100));
-            $fontSize = 5;
-            $x = 15 + $i * 24;
-            $y = random_int(5, 12);
-            imagechar($img, $fontSize, $x, $y, $code[$i], $textColor);
-        }
-
-        header('Content-Type: image/png');
-        header('Cache-Control: no-cache, no-store, must-revalidate');
-        imagepng($img);
-        imagedestroy($img);
+        echo json_encode(['question' => self::question()], JSON_UNESCAPED_UNICODE);
         exit;
     }
 
-    /**
-     * 校验验证码（不区分大小写，用后即焚）
-     */
+    /** 校验答案，顺便把这道题作废。 */
     public static function verify(?string $input): bool
     {
-        $expected = Session::get('captcha_code');
-        Session::remove('captcha_code');
+        $expected = (string)Session::get(self::SESSION_ANSWER, '');
+        Session::remove(self::SESSION_ANSWER);
+        Session::remove(self::SESSION_QUESTION);
 
-        if (!$expected || !$input) {
+        if ($expected === '' || $input === null) {
             return false;
         }
 
-        return hash_equals($expected, strtolower(trim($input)));
+        $input = trim($input);
+        if (!preg_match('/^-?\d{1,3}$/', $input)) {
+            return false;
+        }
+
+        return hash_equals($expected, (string)(int)$input);
     }
 }

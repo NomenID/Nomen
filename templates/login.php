@@ -95,8 +95,8 @@ $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APO
                 <div class="form-group">
                     <label><?= t('CAPTCHA') ?></label>
                     <div class="input-with-button">
-                        <input type="text" name="captcha" required placeholder="<?= t('Enter the code') ?>" maxlength="6" autocomplete="off">
-                        <img src="/captcha" alt="<?= t('Code') ?>" class="captcha-img" title="<?= t('Click to refresh') ?>">
+                        <input type="text" name="captcha" required placeholder="<?= t('Enter the answer') ?>" maxlength="3" inputmode="numeric" autocomplete="off">
+                        <span class="captcha-question" dir="ltr"><?= htmlspecialchars(\Nomen\Src\Captcha::question()) ?></span>
                     </div>
                 </div>
                 <?php endif; ?>

@@ -63,8 +63,8 @@ $title = t('Temp key sign-in');
             <div class="form-group">
                 <label><?= t('Code') ?></label>
                 <div class="input-with-button">
-                    <input type="text" name="captcha" required placeholder="<?= t('Enter the code') ?>" maxlength="6" autocomplete="off" style="flex:1;">
-                    <img src="/captcha" alt="<?= t('Code') ?>" onclick="this.src='/captcha?t='+Date.now()" style="height:38px;max-width:120px;cursor:pointer;border-radius:6px;" title="<?= t('Click to refresh') ?>">
+                    <input type="text" name="captcha" required placeholder="<?= t('Enter the answer') ?>" maxlength="3" inputmode="numeric" autocomplete="off" style="flex:1;">
+                    <span class="captcha-question" dir="ltr"><?= htmlspecialchars(\Nomen\Src\Captcha::question()) ?></span>
                 </div>
             </div>
 

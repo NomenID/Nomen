@@ -7,7 +7,7 @@
 -->
 
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useT } from '../composables/useT.js'
 const { t } = useT()
 
@@ -16,21 +16,33 @@ const props = defineProps({
   name: { type: String, default: 'captcha' },
   inputId: { type: String, default: 'captcha' },
   imgId: { type: String, default: 'captcha-img' },
-  maxlength: { type: [String, Number], default: 6 },
+  maxlength: { type: [String, Number], default: 3 },
   required: { type: Boolean, default: true },
 })
 
 const model = defineModel({ type: String, default: '' })
-const src = ref(props.url)
+const question = ref('')
 
-function refresh() {
+async function refresh() {
   if (props.url.startsWith('data:')) return
-  src.value = props.url + '?t=' + Date.now()
+  try {
+    const sep = props.url.includes('?') ? '&' : '?'
+    const res = await fetch(props.url + sep + 't=' + Date.now(), {
+      headers: { Accept: 'application/json' },
+      cache: 'no-store',
+    })
+    const data = await res.json()
+    if (data && data.question) question.value = data.question
+  } catch (e) {
+    question.value = ''
+  }
 }
 
 function onInput(event) {
   model.value = event.target.value
 }
+
+onMounted(refresh)
 </script>
 
 <template>
@@ -42,17 +54,19 @@ function onInput(event) {
       :value="model"
       :required="required"
       :maxlength="maxlength"
+      inputmode="numeric"
       :placeholder="t('Enter verification code')"
       autocomplete="off"
       @input="onInput"
     >
-    <img
+    <button
       :id="imgId"
-      :src="src"
-      :alt="t('Code')"
-      class="captcha-img"
+      type="button"
+      class="captcha-question"
+      dir="ltr"
       :title="t('Click to refresh')"
+      :aria-label="t('Click to refresh')"
       @click="refresh"
-    >
+    >{{ question || '···' }}</button>
   </div>
 </template>
