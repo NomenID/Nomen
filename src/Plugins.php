@@ -374,6 +374,9 @@ class Plugins
             return true;
         }
 
+        // quickbuild 的 1.5.0+qb.<日期> 按基础版本比较，否则会被当成预发布版
+        $version = (string)preg_replace('/\+.*$/', '', $version);
+
         return version_compare($version, $m[2], $m[1] !== '' ? $m[1] : '>=');
     }
 
