@@ -23,7 +23,9 @@
 | [家庭与监护](family.md) | 未成年账号、家长同意、家长邮箱、家庭页 |
 | [第三方登录](oauth-providers.md) | GitHub / Google / Microsoft / CaelLabID 与自定义 OAuth2 提供方 |
 | [开放平台](open-platform.md) | 开发者注册、自助创建 OAuth 应用、回调地址与 scope |
+| [OpenID Connect](oidc.md) | 发现文档、JWKS、id_token 与接入方要注意的事 |
 | [站内页面](pages.md) | Pages 插件：在站内写文档、Markdown 编辑器、挂载路径 |
+| [搜索](search.md) | 搜索插件：默认查数据库，也可接 Meilisearch / OpenSearch / Elasticsearch |
 | [站点 API](api.md) | `/nomen-api` 的只读接口与权限 |
 | [插件开发](plugins.md) | 插件清单、钩子、路由、后台页面、资源、迁移、命令 |
 | [皮肤开发](skins.md) | 皮肤结构、模板覆盖顺序、静态资源、品牌变量 |

@@ -17,6 +17,12 @@ php bin/nomen help
 | `plugins migrate` | 跑插件自己的 `database/migrations` |
 | `plugins <命令>` | 跑插件注册的命令，例如 `plugins pages:sync`、`plugins pages:import docs --prefix=local-docs` |
 | `auth:reset` | 登录方式全关、进不去后台时恢复默认（全部开启） |
+| `user:passwd <账号>` | 直接改密码，令牌一起撤销；忘了管理员密码、邮件发不出去时用 |
+| `user:promote <账号>` | 把账号提成管理员 |
+| `user:demote <账号>` | 把管理员降回普通用户 |
+| `doctor` | 自检：PHP 版本与扩展、目录可写、配置、数据库连接、待应用迁移 |
+| `backup [目录]` | 备份数据库，默认落 `data/backups/`；MySQL 走 mysqldump，SQLite 复制文件 |
+| `restore <文件>` | 从备份恢复；恢复前先自动备份当前库，要 `--yes` 跳过确认 |
 
 ## 常见用法
 

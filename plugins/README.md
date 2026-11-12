@@ -225,6 +225,8 @@ $claims = Hooks::filter('userinfo.claims', $claims, $user, $scopes);
 | `user.login.succeeded` | run | `userId`, `username` | 会话建立之后 |
 | `user.logout` | run | `userId`, `username` | 清会话之前 |
 | `userinfo.claims` | filter | `claims`, `user`, `scopes` | `/api/userinfo` 组装完 claims 之后 |
+| `oidc.claims` | filter | `claims`, `user`, `scopes` | id_token 的 claims 组装完；`/api/userinfo` 不走这个钩子 |
+| `meta.tags` | filter | `tags`, `layout` | 页面 head 的 meta 组装完；以 `og:` 开头的按 `property` 输出，其余按 `name` |
 | `oauth.authorize.quick` | filter | `null`, `userId`, `client`, `scopes` | 授权请求判定阶段；返回非空字符串 = 该请求免确认直接发码，回调带上 `spicallogin=<返回值>`（返回 `null` 走普通确认流程）。这是产品策略钩子，跳不跳确认由插件自己判断 |
 | `oauth.authorize.approved` | run | `userId`, `clientId`, `scope`, `silent` | 授权码发出之后；`silent` 表示这次没经过确认页（已授权过、`prompt=none` 或插件批了快速通道） |
 | `oauth.token.issued` | run | `userId`, `clientId`, `scopes`, `grantType` | 发出 access token 之后（`authorization_code` / `refresh_token`） |
