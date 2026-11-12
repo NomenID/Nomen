@@ -240,7 +240,6 @@ $claims = Hooks::filter('userinfo.claims', $claims, $user, $scopes);
 | `layout.body.end` | filter | `html`, `layout` | 布局 `</body>` 前 |
 | `homepage.links` | filter | `links` | 首页底部链接组；追加条目带 `by`（插件显示名）的话，后台「首页」编辑器会标「由 X 托管」 |
 | `homepage.sections` | filter | `sections`, `home` | 默认首页正文区块；插件返回 HTML 片段数组 |
-| `homepage.notice` | filter | `html` | `config/home-*.php` 自定义首页的说明位；返回值原样输出 |
 | `auth.notice` | filter | `html` | 登录 / 注册页头部下方；返回值原样输出，PHP 与 Vue 两条渲染都生效 |
 | `footer.links` | filter | `links`, `brand`, `layout` | 页脚链接数组 |
 | `footer.html` | filter | `html`, `layout`, `brand`, `links` | 页脚最终 HTML（config/footer.php 或皮肤 partial 渲染完） |
