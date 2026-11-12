@@ -336,13 +336,15 @@ php docs-internal/i18n/extract.php --check
 
 ## 自带插件
 
-发布包里带三个插件，但它们是独立项目、独立仓库，不属于 Nomen 本体：
+发布包里带五个插件，但它们是独立项目、独立仓库，不属于 Nomen 本体：
 
 | 插件 | 仓库 | 做什么 |
 |---|---|---|
 | `pages` | <https://github.com/NomenID/plugin-pages> | 站内文档页面 |
 | `open-platform` | <https://github.com/NomenID/plugin-open-platform> | 开发者门户 |
 | `geoip` | <https://github.com/NomenID/plugin-geoip> | IP 归属地 |
+| `totp-qr` | <https://github.com/NomenID/plugin-totp-qr> | 在浏览器里画两步验证的二维码，密钥不出站 |
+| `search` | <https://github.com/NomenID/plugin-search> | 站内搜索：默认查数据库，可接 Meilisearch / OpenSearch / Elasticsearch（**默认不启用**，见 docs/search.md） |
 
 另有不在发布包里的插件，按需自行安装：
 
@@ -350,4 +352,4 @@ php docs-internal/i18n/extract.php --check
 |---|---|---|
 | `quick-central-login` | <https://github.com/NomenID/plugin-quick-central-login> | 第一方应用免确认的快速中央登录（回调带 `spicallogin` 标记），需要核心 ≥1.3.2 |
 
-本仓库的 `plugins/` 只有这份说明；插件源码在各自仓库里。打包时先把三个自带目录 clone 到 `plugins/`，再跑 `php code-scripts/build-dist.php`，zip 里会带上它们。
+本仓库的 `plugins/` 只有这份说明；插件源码在各自仓库里。打包时先把五个自带目录 clone 到 `plugins/`，再跑 `php code-scripts/build-dist.php`，zip 里会带上它们。
