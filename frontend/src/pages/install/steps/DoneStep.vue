@@ -55,8 +55,8 @@ function downloadConfig() {
       <CheckRow :label="done.username || ''" :hint="done.email || ''" state="pass" :state-text="t('Created')" />
       <CheckRow :label="t('Config file')" :hint="done.written ? t('Written to config/installed.php') : t('PHP cannot write to config/ — place the file manually')"
         :state="done.written ? 'pass' : 'fail'" :state-text="done.written ? t('Done') : t('Needs attention')" />
-      <CheckRow :label="t('Install directory')" :hint="t('public/nomen-install/ is still there — delete it once the site is verified')"
-        state="off" :state-text="t('Should be deleted')" />
+      <CheckRow :label="t('Install directory')" :hint="t('The wizard cannot run twice; delete it on a public site, keep it on a test machine.')"
+        state="off" :state-text="t('Optional')" />
     </ul>
   </div>
 

@@ -58,10 +58,6 @@ onMounted(() => {
         <code>php bin/nomen upgrade</code>，跑完这条提示会自己消失。
       </AdminAlert>
 
-      <AdminAlert v-if="data.installerPresent" type="warning">
-        <code>public/nomen-install/</code> 还在服务器上。装完应删除这个目录，否则任何人都能重新打开安装页。
-      </AdminAlert>
-
       <div class="a-statgrid">
         <div v-for="card in data.cards" :key="card.label" class="a-stat" :class="{ 'a-stat--alert': card.alert }">
           <div class="a-stat__value">{{ card.value }}</div>

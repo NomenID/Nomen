@@ -83,7 +83,7 @@ class Install
         echo '  1. nginx 的 root 指到 public/，参考 config/nginx.conf', PHP_EOL;
         echo '  2. cd frontend && npm install && npm run build', PHP_EOL;
         echo '  3. php scripts/mail-drain.php 常驻（通知邮件靠它发）', PHP_EOL, PHP_EOL;
-        echo '网页安装器 public/nomen-install/ 用不上就删掉，别留在站点上。', PHP_EOL;
+        echo '网页安装器 public/nomen-install/ 用不上可以删掉；本地测试环境留着也行。', PHP_EOL;
         echo '页脚 Powered by Nomen 和 /special/version 版本页都只是建议，删掉不违反 NOTICE；', PHP_EOL;
         echo '但插件和皮肤各自的许可证可能要求保留声明，装了什么就核对什么。', PHP_EOL, PHP_EOL;
 

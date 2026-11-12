@@ -82,7 +82,4 @@ async function install() {
     </template>
     <span v-else></span>
   </div>
-
-  <p class="fine">{{ t('The footer shows "Powered by Nomen" and links to the version page — the attribution requirement of GPLv3 §7(b), see:') }}
-    <code>NOTICE</code></p>
 </template>

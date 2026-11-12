@@ -90,7 +90,6 @@ class AdminController
             'cards'            => Hooks::filter('admin.dashboard.cards', self::statCards($stats), $stats),
             'redis'            => self::redisHealth(),
             'recentLogs'       => self::logRows(ActivityLog::listFor([], 1, 10)['items']),
-            'installerPresent' => is_file(dirname(__DIR__) . '/public/nomen-install/index.php'),
             'upgradePending'   => Upgrade::mismatch($this->db),
             'plugins'          => self::pluginSummary(),
             'site'             => Hooks::filter('admin.dashboard.site', [
