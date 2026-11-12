@@ -65,7 +65,9 @@ foreach ($bundledSkins as $bundled) {
 // 源码、开发笔记、构建脚本和运行期数据都不进包
 $skip = [
     '.git',
+    '.github',
     '.zcode',
+    'tests',
     'node_modules',
     'frontend',
     'docs-internal',
