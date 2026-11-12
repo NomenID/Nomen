@@ -29,6 +29,20 @@ switch ($cmd) {
     case 'auth:reset':
         exit(Nomen\Src\Cli\AuthReset::run(array_slice($args, 2)));
 
+    case 'user:passwd':
+    case 'user:promote':
+    case 'user:demote':
+        exit(Nomen\Src\Cli\User::run(array_merge([substr($cmd, 5)], array_slice($args, 2))));
+
+    case 'doctor':
+        exit(Nomen\Src\Cli\Doctor::run(array_slice($args, 2)));
+
+    case 'backup':
+        exit(Nomen\Src\Cli\Backup::run(array_slice($args, 2)));
+
+    case 'restore':
+        exit(Nomen\Src\Cli\Backup::restore(array_slice($args, 2)));
+
     case 'help':
     case '--help':
     case '-h':
@@ -40,6 +54,12 @@ switch ($cmd) {
         echo '  plugins migrate  跑插件自己的 database/migrations', PHP_EOL;
         echo '  plugins <命令>   跑插件注册的命令，plugins list 里能看到', PHP_EOL;
         echo '  auth:reset       登录方式全关进不去后台时用：恢复默认（全部开启）', PHP_EOL;
+        echo '  user:passwd <账号>   直接改密码（忘了管理员密码、发不出邮件时用），令牌一起撤销', PHP_EOL;
+        echo '  user:promote <账号>  把账号提成管理员', PHP_EOL;
+        echo '  user:demote <账号>   把管理员降回普通用户', PHP_EOL;
+        echo '  doctor           自检：扩展、目录可写、配置、数据库连接、待应用迁移', PHP_EOL;
+        echo '  backup [目录]    备份数据库（默认 data/backups）', PHP_EOL;
+        echo '  restore <文件>   从备份恢复，--yes 跳过确认；恢复前会自动备份当前库', PHP_EOL;
         exit(0);
 
     default:
