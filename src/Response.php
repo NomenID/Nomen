@@ -43,6 +43,9 @@ class Response
         require $templatePath;
         $content = ob_get_clean();
 
+        // 模板里设的 $title 也在当前作用域里，交给 Meta 拼 og:title
+        Meta::setTitle(isset($title) ? (string)$title : '');
+
         $layoutFile = Skins::layoutFile($layout);
         if ($layoutFile === null) {
             self::error(500, "皮肤里没有 layout: {$layout}");

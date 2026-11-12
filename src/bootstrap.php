@@ -48,4 +48,8 @@ spl_autoload_register(function (string $class) use ($root) {
 \Nomen\Src\ErrorPage::register();
 
 // 核心给出的 head meta，皮肤经 layout.head 钩子拿到；优先级 1，排在插件追加的内容前面
-\Nomen\Src\Hooks::add('layout.head', static fn(string $html): string => $html . \Nomen\Src\Meta::head(), 1);
+\Nomen\Src\Hooks::add(
+    'layout.head',
+    static fn(string $html, string $layout = 'default'): string => $html . \Nomen\Src\Meta::head($layout),
+    1
+);
