@@ -23,5 +23,5 @@
 特殊页的外壳。版本页、许可页、插件页这些 `/special/<slug>` 都套这一层。
 
 - 文件：`templates/special.php`
-- 变量：`title`、`body`、`n`、`name`、`hideTitle`、`pageClass`、`extraCss`
+- 变量：`title`、`body`、`n`、`name`
 

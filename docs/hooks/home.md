@@ -28,5 +28,4 @@
 - 时机：默认首页正文区块；插件返回 HTML 片段数组
 - 触发点：
   - `templates/home.php`（filter）
-  - `Skins/nomen-ssr/templates/home.php`（filter）
 

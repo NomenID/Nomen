@@ -40,39 +40,21 @@
 - 类型：filter
 - 参数：html, layout
 - 时机：布局 `</body>` 前
-- 触发点：
-  - `Skins/nomen-2026/layouts/admin-app.php`（filter）
-  - `Skins/nomen-2026/layouts/app.php`（filter）
-  - `Skins/nomen-2026/layouts/default.php`（filter）
-  - `Skins/nomen-ssr/layouts/admin-app.php`（filter）
-  - `Skins/nomen-ssr/layouts/app.php`（filter）
-  - `Skins/nomen-ssr/layouts/default.php`（filter）
+- 触发点：皮肤布局 那边触发，源码在它自己的仓库里
 
 ### layout.body.start
 
 - 类型：filter
 - 参数：html, layout
 - 时机：布局 `<body>` 后
-- 触发点：
-  - `Skins/nomen-2026/layouts/admin-app.php`（filter）
-  - `Skins/nomen-2026/layouts/app.php`（filter）
-  - `Skins/nomen-2026/layouts/default.php`（filter）
-  - `Skins/nomen-ssr/layouts/admin-app.php`（filter）
-  - `Skins/nomen-ssr/layouts/app.php`（filter）
-  - `Skins/nomen-ssr/layouts/default.php`（filter）
+- 触发点：皮肤布局 那边触发，源码在它自己的仓库里
 
 ### layout.head
 
 - 类型：filter
 - 参数：html, layout
 - 时机：布局 `</head>` 前；返回值原样输出（核心先在这里给出 generator / 版本 / 皮肤 / 语言 meta）
-- 触发点：
-  - `Skins/nomen-2026/layouts/admin-app.php`（filter）
-  - `Skins/nomen-2026/layouts/app.php`（filter）
-  - `Skins/nomen-2026/layouts/default.php`（filter）
-  - `Skins/nomen-ssr/layouts/admin-app.php`（filter）
-  - `Skins/nomen-ssr/layouts/app.php`（filter）
-  - `Skins/nomen-ssr/layouts/default.php`（filter）
+- 触发点：皮肤布局 那边触发，源码在它自己的仓库里
 
 ### meta.tags
 

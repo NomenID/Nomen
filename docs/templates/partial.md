@@ -25,7 +25,7 @@
 移动端抽屉菜单。语言入口只有 `/special/lang` 一种走法，首页不带 `rt` 参数。
 
 - 文件：`templates/_mobile_menu.php`
-- 变量：`menuLinks`、`menuUser`、`name`、`avatar`
+- 变量：无（由 `include` 直接引入，或渲染方用 `$props` 之类整体传入）
 - 注意：由皮肤布局用 `viewPartial` 渲染。
 
 ### _site_sky

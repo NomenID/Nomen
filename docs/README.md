@@ -49,6 +49,28 @@
 | [模板参考](templates/index.md) | 核心模板的变量表，按登录 / 恢复 / 外壳 / 首页 / 片段分组 |
 | [数据结构](database/index.md) | 27 张表按域分组，字段、类型、默认值、索引 |
 
+## 扩展开发
+
+写插件和皮肤从这里开始，两边都有可 clone 的骨架。
+
+| 文档 | 内容 |
+|---|---|
+| [写一个插件](plugin-dev/index.md) | 从骨架起步：目录、清单、第一次改动、调试 |
+| [清单字段](plugin-dev/manifest.md) | `plugin.json` 每个字段，含 hooks / 特殊页 / 后台页 / 挂载点 |
+| [钩子](plugin-dev/hooks.md) | `run` 与 `filter` 的区别、优先级、返回值限制、常用示例 |
+| [页面与路由](plugin-dev/pages-and-routes.md) | 特殊页、挂载点、路由参数、中间件 |
+| [后台页面](plugin-dev/admin-pages.md) | 后台页注册、标签页、表单提交、`a-*` 样式 |
+| [模板与资源](plugin-dev/templates-and-assets.md) | `@<slug>` 模板、皮肤覆盖、`/plugin-assets/` |
+| [迁移与命令](plugin-dev/migrations.md) | 插件建表、迁移文件命名、CLI 命令 |
+| [站点 API](plugin-dev/api.md) | 给 `/nomen-api` 加 `action` / `list` / `prop` / `meta` 模块 |
+| [多语言](plugin-dev/i18n.md) | 英文母键、`i18n/` 词典、`extract.php --check` 的口径 |
+| [发布插件](plugin-dev/release.md) | 版本号、README 要求、随包分发 |
+| [写一个皮肤](skin-dev/index.md) | 从骨架起步：三个布局、第一次改动、验证清单 |
+| [布局](skin-dev/layouts.md) | `default` / `app` / `admin-app` 的职责与必备调用 |
+| [模板覆盖](skin-dev/templates.md) | 覆盖顺序、变量来源、首页三种模式 |
+| [静态资源](skin-dev/assets.md) | CSS 变量表、深浅色、RTL、`?v=` 规则 |
+| [发布皮肤](skin-dev/release.md) | 启用规则、发版前清单、核心升级后要复查什么 |
+
 ## 配置改了什么时候生效
 
 - `.env` 和 `config/*.php`：PHP 每次请求都会重新读，保存后刷新页面即可。开了 opcache 且关闭了

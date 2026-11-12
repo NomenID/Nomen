@@ -401,7 +401,9 @@ function buildHooks(): void
     }
 
     $sites = [];
-    $dirs = [$root . '/src', $root . '/templates', $root . '/public', $root . '/controllers', $pluginsDir, $skinsDir];
+    // 只扫核心仓自己的目录：插件和皮肤是独立仓库，扫进去会让生成的页面随本地 clone 情况变化，
+    // CI 上没有那些仓就对不上了。扩展侧触发的钩子在 sidecar 里用 owner 标注。
+    $dirs = [$root . '/src', $root . '/templates', $root . '/public', $root . '/controllers'];
     foreach ($dirs as $dir) {
         foreach (walkFiles($dir, ['.php']) as $file) {
             $source = file_get_contents($file) ?: '';
@@ -442,15 +444,26 @@ function buildHooks(): void
 
     $missing = array_values(array_diff(array_keys($meta), array_keys($sites)));
     $undocumented = array_values(array_diff(array_keys($sites), array_keys($meta)));
-    // 仓里没 clone 插件（CI、发布包里只有一个 README）时，插件自己的钩子扫不到，缺的这些不算漂移
-    $pluginsScanned = count(glob($pluginsDir . '/*/plugin.json') ?: []) > 0;
-    if ($missing && $pluginsScanned) {
-        $drift[] = '代码里已经没有这些钩子的触发点：' . implode('、', $missing) . '（要么删描述，要么补触发点）';
-    } elseif ($missing) {
-        $GLOBALS['notes'][] = '未扫到插件目录，这些钩子暂不核对：' . implode('、', $missing);
+    $extensionOwned = [];
+    $realMissing = [];
+    foreach ($missing as $hook) {
+        if ((string)($meta[$hook]['owner'] ?? '') !== '') {
+            $extensionOwned[] = $hook;
+        } else {
+            $realMissing[] = $hook;
+        }
+    }
+    if ($realMissing) {
+        $drift[] = '代码里已经没有这些钩子的触发点：' . implode('、', $realMissing) . '（要么删描述，要么补触发点，要么标 owner）';
     }
     if ($undocumented) {
         $drift[] = '代码里有触发点但 hooks.json 没写：' . implode('、', $undocumented);
+    }
+    $ownerMap = [];
+    foreach ($meta as $hook => $info) {
+        if ((string)($info['owner'] ?? '') !== '') {
+            $ownerMap[$hook] = (string)$info['owner'];
+        }
     }
 
     $index = ["# 钩子参考\n\n",
@@ -472,7 +485,9 @@ function buildHooks(): void
                 . ' | ' . (cell($info['args'] ?? '') ?: '—')
                 . ' | ' . (cell($info['when'] ?? '') ?: '—') . " |\n";
             $index[] = '| [' . $hook . '](' . $slug . '.md) | '
-                . cell($info['type'] ?? '—') . ' | ' . (isset($sites[$hook]) ? count($sites[$hook]) . ' 处' : '**0 处**') . " |\n";
+                . cell($info['type'] ?? '—') . ' | '
+                . (isset($sites[$hook]) ? count($sites[$hook]) . ' 处'
+                    : (isset($ownerMap[$hook]) ? '扩展侧' : '**0 处**')) . " |\n";
         }
 
         $out .= "\n## 触发点\n\n";
@@ -489,7 +504,11 @@ function buildHooks(): void
                 $out .= '- 注意：' . $info['note'] . "\n";
             }
             if (empty($sites[$hook])) {
-                $out .= "- 触发点：**代码里没有**（登记过但没人触发）\n\n";
+                if (isset($ownerMap[$hook])) {
+                    $out .= '- 触发点：' . $ownerMap[$hook] . " 那边触发，源码在它自己的仓库里\n\n";
+                } else {
+                    $out .= "- 触发点：**代码里没有**（登记过但没人触发）\n\n";
+                }
                 continue;
             }
             $out .= "- 触发点：\n";
@@ -525,7 +544,8 @@ function buildTemplates(): void
     }
 
     $vars = [];
-    $dirs = [$root . '/src', $root . '/controllers', $root . '/public', $pluginsDir, $skinsDir];
+    // 同上：只扫核心仓自己的目录，插件渲染的核心模板不算进来，保证本地和 CI 生成同一份
+    $dirs = [$root . '/src', $root . '/controllers', $root . '/public'];
     foreach ($dirs as $dir) {
         foreach (walkFiles($dir, ['.php']) as $file) {
             $source = file_get_contents($file) ?: '';
@@ -626,8 +646,8 @@ function buildTemplates(): void
 
     $index = ["# 模板参考\n\n",
         "核心模板在 `templates/`，皮肤可以覆盖同名文件（`skins/<slug>/templates/`）。"
-        . "变量列是从所有 `Response::view('<模板>', [...])` 调用点汇总的——**只列渲染方真的传了的键**，"
-        . "所以少一个会在页面上立刻变成 undefined。\n\n",
+        . "变量列只统计**核心代码**里的 `Response::view('<模板>', [...])` 调用点：插件调用同一个模板时会传它自己的变量，"
+        . "那些不算在内。列表里少一个键，页面上就会变成 undefined。\n\n",
         "| 分组 | 模板 |\n|---|---|\n"];
 
     $total = 0;

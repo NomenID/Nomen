@@ -16,14 +16,14 @@
 | [userinfo.claims](oauth.md) | filter | 1 处 |
 | [footer.html](render.md) | filter | 1 处 |
 | [footer.links](render.md) | filter | 1 处 |
-| [layout.body.end](render.md) | filter | 6 处 |
-| [layout.body.start](render.md) | filter | 6 处 |
-| [layout.head](render.md) | filter | 6 处 |
+| [layout.body.end](render.md) | filter | 扩展侧 |
+| [layout.body.start](render.md) | filter | 扩展侧 |
+| [layout.head](render.md) | filter | 扩展侧 |
 | [meta.tags](render.md) | filter | 1 处 |
 | [nav.items](render.md) | filter | 1 处 |
 | [viewer.props](render.md) | filter | 1 处 |
 | [homepage.links](home.md) | filter | 1 处 |
-| [homepage.sections](home.md) | filter | 2 处 |
+| [homepage.sections](home.md) | filter | 1 处 |
 | [admin.apps.detail](admin.md) | filter | 1 处 |
 | [admin.apps.list](admin.md) | filter | 1 处 |
 | [admin.dashboard.cards](admin.md) | filter | 1 处 |
@@ -41,9 +41,9 @@
 | [admin.user.status_changed](admin.md) | run | 1 处 |
 | [admin.users.rows](admin.md) | filter | 1 处 |
 | [api.siteinfo](content.md) | filter | 1 处 |
-| [pages.admin.editor.extras](content.md) | filter | 1 处 |
-| [pages.content.before_save](content.md) | filter | 2 处 |
-| [pages.content.deleted](content.md) | run | 1 处 |
-| [pages.content.saved](content.md) | run | 2 处 |
+| [pages.admin.editor.extras](content.md) | filter | 扩展侧 |
+| [pages.content.before_save](content.md) | filter | 扩展侧 |
+| [pages.content.deleted](content.md) | run | 扩展侧 |
+| [pages.content.saved](content.md) | run | 扩展侧 |
 | [email.sending](notify.md) | filter | 1 处 |
 | [notification.created](notify.md) | run | 1 处 |

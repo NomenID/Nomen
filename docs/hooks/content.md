@@ -30,30 +30,26 @@
 - 参数：html, page
 - 时机：Pages 插件后台的 Markdown 编辑器下方，返回值原样输出，用来给编辑器加额外表单片段
 - 注意：Pages 插件自己的钩子，核心不触发；没启用 Pages 就没有这个钩子。
-- 触发点：
-  - `Plugins/pages/src/Admin.php`（filter）
+- 触发点：Pages 插件 那边触发，源码在它自己的仓库里
 
 ### pages.content.before_save
 
 - 类型：filter
 - 参数：data, existing, isNew
 - 时机：Pages 插件写库前，可改字段
-- 触发点：
-  - `Plugins/pages/src/Controller.php`（filter，2 处）
+- 触发点：Pages 插件 那边触发，源码在它自己的仓库里
 
 ### pages.content.deleted
 
 - 类型：run
 - 参数：pageId, page, userId
 - 时机：Pages 插件删除前
-- 触发点：
-  - `Plugins/pages/src/Controller.php`（run）
+- 触发点：Pages 插件 那边触发，源码在它自己的仓库里
 
 ### pages.content.saved
 
 - 类型：run
 - 参数：pageId, data, isNew, userId
 - 时机：Pages 插件保存后
-- 触发点：
-  - `Plugins/pages/src/Controller.php`（run，2 处）
+- 触发点：Pages 插件 那边触发，源码在它自己的仓库里
 
