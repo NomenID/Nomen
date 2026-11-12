@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{ActivityLog, Database, Session, Csrf, Response, RateLimiter, Hooks};
+use Nomen\Src\{ActivityLog, Database, Session, Csrf, Response, RateLimiter, Hooks, Oidc};
 use PDO;
 
 class OAuthController
@@ -24,6 +24,7 @@ class OAuthController
         $state        = $_GET['state'] ?? '';
         $responseType = $_GET['response_type'] ?? 'code';
         $prompt       = $_GET['prompt'] ?? '';
+        $nonce        = $this->parseNonce();
 
         // 验证 response_type
         if ($responseType !== 'code') {
@@ -79,6 +80,7 @@ class OAuthController
                 'scope'                 => $scope,
                 'state'                 => $state,
                 'response_type'         => $responseType,
+                'nonce'                 => $nonce,
                 'code_challenge'        => $pkce['challenge'],
                 'code_challenge_method' => $pkce['method'],
             ]);
@@ -125,7 +127,7 @@ class OAuthController
             $this->ensureSubject($userId, $clientId);
 
             $code = $this->createAuthorizationCode(
-                $clientId, $userId, $redirectUri, $scope, $pkce['challenge'], $pkce['method']
+                $clientId, $userId, $redirectUri, $scope, $pkce['challenge'], $pkce['method'], $nonce
             );
             $params = ['code' => $code];
             if ($state) $params['state'] = $state;
@@ -167,6 +169,7 @@ class OAuthController
         Session::set('oauth_request', [
             'client_id'             => $clientId,
             'scope'                 => $scope,
+            'nonce'                 => $nonce,
             'code_challenge'        => $pkce['challenge'],
             'code_challenge_method' => $pkce['method'],
         ]);
@@ -294,7 +297,8 @@ class OAuthController
 
         // 授权通过
         $code = $this->createAuthorizationCode(
-            $clientId, $userId, $redirectUri, $scope, $codeChallenge, $codeChallengeMethod
+            $clientId, $userId, $redirectUri, $scope, $codeChallenge, $codeChallengeMethod,
+            isset($oauthRequest['nonce']) ? (string)$oauthRequest['nonce'] : null
         );
         $this->saveAuthorization($userId, $clientId, $scope);
 
@@ -511,13 +515,24 @@ class OAuthController
             'authorization_code',
         ]);
 
-        Response::json([
+        $response = [
             'access_token'  => $accessToken,
             'token_type'    => 'Bearer',
             'expires_in'    => $config['access_token_ttl'],
             'refresh_token' => $refreshTokenValue,
             'scope'         => $authCode['scopes'],
-        ]);
+        ];
+
+        $scopes = preg_split('/[\s,]+/', trim((string)$authCode['scopes']), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        $claims = Oidc::claims($this->db, (int)$authCode['user_id'], $clientId, $scopes, $authCode['nonce'] ?? null);
+        if ($claims !== null) {
+            $idToken = Oidc::idToken($claims);
+            if ($idToken !== null) {
+                $response['id_token'] = $idToken;
+            }
+        }
+
+        Response::json($response);
     }
 
     private function handleRefreshTokenGrant(string $refreshToken, string $clientId): void
@@ -577,13 +592,25 @@ class OAuthController
             'refresh_token',
         ]);
 
-        Response::json([
+        $response = [
             'access_token'  => $newAccessToken,
             'token_type'    => 'Bearer',
             'expires_in'    => $config['access_token_ttl'],
             'refresh_token' => $newRefreshToken,
             'scope'         => $refresh['scopes'],
-        ]);
+        ];
+
+        // 刷新时不再回写 nonce（规范要求 id_token 只在授权码那一步带 nonce）
+        $scopes = preg_split('/[\s,]+/', trim((string)$refresh['scopes']), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        $claims = Oidc::claims($this->db, (int)$refresh['user_id'], $clientId, $scopes);
+        if ($claims !== null) {
+            $idToken = Oidc::idToken($claims);
+            if ($idToken !== null) {
+                $response['id_token'] = $idToken;
+            }
+        }
+
+        Response::json($response);
     }
 
     private function getClient(string $clientId): ?array
@@ -714,15 +741,16 @@ class OAuthController
         string $redirectUri,
         string $scope,
         ?string $codeChallenge = null,
-        ?string $codeChallengeMethod = null
+        ?string $codeChallengeMethod = null,
+        ?string $nonce = null
     ): string {
         $config = require __DIR__ . '/../config/app.php';
         $code = bin2hex(random_bytes(32));
         $expiresAt = date('Y-m-d H:i:s', time() + $config['auth_code_ttl']);
 
         $stmt = $this->db->prepare(
-            'INSERT INTO oauth_authorization_codes (code, client_id, user_id, redirect_uri, scopes, code_challenge, code_challenge_method, expires_at)
-             VALUES (:c, :clid, :u, :r, :s, :cc, :ccm, :e)'
+            'INSERT INTO oauth_authorization_codes (code, client_id, user_id, redirect_uri, scopes, code_challenge, code_challenge_method, nonce, expires_at)
+             VALUES (:c, :clid, :u, :r, :s, :cc, :ccm, :n, :e)'
         );
         $stmt->execute([
             ':c'    => $code,
@@ -732,10 +760,31 @@ class OAuthController
             ':s'    => $scope,
             ':cc'   => $codeChallenge,
             ':ccm'  => $codeChallenge !== null ? $codeChallengeMethod : null,
+            ':n'    => $nonce !== '' ? $nonce : null,
             ':e'    => $expiresAt,
         ]);
 
         return $code;
+    }
+
+    /**
+     * 解析 OIDC nonce
+     *
+     * nonce 由客户端生成、原样回写进 id_token；这里只做长度和控制字符的清理，
+     * 不猜它的格式（规范只要求是 case-sensitive string）。
+     */
+    private function parseNonce(): ?string
+    {
+        $nonce = (string)($_GET['nonce'] ?? '');
+        if ($nonce === '') {
+            return null;
+        }
+
+        if (preg_match('/[\x00-\x1F\x7F]/', $nonce)) {
+            return null;
+        }
+
+        return mb_substr($nonce, 0, 255);
     }
 
     /**

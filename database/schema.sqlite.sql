@@ -150,6 +150,7 @@ CREATE TABLE oauth_authorization_codes (
   scopes TEXT NOT NULL,
   code_challenge TEXT DEFAULT NULL,
   code_challenge_method TEXT DEFAULT NULL,
+  nonce TEXT DEFAULT NULL,
   expires_at TEXT NOT NULL,
   created_at TEXT NOT NULL DEFAULT '',
   FOREIGN KEY (client_id) REFERENCES oauth_clients (client_id) ON DELETE CASCADE,

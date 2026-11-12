@@ -30,7 +30,7 @@ if (!is_file(__DIR__ . '/../config/installed.php') && !is_file(__DIR__ . '/../.e
 // 多语言：先于一切输出，全局 t() 助手在这里定义
 require_once __DIR__ . '/../src/I18n.php';
 
-use Nomen\Src\{Api, Router, Session, Response, Database, RecoveryHelper, FamilyHelper, Features, AppData, Nav, Admin, Plugins};
+use Nomen\Src\{Api, Router, Session, Response, Database, RecoveryHelper, FamilyHelper, Features, AppData, Nav, Admin, Plugins, Oidc};
 use Nomen\Controllers\{AuthController, OAuthController, DashboardController, ApiController, ActivationController, BiometricController, TwoFactorController, NotificationController, RecoveryController, AdminController, AdminAppsController, AdminMountsController, AdminSettingsController, AdminHomepageController, AdminIdentityController, IdentityController, FamilyController, EmailController};
 
 // 全局安全响应头（HSTS 由 nginx 统一设置，此处不重复）
@@ -105,9 +105,11 @@ $currentUri = '/' . trim((string)parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH
 $recoveryActive = $userId && RecoveryHelper::isActiveFor((int)$userId);
 // 站点 API 自己按 token 判权限，不能被页面的「去激活 / 去修复」重定向接管
 $isSiteApi = $currentUri === '/nomen-api' || str_starts_with($currentUri, '/nomen-api/');
+// OIDC 的发现文档 / 公钥也可能被已登录但没验证邮箱的人打开，不该被弹去激活页
+$isOidcMeta = $currentUri === '/.well-known/openid-configuration' || str_starts_with($currentUri, '/oidc/');
 
 // 恢复模式自己有一套更严的闸（见下），两者叠加会让修复用的 POST 被这一步弹走
-if ($userId && !$recoveryActive && !$isSiteApi) {
+if ($userId && !$recoveryActive && !$isSiteApi && !$isOidcMeta) {
     // 白名单：激活流程自己要用到的页面
     $whitelist = ['/activate', '/activate/send', '/activate/verify', '/activate/delete-account', '/logout', '/settings/emails/verify'];
 
@@ -132,7 +134,7 @@ if ($userId && !$recoveryActive && !$isSiteApi) {
 
 // 恢复模式：安全修复完成前，除修复所需的接口外一律拉回修复页。
 // 只拦页面型 GET —— 修复动作本身是 POST/AJAX，拦了会把接口打残。
-if ($recoveryActive && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET' && !$isSiteApi) {
+if ($recoveryActive && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET' && !$isSiteApi && !$isOidcMeta) {
     $recoveryWhitelist = ['/recovery', '/recovery/secure', '/recovery/sent', '/recovery/ticket', '/activate', '/logout', '/captcha'];
 
     $isAllowed = in_array($currentUri, $recoveryWhitelist)
@@ -190,6 +192,18 @@ $router->get('/robots.txt', function () {
 
 // 人机验证
 $router->get('/captcha', fn() => \Nomen\Src\Captcha::generate());
+
+// OpenID Connect：发现文档与签名公钥（jwks.json 不能被 nginx 的静态规则拦走）
+$router->get('/.well-known/openid-configuration', static function (): void {
+    header('Content-Type: application/json; charset=utf-8');
+    header('Cache-Control: public, max-age=3600');
+    echo json_encode(Oidc::discovery(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+});
+$router->get('/oidc/jwks.json', static function (): void {
+    header('Content-Type: application/json; charset=utf-8');
+    header('Cache-Control: public, max-age=3600');
+    echo json_encode(Oidc::jwks(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+});
 
 // 首页：已登录用户直接进仪表盘，带 redirect=no 时仍显示落地页
 // 特殊页面：/special/version 这类，注册表在 src/SpecialPages.php

@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{Build, Database, FamilyHelper, Features, Response, RateLimiter, Hooks, Special\Version};
+use Nomen\Src\{Build, Database, FamilyHelper, Features, Response, RateLimiter, Hooks, Oidc, Special\Version};
 use PDO;
 
 class ApiController
@@ -39,12 +39,7 @@ class ApiController
         $scopes = preg_split('/[\s,]+/', trim($tokenData['scopes'] ?? ''), -1, PREG_SPLIT_NO_EMPTY);
 
         // 查该应用对该用户的 subject_id（每个应用独立 ID，防止跨应用关联）
-        $stmt = $this->db->prepare(
-            'SELECT subject_id FROM user_app_subjects WHERE user_id = :u AND client_id = :c'
-        );
-        $stmt->execute([':u' => $tokenData['user_id'], ':c' => $tokenData['client_id']]);
-        $subject = $stmt->fetch();
-        $sub = $subject ? $subject['subject_id'] : (string)$user['id'];
+        $sub = Oidc::subject($this->db, (int)$tokenData['user_id'], $tokenData['client_id']);
 
         $result = ['sub' => $sub, 'id' => $sub];
 

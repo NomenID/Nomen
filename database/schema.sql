@@ -180,6 +180,7 @@ CREATE TABLE `oauth_authorization_codes` (
   `scopes` varchar(512) COLLATE utf8mb4_unicode_ci NOT NULL,
   `code_challenge` varchar(256) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'PKCE code_challenge',
   `code_challenge_method` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'plain or S256',
+  `nonce` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'OIDC nonce, echoed in id_token',
   `expires_at` datetime NOT NULL,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),

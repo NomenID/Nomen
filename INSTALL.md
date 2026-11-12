@@ -112,6 +112,10 @@ location / {
 location ^~ /plugin-assets/ {
     try_files $uri /index.php$is_args$args;
 }
+
+location ^~ /.well-known/ {
+    try_files $uri /index.php$is_args$args;
+}
 ```
 
 宝塔用户：站点设置 → 伪静态，把这行填进去。**少了 `try_files` 就只有首页能开，`/login` 这些全是 404。**
