@@ -10,12 +10,14 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { apiGet, apiPost } from '../../app/api'
+import { useT } from '../../composables/useT.js'
 import AdminPage from '../components/AdminPage.vue'
 import AdminCard from '../components/AdminCard.vue'
 import AdminBadge from '../components/AdminBadge.vue'
 import AdminEmpty from '../components/AdminEmpty.vue'
 import AdminAlert from '../components/AdminAlert.vue'
 
+const { t } = useT()
 const route = useRoute()
 const loading = ref(true)
 const error = ref('')
@@ -30,7 +32,7 @@ async function load() {
   try {
     data.value = await apiGet(`/api/admin/users/${userId.value}`)
   } catch (err) {
-    error.value = '用户不存在或加载失败'
+    error.value = t('The user does not exist or could not be loaded')
   } finally {
     loading.value = false
   }
@@ -40,9 +42,11 @@ async function toggleStatus() {
   const user = data.value.user
   const disabling = Number(user.status) === 1
   const ok = await window.Nomen.confirm(
-    disabling ? '禁用账户' : '启用账户',
-    disabling ? `禁用后 ${user.username} 将无法登录，确定继续？` : `重新允许 ${user.username} 登录？`,
-    { confirmText: disabling ? '禁用' : '启用', cancelText: '取消' },
+    disabling ? t('Disable account') : t('Enable account'),
+    disabling
+      ? t('After disabling, {:name} cannot sign in. Continue?', { name: user.username })
+      : t('Allow {:name} to sign in again?', { name: user.username }),
+    { confirmText: disabling ? t('Disable') : t('Enable'), cancelText: t('Cancel') },
   )
   if (!ok) return
   busy.value = true
@@ -59,9 +63,11 @@ async function toggleAdmin() {
   const user = data.value.user
   const granting = user.role !== 'admin'
   const ok = await window.Nomen.confirm(
-    granting ? '设为管理员' : '撤销管理员',
-    granting ? `把 ${user.username} 设为管理员？` : `撤销 ${user.username} 的管理员身份？`,
-    { confirmText: granting ? '设为管理员' : '撤销', cancelText: '取消' },
+    granting ? t('Grant administrator') : t('Revoke administrator'),
+    granting
+      ? t('Make {:name} an administrator?', { name: user.username })
+      : t('Remove {:name} from administrators?', { name: user.username }),
+    { confirmText: granting ? t('Grant') : t('Revoke'), cancelText: t('Cancel') },
   )
   if (!ok) return
   busy.value = true
@@ -81,21 +87,21 @@ onMounted(load)
 </script>
 
 <template>
-  <AdminPage :title="data ? `用户 · ${data.user.username}` : '用户详情'" description="账号资料、登录方式、授权与最近活动。">
+  <AdminPage :title="data ? t('User · {:name}', { name: data.user.username }) : t('User details')" :description="t('Account details, sign-in methods, authorizations and recent activity.')">
     <template #actions>
-      <router-link class="a-btn a-btn--ghost" to="/admin/users">返回列表</router-link>
+      <router-link class="a-btn a-btn--ghost" to="/admin/users">{{ t('Back to list') }}</router-link>
       <template v-if="data">
         <button class="a-btn a-btn--ghost" type="button" :disabled="busy" @click="toggleStatus">
-          {{ Number(data.user.status) === 1 ? '禁用账户' : '启用账户' }}
+          {{ Number(data.user.status) === 1 ? t('Disable account') : t('Enable account') }}
         </button>
         <button class="a-btn a-btn--ghost" type="button" :disabled="busy || data.isSelf" @click="toggleAdmin">
-          {{ data.user.role === 'admin' ? '撤销管理员' : '设为管理员' }}
+          {{ data.user.role === 'admin' ? t('Revoke administrator') : t('Grant administrator') }}
         </button>
       </template>
     </template>
 
     <AdminAlert v-if="error" type="danger" :message="error" />
-    <div v-else-if="loading" class="a-loading">加载中…</div>
+    <div v-else-if="loading" class="a-loading">{{ t('Loading…') }}</div>
 
     <template v-else-if="data">
       <div class="a-profile">
@@ -104,45 +110,45 @@ onMounted(load)
           <h2>{{ data.user.display_name || data.user.username }}</h2>
           <p class="a-text a-text--muted">@{{ data.user.username }} · UNID {{ data.user.unid }}</p>
           <div class="a-badges">
-            <AdminBadge :tone="data.user.role === 'admin' ? 'primary' : ''">{{ data.user.role === 'admin' ? '管理员' : '普通用户' }}</AdminBadge>
-            <AdminBadge :tone="Number(data.user.status) === 1 ? 'success' : 'danger'">{{ Number(data.user.status) === 1 ? '正常' : '已禁用' }}</AdminBadge>
+            <AdminBadge :tone="data.user.role === 'admin' ? 'primary' : ''">{{ data.user.role === 'admin' ? t('Administrator') : t('Regular user') }}</AdminBadge>
+            <AdminBadge :tone="Number(data.user.status) === 1 ? 'success' : 'danger'">{{ Number(data.user.status) === 1 ? t('Normal') : t('Disabled') }}</AdminBadge>
             <AdminBadge :tone="Number(data.user.email_verified) === 1 ? 'success' : 'muted'">
-              {{ Number(data.user.email_verified) === 1 ? '邮箱已验证' : '邮箱未验证' }}
+              {{ Number(data.user.email_verified) === 1 ? t('Email verified') : t('Email unverified') }}
             </AdminBadge>
           </div>
         </div>
       </div>
 
       <div class="a-grid a-grid--2">
-        <AdminCard title="账号信息">
+        <AdminCard :title="t('Account details')">
           <dl class="a-kv">
-            <dt>邮箱</dt><dd>{{ data.user.email || '—' }}</dd>
-            <dt>国家 / 地区</dt><dd>{{ data.user.country || '—' }}</dd>
-            <dt>出生日期</dt><dd>{{ data.user.birth_date || '—' }}</dd>
-            <dt>性别</dt><dd>{{ data.user.gender || '—' }}</dd>
-            <dt>两步验证</dt><dd>{{ data.user.two_factor_policy || 'off' }}</dd>
-            <dt>注册时间</dt><dd>{{ data.user.created_at }}</dd>
-            <dt>最近登录</dt><dd>{{ data.user.last_login_at || '从未登录' }}<template v-if="data.user.last_login_ip"> · <span class="a-mono">{{ data.user.last_login_ip }}</span></template></dd>
+            <dt>{{ t('Email') }}</dt><dd>{{ data.user.email || '—' }}</dd>
+            <dt>{{ t('Country / Region') }}</dt><dd>{{ data.user.country || '—' }}</dd>
+            <dt>{{ t('Date of birth') }}</dt><dd>{{ data.user.birth_date || '—' }}</dd>
+            <dt>{{ t('Gender') }}</dt><dd>{{ data.user.gender || '—' }}</dd>
+            <dt>{{ t('Two-step verification') }}</dt><dd>{{ data.user.two_factor_policy || 'off' }}</dd>
+            <dt>{{ t('Registered at') }}</dt><dd>{{ data.user.created_at }}</dd>
+            <dt>{{ t('Last sign-in') }}</dt><dd>{{ data.user.last_login_at || t('Never signed in') }}<template v-if="data.user.last_login_ip"> · <span class="a-mono">{{ data.user.last_login_ip }}</span></template></dd>
           </dl>
         </AdminCard>
 
-        <AdminCard title="登录方式">
+        <AdminCard :title="t('Sign-in methods')">
           <dl class="a-kv">
             <template v-for="[key, method] in methodEntries" :key="key">
               <dt>{{ method.label }}</dt>
               <dd>
-                <AdminBadge :tone="method.present ? 'success' : 'muted'">{{ method.present ? '已设置' : '未设置' }}</AdminBadge>
+                <AdminBadge :tone="method.present ? 'success' : 'muted'">{{ method.present ? t('Set up') : t('Not set') }}</AdminBadge>
               </dd>
             </template>
           </dl>
           <template v-if="assistEntries.length">
-            <p class="a-text a-text--muted">快速辅助验证方式</p>
+            <p class="a-text a-text--muted">{{ t('Quick assist verification methods') }}</p>
             <dl class="a-kv">
               <template v-for="[key, method] in assistEntries" :key="key">
                 <dt>{{ method.label }}</dt>
                 <dd>
                   <AdminBadge :tone="method.present ? 'success' : 'muted'">
-                    {{ method.present ? (method.on || '已绑定') : (method.off || '未绑定') }}
+                    {{ method.present ? (method.on || t('Bound')) : (method.off || t('Not bound')) }}
                   </AdminBadge>
                 </dd>
               </template>
@@ -151,14 +157,14 @@ onMounted(load)
         </AdminCard>
       </div>
 
-      <AdminCard title="已授权应用">
-        <AdminEmpty v-if="!data.authorizations.length" text="没有授权任何应用。" />
+      <AdminCard :title="t('Authorized apps')">
+        <AdminEmpty v-if="!data.authorizations.length" text="No app has been authorized." />
         <div v-else class="a-table-wrap">
           <table class="a-table">
-            <thead><tr><th>应用</th><th>Client ID</th><th>授权范围</th><th>授权时间</th></tr></thead>
+            <thead><tr><th>{{ t('App') }}</th><th>Client ID</th><th>{{ t('Scopes') }}</th><th>{{ t('Authorized at') }}</th></tr></thead>
             <tbody>
               <tr v-for="auth in data.authorizations" :key="auth.client_id + auth.created_at">
-                <td>{{ auth.client_name || '（已删除的应用）' }}</td>
+                <td>{{ auth.client_name || t('(deleted app)') }}</td>
                 <td class="a-mono">{{ auth.client_id }}</td>
                 <td>{{ auth.scopes }}</td>
                 <td class="a-nowrap">{{ auth.created_at }}</td>
@@ -168,11 +174,11 @@ onMounted(load)
         </div>
       </AdminCard>
 
-      <AdminCard title="账号恢复记录">
-        <AdminEmpty v-if="!data.recoveryHistory.length" text="没有恢复工单。" />
+      <AdminCard :title="t('Account recovery history')">
+        <AdminEmpty v-if="!data.recoveryHistory.length" text="No recovery requests." />
         <div v-else class="a-table-wrap">
           <table class="a-table">
-            <thead><tr><th>#</th><th>状态</th><th>联系邮箱</th><th>提交时间</th><th>审核时间</th></tr></thead>
+            <thead><tr><th>#</th><th>{{ t('Status') }}</th><th>{{ t('Contact email') }}</th><th>{{ t('Submitted at') }}</th><th>{{ t('Reviewed at') }}</th></tr></thead>
             <tbody>
               <tr v-for="req in data.recoveryHistory" :key="req.unid">
                 <td><router-link class="a-link" :to="`/admin/recovery/${req.unid}`">#{{ req.unid }}</router-link></td>
@@ -186,29 +192,29 @@ onMounted(load)
         </div>
       </AdminCard>
 
-      <AdminCard v-if="data.membership || data.ownedGroups.length" title="家庭 / 监护">
+      <AdminCard v-if="data.membership || data.ownedGroups.length" :title="t('Family / guardianship')">
         <dl v-if="data.membership" class="a-kv">
-          <dt>所在家庭</dt><dd>#{{ data.membership.group_unid }}（{{ data.membership.status }}）</dd>
-          <dt>监护人</dt><dd>{{ (data.familyGuardians || []).map(g => g.email || g.username || g.id).join('、') || '—' }}</dd>
+          <dt>{{ t('Family') }}</dt><dd>#{{ data.membership.group_unid }} ({{ data.membership.status }})</dd>
+          <dt>{{ t('Guardian') }}</dt><dd>{{ (data.familyGuardians || []).map(g => g.email || g.username || g.id).join(', ') || '—' }}</dd>
         </dl>
         <div v-if="data.ownedGroups.length">
-          <p class="a-text a-text--muted">作为监护人的家庭：</p>
+          <p class="a-text a-text--muted">{{ t('Families where this user is the guardian:') }}</p>
           <ul class="a-list">
             <li v-for="group in data.ownedGroups" :key="group.id">
               #{{ group.unid }} · {{ group.status }}
               <span v-if="data.ownedGroupsChildren[group.id]">
-                · 孩子 {{ data.ownedGroupsChildren[group.id].length }} 人
+                · {{ t('{:count} children', { count: data.ownedGroupsChildren[group.id].length }) }}
               </span>
             </li>
           </ul>
         </div>
       </AdminCard>
 
-      <AdminCard title="最近活动">
-        <AdminEmpty v-if="!data.recentLogs.length" text="没有活动记录。" />
+      <AdminCard :title="t('Recent activity')">
+        <AdminEmpty v-if="!data.recentLogs.length" text="No activity was recorded." />
         <div v-else class="a-table-wrap">
           <table class="a-table">
-            <thead><tr><th>时间</th><th>分类</th><th>动作</th><th>说明</th><th>设备</th></tr></thead>
+            <thead><tr><th>{{ t('Time') }}</th><th>{{ t('Category') }}</th><th>{{ t('Action') }}</th><th>{{ t('Summary') }}</th><th>{{ t('Device') }}</th></tr></thead>
             <tbody>
               <tr v-for="log in data.recentLogs" :key="log.unid">
                 <td class="a-nowrap"><router-link class="a-link" :to="`/admin/logs/${log.unid}`">{{ log.created_at }}</router-link></td>

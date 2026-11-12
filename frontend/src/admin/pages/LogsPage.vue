@@ -10,6 +10,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { apiGet } from '../../app/api'
+import { useT } from '../../composables/useT.js'
 import AdminPage from '../components/AdminPage.vue'
 import AdminCard from '../components/AdminCard.vue'
 import AdminBadge from '../components/AdminBadge.vue'
@@ -17,6 +18,7 @@ import AdminEmpty from '../components/AdminEmpty.vue'
 import AdminAlert from '../components/AdminAlert.vue'
 import AdminPagination from '../components/AdminPagination.vue'
 
+const { t } = useT()
 const router = useRouter()
 const loading = ref(true)
 const error = ref('')
@@ -60,7 +62,7 @@ async function load(page = 1) {
     data.value = await apiGet('/api/admin/logs' + (params.toString() ? '?' + params : ''))
     router.replace({ path: '/admin/logs', query: Object.fromEntries(params) })
   } catch (err) {
-    error.value = '日志加载失败'
+    error.value = t('Could not load the log')
   } finally {
     loading.value = false
   }
@@ -80,10 +82,10 @@ onMounted(() => load(1))
 </script>
 
 <template>
-  <AdminPage title="活动日志" description="全站用户与管理员操作的审计记录。">
+  <AdminPage :title="t('Activity log')" :description="t('Audit trail of user and administrator actions.')">
     <template #actions>
-      <a class="a-btn a-btn--ghost" :href="exportUrl()">导出 CSV</a>
-      <span v-if="data" class="a-count">共 {{ data.pagination.total }} 条</span>
+      <a class="a-btn a-btn--ghost" :href="exportUrl()">{{ t('Export CSV') }}</a>
+      <span v-if="data" class="a-count">{{ t('{:total} entries', { total: data.pagination.total }) }}</span>
     </template>
 
     <AdminAlert v-if="error" type="danger" :message="error" />
@@ -91,45 +93,45 @@ onMounted(() => load(1))
     <AdminCard>
       <form class="a-filters a-filters--wrap" @submit.prevent="load(1)">
         <select v-model="filters.category" class="a-input">
-          <option value="">全部分类</option>
+          <option value="">{{ t('All categories') }}</option>
           <option v-for="(label, key) in data?.categories || {}" :key="key" :value="key">{{ label }}</option>
         </select>
         <select v-model="filters.action" class="a-input">
-          <option value="">全部动作</option>
+          <option value="">{{ t('All actions') }}</option>
           <option v-for="(label, key) in actionOptions" :key="key" :value="key">{{ label }}</option>
         </select>
         <select v-model="filters.actor_type" class="a-input">
-          <option value="">全部操作者类型</option>
-          <option value="user">用户</option>
-          <option value="admin">管理员</option>
-          <option value="system">系统</option>
+          <option value="">{{ t('All actor types') }}</option>
+          <option value="user">{{ t('User') }}</option>
+          <option value="admin">{{ t('Administrator') }}</option>
+          <option value="system">{{ t('System') }}</option>
         </select>
-        <input v-model="filters.actor" class="a-input" type="text" placeholder="操作者">
-        <input v-model="filters.target" class="a-input" type="text" placeholder="目标">
-        <input v-model="filters.q" class="a-input" type="search" placeholder="关键词">
-        <input v-model="filters.from" class="a-input" type="date" title="起始日期">
-        <input v-model="filters.to" class="a-input" type="date" title="结束日期">
+        <input v-model="filters.actor" class="a-input" type="text" :placeholder="t('Actor')">
+        <input v-model="filters.target" class="a-input" type="text" :placeholder="t('Target')">
+        <input v-model="filters.q" class="a-input" type="search" :placeholder="t('Keyword')">
+        <input v-model="filters.from" class="a-input" type="date" :title="t('Start date')">
+        <input v-model="filters.to" class="a-input" type="date" :title="t('End date')">
         <select v-model="filters.dir" class="a-input">
-          <option value="">从新到旧</option>
-          <option value="newer">从旧到新</option>
+          <option value="">{{ t('Newest first') }}</option>
+          <option value="newer">{{ t('Oldest first') }}</option>
         </select>
-        <button class="a-btn a-btn--primary" type="submit">筛选</button>
-        <button class="a-btn a-btn--ghost" type="button" @click="reset">重置</button>
+        <button class="a-btn a-btn--primary" type="submit">{{ t('Filter') }}</button>
+        <button class="a-btn a-btn--ghost" type="button" @click="reset">{{ t('Reset') }}</button>
       </form>
     </AdminCard>
 
     <AdminCard :padded="false">
-      <div v-if="loading" class="a-loading">加载中…</div>
-      <AdminEmpty v-else-if="!data?.logs.length" text="没有符合条件的日志。" />
+      <div v-if="loading" class="a-loading">{{ t('Loading…') }}</div>
+      <AdminEmpty v-else-if="!data?.logs.length" text="No log entries match these filters." />
       <div v-else class="a-table-wrap">
         <table class="a-table">
-          <thead><tr><th>时间</th><th>操作者</th><th>分类</th><th>动作</th><th>目标</th><th>说明</th></tr></thead>
+          <thead><tr><th>{{ t('Time') }}</th><th>{{ t('Actor') }}</th><th>{{ t('Category') }}</th><th>{{ t('Action') }}</th><th>{{ t('Target') }}</th><th>{{ t('Summary') }}</th></tr></thead>
           <tbody>
             <tr v-for="log in data.logs" :key="log.unid">
               <td class="a-nowrap"><router-link class="a-link" :to="`/admin/logs/${log.unid}`">{{ log.created_at }}</router-link></td>
               <td>
-                <router-link v-if="log.actor_url" class="a-link" :to="log.actor_url">{{ log.actor_username || '系统' }}</router-link>
-                <span v-else>{{ log.actor_username || '系统' }}</span>
+                <router-link v-if="log.actor_url" class="a-link" :to="log.actor_url">{{ log.actor_username || t('System') }}</router-link>
+                <span v-else>{{ log.actor_username || t('System') }}</span>
                 <AdminBadge tone="muted">{{ log.actor_label }}</AdminBadge>
               </td>
               <td>{{ log.category_label }}</td>

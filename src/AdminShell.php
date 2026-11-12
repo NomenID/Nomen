@@ -30,8 +30,8 @@ final class AdminShell
             $menu[] = [
                 'key'   => $key,
                 'href'  => Url::to((string)$item['href']),
-                'label' => (string)$item['label'],
-                'group' => (string)($item['group'] ?? ''),
+                'label' => I18n::t((string)$item['label']),
+                'group' => I18n::t((string)($item['group'] ?? '')),
             ];
         }
 

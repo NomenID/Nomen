@@ -603,6 +603,17 @@
     margin-top: 16px;
 }
 
+.a-link-row {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr) minmax(0, 2fr);
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.a-link-row--terms {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto;
+}
+
 .a-field {
     display: flex;
     flex-direction: column;
@@ -1074,7 +1085,9 @@
     }
 
     .a-grid--2,
-    .a-form__row {
+    .a-form__row,
+    .a-link-row,
+    .a-link-row--terms {
         grid-template-columns: 1fr;
     }
 

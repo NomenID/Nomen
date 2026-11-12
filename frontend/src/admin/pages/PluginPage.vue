@@ -10,8 +10,11 @@
 import { nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { apiGet } from '../../app/api'
+import { useT } from '../../composables/useT.js'
 import AdminPage from '../components/AdminPage.vue'
 import AdminAlert from '../components/AdminAlert.vue'
+
+const { t } = useT()
 
 const route = useRoute()
 const router = useRouter()
@@ -35,7 +38,7 @@ async function load() {
   try {
     data.value = await apiGet(apiUrl())
   } catch (err) {
-    error.value = '插件页面加载失败，确认插件已启用。'
+    error.value = t('Could not load the plugin page. Check that the plugin is enabled.')
   } finally {
     loading.value = false
   }
@@ -61,7 +64,7 @@ async function submitForm(form) {
       if (result.message) window.Nomen.toast(result.message, result.success === false ? 'error' : 'success')
     }
   } catch (err) {
-    window.Nomen.toast('提交失败，请重试', 'error')
+    window.Nomen.toast(t('Could not submit, try again'), 'error')
   }
 
   const redirect = form.getAttribute('data-admin-redirect')
@@ -88,7 +91,7 @@ function onSubmit(event) {
   event.preventDefault()
   const message = form.getAttribute('data-admin-confirm')
   if (message) {
-    window.Nomen.confirm('确认操作', message, { confirmText: '确定', cancelText: '取消' }).then((ok) => {
+    window.Nomen.confirm(t('Confirm'), message, { confirmText: t('OK'), cancelText: t('Cancel') }).then((ok) => {
       if (ok) submitForm(form)
     })
     return
@@ -113,9 +116,9 @@ watch(() => route.query, () => load())
 </script>
 
 <template>
-  <AdminPage :title="data?.title || '插件页面'" :description="data?.description || ''">
+  <AdminPage :title="data?.title || t('Plugin page')" :description="data?.description || ''">
     <AdminAlert v-if="error" type="danger" :message="error" />
-    <div v-else-if="loading" class="a-loading">加载中…</div>
+    <div v-else-if="loading" class="a-loading">{{ t('Loading…') }}</div>
 
     <template v-else-if="data">
       <div v-if="data.tabs.length" class="a-tabs a-tabs--card">

@@ -36,7 +36,7 @@ class Admin
         ];
     }
 
-    /** 站点导航里的后台入口文字；后台内部仍然固定中文。 */
+    /** 站点导航里的后台入口文字。 */
     public static function label(): string
     {
         return t('Admin');
@@ -47,7 +47,8 @@ class Admin
      *
      * $def: title, description, handler, tabs, menu（false 表示不进菜单，字符串表示菜单文字）,
      *       order, group（侧栏分组标题）
-     * tabs: [['id' => 'basic', 'label' => '常规', 'handler' => callable], ...]
+     * tabs: [['id' => 'basic', 'label' => 'General', 'handler' => callable], ...]
+     * 标题、说明、选项卡文字都是词典键，渲染时按当前语言翻。
      */
     public static function page(string $slug, array $def): void
     {
@@ -132,11 +133,11 @@ class Admin
         $page = self::$pages[$slug] ?? null;
 
         if ($page === null) {
-            Response::json(['success' => false, 'message' => '页面不存在'], 404);
+            Response::json(['success' => false, 'message' => I18n::t('Page not found')], 404);
             return;
         }
         if (!Router::isAdmin()) {
-            Response::json(['success' => false, 'message' => '没有权限'], 403);
+            Response::json(['success' => false, 'message' => I18n::t('You do not have permission')], 403);
             return;
         }
 
@@ -154,7 +155,7 @@ class Admin
         }
 
         if (!is_callable($handler)) {
-            Response::json(['success' => false, 'message' => '管理页面没有处理函数'], 500);
+            Response::json(['success' => false, 'message' => I18n::t('This admin page has no handler')], 500);
             return;
         }
 
@@ -163,9 +164,9 @@ class Admin
         Response::json([
             'success'     => true,
             'slug'        => $slug,
-            'title'       => (string)$page['title'],
-            'description' => (string)$page['description'],
-            'tabs'        => array_map(static fn(array $tab): array => ['id' => $tab['id'], 'label' => $tab['label']], $tabs),
+            'title'       => I18n::t((string)$page['title']),
+            'description' => I18n::t((string)$page['description']),
+            'tabs'        => array_map(static fn(array $tab): array => ['id' => $tab['id'], 'label' => I18n::t((string)$tab['label'])], $tabs),
             'activeTab'   => $active,
             'body'        => (string)$body,
         ]);

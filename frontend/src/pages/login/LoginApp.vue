@@ -28,6 +28,7 @@ const props = defineProps({
   initialUsername: { type: String, default: '' },
   initialEmail: { type: String, default: '' },
   legalLinks: { type: Array, default: () => [] },
+  additionalTerms: { type: Array, default: () => [] },
   supportEmail: { type: String, default: '' },
   supportName: { type: String, default: '' },
   mailEnabled: { type: Boolean, default: true },
@@ -631,6 +632,16 @@ onBeforeUnmount(() => {
       <p>
         {{ t('By signing in, you agree to the') }}
         <template v-for="(link, i) in props.legalLinks" :key="link.url">
+          <span v-if="i > 0"> · </span>
+          <a :href="link.url" target="_blank">{{ t(link.label) }}</a>
+        </template>
+      </p>
+    </div>
+
+    <div class="auth-legal" v-if="props.additionalTerms.length">
+      <p>
+        {{ t('Additional terms') }}:
+        <template v-for="(link, i) in props.additionalTerms" :key="link.url">
           <span v-if="i > 0"> · </span>
           <a :href="link.url" target="_blank">{{ t(link.label) }}</a>
         </template>

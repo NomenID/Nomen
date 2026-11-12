@@ -39,7 +39,7 @@ class EmailTemplate
 
     public static function privacyUrl(): string
     {
-        return (string)Brand::get('privacy_url');
+        return Brand::privacyUrl();
     }
 
     /** 邮件主题前缀：站点名。调用点别写死品牌 */

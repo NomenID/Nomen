@@ -32,6 +32,7 @@ const props = defineProps({
   features: { type: Object, default: () => ({ country: false, guardians: false }) },
   privacyUrl: { type: String, default: '' },
   termsUrl: { type: String, default: '' },
+  genders: { type: Array, default: () => [] },
   supportEmail: { type: String, default: '' },
   brandLogo: { type: String, default: '/assets/brand/nomen-icon.svg' },
   authNotice: { type: String, default: '' },
@@ -80,12 +81,14 @@ function clamp(value, min, max) {
 
 const currentStep = ref(clamp(parseInt(old.current_step, 10) || 1, 1, totalSteps))
 
-const genders = [
-  { id: 'female', value: 'female', label: t('Female') },
-  { id: 'male', value: 'male', label: t('Male') },
-  { id: 'nonbinary', value: 'non-binary', label: t('Non-binary') },
-  { id: 'prefer-not', value: 'prefer-not-to-say', label: t('Prefer not to say') },
-]
+const genders = props.genders?.length
+  ? props.genders.map((entry, i) => ({ id: entry.value || `gender-${i}`, value: entry.value, label: entry.label }))
+  : [
+      { id: 'female', value: 'female', label: t('Female') },
+      { id: 'male', value: 'male', label: t('Male') },
+      { id: 'non-binary', value: 'non-binary', label: t('Non-binary') },
+      { id: 'prefer-not-to-say', value: 'prefer-not-to-say', label: t('Prefer not to say') },
+    ]
 
 const usernameState = ref('')
 const usernameHint = ref(t('Lowercase letters, digits and underscore, 3-32 characters'))
@@ -516,7 +519,7 @@ onMounted(() => {
                   type="radio"
                   name="gender"
                   :value="option.value"
-                  :required="option.id === 'female'"
+                  :required="option === genders[0]"
                 >
                 <label :for="'gender-' + option.id">{{ option.label }}</label>
               </div>

@@ -28,6 +28,7 @@ const props = defineProps({
   consentAge: { type: Number, default: 16 },
   minDays: { type: Number, default: 180 },
   relationships: { type: Object, default: () => ({}) },
+  genders: { type: Array, default: () => [] },
   claimPending: { type: String, default: '' },
   resetChild: { type: Number, default: 0 },
   error: { type: String, default: '' },
@@ -146,7 +147,15 @@ const guardianEmail = ref('')
 const guardianRelation = ref('other')
 const inviteEmail = ref('')
 const inviteRelation = ref('other')
-const newChild = reactive({ username: '', birth_date: '', gender: 'female', password: '', password_confirm: '' })
+const genderOptions = computed(() => props.genders?.length
+  ? props.genders
+  : [
+      { value: 'female', label: t('Female') },
+      { value: 'male', label: t('Male') },
+      { value: 'non-binary', label: t('Non-binary') },
+      { value: 'prefer-not-to-say', label: t('Prefer not to say') },
+    ])
+const newChild = reactive({ username: '', birth_date: '', gender: genderOptions.value[0]?.value || '', password: '', password_confirm: '' })
 const claimEmail = ref('')
 const claimCode = ref('')
 const resetForm = reactive({ code: '', new_password: '', confirm_password: '' })
@@ -289,10 +298,7 @@ const resetForm = reactive({ code: '', new_password: '', confirm_password: '' })
         <div class="form-group">
           <label>{{ t('Gender') }}</label>
           <select v-model="newChild.gender" required>
-            <option value="female">{{ t('Female') }}</option>
-            <option value="male">{{ t('Male') }}</option>
-            <option value="non-binary">{{ t('Non-binary') }}</option>
-            <option value="prefer-not-to-say">{{ t('Prefer not to say') }}</option>
+            <option v-for="option in genderOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
           </select>
         </div>
         <div class="form-group">

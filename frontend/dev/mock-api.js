@@ -50,7 +50,7 @@ window.fetch = (input, init) => {
       kind: 'none',
       label: '',
       url: null,
-      policy_url: 'https://policy.caellab.com/id/privacy',
+      policy_url: 'https://policy.caellab.org/id/privacy',
     })
   }
 

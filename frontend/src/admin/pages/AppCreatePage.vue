@@ -10,12 +10,14 @@
 import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { apiGet, apiPostForm } from '../../app/api'
+import { useT } from '../../composables/useT.js'
 import AdminPage from '../components/AdminPage.vue'
 import AdminCard from '../components/AdminCard.vue'
 import AdminAlert from '../components/AdminAlert.vue'
 import AppForm from '../components/AppForm.vue'
 import { copyText } from '../clipboard'
 
+const { t } = useT()
 const router = useRouter()
 const loading = ref(true)
 const saving = ref(false)
@@ -39,7 +41,7 @@ async function load() {
     const data = await apiGet('/api/admin/apps/create')
     availableScopes.value = data.availableScopes || {}
   } catch (err) {
-    error.value = '表单配置加载失败'
+    error.value = t('Could not load the form configuration')
   } finally {
     loading.value = false
   }
@@ -62,9 +64,9 @@ async function submit() {
     const result = await apiPostForm('/admin/apps/create', fd)
     if (result.success) {
       created.value = result
-      window.Nomen.toast('应用已创建', 'success')
+      window.Nomen.toast(t('App created'), 'success')
     } else {
-      error.value = result.message || '创建失败'
+      error.value = result.message || t('Create failed')
     }
   } finally {
     saving.value = false
@@ -73,39 +75,39 @@ async function submit() {
 
 async function copy(value, label) {
   const ok = await copyText(value)
-  window.Nomen.toast(ok ? `${label}已复制` : '复制失败，请手动选中', ok ? 'success' : 'error')
+  window.Nomen.toast(ok ? t('{:label} copied', { label }) : t('Copy failed, select it manually'), ok ? 'success' : 'error')
 }
 
 onMounted(load)
 </script>
 
 <template>
-  <AdminPage title="新建应用" description="创建后 Client Secret 只显示一次。">
+  <AdminPage :title="t('New app')" :description="t('The client secret is shown only once after creation.')">
     <template #actions>
-      <router-link class="a-btn a-btn--ghost" to="/admin/apps">返回列表</router-link>
+      <router-link class="a-btn a-btn--ghost" to="/admin/apps">{{ t('Back to list') }}</router-link>
     </template>
 
-    <div v-if="loading" class="a-loading">加载中…</div>
+    <div v-if="loading" class="a-loading">{{ t('Loading…') }}</div>
 
     <template v-else>
-      <AdminCard v-if="created" title="应用已创建">
-        <AdminAlert type="warning">Client Secret 只显示这一次，离开页面后无法再查看。</AdminAlert>
+      <AdminCard v-if="created" :title="t('App created')">
+        <AdminAlert type="warning">{{ t('The client secret is shown only this once. It cannot be viewed again after you leave this page.') }}</AdminAlert>
         <dl class="a-kv">
           <dt>Client ID</dt>
-          <dd><code>{{ created.client_id }}</code> <button class="a-btn a-btn--ghost a-btn--sm" type="button" @click="copy(created.client_id, 'Client ID')">复制</button></dd>
+          <dd><code>{{ created.client_id }}</code> <button class="a-btn a-btn--ghost a-btn--sm" type="button" @click="copy(created.client_id, 'Client ID')">{{ t('Copy') }}</button></dd>
           <dt>Client Secret</dt>
-          <dd><code>{{ created.client_secret }}</code> <button class="a-btn a-btn--ghost a-btn--sm" type="button" @click="copy(created.client_secret, 'Client Secret')">复制</button></dd>
+          <dd><code>{{ created.client_secret }}</code> <button class="a-btn a-btn--ghost a-btn--sm" type="button" @click="copy(created.client_secret, 'Client Secret')">{{ t('Copy') }}</button></dd>
         </dl>
-        <button class="a-btn a-btn--primary" type="button" @click="router.push(`/admin/apps/${created.client_id}`)">我已保存，查看应用</button>
+        <button class="a-btn a-btn--primary" type="button" @click="router.push(`/admin/apps/${created.client_id}`)">{{ t('I saved it, view the app') }}</button>
       </AdminCard>
 
-      <AdminCard v-else title="基本信息">
+      <AdminCard v-else :title="t('Basic information')">
         <AdminAlert v-if="error" type="danger" :message="error" />
         <form class="a-form" @submit.prevent="submit">
           <AppForm v-model="form" :available-scopes="availableScopes" />
           <div class="a-form__actions">
-            <button class="a-btn a-btn--primary" type="submit" :disabled="saving">{{ saving ? '创建中…' : '创建应用' }}</button>
-            <router-link class="a-btn a-btn--ghost" to="/admin/apps">取消</router-link>
+            <button class="a-btn a-btn--primary" type="submit" :disabled="saving">{{ saving ? t('Creating…') : t('Create app') }}</button>
+            <router-link class="a-btn a-btn--ghost" to="/admin/apps">{{ t('Cancel') }}</router-link>
           </div>
         </form>
       </AdminCard>

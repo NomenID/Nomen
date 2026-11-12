@@ -38,11 +38,11 @@ class GeoIP
     public static function getLocation(string $ip): string
     {
         if (self::$location === null) {
-            return '未知位置';
+            return '';
         }
 
         $location = (self::$location)($ip);
 
-        return is_string($location) && $location !== '' ? $location : '未知位置';
+        return is_string($location) ? $location : '';
     }
 }

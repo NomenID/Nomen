@@ -77,6 +77,15 @@ $title = t('Temp key sign-in');
                     <?php endforeach; ?>
                 </p>
             <?php endif; ?>
+            <?php $additionalTerms = \Nomen\Src\Brand::additionalTerms(); ?>
+            <?php if ($additionalTerms !== []): ?>
+                <p style="font-size:12px;color:var(--color-text-subtle);margin-bottom:12px;">
+                    <?= t('Additional terms') ?>:
+                    <?php foreach ($additionalTerms as $i => $link): ?>
+                        <?php if ($i > 0): ?> · <?php endif; ?><a href="<?= htmlspecialchars($link['url']) ?>" target="_blank"><?= t($link['label']) ?></a>
+                    <?php endforeach; ?>
+                </p>
+            <?php endif; ?>
 
             <button type="submit" class="btn btn-primary btn-block"><?= t('Sign in') ?></button>
         </form>

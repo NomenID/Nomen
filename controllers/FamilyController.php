@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{ActivityLog, AppData, Csrf, Database, Email, EmailTemplate, EmailPolicy, FamilyHelper, I18n, NotificationHelper, RateLimiter, RecoveryHelper, Response, Session, VerifyCode, Unid};
+use Nomen\Src\{ActivityLog, AppData, Csrf, Database, Email, EmailTemplate, EmailPolicy, FamilyHelper, Gender, I18n, NotificationHelper, RateLimiter, RecoveryHelper, Response, Session, VerifyCode, Unid};
 use PDO;
 
 /**
@@ -17,8 +17,6 @@ class FamilyController
 
     /** 家长一天最多新建几个孩子账号 */
     private const CHILD_CREATE_PER_DAY = 5;
-
-    private const GENDERS = ['female', 'male', 'non-binary', 'prefer-not-to-say'];
 
     public function __construct()
     {
@@ -216,7 +214,7 @@ class FamilyController
             || (int)$parts[0] < 1920 || (int)$parts[0] > (int)date('Y')) {
             $this->back(t('Enter a valid date of birth'));
         }
-        if (!in_array($gender, self::GENDERS, true)) {
+        if (!Gender::has($gender)) {
             $this->back(t('Pick a gender'));
         }
 

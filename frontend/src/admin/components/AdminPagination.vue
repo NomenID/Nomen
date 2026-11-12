@@ -7,6 +7,9 @@
 -->
 
 <script setup>
+import { useT } from '../../composables/useT.js'
+const { t } = useT()
+
 const props = defineProps({
   page: { type: Number, default: 1 },
   pages: { type: Number, default: 1 },
@@ -22,10 +25,10 @@ function go(page) {
 
 <template>
   <div v-if="pages > 1 || total > 0" class="a-pagination">
-    <span class="a-pagination__info">第 {{ page }} / {{ pages }} 页 · 共 {{ total }} 条</span>
+    <span class="a-pagination__info">{{ t('Page {:page} of {:pages} · {:total} in total', { page, pages, total }) }}</span>
     <div class="a-pagination__buttons">
-      <button class="a-btn a-btn--ghost a-btn--sm" type="button" :disabled="page <= 1" @click="go(page - 1)">上一页</button>
-      <button class="a-btn a-btn--ghost a-btn--sm" type="button" :disabled="page >= pages" @click="go(page + 1)">下一页</button>
+      <button class="a-btn a-btn--ghost a-btn--sm" type="button" :disabled="page <= 1" @click="go(page - 1)">{{ t('Previous') }}</button>
+      <button class="a-btn a-btn--ghost a-btn--sm" type="button" :disabled="page >= pages" @click="go(page + 1)">{{ t('Next') }}</button>
     </div>
   </div>
 </template>

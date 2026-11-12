@@ -60,11 +60,117 @@ final class Brand
         return $links;
     }
 
-    /** 认证页法律声明：legal_links 配置优先；没配时用 privacy / terms / 开发者守则合成。 */
-    public static function legalLinks(): array
+    /**
+     * 站点政策：后台设置优先，没改过就用 config 里的默认值，最多三条。
+     *
+     * @return array<int, array{role: string, label: string, url: string}>
+     */
+    public static function policies(): array
     {
-        $out = [];
+        $out = self::configuredPolicies();
+        if ($out !== []) {
+            return $out;
+        }
+
+        // 老配置兼容：legal_links 不限条数，原样保留。
+        $legacy = [];
         foreach ((array)self::get('legal_links', []) as $link) {
+            if (!is_array($link)) {
+                continue;
+            }
+            $label = trim((string)($link['label'] ?? ''));
+            $url = trim((string)($link['url'] ?? ''));
+            if ($label !== '' && $url !== '') {
+                $legacy[] = ['role' => 'other', 'label' => $label, 'url' => $url];
+            }
+        }
+        if ($legacy !== []) {
+            return $legacy;
+        }
+
+        $fallback = [
+            ['role' => 'privacy', 'url' => trim((string)self::get('privacy_url', '')), 'label' => 'Privacy Policy'],
+            ['role' => 'terms', 'url' => trim((string)self::get('terms_url', '')), 'label' => 'Terms of Service'],
+            ['role' => 'other', 'url' => trim((string)self::get('developer_guidelines_url', '')), 'label' => 'Developer Guidelines'],
+        ];
+        foreach ($fallback as $link) {
+            if ($link['url'] !== '') {
+                $out[] = $link;
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * 后台设置或 config 里明确配置的政策（不含老配置回退），最多三条。
+     *
+     * @return array<int, array{role: string, label: string, url: string}>
+     */
+    public static function configuredPolicies(): array
+    {
+        $list = self::listSetting('brand.policies') ?? (array)self::get('policies', []);
+        $out = [];
+
+        foreach ($list as $i => $policy) {
+            if (!is_array($policy)) {
+                continue;
+            }
+            $url = trim((string)($policy['url'] ?? ''));
+            if ($url === '') {
+                continue;
+            }
+            $label = trim((string)($policy['label'] ?? ''));
+            $role = self::policyRole((string)($policy['role'] ?? ''), $label, $i);
+            if ($label === '') {
+                $label = match ($role) {
+                    'privacy' => 'Privacy Policy',
+                    'terms'   => 'Terms of Service',
+                    default   => '',
+                };
+            }
+            if ($label === '') {
+                continue;
+            }
+            $out[] = ['role' => $role, 'label' => $label, 'url' => $url];
+            if (count($out) === 3) {
+                break;
+            }
+        }
+
+        return $out;
+    }
+
+    /** 政策里用作注册同意的两条：role=privacy / role=terms。 */
+    public static function privacyUrl(): string
+    {
+        foreach (self::policies() as $policy) {
+            if ($policy['role'] === 'privacy') {
+                return $policy['url'];
+            }
+        }
+
+        return trim((string)self::get('privacy_url', ''));
+    }
+
+    public static function termsUrl(): string
+    {
+        foreach (self::policies() as $policy) {
+            if ($policy['role'] === 'terms') {
+                return $policy['url'];
+            }
+        }
+
+        return trim((string)self::get('terms_url', ''));
+    }
+
+    /** 附加条款：不限条数，单独一组展示。 */
+    public static function additionalTerms(): array
+    {
+        $list = self::listSetting('brand.additional_terms') ?? (array)self::get('additional_terms', []);
+        $out = [];
+
+        foreach ($list as $link) {
             if (!is_array($link)) {
                 continue;
             }
@@ -74,19 +180,48 @@ final class Brand
                 $out[] = ['label' => $label, 'url' => $url];
             }
         }
-        if ($out !== []) {
-            return $out;
-        }
-        $fallback = [
-            ['url' => trim((string)self::get('privacy_url', '')), 'label' => t('Privacy Policy')],
-            ['url' => trim((string)self::get('terms_url', '')), 'label' => t('Terms of Service')],
-            ['url' => trim((string)self::get('developer_guidelines_url', '')), 'label' => t('Developer Guidelines')],
-        ];
-        foreach ($fallback as $link) {
-            if ($link['url'] !== '') {
-                $out[] = $link;
-            }
-        }
+
         return $out;
+    }
+
+    /** 认证页「登录即代表同意」的政策链接；附加条款单独渲染。 */
+    public static function legalLinks(): array
+    {
+        $out = [];
+        foreach (self::policies() as $policy) {
+            $out[] = ['label' => $policy['label'], 'url' => $policy['url']];
+        }
+
+        return $out;
+    }
+
+    /** 后台存的 JSON 列表；没存过（或存的是空列表）返回 null，交给 config 默认值。 */
+    private static function listSetting(string $key): ?array
+    {
+        $raw = Settings::get($key, null);
+        if (!is_string($raw) || trim($raw) === '') {
+            return null;
+        }
+
+        $data = json_decode($raw, true);
+
+        return is_array($data) && $data !== [] ? $data : null;
+    }
+
+    private static function policyRole(string $role, string $label, int $index): string
+    {
+        if (in_array($role, ['privacy', 'terms', 'other'], true)) {
+            return $role;
+        }
+
+        $lower = strtolower($label);
+        if ($lower === 'privacy policy' || str_contains($lower, 'privacy')) {
+            return 'privacy';
+        }
+        if ($lower === 'terms of service' || str_contains($lower, 'terms')) {
+            return 'terms';
+        }
+
+        return $index === 0 ? 'privacy' : ($index === 1 ? 'terms' : 'other');
     }
 }

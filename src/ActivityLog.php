@@ -439,9 +439,9 @@ class ActivityLog
     public static function actorLabel(array $row): string
     {
         return match ($row['actor_type'] ?? '') {
-            'admin'  => '管理员',
-            'system' => '系统',
-            default  => '用户',
+            'admin'  => 'Administrator',
+            'system' => 'System',
+            default  => 'User',
         };
     }
 }

@@ -67,15 +67,15 @@ Nav::add('admin', [
     'visible' => static fn(?int $uid): bool => $uid !== null && $uid > 0 && AdminController::isAdminUser($uid),
 ]);
 
-Admin::menu('dashboard', '/admin', '概览', 10, '总览');
-Admin::menu('homepage', '/admin/homepage', '首页', 14, '内容');
-Admin::menu('users', '/admin/users', '用户', 20, '用户与接入');
-Admin::menu('apps', '/admin/apps', '应用', 30, '用户与接入');
-Admin::menu('identities', '/admin/identities', '登录方式', 35, '用户与接入');
-Admin::menu('mounts', '/admin/mounts', '接入点', 40, '用户与接入');
-Admin::menu('recovery', '/admin/recovery', '恢复工单', 50, '安全');
-Admin::menu('logs', '/admin/logs', '活动日志', 60, '安全');
-Admin::menu('settings', '/admin/settings', '设置', 70, '系统');
+Admin::menu('dashboard', '/admin', 'Overview', 10, 'General');
+Admin::menu('homepage', '/admin/homepage', 'Home page', 14, 'Content');
+Admin::menu('users', '/admin/users', 'Users', 20, 'Users and access');
+Admin::menu('apps', '/admin/apps', 'Apps', 30, 'Users and access');
+Admin::menu('identities', '/admin/identities', 'Sign-in methods', 35, 'Users and access');
+Admin::menu('mounts', '/admin/mounts', 'Endpoints', 40, 'Users and access');
+Admin::menu('recovery', '/admin/recovery', 'Recovery requests', 50, 'Security');
+Admin::menu('logs', '/admin/logs', 'Activity log', 60, 'Security');
+Admin::menu('settings', '/admin/settings', 'Settings', 70, 'System');
 
 // 核心自带的特殊页面。注册在插件之后，插件不能顶掉它。
 // title 存键原文，渲染时才翻译 —— 插件在清单里写的标题同样吃这套

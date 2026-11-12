@@ -9,6 +9,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { apiGet, apiPost, apiPostForm } from '../../app/api'
+import { useT } from '../../composables/useT.js'
 import AdminPage from '../components/AdminPage.vue'
 import AdminCard from '../components/AdminCard.vue'
 import AdminBadge from '../components/AdminBadge.vue'
@@ -17,6 +18,7 @@ import AdminAlert from '../components/AdminAlert.vue'
 import AdminField from '../components/AdminField.vue'
 import { copyText } from '../clipboard'
 
+const { t } = useT()
 const loading = ref(true)
 const saving = ref(false)
 const error = ref('')
@@ -29,11 +31,11 @@ const logoFile = ref(null)
 const logoClear = ref(false)
 
 const methodRows = [
-  { key: 'password', label: '密码登录', desc: '用户名/邮箱 + 密码；关掉后注册页的密码注册一并停用' },
-  { key: 'email_code', label: '邮箱验证码登录', desc: '需要已配置邮件发送' },
-  { key: 'biometric', label: '生物识别（Passkey）', desc: '设备指纹 / 面容 / Windows Hello' },
-  { key: 'temp_key', label: '临时密钥', desc: '/fast-pass 应急通道' },
-  { key: 'oauth', label: '第三方登录', desc: '总开关；单个提供方仍可单独启停' },
+  { key: 'password', label: 'Password sign-in', desc: 'Username or email plus a password. Turning it off also disables password registration.' },
+  { key: 'email_code', label: 'Email code sign-in', desc: 'Requires outgoing mail to be configured.' },
+  { key: 'biometric', label: 'Biometric (passkey)', desc: 'Device fingerprint, face or Windows Hello.' },
+  { key: 'temp_key', label: 'Temp key', desc: 'The /fast-pass fallback channel.' },
+  { key: 'oauth', label: 'Third-party sign-in', desc: 'Master switch; each provider can still be turned on or off separately.' },
 ]
 
 const emptyForm = () => ({
@@ -82,7 +84,7 @@ async function load() {
   try {
     data.value = await apiGet('/api/admin/identities')
   } catch (err) {
-    error.value = '登录方式加载失败'
+    error.value = t('Could not load the sign-in methods')
   } finally {
     loading.value = false
   }
@@ -139,7 +141,7 @@ async function save() {
       editing.value = false
       await load()
     } else {
-      error.value = result.message || '保存失败'
+      error.value = result.message || t('Save failed')
     }
   } finally {
     saving.value = false
@@ -154,7 +156,7 @@ async function toggle(provider) {
       provider.enabled = result.enabled
       window.Nomen.toast(result.message, 'success')
     } else {
-      window.Nomen.toast(result.message || '操作失败', 'error')
+      window.Nomen.toast(result.message || t('Operation failed'), 'error')
     }
   } finally {
     busyId.value = 0
@@ -163,9 +165,9 @@ async function toggle(provider) {
 
 async function remove(provider) {
   const ok = await window.Nomen.confirm(
-    '删除登录方式',
-    `删除「${provider.name}」后，已经用它绑定的用户将无法再通过它登录。`,
-    { confirmText: '删除', cancelText: '取消' },
+    t('Delete sign-in method'),
+    t('After deleting {:name}, users who bound it can no longer sign in with it.', { name: provider.name }),
+    { confirmText: t('Delete'), cancelText: t('Cancel') },
   )
   if (!ok) return
   busyId.value = provider.id
@@ -175,7 +177,7 @@ async function remove(provider) {
       window.Nomen.toast(result.message, 'success')
       await load()
     } else {
-      window.Nomen.toast(result.message || '删除失败', 'error')
+      window.Nomen.toast(result.message || t('Delete failed'), 'error')
     }
   } finally {
     busyId.value = 0
@@ -184,7 +186,7 @@ async function remove(provider) {
 
 async function copy(value, label) {
   const ok = await copyText(value)
-  window.Nomen.toast(ok ? `${label}已复制` : '复制失败，请手动选中', ok ? 'success' : 'error')
+  window.Nomen.toast(ok ? t('{:label} copied', { label }) : t('Copy failed, select it manually'), ok ? 'success' : 'error')
 }
 
 async function toggleMethod(row) {
@@ -198,7 +200,7 @@ async function toggleMethod(row) {
       data.value.methods = result.methods
       window.Nomen.toast(result.message, 'success')
     } else {
-      window.Nomen.toast(result.message || '操作失败', 'error')
+      window.Nomen.toast(result.message || t('Operation failed'), 'error')
     }
   } finally {
     methodBusy.value = ''
@@ -209,68 +211,68 @@ onMounted(load)
 </script>
 
 <template>
-  <AdminPage title="登录方式" description="允许用户用 GitHub、Google、Microsoft、CaelLabID 或其它标准 OAuth2 提供方登录。">
+  <AdminPage :title="t('Sign-in methods')" :description="t('Let users sign in with GitHub, Google, Microsoft, CaelLabID or any other standard OAuth2 provider.')">
     <template #actions>
-      <button class="a-btn a-btn--primary" type="button" @click="startCreate">添加登录方式</button>
+      <button class="a-btn a-btn--primary" type="button" @click="startCreate">{{ t('Add sign-in method') }}</button>
     </template>
 
     <AdminAlert v-if="error" type="danger" :message="error" />
-    <div v-else-if="loading" class="a-loading">加载中…</div>
+    <div v-else-if="loading" class="a-loading">{{ t('Loading…') }}</div>
 
     <template v-else-if="data">
       <AdminCard
-        title="登录开关"
-        description="五类登录方式的总开关。全部关掉会被拒绝；真被锁在外面时，在服务器上运行 php bin/nomen auth:reset 恢复全部开启。"
+        :title="t('Sign-in switches')"
+        :description="t('Master switches for the five kinds of sign-in. Turning all of them off is refused; if you do get locked out, run php bin/nomen auth:reset on the server to turn everything back on.')"
       >
         <div class="a-table-wrap">
           <table class="a-table">
-            <thead><tr><th>方式</th><th>说明</th><th>状态</th><th class="a-td-actions">操作</th></tr></thead>
+            <thead><tr><th>{{ t('Method') }}</th><th>{{ t('Description') }}</th><th>{{ t('Status') }}</th><th class="a-td-actions">{{ t('Actions') }}</th></tr></thead>
             <tbody>
               <tr v-for="row in methodRows" :key="row.key">
-                <td class="a-strong">{{ row.label }}</td>
-                <td>{{ row.desc }}</td>
+                <td class="a-strong">{{ t(row.label) }}</td>
+                <td>{{ t(row.desc) }}</td>
                 <td>
-                  <AdminBadge :tone="data.methods[row.key] ? 'success' : 'muted'">{{ data.methods[row.key] ? '开启' : '关闭' }}</AdminBadge>
+                  <AdminBadge :tone="data.methods[row.key] ? 'success' : 'muted'">{{ data.methods[row.key] ? t('On') : t('Off') }}</AdminBadge>
                 </td>
                 <td class="a-td-actions">
                   <button class="a-btn a-btn--ghost a-btn--sm" type="button" :disabled="methodBusy === row.key" @click="toggleMethod(row)">
-                    {{ data.methods[row.key] ? '关闭' : '开启' }}
+                    {{ data.methods[row.key] ? t('Turn off') : t('Turn on') }}
                   </button>
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
-        <p class="a-text a-text--muted" style="margin-top:10px">第三方登录的按钮还要求至少有一个已启用的提供方；每个提供方可以在下面单独启停。</p>
+        <p class="a-text a-text--muted" style="margin-top:10px">{{ t('The third-party buttons also need at least one enabled provider; each provider can be turned on or off below.') }}</p>
       </AdminCard>
 
-      <AdminCard v-if="editing" :title="form.id > 0 ? '编辑登录方式' : '添加登录方式'">
+      <AdminCard v-if="editing" :title="form.id > 0 ? t('Edit sign-in method') : t('Add sign-in method')">
         <form class="a-form" @submit.prevent="save">
           <div class="a-form__row">
-            <AdminField v-if="form.id === 0" label="预设" hint="选一个预设自动填好地址和字段，之后仍可改">
+            <AdminField v-if="form.id === 0" :label="t('Preset')" :hint="t('Pick a preset to fill in the URLs and fields; you can still change them')">
               <select v-model="form.slug" class="a-input" @change="applyPreset">
-                <option value="">自定义 OAuth2</option>
+                <option value="">{{ t('Custom OAuth2') }}</option>
                 <option v-for="(preset, key) in data.presets" :key="key" :value="key">{{ preset.name }}</option>
               </select>
             </AdminField>
-            <AdminField label="标识" hint="用在回调地址里，只能小写字母、数字和连字符">
+            <AdminField :label="t('Slug')" :hint="t('Used in the callback URL; lowercase letters, digits and hyphens only')">
               <input v-model="form.slug" class="a-input a-mono" type="text" maxlength="32" required>
             </AdminField>
-            <AdminField label="显示名称">
+            <AdminField :label="t('Display name')">
               <input v-model="form.name" class="a-input" type="text" maxlength="64" required>
             </AdminField>
           </div>
 
           <div class="a-form__row">
-            <AdminField label="回调地址" hint="去提供方的 OAuth 应用设置里，把这个地址原样填进回调 / Redirect URI，逐字一致">
+            <AdminField :label="t('Callback URL')" :hint="t('In the provider OAuth app settings, paste this address into the redirect URI field exactly, character for character')">
               <div class="a-kv">
                 <span class="a-mono a-break">{{ callbackUrl }}</span>
-                <button v-if="form.slug" class="a-btn a-btn--ghost a-btn--sm" type="button" @click="copy(callbackUrl, '回调地址')">复制</button>
+                <button v-if="form.slug" class="a-btn a-btn--ghost a-btn--sm" type="button" @click="copy(callbackUrl, t('Callback URL'))">{{ t('Copy') }}</button>
               </div>
             </AdminField>
             <AdminField
-              label="图标"
-              :hint="form.logo ? `当前：${form.logo}；选新文件替换，或勾选清除退回首字母图标` : '选填；PNG / JPG / WebP，方图最佳。预置提供方自带图标'"
+              :label="t('Icon')"
+              :hint="form.logo ? t('Current: {:value}; pick a new file to replace it, or check the box to clear it and fall back to the initial letter', { value: form.logo }) : t('Optional; PNG / JPG / WebP, square works best. Preset providers ship their own icons.')"
             >
               <div class="a-kv">
                 <img v-if="logoPreviewUrl || form.logo" :src="logoPreviewUrl || form.logo" alt="" class="a-provider-logo a-provider-logo--lg">
@@ -278,7 +280,7 @@ onMounted(load)
               </div>
               <label v-if="form.logo" class="a-check" style="margin-top:8px">
                 <input v-model="logoClear" type="checkbox">
-                <span>清除图标</span>
+                <span>{{ t('Clear the icon') }}</span>
               </label>
             </AdminField>
           </div>
@@ -287,92 +289,92 @@ onMounted(load)
             <AdminField label="Client ID">
               <input v-model="form.client_id" class="a-input a-mono" type="text" required>
             </AdminField>
-            <AdminField label="Client Secret" :hint="form.id > 0 && editingHasSecret ? '已保存，留空表示不改' : '公共客户端可以留空'">
+            <AdminField label="Client Secret" :hint="form.id > 0 && editingHasSecret ? t('Already saved; leave it empty to keep it') : t('Public clients can leave it empty')">
               <input v-model="form.client_secret" class="a-input a-mono" type="password" autocomplete="new-password">
             </AdminField>
           </div>
 
           <div class="a-form__row">
-            <AdminField label="授权地址">
+            <AdminField :label="t('Authorization URL')">
               <input v-model="form.authorize_url" class="a-input a-mono" type="url" required>
             </AdminField>
-            <AdminField label="令牌地址">
+            <AdminField :label="t('Token URL')">
               <input v-model="form.token_url" class="a-input a-mono" type="url" required>
             </AdminField>
           </div>
 
           <div class="a-form__row">
-            <AdminField label="用户信息地址">
+            <AdminField :label="t('User info URL')">
               <input v-model="form.userinfo_url" class="a-input a-mono" type="url" required>
             </AdminField>
-            <AdminField label="邮箱列表地址" hint="选填。GitHub 需要它来确认邮箱已验证">
+            <AdminField :label="t('Email list URL')" :hint="t('Optional. GitHub needs it to confirm an email is verified')">
               <input v-model="form.emails_url" class="a-input a-mono" type="url">
             </AdminField>
           </div>
 
           <div class="a-form__row">
-            <AdminField label="Scope" hint="按提供方要求填，多个用空格分隔">
+            <AdminField label="Scope" :hint="t('As the provider requires; separate several with spaces')">
               <input v-model="form.scopes" class="a-input a-mono" type="text">
             </AdminField>
-            <AdminField label="令牌请求方式">
+            <AdminField :label="t('Token request style')">
               <select v-model="form.token_auth" class="a-input">
-                <option value="post">client_id / secret 放表单体</option>
-                <option value="basic">HTTP Basic 认证</option>
+                <option value="post">{{ t('client_id / secret in the form body') }}</option>
+                <option value="basic">{{ t('HTTP Basic authentication') }}</option>
               </select>
             </AdminField>
           </div>
 
           <div class="a-form__row">
-            <AdminField label="唯一标识字段" hint="用户信息 JSON 里的字段名，支持 a.b">
+            <AdminField :label="t('Subject field')" :hint="t('Field name in the user info JSON; a.b paths are supported')">
               <input v-model="form.subject_field" class="a-input a-mono" type="text">
             </AdminField>
-            <AdminField label="邮箱字段">
+            <AdminField :label="t('Email field')">
               <input v-model="form.email_field" class="a-input a-mono" type="text">
             </AdminField>
           </div>
 
           <div class="a-form__row">
-            <AdminField label="昵称字段">
+            <AdminField :label="t('Name field')">
               <input v-model="form.name_field" class="a-input a-mono" type="text">
             </AdminField>
-            <AdminField label="头像字段">
+            <AdminField :label="t('Avatar field')">
               <input v-model="form.avatar_field" class="a-input a-mono" type="text">
             </AdminField>
           </div>
 
           <div class="a-form__row">
-            <AdminField label="邮箱验证字段" hint="留空表示不信任提供方返回的验证状态（不会自动绑定同邮箱账号）">
+            <AdminField :label="t('Email verified field')" :hint="t('Leave empty to distrust the verification state the provider reports (accounts with the same email are not linked automatically)')">
               <input v-model="form.email_verified_field" class="a-input a-mono" type="text">
             </AdminField>
-            <AdminField label="额外授权参数" hint="查询串格式，例如 prompt=consent">
+            <AdminField :label="t('Extra authorization parameters')" :hint="t('Query string format, for example prompt=consent')">
               <input v-model="form.extra_authorize_params" class="a-input a-mono" type="text">
             </AdminField>
           </div>
 
           <div class="a-form__row">
-            <AdminField label="排序">
+            <AdminField :label="t('Sort order')">
               <input v-model.number="form.sort_order" class="a-input" type="number" step="1">
             </AdminField>
-            <AdminField label="状态">
+            <AdminField :label="t('Status')">
               <label class="a-check">
                 <input v-model="form.enabled" type="checkbox">
-                <span>在登录页显示</span>
+                <span>{{ t('Show on the sign-in page') }}</span>
               </label>
             </AdminField>
           </div>
 
           <div class="a-form__actions">
-            <button class="a-btn a-btn--primary" type="submit" :disabled="saving">{{ saving ? '保存中…' : '保存' }}</button>
-            <button class="a-btn a-btn--ghost" type="button" @click="editing = false">取消</button>
+            <button class="a-btn a-btn--primary" type="submit" :disabled="saving">{{ saving ? t('Saving…') : t('Save') }}</button>
+            <button class="a-btn a-btn--ghost" type="button" @click="editing = false">{{ t('Cancel') }}</button>
           </div>
         </form>
       </AdminCard>
 
       <AdminCard :padded="false">
-        <AdminEmpty v-if="!data.providers.length" text="还没有配置第三方登录。" />
+        <AdminEmpty v-if="!data.providers.length" text="No third-party sign-in is configured yet." />
         <div v-else class="a-table-wrap">
           <table class="a-table">
-            <thead><tr><th>名称</th><th>标识</th><th>类型</th><th>回调地址</th><th>状态</th><th class="a-td-actions">操作</th></tr></thead>
+            <thead><tr><th>{{ t('Name') }}</th><th>{{ t('Slug') }}</th><th>{{ t('Type') }}</th><th>{{ t('Callback URL') }}</th><th>{{ t('Status') }}</th><th class="a-td-actions">{{ t('Actions') }}</th></tr></thead>
             <tbody>
               <tr v-for="provider in data.providers" :key="provider.id">
                 <td class="a-strong">
@@ -385,17 +387,17 @@ onMounted(load)
                 <td>{{ provider.type }}</td>
                 <td>
                   <span class="a-mono a-break">{{ provider.callback_url }}</span>
-                  <button class="a-btn a-btn--ghost a-btn--sm" type="button" @click="copy(provider.callback_url, '回调地址')">复制</button>
+                  <button class="a-btn a-btn--ghost a-btn--sm" type="button" @click="copy(provider.callback_url, t('Callback URL'))">{{ t('Copy') }}</button>
                 </td>
                 <td>
-                  <AdminBadge :tone="Number(provider.enabled) === 1 ? 'success' : 'muted'">{{ Number(provider.enabled) === 1 ? '启用' : '停用' }}</AdminBadge>
+                  <AdminBadge :tone="Number(provider.enabled) === 1 ? 'success' : 'muted'">{{ Number(provider.enabled) === 1 ? t('Enabled') : t('Disabled') }}</AdminBadge>
                 </td>
                 <td class="a-td-actions">
-                  <button class="a-btn a-btn--ghost a-btn--sm" type="button" @click="startEdit(provider)">编辑</button>
+                  <button class="a-btn a-btn--ghost a-btn--sm" type="button" @click="startEdit(provider)">{{ t('Edit') }}</button>
                   <button class="a-btn a-btn--ghost a-btn--sm" type="button" :disabled="busyId === provider.id" @click="toggle(provider)">
-                    {{ Number(provider.enabled) === 1 ? '停用' : '启用' }}
+                    {{ Number(provider.enabled) === 1 ? t('Disable') : t('Enable') }}
                   </button>
-                  <button class="a-btn a-btn--danger a-btn--sm" type="button" :disabled="busyId === provider.id" @click="remove(provider)">删除</button>
+                  <button class="a-btn a-btn--danger a-btn--sm" type="button" :disabled="busyId === provider.id" @click="remove(provider)">{{ t('Delete') }}</button>
                 </td>
               </tr>
             </tbody>
@@ -403,9 +405,9 @@ onMounted(load)
         </div>
       </AdminCard>
 
-      <AdminCard title="回调地址怎么填">
-        <p class="a-text">把每行「回调地址」原样填到提供方的 OAuth 应用设置里，逐字一致，不要多斜杠或少斜杠。</p>
-        <p class="a-text a-text--muted">CaelLabID 的回调白名单要求不带 .php；本程序的路由本来就是无后缀的。</p>
+      <AdminCard :title="t('How to fill in the callback URL')">
+        <p class="a-text">{{ t('Paste each callback URL into the provider OAuth app settings exactly, without adding or dropping a slash.') }}</p>
+        <p class="a-text a-text--muted">{{ t('The CaelLabID callback allowlist requires no .php suffix; this program routes without suffixes anyway.') }}</p>
       </AdminCard>
     </template>
   </AdminPage>

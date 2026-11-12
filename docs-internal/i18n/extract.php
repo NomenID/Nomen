@@ -28,6 +28,7 @@
  */
 
 require __DIR__ . '/../../src/I18n.php';
+require __DIR__ . '/../../src/LocalPaths.php';
 
 use Nomen\Src\I18n;
 
@@ -36,9 +37,6 @@ $root = dirname(__DIR__, 2);
 $scanDirs = ['templates', 'controllers', 'src', 'config', 'public/js', 'frontend/src', 'public/nomen-install'];
 $scanExts = ['php', 'js', 'vue'];
 $scanExcludes = [
-    'templates/admin/',          // 后台保持中文
-    'controllers/AdminController.php',
-    'public/js/admin.js',
     'src/EmailTemplate.php',     // 外壳文案在下面 render 扫描里收（键即字段值）
     'frontend/src/composables/useT.js',
     // 已迁 Vue / 不再由路由渲染的旧模板（留着只为回滚），里面的文案不算键
@@ -267,6 +265,18 @@ function collectDynamicKeys(string $root): array
         }
     }
 
+    // 12) Brand::legalLinks 的默认 label（渲染点过 t()，字面量扫描收不到）
+    $brandFile = $root . '/src/Brand.php';
+    if (is_file($brandFile)) {
+        $brand = file_get_contents($brandFile);
+        if (preg_match_all("/'label'\s*=>\s*('(?:[^'\\\\]|\\\\.)*')/", $brand, $labels)) {
+            foreach ($labels[1] as $raw) {
+                $k = unquote($raw);
+                if ($k) addKey($keys, $k, 'Brand::legalLinks');
+            }
+        }
+    }
+
     // 9) t($var) 的兜底键（模板里 t($labels[...] ?? 'First step verification') 这类，字面量扫描收不到）
     foreach (['First step verification', 'System notice', 'Not set'] as $k) {
         addKey($keys, $k, 'dynamic t() fallback');
@@ -331,11 +341,17 @@ $domains = [
     'core' => ['label' => '核心', 'dir' => $localesDir, 'keys' => $coreKeys],
 ];
 foreach (['plugins' => 'plugin.json', 'skins' => 'skin.json'] as $type => $manifestName) {
-    foreach (glob($root . '/' . $type . '/*/' . $manifestName) ?: [] as $manifestFile) {
+    $base = \Nomen\Src\LocalPaths::get($type, $root . '/' . $type);
+    foreach (glob($base . '/*/' . $manifestName) ?: [] as $manifestFile) {
         $slug = basename(dirname($manifestFile));
         $keys = [];
-        foreach (scanFiles($root, [$type . '/' . $slug], $scanExts, []) as $file) {
+        foreach (scanFiles($base, [$slug], $scanExts, []) as $file) {
             scanFileForKeys($file, $keys);
+        }
+        // 清单 description 也是键（展示点过 t()，JSON 文件字面量扫描收不到）
+        $manifest = json_decode((string)file_get_contents($manifestFile), true);
+        if (is_array($manifest) && (string)($manifest['description'] ?? '') !== '') {
+            addKey($keys, (string)$manifest['description'], 'manifest description');
         }
         $domains[$slug] = [
             'label' => ($type === 'plugins' ? '插件 ' : '皮肤 ') . $slug,

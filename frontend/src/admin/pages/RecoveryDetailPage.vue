@@ -10,12 +10,14 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { apiGet, apiPost } from '../../app/api'
+import { useT } from '../../composables/useT.js'
 import AdminPage from '../components/AdminPage.vue'
 import AdminCard from '../components/AdminCard.vue'
 import AdminBadge from '../components/AdminBadge.vue'
 import AdminEmpty from '../components/AdminEmpty.vue'
 import AdminAlert from '../components/AdminAlert.vue'
 
+const { t } = useT()
 const route = useRoute()
 const loading = ref(true)
 const error = ref('')
@@ -30,10 +32,10 @@ const statusTone = {
   completed: 'success',
 }
 const statusLabel = {
-  pending: '待处理',
-  approved: '已通过',
-  rejected: '已拒绝',
-  completed: '已完成',
+  pending: 'Pending',
+  approved: 'Approved',
+  rejected: 'Rejected',
+  completed: 'Completed',
 }
 
 const requestId = computed(() => String(route.params.id))
@@ -45,7 +47,7 @@ async function load() {
     data.value = await apiGet(`/api/admin/recovery/${requestId.value}`)
     note.value = data.value.request.admin_note || ''
   } catch (err) {
-    error.value = '工单不存在或加载失败'
+    error.value = t('The request does not exist or could not be loaded')
   } finally {
     loading.value = false
   }
@@ -53,14 +55,14 @@ async function load() {
 
 async function act(mode) {
   if (mode === 'reject' && !note.value.trim()) {
-    window.Nomen.toast('拒绝时要填写原因（记录在工单内）', 'error')
+    window.Nomen.toast(t('A reason is required when rejecting (it is stored on the request)'), 'error')
     return
   }
-  const labels = { approve: '通过申诉', reject: '拒绝申诉', resend: '重发链接' }
+  const labels = { approve: t('Approve request'), reject: t('Reject request'), resend: t('Resend link') }
   const ok = await window.Nomen.confirm(
     labels[mode],
-    mode === 'reject' ? '确定拒绝这条申诉？' : '确定继续？会向申请人发送邮件。',
-    { confirmText: labels[mode], cancelText: '取消' },
+    mode === 'reject' ? t('Reject this request?') : t('Continue? The requester will receive an email.'),
+    { confirmText: labels[mode], cancelText: t('Cancel') },
   )
   if (!ok) return
 
@@ -78,8 +80,8 @@ async function act(mode) {
 }
 
 function matchLabel(value) {
-  if (value === null || value === undefined || value === '') return '账号无记录'
-  return Number(value) === 1 ? '匹配' : '不匹配'
+  if (value === null || value === undefined || value === '') return t('No record on the account')
+  return Number(value) === 1 ? t('Matches') : t('Does not match')
 }
 
 function matchTone(value) {
@@ -97,73 +99,73 @@ onMounted(load)
 </script>
 
 <template>
-  <AdminPage :title="`工单 #${requestId}`" description="核对信息、查看证明材料和账号时间线。">
+  <AdminPage :title="t('Request #{:id}', { id: requestId })" :description="t('Check the details, the evidence and the account timeline.')">
     <template #actions>
-      <router-link class="a-btn a-btn--ghost" to="/admin/recovery">返回列表</router-link>
+      <router-link class="a-btn a-btn--ghost" to="/admin/recovery">{{ t('Back to list') }}</router-link>
     </template>
 
     <AdminAlert v-if="error" type="danger" :message="error" />
-    <div v-else-if="loading" class="a-loading">加载中…</div>
+    <div v-else-if="loading" class="a-loading">{{ t('Loading…') }}</div>
 
     <template v-else-if="data">
       <div class="a-profile">
         <div class="a-profile__avatar">#</div>
         <div>
           <h2>{{ data.request.username }}</h2>
-          <p class="a-text a-text--muted">提交于 {{ data.request.created_at }} · 联系邮箱 {{ data.request.contact_email }}</p>
+          <p class="a-text a-text--muted">{{ t('Submitted at {:time} · contact email {:email}', { time: data.request.created_at, email: data.request.contact_email }) }}</p>
           <div class="a-badges">
-            <AdminBadge :tone="statusTone[data.request.status] || ''">{{ statusLabel[data.request.status] || data.request.status }}</AdminBadge>
-            <AdminBadge v-if="data.request.reviewed_at" tone="muted">审核于 {{ data.request.reviewed_at }}</AdminBadge>
+            <AdminBadge :tone="statusTone[data.request.status] || ''">{{ t(statusLabel[data.request.status] || data.request.status) }}</AdminBadge>
+            <AdminBadge v-if="data.request.reviewed_at" tone="muted">{{ t('Reviewed at {:time}', { time: data.request.reviewed_at }) }}</AdminBadge>
           </div>
         </div>
       </div>
 
       <div class="a-grid a-grid--2">
-        <AdminCard title="申请信息">
+        <AdminCard :title="t('Request details')">
           <dl class="a-kv">
-            <dt>账号</dt><dd><router-link v-if="data.user.unid" class="a-link" :to="`/admin/users/${data.user.unid}`">{{ data.request.username }}</router-link><span v-else>{{ data.request.username }}</span></dd>
-            <dt>账号邮箱</dt><dd>{{ data.request.account_email || '—' }}</dd>
-            <dt>联系邮箱</dt><dd>{{ data.request.contact_email }}</dd>
-            <dt>出生日期</dt>
+            <dt>{{ t('Account') }}</dt><dd><router-link v-if="data.user.unid" class="a-link" :to="`/admin/users/${data.user.unid}`">{{ data.request.username }}</router-link><span v-else>{{ data.request.username }}</span></dd>
+            <dt>{{ t('Account email') }}</dt><dd>{{ data.request.account_email || '—' }}</dd>
+            <dt>{{ t('Contact email') }}</dt><dd>{{ data.request.contact_email }}</dd>
+            <dt>{{ t('Date of birth') }}</dt>
             <dd>{{ data.request.birth_date_input || '—' }} <AdminBadge :tone="matchTone(data.request.birth_date_match)">{{ matchLabel(data.request.birth_date_match) }}</AdminBadge></dd>
-            <dt>性别</dt>
+            <dt>{{ t('Gender') }}</dt>
             <dd>{{ data.request.gender_input || '—' }} <AdminBadge :tone="matchTone(data.request.gender_match)">{{ matchLabel(data.request.gender_match) }}</AdminBadge></dd>
-            <dt>提交 IP</dt><dd class="a-mono">{{ data.request.ip_address || '—' }}</dd>
-            <dt>用户代理</dt><dd class="a-sub">{{ data.request.user_agent || '—' }}</dd>
+            <dt>{{ t('Submitted from IP') }}</dt><dd class="a-mono">{{ data.request.ip_address || '—' }}</dd>
+            <dt>{{ t('User agent') }}</dt><dd class="a-sub">{{ data.request.user_agent || '—' }}</dd>
           </dl>
-          <p class="a-text a-text--muted">申请人描述</p>
-          <p class="a-text a-preline">{{ data.request.description || '（没有填写）' }}</p>
+          <p class="a-text a-text--muted">{{ t('What the requester wrote') }}</p>
+          <p class="a-text a-preline">{{ data.request.description || t('(left blank)') }}</p>
         </AdminCard>
 
-        <AdminCard title="账号信息">
+        <AdminCard :title="t('Account details')">
           <dl class="a-kv">
-            <dt>用户名</dt><dd>{{ data.user.username || '—' }}</dd>
-            <dt>邮箱</dt><dd>{{ data.user.email || '—' }} <AdminBadge :tone="Number(data.user.email_verified) === 1 ? 'success' : 'muted'">{{ Number(data.user.email_verified) === 1 ? '已验证' : '未验证' }}</AdminBadge></dd>
-            <dt>状态</dt><dd><AdminBadge :tone="Number(data.user.status) === 1 ? 'success' : 'danger'">{{ Number(data.user.status) === 1 ? '正常' : '已禁用' }}</AdminBadge></dd>
-            <dt>注册时间</dt><dd>{{ data.user.created_at || '—' }}</dd>
-            <dt>最近登录</dt><dd>{{ data.user.last_login_at || '从未登录' }}</dd>
-            <dt>链接有效期</dt><dd>{{ data.linkTtlDays }} 天</dd>
+            <dt>{{ t('Username') }}</dt><dd>{{ data.user.username || '—' }}</dd>
+            <dt>{{ t('Email') }}</dt><dd>{{ data.user.email || '—' }} <AdminBadge :tone="Number(data.user.email_verified) === 1 ? 'success' : 'muted'">{{ Number(data.user.email_verified) === 1 ? t('Verified') : t('Unverified') }}</AdminBadge></dd>
+            <dt>{{ t('Status') }}</dt><dd><AdminBadge :tone="Number(data.user.status) === 1 ? 'success' : 'danger'">{{ Number(data.user.status) === 1 ? t('Normal') : t('Disabled') }}</AdminBadge></dd>
+            <dt>{{ t('Registered at') }}</dt><dd>{{ data.user.created_at || '—' }}</dd>
+            <dt>{{ t('Last sign-in') }}</dt><dd>{{ data.user.last_login_at || t('Never signed in') }}</dd>
+            <dt>{{ t('Link lifetime') }}</dt><dd>{{ t('{:days} days', { days: data.linkTtlDays }) }}</dd>
             <template v-if="data.request.recovery_token_expires_at">
-              <dt>当前链接</dt><dd>{{ data.request.recovery_token_expires_at }}<template v-if="data.request.recovery_token_used_at">（已使用）</template></dd>
+              <dt>{{ t('Current link') }}</dt><dd>{{ data.request.recovery_token_expires_at }}<template v-if="data.request.recovery_token_used_at"> {{ t('(already used)') }}</template></dd>
             </template>
           </dl>
         </AdminCard>
       </div>
 
-      <AdminCard title="审核">
+      <AdminCard :title="t('Review')">
         <label class="a-field">
-          <span class="a-field__label">管理员备注</span>
-          <textarea v-model="note" class="a-input a-textarea" rows="3" placeholder="拒绝时必须填写原因（不会发给用户）"></textarea>
+          <span class="a-field__label">{{ t('Administrator note') }}</span>
+          <textarea v-model="note" class="a-input a-textarea" rows="3" :placeholder="t('Required when rejecting (not sent to the user)')"></textarea>
         </label>
         <div class="a-form__actions">
-          <button class="a-btn a-btn--primary" type="button" :disabled="!!busy" @click="act('approve')">{{ busy === 'approve' ? '处理中…' : '通过申诉' }}</button>
-          <button class="a-btn a-btn--ghost" type="button" :disabled="!!busy" @click="act('resend')">{{ busy === 'resend' ? '处理中…' : '重发链接' }}</button>
-          <button class="a-btn a-btn--danger" type="button" :disabled="!!busy" @click="act('reject')">{{ busy === 'reject' ? '处理中…' : '拒绝申诉' }}</button>
+          <button class="a-btn a-btn--primary" type="button" :disabled="!!busy" @click="act('approve')">{{ busy === 'approve' ? t('Working…') : t('Approve request') }}</button>
+          <button class="a-btn a-btn--ghost" type="button" :disabled="!!busy" @click="act('resend')">{{ busy === 'resend' ? t('Working…') : t('Resend link') }}</button>
+          <button class="a-btn a-btn--danger" type="button" :disabled="!!busy" @click="act('reject')">{{ busy === 'reject' ? t('Working…') : t('Reject request') }}</button>
         </div>
       </AdminCard>
 
-      <AdminCard title="证明材料">
-        <AdminEmpty v-if="!data.attachments.length" text="没有上传证明材料。" />
+      <AdminCard :title="t('Evidence')">
+        <AdminEmpty v-if="!data.attachments.length" text="No evidence was uploaded." />
         <div v-else class="a-attachments">
           <a v-for="file in data.attachments" :key="file.name" :href="file.url" target="_blank" rel="noopener" class="a-attachment">
             <img :src="file.url" :alt="file.name" loading="lazy">
@@ -172,11 +174,11 @@ onMounted(load)
         </div>
       </AdminCard>
 
-      <AdminCard title="账号最近活动">
-        <AdminEmpty v-if="!data.recentLogs.length" text="没有活动记录。" />
+      <AdminCard :title="t('Recent activity on the account')">
+        <AdminEmpty v-if="!data.recentLogs.length" text="No activity was recorded." />
         <div v-else class="a-table-wrap">
           <table class="a-table">
-            <thead><tr><th>时间</th><th>分类</th><th>动作</th><th>说明</th><th>设备</th></tr></thead>
+            <thead><tr><th>{{ t('Time') }}</th><th>{{ t('Category') }}</th><th>{{ t('Action') }}</th><th>{{ t('Summary') }}</th><th>{{ t('Device') }}</th></tr></thead>
             <tbody>
               <tr v-for="log in data.recentLogs" :key="log.unid">
                 <td class="a-nowrap"><router-link class="a-link" :to="`/admin/logs/${log.unid}`">{{ log.created_at }}</router-link></td>

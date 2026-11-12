@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{ActivityLog, Csrf, Database, Email, EmailTemplate, EmailPolicy, EmailSet, I18n, RateLimiter, RecoveryHelper, Response, Session, FamilyHelper, Features, Unid};
+use Nomen\Src\{ActivityLog, Csrf, Database, Email, EmailTemplate, EmailPolicy, EmailSet, Gender, I18n, RateLimiter, RecoveryHelper, Response, Session, FamilyHelper, Features, Unid};
 use PDO;
 
 /**
@@ -9,13 +9,6 @@ use PDO;
  */
 class RecoveryController
 {
-    private const GENDERS = [
-        'female'           => '女性',
-        'male'             => '男性',
-        'non-binary'       => '非二元性别',
-        'prefer-not-to-say' => '我宁愿不说',
-    ];
-
     private const DESCRIPTION_MAX = 2000;
 
     /**
@@ -64,7 +57,7 @@ class RecoveryController
         Response::view('recovery', [
             'title'  => 'Account recovery request',
             'ctx'    => $ctx,
-            'genders' => self::GENDERS,
+            'genders' => Gender::options(),
             'error'  => Session::getFlash('error'),
             'old'    => Session::getFlash('old') ?: [],
             'attachMax' => (int)($config['recovery_attach_max_count'] ?? self::MAX_ATTACHMENTS),
@@ -197,7 +190,7 @@ class RecoveryController
             $fail('请选择有效的出生日期');
         }
 
-        if (!isset(self::GENDERS[$old['gender']])) {
+        if (!Gender::has((string)$old['gender'])) {
             $fail('请选择性别');
         }
 

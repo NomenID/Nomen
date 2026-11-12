@@ -9,6 +9,7 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { apiGet, apiPost } from '../../app/api'
+import { useT } from '../../composables/useT.js'
 import AdminPage from '../components/AdminPage.vue'
 import AdminCard from '../components/AdminCard.vue'
 import AdminBadge from '../components/AdminBadge.vue'
@@ -16,6 +17,7 @@ import AdminEmpty from '../components/AdminEmpty.vue'
 import AdminAlert from '../components/AdminAlert.vue'
 import { copyText } from '../clipboard'
 
+const { t } = useT()
 const loading = ref(true)
 const error = ref('')
 const data = ref(null)
@@ -31,7 +33,7 @@ async function load() {
       paths[mountKey(mount)] = mount.path
     }
   } catch (err) {
-    error.value = '接入点加载失败'
+    error.value = t('Could not load the endpoints')
   } finally {
     loading.value = false
   }
@@ -62,29 +64,29 @@ async function save(mount) {
 
 async function copy(value, label) {
   const ok = await copyText(value)
-  window.Nomen.toast(ok ? `${label}已复制` : '复制失败，请手动选中', ok ? 'success' : 'error')
+  window.Nomen.toast(ok ? t('{:label} copied', { label }) : t('Copy failed, select it manually'), ok ? 'success' : 'error')
 }
 
 onMounted(load)
 </script>
 
 <template>
-  <AdminPage title="接入点" description="站点对外提供的 OAuth 端点，以及插件挂载的公开路径。">
+  <AdminPage :title="t('Endpoints')" :description="t('The OAuth endpoints this site exposes, plus the public paths plugins are mounted on.')">
     <AdminAlert v-if="error" type="danger" :message="error" />
-    <div v-else-if="loading" class="a-loading">加载中…</div>
+    <div v-else-if="loading" class="a-loading">{{ t('Loading…') }}</div>
 
     <template v-else-if="data">
-      <AdminCard title="OAuth 端点">
+      <AdminCard :title="t('OAuth endpoints')">
         <div class="a-table-wrap">
           <table class="a-table">
-            <thead><tr><th>用途</th><th>路径</th><th>完整地址</th><th>说明</th></tr></thead>
+            <thead><tr><th>{{ t('Purpose') }}</th><th>{{ t('Path') }}</th><th>{{ t('Full URL') }}</th><th>{{ t('Description') }}</th></tr></thead>
             <tbody>
               <tr v-for="endpoint in data.endpoints" :key="endpoint.path">
                 <td>{{ endpoint.label }}</td>
                 <td class="a-mono">{{ endpoint.path }}</td>
                 <td class="a-mono">
                   {{ data.base }}{{ endpoint.path }}
-                  <button class="a-btn a-btn--ghost a-btn--sm" type="button" @click="copy(data.base + endpoint.path, '地址')">复制</button>
+                  <button class="a-btn a-btn--ghost a-btn--sm" type="button" @click="copy(data.base + endpoint.path, t('URL'))">{{ t('Copy') }}</button>
                 </td>
                 <td class="a-cell-summary">{{ endpoint.description }}</td>
               </tr>
@@ -93,11 +95,11 @@ onMounted(load)
         </div>
       </AdminCard>
 
-      <AdminCard title="插件挂载点" description="挂载点是插件对外的公开路径，改完下一次请求生效。">
-        <AdminEmpty v-if="!data.mounts.length" text="没有启用带挂载点的插件。" />
+      <AdminCard :title="t('Plugin mount points')" :description="t('Mount points are the public paths a plugin serves. Changes apply from the next request.')">
+        <AdminEmpty v-if="!data.mounts.length" text="No enabled plugin registers a mount point." />
         <div v-else class="a-table-wrap">
           <table class="a-table">
-            <thead><tr><th>插件</th><th>挂载</th><th>路径</th><th>访问</th><th class="a-td-actions">操作</th></tr></thead>
+            <thead><tr><th>{{ t('Plugin') }}</th><th>{{ t('Mount') }}</th><th>{{ t('Path') }}</th><th>{{ t('Access') }}</th><th class="a-td-actions">{{ t('Actions') }}</th></tr></thead>
             <tbody>
               <tr v-for="mount in data.mounts" :key="mountKey(mount)">
                 <td>{{ mount.plugin }}</td>
@@ -114,7 +116,7 @@ onMounted(load)
                   >
                   <span v-else class="a-mono">{{ mount.path }}</span>
                 </td>
-                <td><AdminBadge :tone="mount.access === 'admin' ? 'warning' : ''">{{ mount.access === 'admin' ? '仅管理员' : '公开' }}</AdminBadge></td>
+                <td><AdminBadge :tone="mount.access === 'admin' ? 'warning' : ''">{{ mount.access === 'admin' ? t('Administrators only') : t('Public') }}</AdminBadge></td>
                 <td class="a-td-actions">
                   <button
                     v-if="mount.config"
@@ -122,8 +124,8 @@ onMounted(load)
                     type="button"
                     :disabled="savingKey === mountKey(mount) || paths[mountKey(mount)] === mount.path"
                     @click="save(mount)"
-                  >保存路径</button>
-                  <span v-else class="a-text--muted">不可改</span>
+                  >{{ t('Save path') }}</button>
+                  <span v-else class="a-text--muted">{{ t('Cannot be changed') }}</span>
                 </td>
               </tr>
             </tbody>

@@ -9,12 +9,14 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { apiGet } from '../../app/api'
+import { useT } from '../../composables/useT.js'
 import AdminPage from '../components/AdminPage.vue'
 import AdminCard from '../components/AdminCard.vue'
 import AdminAlert from '../components/AdminAlert.vue'
 import AdminBadge from '../components/AdminBadge.vue'
 import AdminEmpty from '../components/AdminEmpty.vue'
 
+const { t } = useT()
 const loading = ref(true)
 const error = ref('')
 const data = ref(null)
@@ -26,7 +28,7 @@ async function load() {
   try {
     data.value = await apiGet('/api/admin/dashboard')
   } catch (err) {
-    error.value = '概览加载失败，请刷新重试'
+    error.value = t('Could not load the overview. Refresh and try again.')
   } finally {
     loading.value = false
   }
@@ -36,7 +38,7 @@ async function loadVersion() {
   try {
     versionInfo.value = await apiGet('/api/admin/version')
   } catch {
-    // GitHub 拉不到就只显示当前版本
+    // 拉不到更新源就只显示当前版本
   }
 }
 
@@ -47,15 +49,13 @@ onMounted(() => {
 </script>
 
 <template>
-  <AdminPage title="概览" description="站点状态、待处理事项和最近活动。">
+  <AdminPage :title="t('Overview')" :description="t('Site status, open items and recent activity.')">
     <AdminAlert v-if="error" type="danger" :message="error" />
-    <div v-else-if="loading" class="a-loading">加载中…</div>
+    <div v-else-if="loading" class="a-loading">{{ t('Loading…') }}</div>
 
     <template v-else-if="data">
       <AdminAlert v-if="data.upgradePending" type="warning">
-        程序是 <code>{{ data.upgradePending.code }}</code>，库里记录的是
-        <code>{{ data.upgradePending.db || '未记录' }}</code>。在项目根目录跑
-        <code>php bin/nomen upgrade</code>，跑完这条提示会自己消失。
+        {{ t('The code is at {:code} but the database records {:db}. Run {:cmd} in the project root; this notice disappears once it finishes.', { code: data.upgradePending.code, db: data.upgradePending.db || t('Not recorded'), cmd: 'php bin/nomen upgrade' }) }}
       </AdminAlert>
 
       <div class="a-statgrid">
@@ -69,63 +69,62 @@ onMounted(() => {
       <div class="a-grid a-grid--2">
         <AdminCard title="Redis">
           <template #actions>
-            <AdminBadge v-if="!data.redis.ok" tone="danger">不可用</AdminBadge>
-            <AdminBadge v-else-if="data.redis.warning" tone="warning">内存偏紧</AdminBadge>
-            <AdminBadge v-else tone="success">正常</AdminBadge>
+            <AdminBadge v-if="!data.redis.ok" tone="danger">{{ t('Unavailable') }}</AdminBadge>
+            <AdminBadge v-else-if="data.redis.warning" tone="warning">{{ t('Memory is tight') }}</AdminBadge>
+            <AdminBadge v-else tone="success">{{ t('Normal') }}</AdminBadge>
           </template>
 
           <dl v-if="!data.redis.ok" class="a-kv">
-            <dt>错误</dt><dd>{{ data.redis.error }}</dd>
-            <dt>影响</dt><dd>限流会静默放行、登录状态可能丢失。先看 Redis 进程和整机内存。</dd>
+            <dt>{{ t('Error') }}</dt><dd>{{ data.redis.error }}</dd>
+            <dt>{{ t('Impact') }}</dt><dd>{{ t('Rate limiting will silently let everything through and sign-in state may be lost. Check the Redis process and the memory on the machine first.') }}</dd>
           </dl>
           <dl v-else class="a-kv">
-            <dt>版本</dt><dd>{{ data.redis.version }}</dd>
-            <dt>内存</dt><dd>{{ data.redis.used }} / {{ data.redis.max }}<template v-if="data.redis.percent !== null">（{{ data.redis.percent }}%）</template></dd>
-            <dt>淘汰策略</dt><dd>{{ data.redis.policy }}<template v-if="data.redis.policy === 'noeviction'">（不做淘汰，写满即报错）</template></dd>
-            <dt>当前库键数</dt><dd>{{ data.redis.keys }}</dd>
-            <dt>会话索引</dt><dd>{{ data.redis.index ? '已回填' : '未回填，踢其他设备时会扫全库' }}</dd>
+            <dt>{{ t('Version') }}</dt><dd>{{ data.redis.version }}</dd>
+            <dt>{{ t('Memory') }}</dt><dd>{{ data.redis.used }} / {{ data.redis.max }}<template v-if="data.redis.percent !== null">{{ t('({:percent}%)', { percent: data.redis.percent }) }}</template></dd>
+            <dt>{{ t('Eviction policy') }}</dt><dd>{{ data.redis.policy }}<template v-if="data.redis.policy === 'noeviction'">{{ t('(no eviction; writes fail once it is full)') }}</template></dd>
+            <dt>{{ t('Keys in the current database') }}</dt><dd>{{ data.redis.keys }}</dd>
+            <dt>{{ t('Session index') }}</dt><dd>{{ data.redis.index ? t('Filled') : t('Not filled; revoking sessions on other devices will scan the whole database') }}</dd>
           </dl>
         </AdminCard>
 
-        <AdminCard title="插件">
+        <AdminCard :title="t('Plugin')">
           <template #actions>
-            <a class="a-link" href="/special/plugins">详情</a>
+            <a class="a-link" href="/special/plugins">{{ t('Details') }}</a>
           </template>
           <p class="a-text">
-            已启用 {{ data.plugins.loaded }} 个；随包带了 {{ data.plugins.bundled.length }} 个：
-            {{ data.plugins.bundled.join('、') }}
+            {{ t('{:loaded} enabled, {:bundled} bundled with the release: {:list}', { loaded: data.plugins.loaded, bundled: data.plugins.bundled.length, list: data.plugins.bundled.join(', ') }) }}
           </p>
           <AdminAlert v-if="data.plugins.missingExt.length" type="warning">
-            缺 PHP 扩展 {{ data.plugins.missingExt.join('、') }}，相关功能会降级。
+            {{ t('Missing PHP extensions: {:list}. Related features will degrade.', { list: data.plugins.missingExt.join(', ') }) }}
           </AdminAlert>
           <p class="a-text a-text--muted">
-            当前版本 {{ data.site?.version || '未知' }}
+            {{ t('Current version {:version}', { version: data.site?.version || t('Unknown') }) }}
             <template v-if="versionInfo?.latest">
-              · 最新正式版
+              · {{ t('Latest release') }}
               <a class="a-link" :href="versionInfo.latest.url" target="_blank" rel="noopener">{{ versionInfo.latest.version }}</a>
-              <AdminBadge v-if="versionInfo.updateAvailable" tone="warning">有新版本</AdminBadge>
+              <AdminBadge v-if="versionInfo.updateAvailable" tone="warning">{{ t('Update available') }}</AdminBadge>
             </template>
           </p>
         </AdminCard>
       </div>
 
-      <AdminCard title="最近活动">
+      <AdminCard :title="t('Recent activity')">
         <template #actions>
-          <router-link class="a-link" to="/admin/logs">查看全部</router-link>
+          <router-link class="a-link" to="/admin/logs">{{ t('View all') }}</router-link>
         </template>
 
-        <AdminEmpty v-if="!data.recentLogs.length" text="还没有任何记录。" />
+        <AdminEmpty v-if="!data.recentLogs.length" text="Nothing has been recorded yet." />
         <div v-else class="a-table-wrap">
           <table class="a-table">
             <thead>
-              <tr><th>时间</th><th>操作者</th><th>分类</th><th>动作</th><th>说明</th></tr>
+              <tr><th>{{ t('Time') }}</th><th>{{ t('Actor') }}</th><th>{{ t('Category') }}</th><th>{{ t('Action') }}</th><th>{{ t('Summary') }}</th></tr>
             </thead>
             <tbody>
               <tr v-for="log in data.recentLogs" :key="log.unid">
                 <td class="a-nowrap"><router-link class="a-link" :to="`/admin/logs/${log.unid}`">{{ log.created_at }}</router-link></td>
                 <td>
-                  <router-link v-if="log.actor_url" class="a-link" :to="log.actor_url">{{ log.actor_username || '系统' }}</router-link>
-                  <span v-else>{{ log.actor_username || '系统' }}</span>
+                  <router-link v-if="log.actor_url" class="a-link" :to="log.actor_url">{{ log.actor_username || t('System') }}</router-link>
+                  <span v-else>{{ log.actor_username || t('System') }}</span>
                   <AdminBadge tone="muted">{{ log.actor_label }}</AdminBadge>
                 </td>
                 <td>{{ log.category_label }}</td>

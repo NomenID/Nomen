@@ -27,26 +27,44 @@
 少数文案刻意保留 `Nomen`：GPL 许可正文、版本页的软件名、安装向导里指代软件本身的地方。
 这些不是站点名，改品牌名不该动它们。
 
-## 法律链接
+## 政策与附加条款
 
-认证页（登录、临时密钥登录）底部的法律声明用 `legal_links` 配置：
+站点的政策写在 `policies` 里，最多三条；附加条款写在 `additional_terms` 里，条数不限：
 
 ```php
-'legal_links' => [
-    ['label' => 'Privacy Policy', 'url' => 'https://example.com/privacy'],
-    ['label' => 'Terms of Service', 'url' => 'https://example.com/terms'],
-    ['label' => 'Developer Guidelines', 'url' => 'https://example.com/guidelines'],
+'policies' => [
+    ['role' => 'privacy', 'label' => '', 'url' => 'https://example.com/privacy'],
+    ['role' => 'terms', 'label' => '', 'url' => 'https://example.com/terms'],
+    ['role' => 'other', 'label' => 'Community Guidelines', 'url' => 'https://example.com/rules'],
+],
+'additional_terms' => [
+    ['label' => 'Trademark Notice', 'url' => 'https://example.com/trademark'],
 ],
 ```
 
-- `label` 写词典键会按访客语言翻译（`Privacy Policy`、`Terms of Service`、`Developer Guidelines`
-  都是现成的键）；写别的语言原文就原样显示。
+- `role` 取 `privacy` / `terms` / `other`：注册页的两个勾选框分别取 `privacy` 和 `terms`，
+  家长同意邮件里的隐私政策链接也取 `privacy`。
+- `label` 留空时 `privacy` / `terms` 用现成的词典键；`other` 必须写 label。写词典键会按访客语言翻译，
+  写别的语言原文就原样显示。
 - `url` 留空的条目会被跳过。
-- 列表为空时，回退到 `privacy_url` / `terms_url` / `developer_guidelines_url` 三个旧字段，
-  顺序固定，哪个配了就显示哪个。
-- 条数不限，想放几条放几条。
+- 认证页（登录、临时密钥登录）先列三条政策，再单独列附加条款。
+- 后台「设置 → 政策」改过之后以数据库为准，这里的值只是默认值。
+- 没配 `policies` 时回退到旧字段：`legal_links` 列表优先，其次 `privacy_url` / `terms_url` /
+  `developer_guidelines_url`。
 
-只想用三条标准链接的话，配 `privacy_url` / `terms_url` / `developer_guidelines_url` 就行，不用写数组。
+## 性别选项
+
+注册、家庭页、账号恢复里的性别选项在 `config/genders.php`：
+
+```php
+return [
+    ['value' => 'female', 'label' => 'Female'],
+    ['value' => 'male', 'label' => 'Male'],
+];
+```
+
+删掉不想要的条目即可；`value` 会存进数据库，改老站点的 value 会让已有资料对不上。
+`label` 写词典键会按语言翻译，写中文原样显示。文件为空时用内置的四个选项。
 
 ## 页脚
 

@@ -240,17 +240,15 @@ class FamilyHelper
         return $blocks;
     }
 
-    /** 注册时填的性别（female / male / non-binary / prefer-not-to-say），给邮件用 */
+    /** 注册时填的性别，给邮件用；选项和叫法都走 config/genders.php */
     public static function genderLabel(?string $gender, ?string $locale = null): string
     {
-        $x = fn(string $k): string => I18n::tIn($locale ?? I18n::locale(), $k);
-        return match ((string)$gender) {
-            'female'            => $x('Female'),
-            'male'              => $x('Male'),
-            'non-binary'        => $x('Non-binary'),
-            'prefer-not-to-say' => $x('Prefer not to say'),
-            default             => $x('Not provided'),
-        };
+        $value = (string)$gender;
+        if ($value === '') {
+            return I18n::tIn($locale ?? I18n::locale(), 'Not provided');
+        }
+
+        return Gender::label($value, $locale);
     }
 
     /** 邮件里怎么称呼这个孩子：填了男女就用他/她，其余用 TA */

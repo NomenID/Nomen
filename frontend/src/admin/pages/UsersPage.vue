@@ -10,6 +10,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { apiGet, apiPost } from '../../app/api'
+import { useT } from '../../composables/useT.js'
 import AdminPage from '../components/AdminPage.vue'
 import AdminCard from '../components/AdminCard.vue'
 import AdminBadge from '../components/AdminBadge.vue'
@@ -17,6 +18,7 @@ import AdminEmpty from '../components/AdminEmpty.vue'
 import AdminAlert from '../components/AdminAlert.vue'
 import AdminPagination from '../components/AdminPagination.vue'
 
+const { t } = useT()
 const router = useRouter()
 const loading = ref(true)
 const error = ref('')
@@ -35,7 +37,7 @@ async function load(page = 1) {
     data.value = await apiGet('/api/admin/users' + (params.toString() ? '?' + params : ''))
     router.replace({ path: '/admin/users', query: Object.fromEntries(params) })
   } catch (err) {
-    error.value = '用户列表加载失败'
+    error.value = t('Could not load the user list')
   } finally {
     loading.value = false
   }
@@ -50,9 +52,11 @@ function reset() {
 async function toggleStatus(user) {
   const disabling = Number(user.status) === 1
   const ok = await window.Nomen.confirm(
-    disabling ? '禁用账户' : '启用账户',
-    disabling ? `禁用后 ${user.username} 将无法登录，确定继续？` : `重新允许 ${user.username} 登录？`,
-    { confirmText: disabling ? '禁用' : '启用', cancelText: '取消' },
+    disabling ? t('Disable account') : t('Enable account'),
+    disabling
+      ? t('After disabling, {:name} cannot sign in. Continue?', { name: user.username })
+      : t('Allow {:name} to sign in again?', { name: user.username }),
+    { confirmText: disabling ? t('Disable') : t('Enable'), cancelText: t('Cancel') },
   )
   if (!ok) return
   busyId.value = user.unid
@@ -62,7 +66,7 @@ async function toggleStatus(user) {
       user.status = result.status
       window.Nomen.toast(result.message, 'success')
     } else {
-      window.Nomen.toast(result.message || '操作失败', 'error')
+      window.Nomen.toast(result.message || t('Operation failed'), 'error')
     }
   } finally {
     busyId.value = 0
@@ -72,9 +76,11 @@ async function toggleStatus(user) {
 async function toggleAdmin(user) {
   const granting = user.role !== 'admin'
   const ok = await window.Nomen.confirm(
-    granting ? '设为管理员' : '撤销管理员',
-    granting ? `把 ${user.username} 设为管理员？对方将能进入管理后台。` : `撤销 ${user.username} 的管理员身份？`,
-    { confirmText: granting ? '设为管理员' : '撤销', cancelText: '取消' },
+    granting ? t('Grant administrator') : t('Revoke administrator'),
+    granting
+      ? t('Make {:name} an administrator? They will be able to open the admin panel.', { name: user.username })
+      : t('Remove {:name} from administrators?', { name: user.username }),
+    { confirmText: granting ? t('Grant') : t('Revoke'), cancelText: t('Cancel') },
   )
   if (!ok) return
   busyId.value = user.unid
@@ -84,7 +90,7 @@ async function toggleAdmin(user) {
       user.role = result.role
       window.Nomen.toast(result.message, 'success')
     } else {
-      window.Nomen.toast(result.message || '操作失败', 'error')
+      window.Nomen.toast(result.message || t('Operation failed'), 'error')
     }
   } finally {
     busyId.value = 0
@@ -95,41 +101,41 @@ onMounted(() => load(1))
 </script>
 
 <template>
-  <AdminPage title="用户" description="搜索、查看状态，处理禁用与管理员权限。">
+  <AdminPage :title="t('Users')" :description="t('Search, check status, and manage bans and administrator rights.')">
     <template #actions>
-      <span class="a-count" v-if="data">共 {{ data.pagination.total }} 人</span>
+      <span class="a-count" v-if="data">{{ t('{:total} users', { total: data.pagination.total }) }}</span>
     </template>
 
     <AdminAlert v-if="error" type="danger" :message="error" />
 
     <AdminCard>
       <form class="a-filters" @submit.prevent="load(1)">
-        <input v-model="filters.q" class="a-input" type="search" placeholder="用户名、昵称或邮箱">
+        <input v-model="filters.q" class="a-input" type="search" :placeholder="t('Username, display name or email')">
         <select v-model="filters.filter" class="a-input">
-          <option value="">全部用户</option>
-          <option value="admin">管理员</option>
-          <option value="disabled">已禁用</option>
-          <option value="unverified">邮箱未验证</option>
+          <option value="">{{ t('All users') }}</option>
+          <option value="admin">{{ t('Administrators') }}</option>
+          <option value="disabled">{{ t('Disabled') }}</option>
+          <option value="unverified">{{ t('Email unverified') }}</option>
         </select>
-        <button class="a-btn a-btn--primary" type="submit">筛选</button>
-        <button class="a-btn a-btn--ghost" type="button" @click="reset">重置</button>
+        <button class="a-btn a-btn--primary" type="submit">{{ t('Filter') }}</button>
+        <button class="a-btn a-btn--ghost" type="button" @click="reset">{{ t('Reset') }}</button>
       </form>
     </AdminCard>
 
     <AdminCard :padded="false">
-      <div v-if="loading" class="a-loading">加载中…</div>
-      <AdminEmpty v-else-if="!data?.users.length" text="没有符合条件的用户。" />
+      <div v-if="loading" class="a-loading">{{ t('Loading…') }}</div>
+      <AdminEmpty v-else-if="!data?.users.length" text="No users match these filters." />
       <div v-else class="a-table-wrap">
         <table class="a-table a-table--users">
           <thead>
             <tr>
-              <th>用户</th>
-              <th>邮箱</th>
-              <th>角色 / 状态</th>
-              <th>登录方式</th>
-              <th>创建时间</th>
-              <th>最近登录</th>
-              <th class="a-td-actions">操作</th>
+              <th>{{ t('User') }}</th>
+              <th>{{ t('Email') }}</th>
+              <th>{{ t('Role / status') }}</th>
+              <th>{{ t('Sign-in methods') }}</th>
+              <th>{{ t('Created at') }}</th>
+              <th>{{ t('Last sign-in') }}</th>
+              <th class="a-td-actions">{{ t('Actions') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -140,26 +146,26 @@ onMounted(() => load(1))
               </td>
               <td>
                 <span>{{ user.email || '—' }}</span>
-                <AdminBadge v-if="Number(user.email_verified) === 1" tone="success">已验证</AdminBadge>
-                <AdminBadge v-else tone="muted">未验证</AdminBadge>
+                <AdminBadge v-if="Number(user.email_verified) === 1" tone="success">{{ t('Verified') }}</AdminBadge>
+                <AdminBadge v-else tone="muted">{{ t('Unverified') }}</AdminBadge>
               </td>
               <td>
-                <AdminBadge :tone="user.role === 'admin' ? 'primary' : ''">{{ user.role === 'admin' ? '管理员' : '普通用户' }}</AdminBadge>
-                <AdminBadge :tone="Number(user.status) === 1 ? 'success' : 'danger'">{{ Number(user.status) === 1 ? '正常' : '已禁用' }}</AdminBadge>
+                <AdminBadge :tone="user.role === 'admin' ? 'primary' : ''">{{ user.role === 'admin' ? t('Administrator') : t('Regular user') }}</AdminBadge>
+                <AdminBadge :tone="Number(user.status) === 1 ? 'success' : 'danger'">{{ Number(user.status) === 1 ? t('Normal') : t('Disabled') }}</AdminBadge>
               </td>
               <td>{{ user.login_method_count }}</td>
               <td class="a-nowrap">{{ user.created_at }}</td>
               <td class="a-nowrap">
-                <div>{{ user.last_login_at || '从未登录' }}</div>
+                <div>{{ user.last_login_at || t('Never signed in') }}</div>
                 <div v-if="user.last_login_ip" class="a-sub a-mono">{{ user.last_login_ip }}</div>
               </td>
               <td class="a-td-actions">
-                <router-link class="a-btn a-btn--ghost a-btn--sm" :to="`/admin/users/${user.unid}`">详情</router-link>
+                <router-link class="a-btn a-btn--ghost a-btn--sm" :to="`/admin/users/${user.unid}`">{{ t('Details') }}</router-link>
                 <button class="a-btn a-btn--ghost a-btn--sm" type="button" :disabled="busyId === user.unid" @click="toggleStatus(user)">
-                  {{ Number(user.status) === 1 ? '禁用' : '启用' }}
+                  {{ Number(user.status) === 1 ? t('Disable') : t('Enable') }}
                 </button>
                 <button class="a-btn a-btn--ghost a-btn--sm" type="button" :disabled="busyId === user.unid" @click="toggleAdmin(user)">
-                  {{ user.role === 'admin' ? '撤销管理员' : '设为管理员' }}
+                  {{ user.role === 'admin' ? t('Revoke administrator') : t('Grant administrator') }}
                 </button>
               </td>
             </tr>

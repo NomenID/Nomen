@@ -10,6 +10,7 @@
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { apiGet } from '../../app/api'
+import { useT } from '../../composables/useT.js'
 import AdminPage from '../components/AdminPage.vue'
 import AdminCard from '../components/AdminCard.vue'
 import AdminBadge from '../components/AdminBadge.vue'
@@ -17,6 +18,7 @@ import AdminEmpty from '../components/AdminEmpty.vue'
 import AdminAlert from '../components/AdminAlert.vue'
 import { copyText } from '../clipboard'
 
+const { t } = useT()
 const route = useRoute()
 const loading = ref(true)
 const error = ref('')
@@ -29,7 +31,7 @@ async function load() {
     const data = await apiGet(`/api/admin/logs/${route.params.id}`)
     log.value = data.log
   } catch (err) {
-    error.value = '日志不存在或加载失败'
+    error.value = t('Could not load this log entry')
   } finally {
     loading.value = false
   }
@@ -37,20 +39,20 @@ async function load() {
 
 async function copy(value, label) {
   const ok = await copyText(value)
-  window.Nomen.toast(ok ? `${label}已复制` : '复制失败，请手动选中', ok ? 'success' : 'error')
+  window.Nomen.toast(ok ? t('{:label} copied', { label }) : t('Copy failed, select it manually'), ok ? 'success' : 'error')
 }
 
 onMounted(load)
 </script>
 
 <template>
-  <AdminPage title="日志详情" description="这条操作的完整记录。">
+  <AdminPage :title="t('Log details')" :description="t('The full record of this action.')">
     <template #actions>
-      <router-link class="a-btn a-btn--ghost" to="/admin/logs">返回列表</router-link>
+      <router-link class="a-btn a-btn--ghost" to="/admin/logs">{{ t('Back to list') }}</router-link>
     </template>
 
     <AdminAlert v-if="error" type="danger" :message="error" />
-    <div v-else-if="loading" class="a-loading">加载中…</div>
+    <div v-else-if="loading" class="a-loading">{{ t('Loading…') }}</div>
 
     <template v-else-if="log">
       <AdminCard :title="`#${log.unid}`">
@@ -59,36 +61,36 @@ onMounted(load)
           <AdminBadge tone="muted">{{ log.action }}</AdminBadge>
         </template>
         <dl class="a-kv">
-          <dt>时间</dt><dd>{{ log.created_at }}</dd>
-          <dt>操作者</dt>
+          <dt>{{ t('Time') }}</dt><dd>{{ log.created_at }}</dd>
+          <dt>{{ t('Actor') }}</dt>
           <dd>
-            <router-link v-if="log.actor_url" class="a-link" :to="log.actor_url">{{ log.actor_username || '系统' }}</router-link>
-            <span v-else>{{ log.actor_username || '系统' }}</span>
+            <router-link v-if="log.actor_url" class="a-link" :to="log.actor_url">{{ log.actor_username || t('System') }}</router-link>
+            <span v-else>{{ log.actor_username || t('System') }}</span>
             <AdminBadge tone="muted">{{ log.actor_label }}</AdminBadge>
           </dd>
-          <dt>动作</dt><dd>{{ log.action_label }} <code class="a-mono">{{ log.action }}</code></dd>
-          <dt>目标</dt>
+          <dt>{{ t('Action') }}</dt><dd>{{ log.action_label }} <code class="a-mono">{{ log.action }}</code></dd>
+          <dt>{{ t('Target') }}</dt>
           <dd>
             <router-link v-if="log.target_url" class="a-link" :to="log.target_url">{{ log.target_name || log.target_unid }}</router-link>
             <span v-else>{{ log.target_name || log.target_unid || '—' }}</span>
-            <span v-if="log.target_type_label" class="a-text--muted">（{{ log.target_type_label }}）</span>
+            <span v-if="log.target_type_label" class="a-text--muted">{{ t('({:type})', { type: log.target_type_label }) }}</span>
           </dd>
-          <dt>说明</dt><dd>{{ log.summary || '—' }}</dd>
+          <dt>{{ t('Summary') }}</dt><dd>{{ log.summary || '—' }}</dd>
           <dt>IP</dt>
           <dd>
             <span class="a-mono">{{ log.ip_address || '—' }}</span>
-            <button v-if="log.ip_address" class="a-btn a-btn--ghost a-btn--sm" type="button" @click="copy(log.ip_address, 'IP')">复制</button>
+            <button v-if="log.ip_address" class="a-btn a-btn--ghost a-btn--sm" type="button" @click="copy(log.ip_address, 'IP')">{{ t('Copy') }}</button>
           </dd>
-          <dt>设备</dt><dd>{{ log.device_name || '—' }}</dd>
+          <dt>{{ t('Device') }}</dt><dd>{{ log.device_name || '—' }}</dd>
           <dt>User-Agent</dt><dd class="a-sub a-break">{{ log.user_agent || '—' }}</dd>
         </dl>
       </AdminCard>
 
-      <AdminCard title="变更明细">
-        <AdminEmpty v-if="!log.changes.length" text="这条操作没有字段变更。" />
+      <AdminCard :title="t('Changed fields')">
+        <AdminEmpty v-if="!log.changes.length" text="This action changed no fields." />
         <div v-else class="a-table-wrap">
           <table class="a-table">
-            <thead><tr><th>字段</th><th>旧值</th><th>新值</th></tr></thead>
+            <thead><tr><th>{{ t('Field') }}</th><th>{{ t('Old value') }}</th><th>{{ t('New value') }}</th></tr></thead>
             <tbody>
               <tr v-for="row in log.changes" :key="row.field">
                 <td>{{ row.label }}</td>

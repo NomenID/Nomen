@@ -167,7 +167,7 @@ class DeviceController
                 ['type' => 'info', 'items' => [
                     ['label' => 'Device name', 'value' => $device],
                     ['label' => 'IP address', 'value' => $ip],
-                    ['label' => 'Location', 'value' => $location],
+                    ...($location !== '' ? [['label' => 'Location', 'value' => $location]] : []),
                     ['label' => 'Time', 'value' => $time],
                 ]],
                 ['type' => 'alert', 'tone' => 'danger', 'text' => 'If this wasn\'t you, change your password immediately and revoke that device\'s trust in settings.'],

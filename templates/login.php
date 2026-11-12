@@ -32,6 +32,7 @@ $props = [
     'initialUsername' => $_GET['username'] ?? '',
     'initialEmail' => $_GET['email'] ?? '',
     'legalLinks' => \Nomen\Src\Brand::legalLinks(),
+    'additionalTerms' => \Nomen\Src\Brand::additionalTerms(),
     'supportEmail' => (string)\Nomen\Src\Brand::get('support_email'),
     'supportName' => (string)\Nomen\Src\Brand::get('support_name'),
     'mailEnabled' => \Nomen\Src\Email::isConfigured(),

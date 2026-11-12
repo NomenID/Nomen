@@ -144,14 +144,14 @@ final class AppData
         $emails = EmailSet::all($userId);
         $flash = self::flash();
 
-        $genderMap = ['female' => '女性', 'male' => '男性', 'non-binary' => '非二元性别', 'prefer-not-to-say' => '我宁愿不说'];
-        $genderDisplay = $genderMap[$user['gender'] ?? ''] ?? ($user['gender'] ?: '未设置');
+        $gender = (string)($user['gender'] ?? '');
+        $genderDisplay = $gender !== '' ? Gender::label($gender) : t('Not set');
 
         $verifiedEmails = array_values(array_filter($emails, static fn(array $row): bool => !empty($row['verified'])));
 
         $locationLabel = static function (array $row): string {
             $meta = 'IP: ' . ($row['ip_address'] ?: t('Unknown'));
-            if (!empty($row['location']) && $row['location'] !== '未知位置' && $row['location'] !== '本地') {
+            if (!empty($row['location'])) {
                 $meta .= t(' · Location: ') . $row['location'];
             }
             return $meta;
@@ -331,6 +331,7 @@ final class AppData
                 'consentAge' => FamilyHelper::consentAgeFor($user['country'] ?? null),
                 'minDays' => FamilyHelper::MIN_ACCOUNT_DAYS,
                 'relationships' => FamilyHelper::RELATIONSHIPS,
+                'genders' => Gender::translated(),
                 'claimPending' => (string)Session::get('family_claim_email', ''),
                 'resetChild' => (int)Session::get('family_reset_child', 0),
                 'error' => $flash['error'],

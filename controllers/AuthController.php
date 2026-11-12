@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{ActivityLog, Database, Session, Csrf, Response, RateLimiter, Email, EmailTemplate, Captcha, GeoIP, I18n, RecoveryHelper, VerifyCode, FamilyHelper, EmailPolicy, EmailSet, Settings, Skins, Hooks, Features, LoginMethods, Unid};
+use Nomen\Src\{ActivityLog, Database, Session, Csrf, Response, RateLimiter, Email, EmailTemplate, Captcha, GeoIP, Gender, I18n, RecoveryHelper, VerifyCode, FamilyHelper, EmailPolicy, EmailSet, Settings, Skins, Hooks, Features, LoginMethods, Unid};
 use Nomen\Controllers\{DeviceController, DashboardController};
 use PDO;
 
@@ -728,7 +728,7 @@ class AuthController
                     ['label' => 'Key label', 'value' => $key['label']],
                     ['label' => 'Device', 'value' => $device],
                     ['label' => 'IP address', 'value' => $ip],
-                    ['label' => 'Location', 'value' => $location],
+                    ...($location !== '' ? [['label' => 'Location', 'value' => $location]] : []),
                     ['label' => 'Used at', 'value' => $time],
                     ['label' => 'Expires at', 'value' => $key['expires_at']],
                 ]],
@@ -1278,8 +1278,7 @@ class AuthController
             Response::redirect('/register');
         }
 
-        $validGenders = ['female', 'male', 'non-binary', 'prefer-not-to-say'];
-        if (!$gender || !in_array($gender, $validGenders)) {
+        if (!$gender || !Gender::has($gender)) {
             Session::flash('error', t('Pick a gender'));
             Session::flash('old', $old);
             Response::redirect('/register');

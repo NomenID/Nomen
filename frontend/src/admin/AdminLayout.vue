@@ -10,6 +10,9 @@
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { url } from '../lib/url.js'
+import { useT } from '../composables/useT.js'
+
+const { t } = useT()
 
 const props = defineProps({
   viewer: { type: Object, default: () => ({}) },
@@ -24,7 +27,7 @@ const currentTheme = ref(document.documentElement.getAttribute('data-theme') || 
 const groups = computed(() => {
   const map = new Map()
   for (const item of props.menu) {
-    const name = item.group || '其他'
+    const name = item.group || t('Other')
     if (!map.has(name)) map.set(name, [])
     map.get(name).push(item)
   }
@@ -45,9 +48,9 @@ function toggleTheme() {
 }
 
 async function logout() {
-  const ok = await window.Nomen.confirm('退出登录', '确定要退出当前账号吗？', {
-    confirmText: '退出',
-    cancelText: '取消',
+  const ok = await window.Nomen.confirm(t('Sign out'), t('Sign out of this account?'), {
+    confirmText: t('Sign out'),
+    cancelText: t('Cancel'),
   })
   if (ok) window.location.href = url('/logout')
 }
@@ -67,7 +70,7 @@ const userInitial = computed(() => {
         <img v-if="brand.logo" :src="brand.logo" alt="" width="28" height="28">
         <span class="a-brand__text">
           <strong>{{ brand.name }}</strong>
-          <small>管理后台</small>
+          <small>{{ t('Admin') }}</small>
         </span>
       </a>
 
@@ -86,18 +89,18 @@ const userInitial = computed(() => {
       </nav>
 
       <div class="a-sidebar__foot">
-        <a href="/" class="a-sidebar__link">回到站点</a>
-        <a href="/special/version" class="a-sidebar__link">版本信息</a>
+        <a href="/" class="a-sidebar__link">{{ t('Back to site') }}</a>
+        <a href="/special/version" class="a-sidebar__link">{{ t('Version info') }}</a>
       </div>
     </aside>
 
     <div class="a-main">
       <header class="a-topbar">
-        <button class="a-topbar__menu" type="button" aria-label="菜单" @click="sidebarOpen = !sidebarOpen">
+        <button class="a-topbar__menu" type="button" :aria-label="t('Menu')" @click="sidebarOpen = !sidebarOpen">
           <span></span><span></span><span></span>
         </button>
         <div class="a-topbar__right">
-          <button class="a-iconbtn" type="button" title="切换主题" @click="toggleTheme">
+          <button class="a-iconbtn" type="button" :title="t('Switch theme')" @click="toggleTheme">
             <span :class="['icon', currentTheme === 'dark' ? 'icon-sun' : 'icon-moon']"></span>
           </button>
           <div class="a-user">
@@ -105,7 +108,7 @@ const userInitial = computed(() => {
             <span v-else class="a-user__avatar a-user__avatar--text">{{ userInitial }}</span>
             <span class="a-user__name">{{ viewer.displayName || viewer.username }}</span>
           </div>
-          <button class="a-btn a-btn--ghost a-btn--sm" type="button" @click="logout">退出</button>
+          <button class="a-btn a-btn--ghost a-btn--sm" type="button" @click="logout">{{ t('Sign out') }}</button>
         </div>
       </header>
 

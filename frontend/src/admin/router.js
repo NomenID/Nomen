@@ -8,6 +8,7 @@
 
 import { createRouter, createWebHistory, createMemoryHistory } from 'vue-router'
 import { currentPagePath, installQueryNavigation } from '../lib/url.js'
+import { useT } from '../composables/useT.js'
 import DashboardPage from './pages/DashboardPage.vue'
 import HomePage from './pages/HomePage.vue'
 import UsersPage from './pages/UsersPage.vue'
@@ -24,26 +25,28 @@ import LogDetailPage from './pages/LogDetailPage.vue'
 import SettingsPage from './pages/SettingsPage.vue'
 import PluginPage from './pages/PluginPage.vue'
 
+// meta.title 存的是词典键，标题在 afterEach 里按当前语言翻
 export const routes = [
-  { path: '/admin', name: 'admin-dashboard', component: DashboardPage, meta: { title: '概览' } },
-  { path: '/admin/homepage', name: 'admin-homepage', component: HomePage, meta: { title: '首页' } },
-  { path: '/admin/users', name: 'admin-users', component: UsersPage, meta: { title: '用户' } },
-  { path: '/admin/users/:id([0-9A-HJKMNP-TV-Z]{26})', name: 'admin-user', component: UserDetailPage, meta: { title: '用户详情' } },
-  { path: '/admin/apps', name: 'admin-apps', component: AppsPage, meta: { title: '应用' } },
-  { path: '/admin/apps/create', name: 'admin-app-create', component: AppCreatePage, meta: { title: '新建应用' } },
-  { path: '/admin/apps/:clientId', name: 'admin-app', component: AppDetailPage, meta: { title: '应用详情' } },
-  { path: '/admin/identities', name: 'admin-identities', component: IdentitiesPage, meta: { title: '登录方式' } },
-  { path: '/admin/mounts', name: 'admin-mounts', component: MountsPage, meta: { title: '接入点' } },
-  { path: '/admin/recovery', name: 'admin-recovery', component: RecoveryPage, meta: { title: '恢复工单' } },
-  { path: '/admin/recovery/:id([0-9A-HJKMNP-TV-Z]{26})', name: 'admin-recovery-detail', component: RecoveryDetailPage, meta: { title: '工单详情' } },
-  { path: '/admin/logs', name: 'admin-logs', component: LogsPage, meta: { title: '活动日志' } },
-  { path: '/admin/logs/:id([0-9A-HJKMNP-TV-Z]{26})', name: 'admin-log-detail', component: LogDetailPage, meta: { title: '日志详情' } },
-  { path: '/admin/settings', name: 'admin-settings', component: SettingsPage, meta: { title: '设置' } },
-  { path: '/admin/:slug', name: 'admin-plugin', component: PluginPage, meta: { title: '插件页面' } },
+  { path: '/admin', name: 'admin-dashboard', component: DashboardPage, meta: { title: 'Overview' } },
+  { path: '/admin/homepage', name: 'admin-homepage', component: HomePage, meta: { title: 'Home page' } },
+  { path: '/admin/users', name: 'admin-users', component: UsersPage, meta: { title: 'Users' } },
+  { path: '/admin/users/:id([0-9A-HJKMNP-TV-Z]{26})', name: 'admin-user', component: UserDetailPage, meta: { title: 'User details' } },
+  { path: '/admin/apps', name: 'admin-apps', component: AppsPage, meta: { title: 'Apps' } },
+  { path: '/admin/apps/create', name: 'admin-app-create', component: AppCreatePage, meta: { title: 'New app' } },
+  { path: '/admin/apps/:clientId', name: 'admin-app', component: AppDetailPage, meta: { title: 'App details' } },
+  { path: '/admin/identities', name: 'admin-identities', component: IdentitiesPage, meta: { title: 'Sign-in methods' } },
+  { path: '/admin/mounts', name: 'admin-mounts', component: MountsPage, meta: { title: 'Endpoints' } },
+  { path: '/admin/recovery', name: 'admin-recovery', component: RecoveryPage, meta: { title: 'Recovery requests' } },
+  { path: '/admin/recovery/:id([0-9A-HJKMNP-TV-Z]{26})', name: 'admin-recovery-detail', component: RecoveryDetailPage, meta: { title: 'Request details' } },
+  { path: '/admin/logs', name: 'admin-logs', component: LogsPage, meta: { title: 'Activity log' } },
+  { path: '/admin/logs/:id([0-9A-HJKMNP-TV-Z]{26})', name: 'admin-log-detail', component: LogDetailPage, meta: { title: 'Log details' } },
+  { path: '/admin/settings', name: 'admin-settings', component: SettingsPage, meta: { title: 'Settings' } },
+  { path: '/admin/:slug', name: 'admin-plugin', component: PluginPage, meta: { title: 'Plugin page' } },
   { path: '/admin/:pathMatch(.*)*', redirect: '/admin' },
 ]
 
 export function createAdminRouter(brandName = 'Nomen') {
+  const { t } = useT()
   const queryPath = currentPagePath()
   const router = createRouter({
     history: queryPath ? createMemoryHistory() : createWebHistory(),
@@ -57,8 +60,8 @@ export function createAdminRouter(brandName = 'Nomen') {
   }
 
   router.afterEach((to) => {
-    const title = to.meta?.title
-    document.title = title ? `${title} - ${brandName} 管理后台` : `${brandName} 管理后台`
+    const panel = `${brandName} ${t('Admin')}`
+    document.title = to.meta?.title ? `${t(to.meta.title)} - ${panel}` : panel
   })
 
   return router

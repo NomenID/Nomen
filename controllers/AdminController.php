@@ -102,19 +102,19 @@ class AdminController
     private static function statCards(array $stats): array
     {
         $cards = [
-            ['label' => '注册用户', 'value' => (int)$stats['total_users'], 'hint' => '今日新增 ' . (int)$stats['new_users_today']],
-            ['label' => '已验证邮箱', 'value' => (int)$stats['verified_users'], 'hint' => '未验证 ' . ((int)$stats['total_users'] - (int)$stats['verified_users'])],
-            ['label' => '待处理恢复工单', 'value' => (int)$stats['pending_recovery'], 'hint' => $stats['pending_recovery'] > 0 ? '有申诉等待审核' : '暂无待处理', 'alert' => $stats['pending_recovery'] > 0],
-            ['label' => '已通过待完成', 'value' => (int)$stats['approved_recovery'], 'hint' => '已发链接、用户尚未完成修复'],
-            ['label' => '管理员', 'value' => (int)$stats['admins'], 'hint' => '含你自己'],
-            ['label' => '已禁用账户', 'value' => (int)$stats['disabled_users'], 'hint' => '已停用'],
-            ['label' => '30 天活跃设备', 'value' => (int)$stats['active_devices'], 'hint' => '最近 30 天有活动'],
-            ['label' => '在架应用', 'value' => (int)$stats['active_apps'], 'hint' => '累计授权 ' . (int)$stats['total_authorizations'] . ' 次'],
+            ['label' => I18n::t('Registered users'), 'value' => (int)$stats['total_users'], 'hint' => I18n::t('{:count} today', ['count' => (int)$stats['new_users_today']])],
+            ['label' => I18n::t('Verified email'), 'value' => (int)$stats['verified_users'], 'hint' => I18n::t('{:count} not verified', ['count' => (int)$stats['total_users'] - (int)$stats['verified_users']])],
+            ['label' => I18n::t('Pending recovery requests'), 'value' => (int)$stats['pending_recovery'], 'hint' => $stats['pending_recovery'] > 0 ? I18n::t('Requests waiting for review') : I18n::t('Nothing pending'), 'alert' => $stats['pending_recovery'] > 0],
+            ['label' => I18n::t('Approved, not completed'), 'value' => (int)$stats['approved_recovery'], 'hint' => I18n::t('Link sent, the user has not finished yet')],
+            ['label' => I18n::t('Administrators'), 'value' => (int)$stats['admins'], 'hint' => I18n::t('Including yourself')],
+            ['label' => I18n::t('Disabled accounts'), 'value' => (int)$stats['disabled_users'], 'hint' => I18n::t('Turned off')],
+            ['label' => I18n::t('Active devices (30 days)'), 'value' => (int)$stats['active_devices'], 'hint' => I18n::t('Active in the last 30 days')],
+            ['label' => I18n::t('Enabled apps'), 'value' => (int)$stats['active_apps'], 'hint' => I18n::t('{:count} authorizations so far', ['count' => (int)$stats['total_authorizations']])],
         ];
 
         if (Features::guardians()) {
-            $cards[] = ['label' => '邀请中的家庭', 'value' => (int)$stats['unclaimed_families'], 'hint' => $stats['unclaimed_families'] > 0 ? '等家长用账号加入' : '都处理完了', 'alert' => $stats['unclaimed_families'] > 0];
-            $cards[] = ['label' => '家庭里的孩子', 'value' => (int)$stats['managed_children'], 'hint' => '有家长一起用的账号'];
+            $cards[] = ['label' => I18n::t('Families pending'), 'value' => (int)$stats['unclaimed_families'], 'hint' => $stats['unclaimed_families'] > 0 ? I18n::t('Waiting for the guardian to join with an account') : I18n::t('All handled'), 'alert' => $stats['unclaimed_families'] > 0];
+            $cards[] = ['label' => I18n::t('Children in families'), 'value' => (int)$stats['managed_children'], 'hint' => I18n::t('Accounts shared with a guardian')];
         }
 
         return $cards;
@@ -143,7 +143,7 @@ class AdminController
     {
         $client = RedisClient::get();
         if ($client === null) {
-            return ['ok' => false, 'error' => '连接失败，或 phpredis 扩展没装（日志里有具体原因）'];
+            return ['ok' => false, 'error' => I18n::t('Could not connect, or the phpredis extension is not installed (the log has the details)')];
         }
 
         try {
@@ -157,9 +157,9 @@ class AdminController
             return [
                 'ok'      => true,
                 'warning' => $percent !== null && $percent >= 80,
-                'version' => (string)($server['redis_version'] ?? '未知'),
+                'version' => (string)($server['redis_version'] ?? I18n::t('Unknown')),
                 'used'    => (string)($memory['used_memory_human'] ?? ''),
-                'max'     => $max > 0 ? (string)($memory['maxmemory_human'] ?? '') : '未限制',
+                'max'     => $max > 0 ? (string)($memory['maxmemory_human'] ?? '') : I18n::t('Unlimited'),
                 'percent' => $percent,
                 'policy'  => (string)($memory['maxmemory_policy'] ?? ''),
                 'keys'    => (int)$client->dbSize(),
@@ -167,7 +167,7 @@ class AdminController
             ];
         } catch (\Throwable $e) {
             error_log('[redis] 后台状态读取失败: ' . $e->getMessage());
-            return ['ok' => false, 'error' => '读取状态失败：' . $e->getMessage()];
+            return ['ok' => false, 'error' => I18n::t('Could not read the status: {:message}', ['message' => $e->getMessage()])];
         }
     }
 
@@ -273,7 +273,7 @@ class AdminController
         $stmt->execute([':unid' => $id]);
         $user = $stmt->fetch();
         if (!$user) {
-            Response::error(404, '用户不存在');
+            Response::error(404, I18n::t('User not found'));
         }
         $userId = (int)$user['id'];
 
@@ -327,7 +327,7 @@ class AdminController
         $admin = $this->requireAdmin();
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            Response::json(['success' => false, 'message' => '请求无效'], 403);
+            Response::json(['success' => false, 'message' => I18n::t('Invalid request')], 403);
         }
 
         $stmt = $this->db->prepare('SELECT id, username, role, status FROM users WHERE unid = :unid LIMIT 1');
@@ -336,13 +336,13 @@ class AdminController
         $userId = $target ? (int)$target['id'] : 0;
 
         if (!$target) {
-            Response::json(['success' => false, 'message' => '用户不存在']);
+            Response::json(['success' => false, 'message' => I18n::t('User not found')]);
         }
         if ((int)$target['id'] === (int)$admin['id']) {
-            Response::json(['success' => false, 'message' => '不能禁用你自己的账户']);
+            Response::json(['success' => false, 'message' => I18n::t('You cannot disable your own account')]);
         }
         if ($target['role'] === 'admin' && (int)$target['status'] === 1) {
-            Response::json(['success' => false, 'message' => '不能禁用其他管理员，请先撤销其管理员身份']);
+            Response::json(['success' => false, 'message' => I18n::t('You cannot disable another administrator. Revoke their administrator role first.')]);
         }
 
         $newStatus = (int)$target['status'] === 1 ? 0 : 1;
@@ -355,10 +355,10 @@ class AdminController
             'target_type' => 'user',
             'target_id' => $userId,
             'target_name' => $target['username'],
-            'summary'  => ($newStatus === 1 ? '启用' : '禁用') . '用户 ' . $target['username'],
+            'summary'  => I18n::t('{:action} user {:name}', ['action' => $newStatus === 1 ? I18n::t('Enabled') : I18n::t('Disabled'), 'name' => $target['username']]),
             'changes'  => ['status' => [
-                'old' => (int)$target['status'] === 1 ? '启用' : '禁用',
-                'new' => $newStatus === 1 ? '启用' : '禁用',
+                'old' => (int)$target['status'] === 1 ? I18n::t('Enabled') : I18n::t('Disabled'),
+                'new' => $newStatus === 1 ? I18n::t('Enabled') : I18n::t('Disabled'),
             ]],
         ]);
 
@@ -366,7 +366,7 @@ class AdminController
 
         Response::json([
             'success' => true,
-            'message' => $newStatus === 1 ? '已启用该账户' : '已禁用该账户',
+            'message' => $newStatus === 1 ? I18n::t('Account enabled') : I18n::t('Account disabled'),
             'status'  => $newStatus,
         ]);
     }
@@ -376,7 +376,7 @@ class AdminController
         $admin = $this->requireAdmin();
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            Response::json(['success' => false, 'message' => '请求无效'], 403);
+            Response::json(['success' => false, 'message' => I18n::t('Invalid request')], 403);
         }
 
         $stmt = $this->db->prepare('SELECT id, username, role FROM users WHERE unid = :unid LIMIT 1');
@@ -385,10 +385,10 @@ class AdminController
         $userId = $target ? (int)$target['id'] : 0;
 
         if (!$target) {
-            Response::json(['success' => false, 'message' => '用户不存在']);
+            Response::json(['success' => false, 'message' => I18n::t('User not found')]);
         }
         if ((int)$target['id'] === (int)$admin['id']) {
-            Response::json(['success' => false, 'message' => '不能修改你自己的管理员身份']);
+            Response::json(['success' => false, 'message' => I18n::t('You cannot change your own administrator role')]);
         }
 
         $newRole = $target['role'] === 'admin' ? 'user' : 'admin';
@@ -401,10 +401,10 @@ class AdminController
             'target_type' => 'user',
             'target_id' => $userId,
             'target_name' => $target['username'],
-            'summary'  => ($newRole === 'admin' ? '设为管理员：' : '撤销管理员：') . $target['username'],
+            'summary'  => I18n::t('{:action}: {:name}', ['action' => $newRole === 'admin' ? I18n::t('Granted administrator') : I18n::t('Revoked administrator'), 'name' => $target['username']]),
             'changes'  => ['role' => [
-                'old' => $target['role'] === 'admin' ? '管理员' : '普通用户',
-                'new' => $newRole === 'admin' ? '管理员' : '普通用户',
+                'old' => $target['role'] === 'admin' ? I18n::t('Administrator') : I18n::t('Regular user'),
+                'new' => $newRole === 'admin' ? I18n::t('Administrator') : I18n::t('Regular user'),
             ]],
         ]);
 
@@ -412,7 +412,7 @@ class AdminController
 
         Response::json([
             'success' => true,
-            'message' => $newRole === 'admin' ? '已设为管理员' : '已撤销管理员身份',
+            'message' => $newRole === 'admin' ? I18n::t('Administrator role granted') : I18n::t('Administrator role revoked'),
             'role'    => $newRole,
         ]);
     }
@@ -482,7 +482,7 @@ class AdminController
         $stmt->execute([':unid' => $id]);
         $request = $stmt->fetch();
         if (!$request) {
-            Response::error(404, '工单不存在');
+            Response::error(404, I18n::t('Request not found'));
         }
 
         $stmt = $this->db->prepare(
@@ -532,7 +532,7 @@ class AdminController
         $isAjax = self::isAjax();
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            $this->reviewFail($isAjax, '请求无效');
+            $this->reviewFail($isAjax, I18n::t('Invalid request'));
         }
 
         $note = trim((string)($_POST['admin_note'] ?? ''));
@@ -542,13 +542,13 @@ class AdminController
         $request = $stmt->fetch();
 
         if (!$request) {
-            $this->reviewFail($isAjax, '工单不存在');
+            $this->reviewFail($isAjax, I18n::t('Request not found'));
         }
         $requestId = (int)$request['id'];
 
         if ($mode === 'reject') {
             if ($note === '') {
-                $this->reviewFail($isAjax, '请填写拒绝原因（记录在工单内，不会发给用户）');
+                $this->reviewFail($isAjax, I18n::t('Give a reason when rejecting (it is stored on the request and not sent to the user)'));
             }
 
             $this->db->prepare(
@@ -564,14 +564,14 @@ class AdminController
                 'target_type' => 'recovery_request',
                 'target_id' => $requestId,
                 'target_name' => (string)$request['username'],
-                'summary'  => '拒绝恢复申诉：' . mb_substr($note, 0, 120, 'UTF-8'),
+                'summary'  => I18n::t('Rejected recovery request: {:note}', ['note' => mb_substr($note, 0, 120, 'UTF-8')]),
             ]);
 
             $this->sendOutcomeEmail($request, 'reject');
 
             Response::json([
                 'success'    => true,
-                'message'    => '已拒绝该申诉，并已通知申请人',
+                'message'    => I18n::t('Request rejected and the requester notified'),
                 'request_id' => $requestId,
                 'status'     => 'rejected',
             ]);
@@ -601,7 +601,9 @@ class AdminController
             'target_type' => 'recovery_request',
             'target_id' => $requestId,
             'target_name' => (string)$request['username'],
-            'summary'  => ($mode === 'resend' ? '重发恢复链接给 ' : '通过恢复申诉：') . $request['username'],
+            'summary'  => $mode === 'resend'
+                ? I18n::t('Resent the recovery link to {:name}', ['name' => (string)$request['username']])
+                : I18n::t('Approved recovery request: {:name}', ['name' => (string)$request['username']]),
         ]);
 
         $this->sendOutcomeEmail($request, 'approve', $token, $expiresAt);
@@ -609,8 +611,8 @@ class AdminController
         Response::json([
             'success'    => true,
             'message'    => $mode === 'resend'
-                ? '恢复链接已重新发送，旧链接已失效'
-                : '已通过该申诉，恢复链接已发送',
+                ? I18n::t('Recovery link sent again; the old link no longer works')
+                : I18n::t('Request approved and the recovery link sent'),
             'request_id' => $requestId,
             'status'     => 'approved',
             'expires_at' => $expiresAt,
@@ -644,8 +646,8 @@ class AdminController
             'filter'     => $filter,
             'pagination' => ['page' => $result['page'], 'pages' => $result['pages'], 'total' => $result['total']],
             'query'      => $query,
-            'categories' => array_map(static fn($v) => \Nomen\Src\I18n::tIn('zh-hans', $v), ActivityLog::CATEGORIES),
-            'actions'    => array_map(static fn($v) => \Nomen\Src\I18n::tIn('zh-hans', $v), ActivityLog::ACTIONS),
+            'categories' => array_map(static fn($v) => I18n::t($v), ActivityLog::CATEGORIES),
+            'actions'    => array_map(static fn($v) => I18n::t($v), ActivityLog::ACTIONS),
         ]);
     }
 
@@ -655,7 +657,7 @@ class AdminController
         $log = ActivityLog::findByUnid($id);
 
         if ($log === null) {
-            Response::error(404, '这条日志不存在');
+            Response::error(404, I18n::t('That log entry does not exist'));
         }
 
         Response::json([
@@ -676,8 +678,12 @@ class AdminController
 
         $out = fopen('php://output', 'w');
         fwrite($out, "\xEF\xBB\xBF");
-        fputcsv($out, ['编号', '时间', '操作者类型', '操作者编号', '操作者', '日志类型', '动作', '动作代码',
-            '目标类型', '目标编号', '目标名称', '摘要', '变动', 'IP', '设备', 'User-Agent']);
+        fputcsv($out, [
+            I18n::t('ID'), I18n::t('Time'), I18n::t('Actor type'), I18n::t('Actor ID'), I18n::t('Actor'),
+            I18n::t('Category'), I18n::t('Action'), I18n::t('Action code'),
+            I18n::t('Target type'), I18n::t('Target ID'), I18n::t('Target name'),
+            I18n::t('Summary'), I18n::t('Changes'), 'IP', I18n::t('Device'), 'User-Agent',
+        ]);
 
         $userUnids = self::unidsFor('users', array_column($rows, 'actor_id'));
         $requestUnids = self::unidsFor(
@@ -697,11 +703,11 @@ class AdminController
             fputcsv($out, array_map(static fn($value): string => self::csvCell($value), [
                 $row['unid'] ?? '',
                 $row['created_at'],
-                ActivityLog::actorLabel($row),
+                I18n::t(ActivityLog::actorLabel($row)),
                 $userUnids[(int)($row['actor_id'] ?? 0)] ?? '',
                 $row['actor_username'],
-                \Nomen\Src\I18n::tIn('zh-hans', ActivityLog::categoryLabel((string)$row['category'])),
-                \Nomen\Src\I18n::tIn('zh-hans', ActivityLog::actionLabel((string)$row['action'])),
+                I18n::t(ActivityLog::categoryLabel((string)$row['category'])),
+                I18n::t(ActivityLog::actionLabel((string)$row['action'])),
                 $row['action'],
                 $row['target_type'] ? self::targetTypeLabel((string)$row['target_type']) : '',
                 $targetUnid,
@@ -755,12 +761,12 @@ class AdminController
                 'actor_type'       => (string)($row['actor_type'] ?? ''),
                 'actor_unid'       => $actorUnid,
                 'actor_username'   => (string)($row['actor_username'] ?? ''),
-                'actor_label'      => ActivityLog::actorLabel($row),
+                'actor_label'      => I18n::t(ActivityLog::actorLabel($row)),
                 'actor_url'        => $actorUnid !== '' ? '/admin/users/' . $actorUnid : null,
                 'category'         => (string)$row['category'],
-                'category_label'   => \Nomen\Src\I18n::tIn('zh-hans', ActivityLog::categoryLabel((string)$row['category'])),
+                'category_label'   => I18n::t(ActivityLog::categoryLabel((string)$row['category'])),
                 'action'           => (string)$row['action'],
-                'action_label'     => \Nomen\Src\I18n::tIn('zh-hans', ActivityLog::actionLabel((string)$row['action'])),
+                'action_label'     => I18n::t(ActivityLog::actionLabel((string)$row['action'])),
                 'target_type'      => $targetType,
                 'target_type_label' => $targetType !== '' ? self::targetTypeLabel($targetType) : '',
                 'target_unid'      => $targetUnid,
@@ -830,7 +836,7 @@ class AdminController
             }
             $out[] = [
                 'field' => (string)$field,
-                'label' => self::FIELD_LABELS[$field] ?? (string)$field,
+                'label' => I18n::t(self::FIELD_LABELS[$field] ?? (string)$field),
                 'old'   => self::valueText($pair['old'] ?? null),
                 'new'   => self::valueText($pair['new'] ?? null),
             ];
@@ -867,64 +873,64 @@ class AdminController
     public static function matchBadge($value): string
     {
         if ($value === null || $value === '') {
-            return '<span class="admin-badge admin-badge--muted">账号无记录</span>';
+            return '<span class="admin-badge admin-badge--muted">' . htmlspecialchars(I18n::t('No record on the account'), ENT_QUOTES, 'UTF-8') . '</span>';
         }
         return (int)$value === 1
-            ? '<span class="admin-badge admin-badge--success">匹配</span>'
-            : '<span class="admin-badge admin-badge--danger">不匹配</span>';
+            ? '<span class="admin-badge admin-badge--success">' . htmlspecialchars(I18n::t('Matches'), ENT_QUOTES, 'UTF-8') . '</span>'
+            : '<span class="admin-badge admin-badge--danger">' . htmlspecialchars(I18n::t('Does not match'), ENT_QUOTES, 'UTF-8') . '</span>';
     }
 
     private const FIELD_LABELS = [
-        'username'           => '用户名',
-        'display_name'       => '昵称',
-        'bio'                => '简介',
-        'email'              => '邮箱',
-        'email_verified'     => '邮箱已验证',
-        'country'            => '国家 / 地区',
-        'birth_date'         => '出生日期',
-        'gender'             => '性别',
-        'avatar'             => '头像',
-        'two_factor_policy'  => '两步验证策略',
-        'notify_system_important' => '通知：系统重要',
-        'notify_system_general'   => '通知：系统一般',
-        'notify_system_interact'  => '通知：系统互动',
-        'name'               => '名称',
-        'icon'               => '图标',
-        'description'        => '简介',
-        'homepage_url'       => '主页',
-        'redirect_uris'      => '回调 URL',
-        'scopes'             => '授权范围',
-        'client_type'        => '客户端类型',
-        'pkce_required'      => '强制 PKCE',
-        'status'             => '状态',
-        'role'               => '角色',
-        'slug'               => '地址',
-        'title'              => '标题',
-        'summary'            => '摘要',
-        'sort_order'         => '排序',
-        'body'               => '正文',
+        'username'           => 'Username',
+        'display_name'       => 'Display name',
+        'bio'                => 'Bio',
+        'email'              => 'Email',
+        'email_verified'     => 'Email verified',
+        'country'            => 'Country / Region',
+        'birth_date'         => 'Date of birth',
+        'gender'             => 'Gender',
+        'avatar'             => 'Avatar',
+        'two_factor_policy'  => 'Two-step verification policy',
+        'notify_system_important' => 'Notifications: important system messages',
+        'notify_system_general'   => 'Notifications: general system messages',
+        'notify_system_interact'  => 'Notifications: system interactions',
+        'name'               => 'Name',
+        'icon'               => 'Icon',
+        'description'        => 'Description',
+        'homepage_url'       => 'Homepage',
+        'redirect_uris'      => 'Redirect URIs',
+        'scopes'             => 'Scopes',
+        'client_type'        => 'Client type',
+        'pkce_required'      => 'PKCE required',
+        'status'             => 'Status',
+        'role'               => 'Role',
+        'slug'               => 'Path',
+        'title'              => 'Title',
+        'summary'            => 'Summary',
+        'sort_order'         => 'Sort order',
+        'body'               => 'Body',
     ];
 
     private const TARGET_LABELS = [
-        'user'             => '用户',
-        'oauth_client'     => '应用',
-        'recovery_request' => '恢复工单',
-        'user_email'       => '邮箱',
-        'temp_key'         => '临时密钥',
-        'family_group'     => '家庭',
-        'developer'        => '开发者',
-        'recovery_code'    => '恢复码',
-        'guardian_email'   => '家长邮箱',
-        'device'           => '设备',
-        'biometric'        => '生物识别',
-        'plugin_mount'     => '挂载点',
-        'avatar'           => '头像',
-        'page'             => '页面',
+        'user'             => 'User',
+        'oauth_client'     => 'App',
+        'recovery_request' => 'Recovery request',
+        'user_email'       => 'Email',
+        'temp_key'         => 'Temp key',
+        'family_group'     => 'Family',
+        'developer'        => 'Developer',
+        'recovery_code'    => 'Recovery code',
+        'guardian_email'   => 'Guardian email',
+        'device'           => 'Device',
+        'biometric'        => 'Biometric',
+        'plugin_mount'     => 'Mount point',
+        'avatar'           => 'Avatar',
+        'page'             => 'Page',
     ];
 
     public static function targetTypeLabel(string $type): string
     {
-        return self::TARGET_LABELS[$type] ?? $type;
+        return I18n::t(self::TARGET_LABELS[$type] ?? $type);
     }
 
     public static function targetUrl(array $log, string $targetUnid = ''): ?string
@@ -1016,10 +1022,10 @@ class AdminController
         $head = '<div class="admin-diff__block"><div class="admin-diff__legend">' . self::e($label) . '</div>';
 
         if ($field === 'avatar') {
-            return $head . self::imageDiffHtml(self::plainString($old), self::plainString($new), 'avatars', '旧头像', '新头像') . '</div>';
+            return $head . self::imageDiffHtml(self::plainString($old), self::plainString($new), 'avatars', I18n::t('Old avatar'), I18n::t('New avatar')) . '</div>';
         }
         if ($field === 'icon') {
-            return $head . self::imageDiffHtml(self::plainString($old), self::plainString($new), 'develops', '旧图标', '新图标') . '</div>';
+            return $head . self::imageDiffHtml(self::plainString($old), self::plainString($new), 'develops', I18n::t('Old icon'), I18n::t('New icon')) . '</div>';
         }
 
         $oldText = self::plainString($old);
@@ -1043,12 +1049,12 @@ class AdminController
     {
         $figure = static function (string $file, string $caption) use ($dir): string {
             if ($file === '') {
-                $body = '<span class="admin-avatar-diff__missing">未设置</span>';
+                $body = '<span class="admin-avatar-diff__missing">' . self::e(I18n::t('Not set')) . '</span>';
             } else {
                 $url = self::imageUrl($file, $dir);
                 $body = $url !== null
                     ? '<img src="' . self::e($url) . '" alt="" loading="lazy">'
-                    : '<span class="admin-avatar-diff__missing">文件已删除</span>';
+                    : '<span class="admin-avatar-diff__missing">' . self::e(I18n::t('The file has been deleted')) . '</span>';
                 $body .= '<span class="admin-avatar-diff__name">' . self::e($file) . '</span>';
             }
 
@@ -1084,7 +1090,7 @@ class AdminController
     {
         $ops = TextDiff::lines($old, $new);
         if (!$ops) {
-            return '<p class="admin-diff__blank">两边内容相同。</p>';
+            return '<p class="admin-diff__blank">' . self::e(I18n::t('Both sides are identical.')) . '</p>';
         }
 
         $rows = '';
@@ -1128,11 +1134,11 @@ class AdminController
         }
 
         if ($hidden > 0) {
-            $rows .= '<tr><td colspan="4" class="admin-difftable__more">还有 ' . $hidden . ' 行未显示</td></tr>';
+            $rows .= '<tr><td colspan="4" class="admin-difftable__more">' . self::e(I18n::t('{:count} more lines not shown', ['count' => $hidden])) . '</td></tr>';
         }
 
         return '<div class="admin-difftable-wrap"><table class="admin-difftable">'
-            . '<thead><tr><th colspan="2">旧版本</th><th colspan="2">新版本</th></tr></thead>'
+            . '<thead><tr><th colspan="2">' . self::e(I18n::t('Old version')) . '</th><th colspan="2">' . self::e(I18n::t('New version')) . '</th></tr></thead>'
             . '<tbody>' . $rows . '</tbody></table></div>';
     }
 
@@ -1168,7 +1174,7 @@ class AdminController
     private static function segmentsHtml(array $segments, string $side): string
     {
         if (!$segments) {
-            return '<span class="admin-diff__blank">（空）</span>';
+            return '<span class="admin-diff__blank">' . self::e(I18n::t('(empty)')) . '</span>';
         }
 
         $html = '';
@@ -1190,7 +1196,7 @@ class AdminController
             }
         }
 
-        return $html === '' ? '<span class="admin-diff__blank">（空）</span>' : $html;
+        return $html === '' ? '<span class="admin-diff__blank">' . self::e(I18n::t('(empty)')) . '</span>' : $html;
     }
 
     private static function isLongText(string $old, string $new): bool
@@ -1202,12 +1208,12 @@ class AdminController
     private static function textStats(string $text): string
     {
         if ($text === '') {
-            return '（空）';
+            return I18n::t('(empty)');
         }
 
         $lines = count(preg_split('/\R/u', $text) ?: []);
 
-        return $lines . ' 行 · ' . mb_strlen($text) . ' 字';
+        return I18n::t('{:lines} lines · {:chars} characters', ['lines' => $lines, 'chars' => mb_strlen($text)]);
     }
 
     private static function plainString($value): string
@@ -1222,10 +1228,10 @@ class AdminController
     private static function valueText($value): string
     {
         if ($value === null || $value === '') {
-            return '（空）';
+            return I18n::t('(empty)');
         }
         if (is_bool($value)) {
-            return $value ? '是' : '否';
+            return $value ? I18n::t('Yes') : I18n::t('No');
         }
         if (is_array($value)) {
             return (string)json_encode($value, JSON_UNESCAPED_UNICODE);
@@ -1250,7 +1256,7 @@ class AdminController
             if (!is_array($pair)) {
                 continue;
             }
-            $label = self::FIELD_LABELS[$field] ?? (string)$field;
+            $label = I18n::t(self::FIELD_LABELS[$field] ?? (string)$field);
             $parts[] = $label . ': ' . self::valueText($pair['old'] ?? null) . ' → ' . self::valueText($pair['new'] ?? null);
         }
 
@@ -1277,7 +1283,7 @@ class AdminController
         $config = self::config();
         $support = (string)($config['support_email'] ?? '');
         $username = (string)$request['username'];
-        // 收件人是申请人（不是管理员）：按账号语言出。管理后台界面本身保持中文
+        // 收件人是申请人（不是管理员）：按账号语言出，和后台界面语言无关
         $x = fn(string $k, array $p = []): string => I18n::tIn(I18n::emailLocale((int)($request['user_id'] ?? 0)), $k, $p);
         $disclaimer = $x('You received this email because someone provided this address as the contact email when submitting an appeal. If you did not submit any appeal, you can ignore this email.');
 
@@ -1312,7 +1318,7 @@ class AdminController
             $locale = I18n::emailLocale((int)($request['user_id'] ?? 0));
             Email::send($to, EmailTemplate::subjectPrefix() . $title, EmailTemplate::render([
                 'preheader' => $title,
-                'badge'     => ['text' => '账号恢复', 'tone' => $mode === 'reject' ? 'neutral' : 'success'],
+                'badge'     => ['text' => $x('Account recovery'), 'tone' => $mode === 'reject' ? 'neutral' : 'success'],
                 'title'     => $title,
                 'blocks'    => $blocks,
                 'button'    => $button,

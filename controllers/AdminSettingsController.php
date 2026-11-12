@@ -50,6 +50,8 @@ class AdminSettingsController
             'settingsReady'    => Settings::ready(),
             'apiEnabled'       => (string)Settings::get('api.nomen_api', '1') !== '0',
             'apiEndpoint'      => rtrim((string)Brand::get('base_url'), '/') . '/nomen-api',
+            'policies'         => Brand::configuredPolicies(),
+            'additionalTerms'  => Brand::additionalTerms(),
         ]));
     }
 
@@ -75,12 +77,29 @@ class AdminSettingsController
             ? ((string)$_POST['api_nomen'] === '1' ? '1' : '0')
             : ($oldApi === '1' ? '1' : '0');
 
+        $updates = [
+            'security.login_2fa' => $policy,
+            'cache.backend'      => $backend,
+            'api.nomen_api'      => $apiEnabled,
+        ];
+
+        if (array_key_exists('policies', $_POST)) {
+            $list = self::decodeList($_POST['policies']);
+            if ($list === null) {
+                Response::json(['success' => false, 'message' => '政策链接格式不正确'], 422);
+            }
+            $updates['brand.policies'] = self::encodeList(self::normalizePolicies($list));
+        }
+        if (array_key_exists('additional_terms', $_POST)) {
+            $list = self::decodeList($_POST['additional_terms']);
+            if ($list === null) {
+                Response::json(['success' => false, 'message' => '附加条款格式不正确'], 422);
+            }
+            $updates['brand.additional_terms'] = self::encodeList(self::normalizeTerms($list));
+        }
+
         try {
-            Settings::setMany([
-                'security.login_2fa' => $policy,
-                'cache.backend'      => $backend,
-                'api.nomen_api'      => $apiEnabled,
-            ]);
+            Settings::setMany($updates);
         } catch (PDOException $e) {
             error_log('[settings] 保存失败: ' . $e->getMessage());
             Response::json(['success' => false, 'message' => '数据库还没升级（缺 site_settings 表），先跑 php bin/nomen upgrade'], 500);
@@ -103,5 +122,67 @@ class AdminSettingsController
         Hooks::run('admin.settings.saved', [$policy, $backend, (int)$admin['id'], $apiEnabled]);
 
         Response::json(['success' => true, 'message' => '设置已保存，下次请求生效']);
+    }
+
+    /** @return array<int, array<string, mixed>>|null */
+    private static function decodeList(mixed $raw): ?array
+    {
+        if (!is_string($raw) || trim($raw) === '') {
+            return [];
+        }
+
+        $data = json_decode($raw, true);
+
+        return is_array($data) ? $data : null;
+    }
+
+    /** @param array<int, mixed> $list */
+    private static function normalizePolicies(array $list): array
+    {
+        $out = [];
+        foreach ($list as $policy) {
+            if (!is_array($policy)) {
+                continue;
+            }
+            $url = trim((string)($policy['url'] ?? ''));
+            $label = trim((string)($policy['label'] ?? ''));
+            $role = (string)($policy['role'] ?? 'other');
+            if (!in_array($role, ['privacy', 'terms', 'other'], true)) {
+                $role = 'other';
+            }
+            if ($url === '' || ($label === '' && $role === 'other')) {
+                continue;
+            }
+            $out[] = ['role' => $role, 'label' => $label, 'url' => $url];
+            if (count($out) === 3) {
+                break;
+            }
+        }
+
+        return $out;
+    }
+
+    /** @param array<int, mixed> $list */
+    private static function normalizeTerms(array $list): array
+    {
+        $out = [];
+        foreach ($list as $term) {
+            if (!is_array($term)) {
+                continue;
+            }
+            $label = trim((string)($term['label'] ?? ''));
+            $url = trim((string)($term['url'] ?? ''));
+            if ($label !== '' && $url !== '') {
+                $out[] = ['label' => $label, 'url' => $url];
+            }
+        }
+
+        return $out;
+    }
+
+    /** @param array<int, array<string, mixed>> $list */
+    private static function encodeList(array $list): string
+    {
+        return $list === [] ? '' : (string)json_encode($list, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 }
