@@ -1,0 +1,70 @@
+{
+  "files": {
+    "app.php": "框架主配置：版本号、安全参数、会话有效期、限流阈值、可选功能开关、数据库和 Redis 连接。大部分键可以由 `.env` 或安装器生成的 `config/installed.php` 覆盖，表里的「默认值」是这两者都没写时用的兜底。",
+    "brand.php": "品牌相关的兜底值：站点名、地址、支持邮箱、图标、页脚版权、法律链接。安装向导和后台「设置」写的是 `installed.php` 和数据库，这里的字面量只是初始值；在后台改过的不会回头覆盖这里。",
+    "consent-age.php": "同意年龄表：某个国家低于多少岁算未成年、需要监护人同意。值是产品策略，依据的国家法规写在 `config/consent-age-sources.php`。没列到的国家用 `default`。",
+    "email-policy.php": "邮箱域名黑名单。注册和换邮箱时按这里拦截，拦下来统一回同一句文案，不按域名区分理由——分开说等于告诉对方只差一个域名就过了。",
+    "email.php": "SMTP 发件配置。整份留空就不发信，注册激活、找回密码、通知邮件都会静默跳过，功能本身不受影响。",
+    "identity-providers.php": "第三方登录的预设。后台「登录方式」里可以逐字段覆盖，这张表只是新建提供方时的初始值；字段名对应各家 userinfo 返回的 JSON 键。",
+    "plugins.php": "启用的插件清单。改这里等于开关插件，插件代码在 `plugins/<slug>`（本地开发时可能是 `paths.local.php` 指的外部目录）。",
+    "skins.php": "皮肤：站点默认用哪个、允许用户选哪些。用户自己的选择存在 `users.skin`，未登录设备用 `default`。"
+  },
+  "sectionIntros": {
+    "app.php": {
+      "可选功能": "默认全关，不需要的站长不用被迫接受。用 `FEATURE_GUARDIANS` / `FEATURE_COUNTRY` 环境变量，或 `config/installed.php` 的 `features` 段打开；安装向导的「扩展」一步也能勾。"
+    }
+  },
+  "sectionTitles": {
+    "consent-age.php": {
+      "10": "满 10 岁",
+      "12": "满 12 岁",
+      "13": "满 13 岁",
+      "14": "满 14 岁",
+      "15": "满 15 岁",
+      "16": "满 16 岁",
+      "18": "满 18 岁"
+    }
+  },
+  "fields": {
+    "identity-providers.php": {
+      "logo": "按钮上的图标地址，留空回退成首字母",
+      "name": "显示名",
+      "type": "协议类型，目前只有 `oauth2`",
+      "authorize_url": "授权页地址，浏览器跳过去的地方",
+      "token_url": "换 token 的地址",
+      "userinfo_url": "取用户资料的地址",
+      "emails_url": "取邮箱列表的地址，留空就不查",
+      "scopes": "请求的 scope，空格分隔",
+      "subject_field": "用户资料里当唯一 ID 的字段",
+      "email_field": "邮箱字段",
+      "name_field": "昵称字段",
+      "avatar_field": "头像字段",
+      "email_verified_field": "「邮箱是否已验证」的字段；留空表示信任对方返回的邮箱",
+      "token_auth": "换 token 时凭据放哪：`post` 放表单，`basic` 放 Authorization 头"
+    }
+  },
+  "keys": {
+    "app.php.version": "版本号，整个仓库只有这一处；发版改这里，打包脚本从它取包名",
+    "app.php.csrf_enabled": "是否校验 CSRF token。正常别关，关了所有表单都没有跨站防护",
+    "app.php.recovery_upload_window": "上面那条上传次数上限的统计窗口（秒）",
+    "app.php.webauthn_origin": "WebAuthn 的 RP ID，必须和浏览器地址栏的站点一致",
+    "app.php.webauthn_rp_name": "WebAuthn 弹窗里显示的站点名",
+    "app.php.db.driver": "`mysql` / `mariadb` / `sqlite`；写 `sqlite` 时只看 `path`",
+    "app.php.db.host": "MySQL 主机名或 IP",
+    "app.php.db.port": "MySQL 端口",
+    "app.php.db.name": "库名",
+    "app.php.db.user": "库账号。每个库用自己的专用账号，别用 root",
+    "app.php.db.pass": "库密码",
+    "app.php.db.path": "SQLite 文件路径，相对路径按项目根算",
+    "app.php.redis.host": "Redis 主机名或 IP",
+    "app.php.redis.port": "Redis 端口",
+    "app.php.redis.db": "Redis 库编号，和别的程序共用实例时错开",
+    "app.php.redis.password": "Redis 密码，没设密码就留空",
+    "app.php.scopes.openid": "只给 `sub`，身份标识",
+    "app.php.scopes.profile": "昵称和头像",
+    "app.php.scopes.email": "已验证的邮箱",
+    "app.php.features.guardians": "家庭与未成年监护：家长同意、家长邮箱、家庭页",
+    "app.php.features.country": "注册时填写国家 / 地区（含按 IP 预填）",
+    "consent-age.php.default": "`ages` 里没列到的国家用这个年龄"
+  }
+}

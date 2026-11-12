@@ -1,0 +1,116 @@
+{
+  "users": {
+    "desc": "账号主表。一行一个账号，密码哈希、状态、角色、TOTP 开关都在这里。",
+    "columns": {
+      "oauth_id": "早期第三方登录留下的外部 ID，之后接入的走 `user_identities`",
+      "username": "登录名，唯一；界面上优先显示 `display_name`",
+      "email": "主邮箱（旧字段，多邮箱的实际数据在 `user_emails`）",
+      "country": "国家 / 地区代码，开启 `country` 可选功能才收集",
+      "birth_date": "出生日期，参与同意年龄判定",
+      "gender": "性别，取值在 `config/genders.php`",
+      "locale": "账号的语言偏好，优先级高于浏览器语言",
+      "skin": "账号选的皮肤，未登录设备用站点默认",
+      "display_name": "显示名，留空时界面上回退成用户名",
+      "avatar": "头像地址，上传的落在 `public/assets/avatars/`",
+      "bio": "个人简介",
+      "email_verified": "主邮箱是否已验证；未验证会拦在 `/activate`",
+      "email_verify_token": "注册激活令牌（一次性）",
+      "email_verify_token_expires_at": "激活令牌的过期时间",
+      "email_verify_last_sent_at": "上次重发激活邮件的时刻，用来节流",
+      "pending_email": "换邮箱时暂存的新地址，验证通过才写进 `user_emails`",
+      "pending_email_token": "换邮箱的确认令牌",
+      "pending_email_token_expires_at": "换邮箱令牌的过期时间",
+      "status": "1 启用、0 禁用；禁用后登录一律拒绝",
+      "role": "`user` 或 `admin`",
+      "two_factor_policy": "二验策略：`every_login` 每次登录都要，`new_device` 只在新设备上要",
+      "last_login_at": "最后登录时间，只在登录成功的入口写",
+      "last_login_ip": "最后登录 IP"
+    }
+  },
+  "user_emails": {
+    "desc": "账号下的邮箱。一个账号可以挂多个邮箱，其中一个是主邮箱；登录、通知、找回都按这里的验证状态判断。"
+  },
+  "pending_registrations": {
+    "desc": "待激活的注册。填完注册表单、还没点激活链接时暂存在这里，激活或过期后清掉。"
+  },
+  "user_devices": {
+    "desc": "登录过的设备。按 `device_id` 区分，记录 IP 和 UA，`trusted_at` 非空表示站长或用户信任过这台设备。"
+  },
+  "user_biometrics": {
+    "desc": "WebAuthn / 生物识别的凭据。公钥存这里，私钥在用户设备上，登录时做一次签名验证。"
+  },
+  "user_totp_secrets": {
+    "desc": "两步验证（TOTP）的密钥与启用状态。密钥单独一张表，删掉一行就等于关掉该账号的二验。"
+  },
+  "user_recovery_codes": {
+    "desc": "备用恢复码。每个码只用一次，使用后标记时间，全部用完需要重新生成。"
+  },
+  "user_temp_keys": {
+    "desc": "临时密钥。给不方便输密码的场景发的一次性凭据，过期即失效。"
+  },
+  "oauth_clients": {
+    "desc": "OAuth 应用。`client_id` / `client_secret`、回调白名单、允许的 scope 和所属开发者都在这张表。",
+    "columns": {
+      "client_id": "公开的应用标识，出现在授权链接里",
+      "client_secret": "应用密钥，只存哈希；创建时给站长看一次",
+      "redirect_uris": "回调地址白名单，多个用换行分隔，必须逐字节一致"
+    }
+  },
+  "oauth_authorization_codes": {
+    "desc": "一次性的授权码。有效期 10 分钟，换 token 时立刻作废，一个码只能换一次。"
+  },
+  "oauth_access_tokens": {
+    "desc": "已签发的访问令牌。表里只有哈希，明文只在签发那一次返回给应用。"
+  },
+  "oauth_refresh_tokens": {
+    "desc": "刷新令牌。同样只存哈希；刷新一次旧的立刻失效，换发新的。"
+  },
+  "developers": {
+    "desc": "应用开发者档案。开放平台里一个开发者可以拥有多个应用，应用通过 `developer_id` 指回来。"
+  },
+  "user_authorizations": {
+    "desc": "用户对应用的授权记录。用来判「已授权过就不用再确认」，以及让用户在设置页撤销。"
+  },
+  "user_app_subjects": {
+    "desc": "应用级 sub 的映射。OIDC 的 `sub` 按应用生成，同一个人在不同应用拿到不同的值。",
+    "columns": {
+      "subject_id": "该应用看到的用户编号，全局唯一、不随账号改名变化"
+    }
+  },
+  "identity_providers": {
+    "desc": "第三方登录的提供方配置。GitHub / Google / Microsoft / CaelLabID 是预设，也可以自己加 OAuth2 提供方。"
+  },
+  "user_identities": {
+    "desc": "用户与第三方身份的绑定关系。一个账号可以绑多个提供方；已验证邮箱的才会自动合并到同邮箱账号。"
+  },
+  "account_recovery_requests": {
+    "desc": "找回账号的申诉工单。用户填的资料、上传的证明材料、管理员的审核结论和一次性恢复令牌都在这里。"
+  },
+  "family_groups": {
+    "desc": "家庭组。开启 `guardians` 可选功能后才会用到，一个未成年账号属于一个家庭组。"
+  },
+  "family_members": {
+    "desc": "家庭成员与监护关系。记录谁是谁的监护人、邀请是否接受、关系是否已解除。"
+  },
+  "site_settings": {
+    "desc": "后台「设置」页可改的站点设置。键值对存储，覆盖 `config/` 里的同名默认值。"
+  },
+  "app_meta": {
+    "desc": "站点元信息。记录已安装版本和升级状态，`php bin/nomen upgrade` 靠它判断有没有迁移要跑。"
+  },
+  "activity_logs": {
+    "desc": "活动日志。登录、改密码、后台操作都记在这里，后台按 UNID 展示，插件通过 `ActivityLog::record` 写入。"
+  },
+  "notifications": {
+    "desc": "站内通知。入库之后才会触发 `notification.created`，邮件是否发送由用户的分类开关决定。"
+  },
+  "user_notification_settings": {
+    "desc": "通知分类的开关。没有记录表示全部走默认，用户改过哪一类才存哪一行。"
+  },
+  "cache_items": {
+    "desc": "数据库缓存驱动用的表。没配 Redis 时缓存落在这里，按 key 存过期时间和序列化后的值。"
+  },
+  "plugin_migrations": {
+    "desc": "插件迁移的执行记录。`php bin/nomen plugins migrate` 按表和文件名判断哪些已经跑过。"
+  }
+}

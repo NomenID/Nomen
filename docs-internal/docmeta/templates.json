@@ -1,0 +1,91 @@
+{
+  "login": {
+    "file": "templates/login.php",
+    "desc": "登录页。密码、邮箱验证码、临时密钥、生物识别、第三方登录五种方式在一页里切换，具体显示哪些由站长的「登录方式」开关决定。",
+    "note": "有 JS 时挂 `LoginApp` 岛屿接管整页；无 JS 时表单走服务端 POST，`noscript` 那段就是纯 HTML 版本。"
+  },
+  "register": {
+    "file": "templates/register.php",
+    "desc": "注册页。密码注册关闭时只剩第三方登录按钮，这个判断在 `RegisterApp` 的 `passwordRegistration` 属性里。"
+  },
+  "register-verify": {
+    "file": "templates/register-verify.php",
+    "desc": "注册完成后的「去邮箱点激活链接」提示页。"
+  },
+  "activate": {
+    "file": "templates/activate.php",
+    "desc": "激活链接的落地页。成功、失败、已激活三种结果都用这一页，靠变量区分。"
+  },
+  "2fa-verify": {
+    "file": "templates/2fa-verify.php",
+    "desc": "两步验证的输入页。登录判定通过后停在这里，输对 TOTP 或恢复码才真正建会话。"
+  },
+  "authorize": {
+    "file": "templates/authorize.php",
+    "desc": "OAuth 授权确认页。列出应用名称、要的 scope 和当前登录账号；`prompt=none` 或已授权时不会渲染这一页。"
+  },
+  "fast-pass": {
+    "file": "templates/fast-pass.php",
+    "desc": "临时密钥（快速通行）页。生成一次性凭据给不方便输密码的场景用。"
+  },
+  "recovery": {
+    "file": "templates/recovery.php",
+    "desc": "账号恢复的申诉入口。填账号信息、联系方式、证明材料，提交后生成工单。"
+  },
+  "recovery-family": {
+    "file": "templates/recovery-family.php",
+    "desc": "家庭组相关的恢复页。走监护人这条路径时用它，和普通申诉分开。"
+  },
+  "recovery-secure": {
+    "file": "templates/recovery-secure.php",
+    "desc": "恢复凭证的设置与展示页。恢复码、新的二验绑定在这里完成，`TotpSection` 的二维码由 totp-qr 插件本地绘制。"
+  },
+  "recovery-sent": {
+    "file": "templates/recovery-sent.php",
+    "desc": "申诉提交成功的提示页。不透露工单是否存在，避免被拿来探测账号。"
+  },
+  "app-shell": {
+    "file": "templates/app-shell.php",
+    "desc": "前台 Vue 应用的外壳。只输出挂载点和初始数据，页面内容由前端路由接管。"
+  },
+  "admin-shell": {
+    "file": "templates/admin-shell.php",
+    "desc": "后台 Vue 应用的外壳。和前台一样是挂载点 + 初始数据，布局由皮肤的 `admin-app.php` 提供。"
+  },
+  "special": {
+    "file": "templates/special.php",
+    "desc": "特殊页的外壳。版本页、许可页、插件页这些 `/special/<slug>` 都套这一层。"
+  },
+  "home": {
+    "file": "templates/home.php",
+    "desc": "默认首页。纯 PHP 输出，标题、副标题、按钮从站点设置读，正文区块由 `homepage.sections` 钩子决定。"
+  },
+  "home-page": {
+    "file": "templates/home-page.php",
+    "desc": "首页指向某个 Pages 页面时的包装。把页面正文套进站点外壳，不另做排版。"
+  },
+  "home-custom": {
+    "file": "templates/home-custom.php",
+    "desc": "自定义首页模板的包装。`config/home-*.php` 返回的 HTML 直接嵌入，官方站用它挂 `home-nomenid.php`。"
+  },
+  "_email_list": {
+    "file": "templates/_email_list.php",
+    "desc": "账号邮箱列表片段。后台用户详情里渲染，显示每个邮箱的验证状态和主邮箱标记。",
+    "note": "用 `Response::viewPartial` 渲染成字符串塞进 JSON，不单独出页面。"
+  },
+  "_lang_picker": {
+    "file": "templates/_lang_picker.php",
+    "desc": "语言选择器。无 JS 时是一组指向 `/special/lang` 的普通链接，有 JS 才由脚本升级成下拉。",
+    "note": "由皮肤布局 `require` 引入，变量来自布局作用域。"
+  },
+  "_mobile_menu": {
+    "file": "templates/_mobile_menu.php",
+    "desc": "移动端抽屉菜单。语言入口只有 `/special/lang` 一种走法，首页不带 `rt` 参数。",
+    "note": "由皮肤布局用 `viewPartial` 渲染。"
+  },
+  "_site_sky": {
+    "file": "templates/_site_sky.php",
+    "desc": "星空背景。默认皮肤用它铺在页面底层，无星空的皮肤不引入这个文件。",
+    "note": "由皮肤布局 `require` 引入，本身不接收变量。"
+  }
+}

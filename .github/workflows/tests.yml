@@ -32,3 +32,7 @@ jobs:
 
       - name: Test
         run: php tests/run.php
+
+      - name: Docs match code
+        if: matrix.php == '8.3'
+        run: php code-scripts/docgen.php --check

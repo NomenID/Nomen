@@ -1,0 +1,218 @@
+{
+  "user.registered": {
+    "type": "run",
+    "args": "userId, username, email（可能为 null）",
+    "when": "注册成功、邮箱记录同步之后"
+  },
+  "user.login.succeeded": {
+    "type": "run",
+    "args": "userId, username",
+    "when": "会话建立之后"
+  },
+  "user.logout": {
+    "type": "run",
+    "args": "userId, username",
+    "when": "清会话之前"
+  },
+  "userinfo.claims": {
+    "type": "filter",
+    "args": "claims, user, scopes",
+    "when": "`/api/userinfo` 组装完 claims 之后"
+  },
+  "oidc.claims": {
+    "type": "filter",
+    "args": "claims, user, scopes",
+    "when": "id_token 的 claims 组装完；`/api/userinfo` 不走这个钩子"
+  },
+  "meta.tags": {
+    "type": "filter",
+    "args": "tags, layout",
+    "when": "页面 head 的 meta 组装完；以 `og:` 开头的按 `property` 输出，其余按 `name`"
+  },
+  "oauth.authorize.quick": {
+    "type": "filter",
+    "args": "null, userId, client, scopes",
+    "when": "授权请求判定阶段；返回非空字符串 = 该请求免确认直接发码，回调带上 `spicallogin=<返回值>`（返回 `null` 走普通确认流程）。这是产品策略钩子，跳不跳确认由插件自己判断"
+  },
+  "oauth.authorize.approved": {
+    "type": "run",
+    "args": "userId, clientId, scope, silent",
+    "when": "授权码发出之后；`silent` 表示这次没经过确认页（已授权过、`prompt=none` 或插件批了快速通道）"
+  },
+  "oauth.token.issued": {
+    "type": "run",
+    "args": "userId, clientId, scopes, grantType",
+    "when": "发出 access token 之后（`authorization_code` / `refresh_token`）"
+  },
+  "oauth.token.revoked": {
+    "type": "run",
+    "args": "tokenTypeHint",
+    "when": "撤销端点处理完"
+  },
+  "admin.user.status_changed": {
+    "type": "run",
+    "args": "userId, status, adminId",
+    "when": "管理员启用/禁用账户之后"
+  },
+  "admin.user.role_changed": {
+    "type": "run",
+    "args": "userId, role, adminId",
+    "when": "管理员授予/撤销管理员之后"
+  },
+  "email.sending": {
+    "type": "filter",
+    "args": "payload（to / subject / body）, embedded",
+    "when": "真正投递 SMTP 之前；返回数组可替换"
+  },
+  "notification.created": {
+    "type": "run",
+    "args": "userId, category, title, body, notificationId",
+    "when": "站内通知入库之后、发邮件之前"
+  },
+  "viewer.props": {
+    "type": "filter",
+    "args": "viewer, userId, user",
+    "when": "SPA 的 viewer 数据组装完"
+  },
+  "nav.items": {
+    "type": "filter",
+    "args": "items, userId",
+    "when": "站点导航组装完（PHP 布局和 Vue 外壳共用）"
+  },
+  "layout.head": {
+    "type": "filter",
+    "args": "html, layout",
+    "when": "布局 `</head>` 前；返回值原样输出（核心先在这里给出 generator / 版本 / 皮肤 / 语言 meta）"
+  },
+  "layout.body.start": {
+    "type": "filter",
+    "args": "html, layout",
+    "when": "布局 `<body>` 后"
+  },
+  "layout.body.end": {
+    "type": "filter",
+    "args": "html, layout",
+    "when": "布局 `</body>` 前"
+  },
+  "homepage.links": {
+    "type": "filter",
+    "args": "links",
+    "when": "首页底部链接组；追加条目带 `by`（插件显示名）的话，后台「首页」编辑器会标「由 X 托管」"
+  },
+  "homepage.sections": {
+    "type": "filter",
+    "args": "sections, home",
+    "when": "默认首页正文区块；插件返回 HTML 片段数组"
+  },
+  "auth.notice": {
+    "type": "filter",
+    "args": "html",
+    "when": "登录 / 注册页头部下方；返回值原样输出，PHP 与 Vue 两条渲染都生效"
+  },
+  "footer.links": {
+    "type": "filter",
+    "args": "links, brand, layout",
+    "when": "页脚链接数组"
+  },
+  "footer.html": {
+    "type": "filter",
+    "args": "html, layout, brand, links",
+    "when": "页脚最终 HTML（config/footer.php 或皮肤 partial 渲染完）"
+  },
+  "admin.menu.items": {
+    "type": "filter",
+    "args": "items",
+    "when": "后台侧栏菜单组装完"
+  },
+  "admin.shell.props": {
+    "type": "filter",
+    "args": "props, adminId",
+    "when": "后台 SPA 首屏数据"
+  },
+  "admin.dashboard.cards": {
+    "type": "filter",
+    "args": "cards, stats",
+    "when": "概览页统计卡"
+  },
+  "admin.dashboard.site": {
+    "type": "filter",
+    "args": "site",
+    "when": "概览页站点信息块"
+  },
+  "admin.users.rows": {
+    "type": "filter",
+    "args": "rows",
+    "when": "用户列表返回前"
+  },
+  "admin.user.detail": {
+    "type": "filter",
+    "args": "payload, userId, user, admin",
+    "when": "用户详情返回前"
+  },
+  "admin.apps.list": {
+    "type": "filter",
+    "args": "apps",
+    "when": "应用列表返回前"
+  },
+  "admin.apps.detail": {
+    "type": "filter",
+    "args": "app, clientId",
+    "when": "应用详情返回前"
+  },
+  "admin.mounts.list": {
+    "type": "filter",
+    "args": "mounts",
+    "when": "挂载点列表返回前"
+  },
+  "admin.logs.rows": {
+    "type": "filter",
+    "args": "rows",
+    "when": "活动日志列表返回前"
+  },
+  "admin.recovery.detail": {
+    "type": "filter",
+    "args": "payload, request, user",
+    "when": "恢复工单详情返回前"
+  },
+  "admin.settings.data": {
+    "type": "filter",
+    "args": "payload",
+    "when": "站点设置页数据"
+  },
+  "admin.settings.saved": {
+    "type": "run",
+    "args": "policy, backend, adminId, apiEnabled",
+    "when": "站点设置保存后"
+  },
+  "admin.plugin.page.body": {
+    "type": "filter",
+    "args": "html, slug, page, tab",
+    "when": "插件后台页面输出前"
+  },
+  "pages.content.before_save": {
+    "type": "filter",
+    "args": "data, existing, isNew",
+    "when": "Pages 插件写库前，可改字段"
+  },
+  "pages.content.saved": {
+    "type": "run",
+    "args": "pageId, data, isNew, userId",
+    "when": "Pages 插件保存后"
+  },
+  "pages.content.deleted": {
+    "type": "run",
+    "args": "pageId, page, userId",
+    "when": "Pages 插件删除前"
+  },
+  "api.siteinfo": {
+    "type": "filter",
+    "args": "info, siprops, params",
+    "when": "`/nomen-api` 的 siteinfo 组装完"
+  },
+  "pages.admin.editor.extras": {
+    "type": "filter",
+    "args": "html, page",
+    "when": "Pages 插件后台的 Markdown 编辑器下方，返回值原样输出，用来给编辑器加额外表单片段",
+    "note": "Pages 插件自己的钩子，核心不触发；没启用 Pages 就没有这个钩子。"
+  }
+}
