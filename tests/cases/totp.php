@@ -35,12 +35,20 @@ test('TOTP 生成的密钥是 32 位 Base32', static function (): void {
     assertMatches('/^[A-Z2-7]{32}$/', $secret);
 });
 
-test('TOTP 校验当前码、拒绝错码和过期码', static function () use ($secret, $vectors): void {
-    assertTrue(TOTP::verify($secret, '287082', 0) === false, '空时间片不该命中时间片 1');
-    assertTrue(TOTP::verify($secret, '000000', 0) === false, '错码必须拒绝');
+test('TOTP 校验当前码、拒绝错码和过期码', static function () use ($secret): void {
+    assertTrue(TOTP::verify($secret, '287082', 0) === false, '几十年前的码不该通过');
 
-    $now = intdiv(time(), 30);
-    assertTrue(TOTP::verify($secret, TOTP::getCode($secret, $now), 0), '当前码必须通过');
+    // 取码和校验之间可能跨过 30 秒边界，重试几次，别让测试跟着时钟闪
+    $passed = false;
+    for ($i = 0; $i < 3 && !$passed; $i++) {
+        $code = TOTP::getCode($secret);
+        $passed = TOTP::verify($secret, $code, 0);
+    }
+    assertTrue($passed, '当前码必须通过');
+
+    $current = TOTP::getCode($secret);
+    $wrong = $current === '000000' ? '000001' : '000000';
+    assertTrue(TOTP::verify($secret, $wrong, 0) === false, '错码必须拒绝');
 });
 
 test('TOTP 开通链接带 issuer 和密钥', static function (): void {
