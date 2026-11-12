@@ -34,6 +34,7 @@ const props = defineProps({
   termsUrl: { type: String, default: '' },
   supportEmail: { type: String, default: '' },
   brandLogo: { type: String, default: '/assets/brand/nomen-icon.svg' },
+  authNotice: { type: String, default: '' },
   providers: { type: Array, default: () => [] },
   passwordRegistration: { type: Boolean, default: true },
   urls: { type: Object, default: () => ({}) },
@@ -388,6 +389,8 @@ onMounted(() => {
         <h1>{{ t('Sign up for {:sitename}') }}</h1>
         <p>{{ t('Create your own account') }}</p>
       </div>
+
+      <div v-if="props.authNotice" v-html="props.authNotice"></div>
 
       <BaseAlert v-if="error" type="error" :message="error" />
 

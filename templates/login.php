@@ -19,6 +19,7 @@ $failedMethods = $failedMethods ?? [];
 $methods = array_merge([
     'password' => true, 'email_code' => true, 'biometric' => true, 'temp_key' => true, 'oauth' => true,
 ], (array)($methods ?? []));
+$authNotice = (string)\Nomen\Src\Hooks::filter('auth.notice', '');
 
 $props = [
     'csrf' => \Nomen\Src\Csrf::getToken(),
@@ -35,6 +36,7 @@ $props = [
     'supportName' => (string)\Nomen\Src\Brand::get('support_name'),
     'mailEnabled' => \Nomen\Src\Email::isConfigured(),
     'brandLogo' => (string)\Nomen\Src\Brand::get('logo'),
+    'authNotice' => $authNotice,
     'providers' => \Nomen\Src\IdentityProviders::publicList(),
     'methods' => $methods,
     'urls' => [
@@ -56,6 +58,9 @@ $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APO
                 <h1><?= t('Sign in to {:sitename}') ?></h1>
                 <p><?= t('Continue with your {:sitename} account') ?></p>
             </div>
+            <?php if ($authNotice !== ''): ?>
+                <?= $authNotice ?>
+            <?php endif; ?>
             <?php if ($error): ?>
                 <div class="nomen-alert nomen-alert--error"><?= htmlspecialchars($error) ?></div>
             <?php endif; ?>

@@ -32,6 +32,7 @@ const props = defineProps({
   supportName: { type: String, default: '' },
   mailEnabled: { type: Boolean, default: true },
   brandLogo: { type: String, default: '/assets/brand/nomen-icon.svg' },
+  authNotice: { type: String, default: '' },
   providers: { type: Array, default: () => [] },
   methods: { type: Object, default: () => ({ password: true, email_code: true, biometric: true, temp_key: true, oauth: true }) },
   urls: { type: Object, default: () => ({}) },
@@ -379,6 +380,8 @@ onBeforeUnmount(() => {
       <h1>{{ t('Sign in to {:sitename}') }}</h1>
       <p>{{ t('Continue with your {:sitename} account') }}</p>
     </div>
+
+    <div v-if="props.authNotice" v-html="props.authNotice"></div>
 
     <BaseAlert v-if="error" type="error" :message="error" />
     <BaseAlert v-if="success" type="success" :message="success" />

@@ -27,6 +27,7 @@ $primaryHref = $home['primary_url'] !== '' ? $home['primary_url'] : '/w/download
 $secondaryLabel = $home['secondary_label'] !== '' ? $home['secondary_label'] : t('Demo');
 $secondaryHref = $home['secondary_url'] !== '' ? $home['secondary_url'] : '/login';
 $links = Homepage::links();
+$notice = (string)\Nomen\Src\Hooks::filter('homepage.notice', '');
 
 $docs = Plugins::mountUrl('pages') ?? '/w';
 $version = (string)($app['version'] ?? '');
@@ -103,6 +104,10 @@ $copy = [
         line-height: 1.8;
         color: var(--color-text-muted);
         max-width: 34em;
+    }
+
+    .hn-hero__notice {
+        margin: 14px 0 0;
     }
 
     .hn-hero__actions {
@@ -403,6 +408,9 @@ $copy = [
                     <p class="hn-hero__line"><?= htmlspecialchars($subtitle) ?></p>
                 <?php endif; ?>
                 <p class="hn-hero__desc"><?= htmlspecialchars($copy['hero_desc']) ?></p>
+                <?php if ($notice !== ''): ?>
+                    <div class="hn-hero__notice"><?= $notice ?></div>
+                <?php endif; ?>
                 <div class="hn-hero__actions">
                     <a href="<?= htmlspecialchars($primaryHref) ?>" class="btn btn-primary btn-lg"><?= htmlspecialchars($primaryLabel) ?></a>
                     <a href="<?= htmlspecialchars($secondaryHref) ?>" class="btn btn-ghost btn-lg"><?= htmlspecialchars($secondaryLabel) ?></a>

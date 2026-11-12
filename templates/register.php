@@ -56,6 +56,7 @@ $props = [
     'termsUrl' => (string)\Nomen\Src\Brand::get('terms_url'),
     'supportEmail' => (string)\Nomen\Src\Brand::get('support_email'),
     'brandLogo' => (string)\Nomen\Src\Brand::get('logo'),
+    'authNotice' => (string)\Nomen\Src\Hooks::filter('auth.notice', ''),
     'urls' => [
         'consentAge' => '/api/consent-age',
         'checkUsername' => '/api/check-username',
