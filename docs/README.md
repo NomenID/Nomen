@@ -105,6 +105,16 @@
 | [nomen-2026](skins/nomen-2026.md) | 默认皮肤：星野、卡片式认证页 |
 | [nomen-ssr](skins/nomen-ssr.md) | 轻量皮肤：无星图、文字优先 |
 
+## 运维
+
+| 文档 | 内容 |
+|---|---|
+| [故障排查](ops/troubleshooting.md) | 按现象查：打不开、500、404、插件样式、登录、邮件、慢 |
+| [性能与容量](ops/performance.md) | opcache、Redis、索引、磁盘随机读、内存怎么看、规模参考 |
+| [日常运维](ops/maintenance.md) | 每天 / 每周 / 每月 / 每季各查什么 |
+| [日志与监控](ops/logs.md) | 日志在哪、前缀约定、怎么 grep、探针打哪个地址 |
+| [升级与发布检查清单](ops/upgrade-checklist.md) | 发布前、上传前、上传顺序、部署后验收、回滚 |
+
 ## 配置改了什么时候生效
 
 - `.env` 和 `config/*.php`：PHP 每次请求都会重新读，保存后刷新页面即可。开了 opcache 且关闭了
