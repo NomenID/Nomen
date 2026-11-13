@@ -68,7 +68,8 @@ php bin/nomen plugins pages:import docs-internal/x --prefix=oauth --update
 ```
 
 - `--prefix` 是导入到站内的路径前缀，决定 slug（`local-docs/install`）。
-- `--update` 覆盖已存在的页面；不加就只补缺，站内改过的不会被盖。
+- 标题先看 frontmatter 的 `title`，没有再取正文第一个 H1（并从正文里删掉那一行），都没有才用文件名。
+- `--update` 覆盖已存在的页面；不加就只补缺，站内改过的不会被盖。文件里没写 `sort:` 时保留站内排好的顺序。
 - 目录是**递归**的：别把不想导入的目录放进被导入的目录里（比如把内部笔记放在 `docs/` 下面）。
 - 相对 `.md` 链接会被自动改写成 `/w/<前缀>/xxx`；跨出目录的引用要写绝对地址，不然是死链。
 
