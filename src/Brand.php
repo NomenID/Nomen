@@ -19,7 +19,12 @@ final class Brand
     public static function all(): array
     {
         if (self::$data === null) {
-            self::$data = require dirname(__DIR__) . '/config/brand.php';
+            $file = dirname(__DIR__) . '/config/brand.php';
+            self::$data = is_file($file) ? require $file : [
+                'name'     => getenv('BRAND_NAME') ?: 'Nomen',
+                'base_url' => rtrim(getenv('APP_URL') ?: 'http://localhost:8080', '/'),
+                'logo'     => getenv('BRAND_LOGO') ?: '/assets/brand/nomen-icon.svg',
+            ];
         }
 
         return self::$data;

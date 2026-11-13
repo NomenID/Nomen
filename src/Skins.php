@@ -62,7 +62,8 @@ class Skins
             return self::$available;
         }
 
-        $config = require dirname(__DIR__) . '/config/skins.php';
+        $file = dirname(__DIR__) . '/config/skins.php';
+        $config = is_file($file) ? require $file : [];
         $enabled = $config['enabled'] ?? null;
         if (!is_array($enabled)) {
             return self::$available = self::all();
@@ -79,7 +80,8 @@ class Skins
             return self::$default;
         }
 
-        $config = require dirname(__DIR__) . '/config/skins.php';
+        $file = dirname(__DIR__) . '/config/skins.php';
+        $config = is_file($file) ? require $file : [];
         $slug = (string)($config['default'] ?? '');
         if (!self::exists($slug)) {
             $slug = (string)array_key_first(self::available());

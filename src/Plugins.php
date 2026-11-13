@@ -74,7 +74,8 @@ class Plugins
     /** @return string[] */
     public static function enabled(): array
     {
-        $config = require dirname(__DIR__) . '/config/plugins.php';
+        $file = dirname(__DIR__) . '/config/plugins.php';
+        $config = is_file($file) ? require $file : [];
 
         return array_values(array_map('strval', (array)($config['enabled'] ?? [])));
     }

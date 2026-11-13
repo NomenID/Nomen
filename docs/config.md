@@ -20,6 +20,10 @@
 
 **升级时排除 `config/installed.php` 和 `.env`**，否则等于重新装一遍。
 
+可选配置文件（`genders.php`、`countries.php`、`consent-age*.php`、`email-policy.php`、
+`identity-providers.php`、`plugins.php`、`skins.php`、`brand.php`）**不在时用内置默认值**，
+不会报错；`config/app.php`（含数据库连接）和 `installed.php` 仍是必需的。
+
 ## .env
 
 ```env

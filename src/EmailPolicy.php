@@ -22,7 +22,12 @@ class EmailPolicy
     private static function config(): array
     {
         if (self::$config === null) {
-            self::$config = require __DIR__ . '/../config/email-policy.php';
+            $file = __DIR__ . '/../config/email-policy.php';
+            self::$config = is_file($file) ? require $file : [
+                'reserved_domains' => ['example.com', 'example.net', 'example.org', 'example.edu'],
+                'reserved_tlds'    => ['test', 'example', 'invalid', 'localhost', 'local', 'onion'],
+                'blocked_domains'  => [],
+            ];
         }
         return self::$config;
     }

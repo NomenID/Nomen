@@ -110,7 +110,8 @@ class FamilyHelper
     public static function consentAgeTable(): array
     {
         if (self::$consentAgeConfig === null) {
-            self::$consentAgeConfig = require __DIR__ . '/../config/consent-age.php';
+            $file = __DIR__ . '/../config/consent-age.php';
+            self::$consentAgeConfig = is_file($file) ? require $file : ['default' => 16, 'ages' => []];
         }
         return self::$consentAgeConfig;
     }
@@ -130,7 +131,8 @@ class FamilyHelper
     public static function countries(): array
     {
         if (self::$countryNames === null) {
-            self::$countryNames = require __DIR__ . '/../config/countries.php';
+            $file = __DIR__ . '/../config/countries.php';
+            self::$countryNames = is_file($file) ? require $file : [];
         }
         return self::$countryNames;
     }
@@ -153,7 +155,8 @@ class FamilyHelper
     public static function consentAgeSources(): array
     {
         if (self::$consentAgeSources === null) {
-            $config = require __DIR__ . '/../config/consent-age-sources.php';
+            $file = __DIR__ . '/../config/consent-age-sources.php';
+            $config = is_file($file) ? require $file : [];
             self::$consentAgeSources = $config['sources'] ?? [];
         }
         return self::$consentAgeSources;

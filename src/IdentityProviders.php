@@ -21,7 +21,9 @@ class IdentityProviders
     /** @return array<string, array<string, string>> */
     public static function presets(): array
     {
-        return require dirname(__DIR__) . '/config/identity-providers.php';
+        $file = dirname(__DIR__) . '/config/identity-providers.php';
+
+        return is_file($file) ? require $file : [];
     }
 
     /** @return array<int, array> */

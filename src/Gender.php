@@ -31,7 +31,8 @@ final class Gender
             return self::$data;
         }
 
-        $raw = require dirname(__DIR__) . '/config/genders.php';
+        $file = dirname(__DIR__) . '/config/genders.php';
+        $raw = is_file($file) ? require $file : self::DEFAULTS;
         $out = [];
         $seen = [];
 
