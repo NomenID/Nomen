@@ -46,15 +46,16 @@
 | 表 | 存什么 |
 |---|---|
 | `pages` | 页面：slug、标题、正文（Markdown）、状态、排序、摘要、更新时间 |
-| `page_menus` | 目录记录：路径、标题、摘要、排序、是否默认折叠、`mode`（`auto` / `manual`） |
+| `page_menus` | 目录记录：路径、标题、摘要、排序、`mode`（`auto` / `manual`） |
 
 `page_menus` 的列是**自动补的**：老站升级到 1.2.0 之后第一次访问，插件自己 `ALTER TABLE` 补
-`title` / `summary` / `sort_order` / `collapsed` / `mode`，不用手动跑迁移。
+`title` / `summary` / `sort_order` / `mode`，不用手动跑迁移。
 
 ## 侧边栏两种模式
 
 - `manual`：后台手写一份条目列表，老站默认这个，行为没变。
-- `auto`：按 slug 树现场生成。子目录成一组（默认收起，当前页所在组展开），叶子按 `sort_order` 再标题排。
+- `auto`：按 slug 树现场生成。子目录成一组，**只有当前页所在的那条链展开**，其余收起；
+  叶子按 `sort_order` 再标题排。
 
 改成 auto 之后新加的页面会自动出现在侧边栏，不用每次手工加一条。
 
