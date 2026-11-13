@@ -34,10 +34,19 @@
 | `POST /w/{slug}/edit` | 管理员 | 保存 |
 | `POST /w/{slug}/delete` | 管理员 | 删除 |
 | `POST /w/-/nav` | 管理员 | 保存侧边栏 |
-| `GET /w/sitemap` | 公开 | 文档的 sitemap |
+| `GET /w/sitemap` | 公开 | 文档的 sitemap（自动生成；`/w/sitemap.xml` 同义） |
 | `GET /w/assets/pages` | 公开 | 文档样式表 |
 
 后台在「内容」下面：「全部 / 已发布 / 草稿」三个标签页，加一个「目录」页管侧边栏和目录记录。
+
+## Sitemap
+
+`/w/sitemap`（别名 `/w/sitemap.xml`）按库里的已发布页面现场生成，新建、修改、删除页面后不用
+手动更新。草稿不会出现；目录的 `index` 页按目录地址输出（`/w/local-docs`），只有目录本身也存在
+同名页面时才保留 `/w/local-docs/index`。页面条目带 `lastmod`，响应带 `ETag` 和
+`Cache-Control: public, max-age=3600`。
+
+站点根部的 `/sitemap.xml` 由核心提供，是指向这份文档 sitemap 的索引；`/robots.txt` 也已经指向它。
 
 ## 数据
 
