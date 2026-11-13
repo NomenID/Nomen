@@ -328,6 +328,10 @@ function buildConfig(): void
             $rows = [];
             foreach ($section['items'] as $item) {
                 $default = configDefault($item['expr']);
+                // quickbuild 号只是部署记录，文档里保留开发线版本号
+                if ($name === 'app.php' && $item['key'] === 'version') {
+                    $default = (string)preg_replace('/\+qb\.\d+$/', '', $default);
+                }
                 $desc = $item['desc'];
                 if ($desc === '' && isset($overrides[$name . '.' . $item['key']])) {
                     $desc = (string)$overrides[$name . '.' . $item['key']];
