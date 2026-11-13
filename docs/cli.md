@@ -1,84 +1,112 @@
 # 命令行
 
-入口是 `php bin/nomen`，在项目根目录跑。
+`php bin/nomen` 是唯一的入口。所有命令都在站点根目录跑，需要能读到 `config/installed.php`。
 
 ```bash
 php bin/nomen help
 ```
 
-## 命令
+## 全部命令
 
 | 命令 | 作用 |
 |---|---|
-| `install` | 交互式安装：建库、导表、建管理员、写 `installed.php` |
-| `upgrade` | 覆盖新版本文件之后跑：核心迁移 + 插件迁移，更新版本记录 |
-| `migrate` | 只跑 `database/migrations/` 下没跑过的核心迁移 |
-| `plugins list` | 列出插件、启用状态和插件注册的命令 |
-| `plugins migrate` | 跑插件自己的 `database/migrations` |
-| `plugins <命令>` | 跑插件注册的命令，例如 `plugins pages:sync`、`plugins pages:import docs --prefix=local-docs` |
-| `auth:reset` | 登录方式全关、进不去后台时恢复默认（全部开启） |
-| `user:passwd <账号>` | 直接改密码，令牌一起撤销；忘了管理员密码、邮件发不出去时用 |
-| `user:promote <账号>` | 把账号提成管理员 |
-| `user:demote <账号>` | 把管理员降回普通用户 |
-| `doctor` | 自检：PHP 版本与扩展、目录可写、配置、数据库连接、待应用迁移 |
-| `backup [目录]` | 备份数据库，默认落 `data/backups/`；MySQL 走 mysqldump，SQLite 复制文件 |
-| `restore <文件>` | 从备份恢复；恢复前先自动备份当前库，要 `--yes` 跳过确认 |
+| `install` | 命令行安装（交互式） |
+| `upgrade` | 跑核心迁移、补 UNID、更新版本记录 |
+| `migrate` | 单独跑核心迁移（不更新版本号） |
+| `doctor` | 体检：数据库、目录权限、pepper、扩展、皮肤/插件目录 |
+| `plugins list` | 列出插件三态和它们注册的命令 |
+| `plugins migrate [slug]` | 跑插件的迁移 |
+| `plugins <命令>` | 跑插件注册的命令（如 `pages:import`） |
+| `user:passwd <用户>` | 改密码 |
+| `user:promote <用户>` | 设为管理员 |
+| `user:demote <用户>` | 取消管理员 |
+| `auth:reset` | 把五种登录方式全部恢复开启（关到没路可走时的兜底） |
+| `backup [目录]` | 备份数据库 |
+| `restore <文件> [--yes]` | 恢复数据库 |
 
-## 常见用法
+## 常用场景
 
-### 安装
+### 装完先体检
 
 ```bash
-php bin/nomen install
+php bin/nomen doctor
 ```
 
-会依次问数据库、站点信息、要启用的扩展、管理员账号。已经装过会拒绝，确实要重装加 `--force`。
-用 root 跑时配置文件会自动改成目录属主，免得 PHP-FPM 读不到。
+会报：数据库能不能连、目录权限、pepper 是不是默认值、可选扩展、皮肤和插件目录是否可读。
+**换机器、升级后、出怪事之前都先跑一次。**
+
+### 管理员把自己锁在门外
+
+```bash
+# 密码忘了但有 SSH
+php bin/nomen user:passwd yunyun
+
+# 权限没了
+php bin/nomen user:promote yunyun
+
+# 五种登录方式全被关掉了
+php bin/nomen auth:reset
+```
+
+`user:passwd` 会提示输入新密码，不回显。
 
 ### 升级
 
 ```bash
 php bin/nomen upgrade
+php bin/nomen plugins migrate
 ```
 
-先备份数据库和 `config/installed.php`、`data/`、`public/assets/avatars/`、`public/assets/recovery/`、
-`public/assets/develops/`。升级包不覆盖这些运行时文件。详见 [安装与升级](install.md)。
+`upgrade` 是幂等的：跑过的迁移不会重跑，UNID 只补空的。
 
-### 补文档页面
+### 插件命令
 
 ```bash
+php bin/nomen plugins list                       # 先看有哪些
 php bin/nomen plugins pages:sync
+php bin/nomen plugins pages:import docs --prefix=local-docs --update
+php bin/nomen plugins search:reindex --fresh
 ```
 
-只补插件 `content/` 里新增的默认页面，不覆盖站内改过的内容。
-
-### 恢复登录方式
-
-后台把自己关在门外时：
+### 备份
 
 ```bash
-php bin/nomen auth:reset
+php bin/nomen backup /tmp
+php bin/nomen restore /tmp/nomen-20261113-101500.sql --yes
 ```
 
-把五种登录方式全部设回开启。如果 `site_settings` 表还不存在，先跑 `upgrade`。
-
-### 看插件状态
-
-```bash
-php bin/nomen plugins list
-```
-
-输出启用 / 停用的插件、版本、注册的命令。排查插件没加载时先看这里，再看 PHP 错误日志里
-`requires` 不满足的记录。
-
-## 定时任务与常驻进程
-
-| 任务 | 命令 | 方式 |
-|---|---|---|
-| 通知邮件队列 | `php scripts/mail-drain.php` | systemd / cron，单实例（脚本自己加锁） |
-
-邮件队列需要有人持续消费，否则站内通知不会变成邮件。脚本用 `scripts/mail-drain.lock` 防并发。
+只处理数据库。文件（`config/installed.php`、`.env`、`data/`、上传目录）要另外备，
+见 [备份与恢复](integrate/backup-restore.md)。
 
 ## 退出码
 
-命令成功返回 `0`，失败返回非 `0` 并把原因写到 stderr。写脚本调用时按退出码判断，不要靠输出文本匹配。
+| 码 | 含义 |
+|---|---|
+| 0 | 成功 |
+| 1 | 失败（看 stderr） |
+
+脚本里用 `&&` 串起来之前先确认上一条真的返回 0——`doctor` 发现问题时也是 1。
+
+## 在 CI / 容器里
+
+```bash
+php bin/nomen upgrade --yes     # 非交互
+php bin/nomen doctor || exit 1
+```
+
+`install` 是交互式的，容器里用环境变量 + 安装器写好的 `installed.php` 更省事。
+
+## 坑
+
+- **在错误的目录跑**：`bin/nomen` 会按 `dirname(__DIR__)` 找配置，从别处 `php /path/bin/nomen` 也能跑，
+  但要保证 `config/` 在它旁边。
+- **`upgrade` 之前没备份**：它改表结构，出问题只能靠备份。
+- **`restore` 不确认就覆盖**：默认会问，`--yes` 跳过；脚本里用 `--yes` 要格外小心。
+- **CLI 和 FPM 用的 PHP 不是同一个**：扩展、版本可能不一样。用 `which php` 和面板里 FPM 的版本对一下。
+
+## 检查清单
+
+- [ ] 装完跑过 `doctor`
+- [ ] 升级前备过份
+- [ ] 脚本里检查了退出码
+- [ ] `user:passwd` 之后能登录

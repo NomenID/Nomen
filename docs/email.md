@@ -1,108 +1,100 @@
 # 邮件与通知
 
-验证码、激活链接、恢复链接、安全提醒、站内通知的邮件都走 SMTP。
+邮件有两个用途：**账号相关**（激活、找回、二验验证码）和**站内通知的邮件副本**。
+SMTP 没配时两者都静默跳过——功能不坏，只是用户收不到。
 
-## SMTP 配置
+SMTP 怎么配、SPF/DKIM 怎么设，见 [邮件（SMTP）](integrate/smtp.md)。这一页讲站点内部的邮件和通知机制。
 
-`config/email.php` 或 `.env`：
+## 邮件模板
 
-| 键 | 说明 |
+| 邮件 | 触发 | 模板 |
+|---|---|---|
+| 激活 | 注册后 | 内置，按钮指向 `/activate` |
+| 换邮箱确认 | 用户加/改邮箱 | 内置 |
+| 重置密码 | 用户请求 | 内置 |
+| 二验验证码 | 登录需要第二因素且选邮箱 | 内置（短文本） |
+| 恢复工单通过 | 管理员批准 | 内置，按钮指向一次性链接 |
+| 管理员新工单提醒 | 有新申诉 | 内置，按窗口汇总 |
+| 通知邮件 | 站内通知入库后 | 按通知内容 |
+
+所有邮件都过 `EmailTemplate`：统一页头（站点名、logo）、按钮样式、页脚（品牌 + 支持邮箱）。
+**站点名、logo、地址都从品牌配置取**，不要写死在模板里。
+
+主题前缀是 `EmailTemplate::subjectPrefix()`，内容形如 `[站点名] 主题`。
+
+## 用户能控制什么
+
+| 设置 | 存在哪 |
 |---|---|
-| `host` | SMTP 服务器；为空时视为未配置，所有发信入口隐藏或降级 |
-| `port` | 默认 587 |
-| `username` / `password` | 认证凭据 |
-| `from_email` | 发件地址 |
-| `from_name` | 发件人名称，缺省用站点名 |
-| `encryption` | `tls` / `ssl` / 空 |
+| 通知分类开关 | `user_notification_settings` |
+| 邮箱地址 | `user_emails`（主邮箱决定收信地址） |
 
-`.env` 里的键是 `SMTP_HOST` / `SMTP_PORT` / `SMTP_USERNAME` / `SMTP_PASSWORD` /
-`SMTP_FROM_EMAIL` / `SMTP_FROM_NAME` / `SMTP_ENCRYPTION`。
+没有记录表示走默认（发）。用户在 `/settings/notifications` 里改。
 
-`host` 为空时 `Email::isConfigured()` 返回 false：邮箱验证码登录、邮箱二验这些入口会隐藏，
-避免用户点进去却收不到信。
+## 通知分类
 
-发件人名称默认取 `config/brand.php` 的 `name`，不是写死的 Nomen。
+站内通知三类（`NotificationHelper::CATEGORY_LABELS`）：
 
-## 会发出的邮件
-
-| 场景 | 收件人 |
+| 类型 | 说明 |
 |---|---|
-| 注册激活 / 邮箱验证 | 用户邮箱 |
-| 登录验证码、二验验证码 | 已验证邮箱 |
-| 改密码验证码 | 已验证邮箱 |
-| 第三方登录绑定提醒 | 账号邮箱 |
-| 账号恢复：受理通知 | 申诉填的联系邮箱 + 账号邮箱（已验证时） |
-| 账号恢复：批准 / 拒绝 / 完成 | 联系邮箱 / 账号邮箱 |
-| 家庭：邀请家长、家长加入、重置孩子密码 | 对应邮箱 |
-| 站内通知的邮件副本 | 按用户的通知偏好 |
-| 管理员新恢复工单提醒 | `admin_notify_email` |
+| 重要系统通知 | 安全相关，**不受用户开关影响** |
+| 一般系统通知 | 站点公告类 |
+| 系统交互 | 有人提到你、你的东西被处理了这类 |
 
-邮件主题统一带站点名前缀（`EmailTemplate::subjectPrefix()`），正文由 `EmailTemplate::render()` 生成。
-模板里的文案都是词典键，按收件人语言渲染。
+重要通知不能关——关掉就等于让人错过「你的密码被改了」这种信。
 
-## 站内通知
+## 发信节流
 
-三类，用户在设置页分别开关：
-
-| 类别 | 默认 |
+| 场景 | 节流 |
 |---|---|
-| 重要系统通知 `system_important` | 开 |
-| 一般系统通知 `system_general` | 关 |
-| 系统互动 `system_interact` | 关 |
+| 激活邮件重发 | `email_verify_last_sent_at`，同一地址短时间只发一次 |
+| 管理员新工单提醒 | `admin_notify_window`（默认 86400 秒 = 每天最多一封） |
 
-站内通知入库时同时决定要不要发邮件。发信是排队的：`notifications` 表里有 `email_sent_at`，
-由常驻进程消费：
+工单提醒的规则：窗口内**第一个**工单进来时立刻发一封汇总，之后窗口内的只入库不发信，
+等下一个窗口开启时连带一起发。
 
-```bash
-php scripts/mail-drain.php
-```
+## 拒收的地址
 
-用 systemd 或 cron 拉起，同时只能有一个实例（`scripts/mail-drain.lock`）。
+`config/email-policy.php` 拦掉保留域和保留 TLD（`example.com`、`.test`、`.invalid` 这类）。
+拦下来统一回**同一句文案**，不按域名分理由。
 
-## 发信限流
-
-同一用户：
-
-| 窗口 | 上限 |
-|---|---|
-| 每分钟 | 1 封 |
-| 每小时 | 3 封 |
-| 每天 | 5 封 |
-
-超过时接口返回等待秒数。管理员通知不受这个限制，但按 `admin_notify_window` 节流。
-
-## 验证码与链接有效期
-
-| 项 | 有效期 |
-|---|---|
-| 邮箱验证码 | 10 分钟 |
-| 验证码可重发窗口 | 30 分钟（同一验证码上下文） |
-| 邮箱验证链接 | 24 小时 |
-| 恢复链接 | 7 天（`recovery_token_ttl`） |
-
-验证码只存哈希，用过即失效。
-
-## 拒收的邮箱域名
-
-`config/email-policy.php`：
+加自己不想收的域名：
 
 ```php
-return [
-    'reserved_domains' => ['example.com', 'example.net', 'example.org', 'example.edu'],
-    'reserved_tlds'    => ['test', 'example', 'invalid', 'localhost', 'local', 'onion'],
-    'blocked_domains'  => [],
-];
+'blocked_domains' => ['mailinator.com', 'tempmail.example'],
 ```
 
-- `reserved_domains`：RFC 2606 保留域，永远收不到信。
-- `reserved_tlds`：保留 / 特殊用途后缀。
-- `blocked_domains`：想额外拦的域名往这里加。
+## 发不出去的排查
 
-被拦的地址一律回同一句文案，不按域名分几句报错——那等于告诉对方「只差一个域名就过了」。
+1. `.env` / `installed.php` 里 `smtp.host` 是不是空的。
+2. 错误日志里搜 `SMTP` 或 `mail`，看连接结果和错误码。
+3. 用 `swaks` 从命令行单独试一次（命令在 [SMTP](integrate/smtp.md) 里）。
+4. 收件方进垃圾箱？查 SPF / DKIM / DMARC。
 
-## 排查
+**页面上永远显示「已发送」**，不管实际发没发——这是为了防止用「发信成功与否」探测邮箱是否存在。
+所以只能靠日志判断。
 
-1. 后台「设置」页看「邮件已配置」是否为真。
-2. 手动触发一封（注册 / 改密码验证码），看 PHP 错误日志里的 SMTP 返回。
-3. 通知邮件没发出去，先确认 `mail-drain.php` 在跑、锁文件没被占用。
-4. 收件方是 QQ / 163 这类信箱时，检查发件域名的 SPF / DKIM / DMARC，否则容易进垃圾箱。
+## 改邮件模板
+
+核心模板在 `src/EmailTemplate.php`（结构）和各控制器的邮件正文里。改文案走 `t()` 键，
+不要直接改字符串：邮件也要跟语言走。
+
+```php
+$subject = t('Your password was changed');
+```
+
+## 坑
+
+- **`from_email` 和 SMTP 账号不一致**：被对方拒。
+- **邮件里有相对链接**：用户点开是 `http://localhost/...`。链接一律用 `base_url` 拼绝对地址。
+- **大附件**：证明材料不要塞邮件，只发链接。
+- **通知邮件里放敏感信息**：邮件会被转发，通知正文只写「发生了什么」，别写细节。
+
+## 检查清单
+
+- [ ] SMTP 配了，用真实邮箱收到过一封
+- [ ] 主题前缀显示的是站点名，不是默认值
+- [ ] 邮件里的链接是绝对地址且能打开
+- [ ] 重要通知没被用户的开关关掉
+- [ ] 拒收域名按需加过
+- [ ] 错误日志里没有 SMTP 认证失败

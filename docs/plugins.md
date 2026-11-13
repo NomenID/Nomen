@@ -1,203 +1,62 @@
-# 插件开发
+# 插件
 
-一个插件是一个目录 `plugins/<slug>/`，里面必须有 `plugin.json`。装插件不用改核心代码：
-放进 `plugins/`，再写进 `config/plugins.php` 的 `enabled` 列表。
+插件是 `plugins/<slug>/` 目录加一份 `plugin.json`。装插件不改核心代码：目录放进 `plugins/`，
+名字写进 `config/plugins.php` 的 `enabled`。
 
-官方的四个插件（`pages`、`open-platform`、`geoip`、`totp-qr`）是独立仓库，主仓 `plugins/` 下只有 README，
-插件自己的代码和许可都在各自的仓库里（Apache-2.0，和核心的 GPL-3.0-only 无关）。
-本地开发时把仓库 clone 到核心仓外面，由不进 git 的 `paths.local.php` 指过去；没有这个文件就回落 `plugins/`。
-打包时 `code-scripts/build-dist.php` 只打清单里的插件，本地多 clone 的不会进包。
+```bash
+php bin/nomen plugins list          # 看装了哪些、加载成功没
+```
 
-## 清单 `plugin.json`
+## 状态三态
+
+| 状态 | 意思 |
+|---|---|
+| 启用 | 正常加载 |
+| 未启用 | 在 `plugins/` 里但不在 `enabled` 里 |
+| 启用但加载失败 | 在 `enabled` 里但被跳过了，上一行有原因（版本不满足 / 缺 PHP 扩展 / 类不可调用） |
+
+加载失败**不会让站点报错**，只在 `error_log` 里记一行。插件「突然没反应」先看这个状态。
+
+## 随包与独立
+
+- 随包五个：`pages`、`open-platform`、`geoip`、`totp-qr`、`search`。
+- 不随包：`quick-central-login`、`site-notice`，自己 clone。
+- 每个都是独立仓库、Apache-2.0，跟核心版本节奏无关。
+
+清单见 [官方插件](plugins/index.md)。
+
+## 配置文件放哪
+
+插件配置在 `config/plugins/<slug>.json`，不在插件目录里。升级插件不会覆盖站长的设置。
 
 ```json
-{
-    "name": "Example",
-    "version": "0.1.0",
-    "description": "一句话说明",
-    "license": "Apache-2.0",
-    "author": ["Your Name"],
-    "requires": {
-        "Nomen": ">=1.0",
-        "php": ["gd", "fileinfo"]
-    },
-    "autoload": {
-        "Nomen\\Plugin\\Example\\": "src/"
-    },
-    "boot": ["Nomen\\Plugin\\Example\\Plugin", "boot"],
-    "hooks": {
-        "user.login.succeeded": [["Nomen\\Plugin\\Example\\Hooks", "onLogin"]],
-        "userinfo.claims": [
-            {"handler": ["Nomen\\Plugin\\Example\\Hooks", "addClaims"], "priority": 5}
-        ]
-    },
-    "specialPages": {
-        "example": {"title": "示例状态", "access": "admin", "handler": ["...", "render"]}
-    },
-    "adminPages": {
-        "example": {"title": "示例", "handler": ["...", "render"], "menu": "示例", "order": 35}
-    },
-    "mounts": {
-        "portal": {"path": "/example", "title": "示例入口", "access": "public", "config": "base_path"}
-    }
-}
+{"base_path": "/w"}
 ```
 
-| 字段 | 说明 |
+读的时候合并到默认值上，文件不存在就用默认值。后台「接入点」改路径时写的就是这个文件。
+
+## 自己写
+
+从骨架开始：<https://github.com/NomenID/plugin-skeleton>
+
+| 主题 | 文档 |
 |---|---|
-| `name` / `version` / `description` / `license` / `author` | 展示用，版本页会列出来 |
-| `requires.Nomen` | 版本约束，不满足就跳过并记 `error_log` |
-| `requires.php` | 需要的 PHP 扩展，缺一个就跳过 |
-| `autoload` | PSR-4 前缀 → 目录 |
-| `boot` | 加载时调一次，用来注册路由、后台页面、命令 |
-| `hooks` | 事件名 → 回调，可带 `priority` |
-| `specialPages` | `/special/<slug>` 页面 |
-| `adminPages` | `/admin/<slug>` 页面 |
-| `mounts` | 公开挂载点，`config` 指向插件配置里的路径键 |
+| 目录、清单、第一次改动 | [写一个插件](plugin-dev/index.md) |
+| 清单每个字段 | [清单字段](plugin-dev/manifest.md) |
+| 钩子 | [钩子](plugin-dev/hooks.md) |
+| 页面与路由 | [页面与路由](plugin-dev/pages-and-routes.md) |
+| 后台页面 | [后台页面](plugin-dev/admin-pages.md) |
+| 模板与资源 | [模板与资源](plugin-dev/templates-and-assets.md) |
+| 建表与命令 | [迁移与命令](plugin-dev/migrations.md) |
+| 站点 API | [站点 API](plugin-dev/api.md) |
+| 多语言 | [多语言](plugin-dev/i18n.md) |
+| 发版 | [发布插件](plugin-dev/release.md) |
 
-`plugin.json` 的 `description`、`specialPages.*.title`、`adminPages.*.title` 都是词典键，
-写英文原句，译文放插件自己的 `i18n/<lang>.json`。
+钩子的完整清单在 [钩子参考](hooks/index.md)（那份是生成的，代码里删了钩子而文档没跟上时 CI 会报错）。
 
-## 配置
+## 别做的事
 
-放 `config/plugins/<slug>.json`（或 `.ini`），不要写进插件目录。升级插件不覆盖站长设置。
-
-```php
-$config = Plugins::config('pages', ['base_path' => '/w']);
-Plugins::setConfig('pages', ['base_path' => '/docs']);
-```
-
-## 路由
-
-在 `boot` 里注册。路径支持 `{name}` 和 `{path:.*}`，中间件现有 `auth` 和 `admin`。
-
-```php
-Plugins::route('GET',  $base, [Controller::class, 'index']);
-Plugins::route('POST', $base . '/{slug}/edit', [Controller::class, 'update'], ['auth', 'admin']);
-```
-
-插件路由先于核心注册，同名的精确路径会被核心覆盖。不要用宽通配路由去截 `/login`、`/oauth/*`。
-
-## 页面与模板
-
-- 插件页面：`Response::view('@<slug>/<name>', $vars)`。
-- 插件布局：`Response::view('@<slug>/<layout>', ...)`。
-- 解析顺序：当前皮肤 → 默认皮肤 → 插件自己的 `templates/`。
-- 后台页面用 `Admin::page()` 注册，返回 HTML 字符串，核心套进 SPA 面板。
-
-## 静态资源
-
-放插件 `assets/`，通过 `/plugin-assets/<slug>/<path>` 发出，只发白名单类型。
-
-```php
-Plugins::style('example', 'css/app.css');
-Plugins::script('example', 'js/app.js');
-```
-
-URL 自动带文件修改时间做版本。nginx 需要给 `/plugin-assets/` 单独一段
-`location ^~ /plugin-assets/ { try_files $uri /index.php$is_args$args; }`，
-否则带 `.*\.(js|css)$` 的规则会把它抢走，表现为页面能开、样式全崩。
-
-## 数据库迁移
-
-放 `plugins/<slug>/database/migrations/*.sql`，跑：
-
-```bash
-php bin/nomen plugins migrate
-```
-
-记录在 `plugin_migrations` 表。插件不许 ALTER 核心表；要存自己的数据就建自己的表。
-
-## 命令
-
-```php
-Plugins::command('example:sync', [Sync::class, 'run'], '同步示例数据');
-```
-
-```bash
-php bin/nomen plugins list
-php bin/nomen plugins example:sync
-```
-
-## 站点 API
-
-在 `boot` 里注册模块，权限只有 `public` / `admin`：
-
-```php
-Api::action('echo', fn(array $p): array => ['echo' => $p], 'public', '原样返回参数');
-Api::meta('foo', [Meta::class, 'build'], 'public', '站点信息扩展');
-Api::list('things', [ListModule::class, 'all'], 'public', '列出 things');
-Api::prop('thing', [PropModule::class, 'fields'], 'public', 'things 的字段');
-```
-
-## 缓存驱动
-
-```php
-Cache::registerDriver('example', fn() => new ExampleDriver());
-```
-
-注册后后台「设置」页的缓存选项里会出现。驱动要实现 `Nomen\Src\Cache\Driver`。
-
-## 钩子
-
-### 用户与认证
-
-| 钩子 | 类型 | 参数 | 时机 |
-|---|---|---|---|
-| `user.registered` | run | `userId`, `username`, `email` | 注册成功、邮箱记录同步之后 |
-| `user.login.succeeded` | run | `userId`, `username` | 会话建立之后 |
-| `user.logout` | run | `userId`, `username` | 清会话之前 |
-| `userinfo.claims` | filter | `claims`, `user`, `scopes` | `/api/userinfo` 组装完 claims |
-| `oidc.claims` | filter | `claims`, `user`, `scopes` | id_token 的 claims 组装完（`/api/userinfo` 不走这个钩子） |
-| `meta.tags` | filter | `tags`, `layout` | 页面 head 的 meta 组装完；以 `og:` 开头的按 `property` 输出，其余按 `name` |
-| `oauth.authorize.quick` | filter | `null`, `userId`, `client`, `scopes` | 授权请求判定阶段；返回非空字符串 = 免确认直接发码，回调带 `spicallogin=<返回值>` |
-| `oauth.authorize.approved` | run | `userId`, `clientId`, `scope`, `silent` | 授权码发出之后；`silent` 表示没经过确认页 |
-| `oauth.token.issued` | run | `userId`, `clientId`, `scopes`, `grantType` | 发出 access token 之后 |
-| `oauth.token.revoked` | run | `tokenTypeHint` | 撤销端点处理完 |
-| `email.sending` | filter | `payload`（`to` / `subject` / `body`）, `embedded` | 投递 SMTP 之前 |
-| `notification.created` | run | `userId`, `category`, `title`, `body`, `notificationId` | 站内通知入库后、发邮件前 |
-
-### 布局与导航
-
-| 钩子 | 类型 | 参数 | 时机 |
-|---|---|---|---|
-| `viewer.props` | filter | `viewer`, `userId`, `user` | SPA 的 viewer 数据组装完 |
-| `nav.items` | filter | `items`, `userId` | 站点导航组装完 |
-| `layout.head` | filter | `html`, `layout` | `</head>` 前 |
-| `layout.body.start` | filter | `html`, `layout` | `<body>` 后 |
-| `layout.body.end` | filter | `html`, `layout` | `</body>` 前 |
-| `homepage.links` | filter | `links` | 首页底部链接组 |
-| `homepage.sections` | filter | `sections`, `home` | 默认首页正文区块 |
-| `footer.links` | filter | `links`, `brand`, `layout` | 页脚链接数组 |
-| `footer.html` | filter | `html`, `layout`, `brand`, `links` | 页脚最终 HTML |
-
-### 管理后台
-
-| 钩子 | 类型 | 参数 | 时机 |
-|---|---|---|---|
-| `admin.menu.items` | filter | `items` | 后台侧栏菜单 |
-| `admin.shell.props` | filter | `props`, `adminId` | 后台 SPA 首屏数据 |
-| `admin.dashboard.cards` | filter | `cards`, `stats` | 概览页统计卡 |
-| `admin.dashboard.site` | filter | `site` | 概览页站点信息块 |
-| `admin.users.rows` | filter | `rows` | 用户列表返回前 |
-| `admin.user.detail` | filter | `payload`, `userId`, `user`, `admin` | 用户详情返回前 |
-| `admin.user.status_changed` | run | `userId`, `status`, `adminId` | 启用/禁用账户之后 |
-| `admin.user.role_changed` | run | `userId`, `role`, `adminId` | 授予/撤销管理员之后 |
-| `admin.apps.list` / `admin.apps.detail` | filter | `apps` / `app`, `clientId` | 应用列表 / 详情 |
-| `admin.mounts.list` | filter | `mounts` | 挂载点列表 |
-| `admin.logs.rows` | filter | `rows` | 活动日志列表 |
-| `admin.recovery.detail` | filter | `payload`, `request`, `user` | 恢复工单详情 |
-| `admin.settings.data` | filter | `payload` | 站点设置页数据 |
-| `admin.settings.saved` | run | `policy`, `backend`, `adminId`, `apiEnabled` | 站点设置保存后 |
-| `admin.plugin.page.body` | filter | `html`, `slug`, `page`, `tab` | 插件后台页输出前 |
-
-### 内容（Pages 插件）
-
-| 钩子 | 类型 | 参数 | 时机 |
-|---|---|---|---|
-| `pages.content.before_save` | filter | `data`, `existing`, `isNew` | 写库前，可改字段 |
-| `pages.content.saved` | run | `pageId`, `data`, `isNew`, `userId` | 保存后 |
-| `pages.content.deleted` | run | `pageId`, `page`, `userId` | 删除前 |
-| `api.siteinfo` | filter | `info`, `siprops`, `params` | siteinfo 组装完 |
-
-钩子的注册点和参数以 `plugins/README.md` 与站内 `/w/hooks` 为准，那边会跟着核心一起更新。
+- **不要 ALTER 核心表**。核心表结构不是插件 API，升级会变。
+- **不要把 `vendor/` 塞进插件目录**。依赖装到项目根。
+- **不要把密钥、令牌写进活动日志或通知正文**。
+- **插件跑的是全权限 PHP**。只装信得过的。

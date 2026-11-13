@@ -1,97 +1,97 @@
 # 站点 API
 
-`/nomen-api` 是给脚本和外部工具读数据的只读接口。
-格式固定 JSON，不支持 XML。
+`/nomen-api` 是给程序读数据的只读接口，参数照 MediaWiki 的习惯：`action=query` 加 `meta` / `list` / `titles`。
+返回的永远是 JSON，形状固定成 `{...}`，不跟请求头协商。
 
-## 开关
+## 基本用法
 
-后台「设置」→「站点 API」，默认开启。关掉后整个入口返回 404。
+```bash
+# 列出所有模块
+curl -s 'https://你的站点/nomen-api?action=help'
 
-存在 `site_settings.api.nomen_api`（`1` / `0`）。
+# 站点信息
+curl -s 'https://你的站点/nomen-api?action=query&meta=siteinfo'
 
-## 限流
+# 列出页面
+curl -s 'https://你的站点/nomen-api?action=query&list=allpages&limit=20'
 
-每个 IP 每分钟 120 次，超了返回 429 和 `Retry-After`。
-
-## 请求
-
+# 取页面内容
+curl -s 'https://你的站点/nomen-api?action=query&titles=start&prop=content'
 ```
-GET /nomen-api?action=query&meta=siteinfo&format=json
-```
 
-- `format` 只接受 `json`，其它值返回 400。
-- 返回形状是 `formatversion=2`：布尔值是真布尔，不是 `""`。
-- 数组参数（`?x[]=1`）会被丢掉，所有参数按字符串处理。
-- 不带 `action` 时等同 `action=help`。
+| 参数 | 说明 |
+|---|---|
+| `action` | `query` / `help` / 插件注册的 action；不传等于 `help` |
+| `format` | 只支持 `json`（别的值 400） |
+| `meta` | 站点级信息模块 |
+| `list` | 列表模块，支持 `limit` / `offset` |
+| `titles` / `prop` | 按标题取字段，多个用 `|` 分隔 |
 
-## 模块
+**数组参数会被丢掉**（`?x[]=1` 这种），所有值按字符串处理。
 
-### action=help
+## 核心模块
 
-列出全部模块、权限和说明。接入方可以靠它自检。
-
-### action=query&meta=...
-
-| 模块 | 参数 | 返回 |
+| 模块 | 形状 | 内容 |
 |---|---|---|
-| `siteinfo` | `siprop=general\|extensions\|skins\|rights`，`|` 分隔，默认 `general` | 站点名、地址、logo、版本、语言、已启用插件 / 皮肤、权限组 |
-| `version` | 无 | 软件名、版本号、项目地址 |
+| `meta=siteinfo` | query | 站点名、地址、语言、版本、皮肤、插件清单 |
+| `meta=version` | query | 程序版本、PHP 版本、数据库类型 |
+| `list=allpages` | query | 已发布的 Pages 页面（需要 Pages 插件） |
+| `prop=info` | titles | 页面元信息 |
+| `prop=content` | titles | 页面正文（Markdown） |
 
-### action=query&list=...
+`allpages` / `info` / `content` 是 Pages 插件注册的，没装 Pages 就没有这三个。
 
-| 模块 | 参数 | 返回 |
-|---|---|---|
-| `allpages` | `limit`、`offset`、`drafts` | Pages 插件的页面列表 |
+## 限流与权限
 
-### action=query&prop=...
+- **全站 120 次 / 分钟 / IP**，超了 429 + `Retry-After`。
+- 模块两级权限：`public`（匿名）和 `admin`（管理员会话，或管理员 OAuth Bearer 令牌）。
+- 写错权限名的插件模块会**直接 500**，不会默认放行。
 
-| 模块 | 参数 | 返回 |
-|---|---|---|
-| `info` | `titles`（`|` 分隔）、`drafts` | 页面元信息 |
-| `content` | 同上 | 页面 Markdown 原文 |
+## 总开关
 
-`titles` 不存在时按「缺失」返回，不报错。
+后台「设置」里的 `api.nomen_api`，默认开。关掉后整个 `/nomen-api` 回 404——包括插件注册的模块。
 
-## 权限
+如果站点在用外部程序对接这个接口，关之前先确认。
 
-只有两级：
-
-- `public`：匿名可读。
-- `admin`：需要管理员会话 cookie，或管理员的 OAuth Bearer token。
-
-权限不够返回 403 `permissiondenied`。模块在注册时写错权限名会直接 500，不会放行。
-
-## 错误格式
+## 错误
 
 ```json
-{
-    "error": {
-        "code": "badvalue",
-        "info": "Unknown action: foo"
-    }
-}
+{"error": {"code": "nosuchaction", "info": "Unknown action: foo"}}
 ```
 
-常见 code：`api-disabled`（404）、`nosuchaction`（400）、`badvalue`（400）、
-`permissiondenied`（403）、`ratelimited`（429）。
-
-## 和 OAuth 接口的区别
-
-| 接口 | 用途 |
+| code | 含义 |
 |---|---|
-| `/nomen-api` | 读站点内容与元信息，管理员模块也能读管理数据 |
-| `/api/userinfo`、`/api/token-info` | OAuth 接入方读当前登录用户的身份 |
-| `/api/version` | 公开的版本号。不带参数报最近一次正式发版的号，其它实例拿它查更新；`?action=thissite` 报本站实际在跑的号，quickbuild 时带 `+qb.<日期>` |
+| `badvalue` | 参数不合法（比如 `format=xml`） |
+| `nosuchaction` | 没有这个 action |
+| `ratelimited` | 触发限流 |
+| `api-disabled` | 总开关关着 |
+| `permissiondenied` | 需要管理员 |
 
-## 插件扩展
+## 自己加模块
 
-插件在 `boot()` 里注册自己的模块：
+见 [插件开发 / 站点 API](plugin-dev/api.md)。
 
-```php
-Api::action('echo', fn(array $p): array => ['echo' => $p], 'public', '原样返回参数');
-Api::meta('foo', [Meta::class, 'build'], 'public', '站点信息扩展');
-Api::list('things', [ListModule::class, 'all'], 'public', '列出 things');
-Api::prop('thing', [PropModule::class, 'fields'], 'public', 'things 的字段');
+## 在无伪静态的站点上
+
+地址变成：
+
+```
+/index.php?page=nomen-api&action=query&list=allpages
 ```
 
-写法见 [插件开发](plugins.md)。
+`page=nomen-api` 这一段是路由，后面的参数和正常模式一样。
+
+## 坑
+
+- **`formatversion`**：返回形状固定是 `formatversion=2` 的风格（对象数组），不认 `formatversion` 参数。
+- **`continue`**：列表放不下时会带 `continue`，客户端拿它翻页，别自己算 offset。
+- **`titles` 一次给太多**：几十个没问题，上千个会超时——分批。
+- **`admin` 模块用 OAuth 令牌**：令牌必须是管理员账号签发的，普通用户的令牌一样 403。
+
+## 检查清单
+
+- [ ] `action=help` 能列出模块
+- [ ] 外部程序用的是 `/nomen-api` 而不是直接读库
+- [ ] 限流够不够用（120 次/分钟/IP）
+- [ ] 关掉总开关之前沟通过
+- [ ] 私有数据的模块都标了 `admin`

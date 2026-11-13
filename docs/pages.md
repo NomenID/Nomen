@@ -1,99 +1,45 @@
-# 站内页面（Pages 插件）
+# 站内页面（Pages）
 
-`pages` 插件在站内提供一套文档页面：用 Markdown 写，后台编辑，不用另起一个文档站。
-默认启用，挂载路径 `/w`。
+在站点里写 Markdown 页面，不用另起文档站。默认挂 `/w`。
 
-页面存在数据库 `pages` 表，不写文件。升级程序不会覆盖站内改过的内容。
+## 打开
 
-## 路径
+随包自带、默认启用。挂载点：
 
-| 地址 | 作用 |
-|---|---|
-| `/w` | 页面列表 |
-| `/w/<slug>` | 单页；**slug 可以带层级**，如 `/w/local-docs/install` |
-| `/w/<目录>` | 目录地址：先找该目录的 `index` 页，没有就跳目录第一条 |
-| `/w/<slug>/edit` | 编辑（管理员） |
-| `/w/new` | 新建（管理员） |
-| `/w/sitemap` | 页面 sitemap（XML） |
+```json
+// config/plugins/pages.json
+{"base_path": "/w"}
+```
+
+后台「接入点」能改。
+
+## 写页面
+
+后台 →「内容」→ 新建，或者导入目录：
+
+```bash
+php bin/nomen plugins pages:sync                                        # 插件自带 content/
+php bin/nomen plugins pages:import docs --prefix=local-docs --update    # 导入目录
+```
+
+- `--prefix` 决定站内路径（`local-docs/install`）。
+- `--update` 覆盖已有页面；不加只补缺。
+- 目录**递归**，别把内部笔记放在被导入的目录下。
+- 相对 `.md` 链接会被改写成站内地址；跨目录引用要写绝对地址。
 
 ## 侧边栏
 
-侧边栏按目录配置，一个目录一份，后台「内容 → 目录」里编辑。一行一个条目：
+`page_menus` 有两种模式：
 
-```
-概览 | local-docs/index
-  安装 | local-docs/install
-  内部草稿 | local-docs/draft | hide
-```
+- `manual`：后台手写条目（老站默认）。
+- `auto`：按 slug 树生成，子目录成一组，当前页所在组展开。新页面自动出现。
 
-缩进两个空格表示下一级，第三列写 `hide` 就不在公开页面显示，目标也可以写完整网址。
-**没挂菜单的目录不显示侧边栏**，正文自动占满；子目录可以有自己的菜单。
+## 数据
 
-## 从目录导入
+两张表，插件自己建（`CREATE TABLE IF NOT EXISTS`，不用跑迁移）：`pages`、`page_menus`。
+老站升级后第一次访问会自动补 `page_menus` 的新列。
 
-```bash
-php bin/nomen plugins pages:import docs --prefix=local-docs
-```
+## 详细说明
 
-把目录里的 Markdown 按相对路径导成页面（`install.md` → `local-docs/install`，
-目录根的 `README.md` → `local-docs/index`），只补缺、不覆盖库里改过的页面。
-加 `--update` 才会覆盖已有的同名页面，用来把站内副本跟 `docs/` 同步。
-
-挂载路径在 `config/plugins/pages.json` 的 `base_path`，也可以去后台「接入点」页改。
-改完列表、页内链接、首页的「文档」入口、`/sitemap.xml` 都跟着变。
-
-站点的 `/sitemap.xml` 是一个索引，指向 `<挂载路径>/sitemap`。
-
-## 页面字段
-
-| 字段 | 说明 |
-|---|---|
-| `slug` | 地址里的名字，必填、唯一；建议小写字母、数字、连字符 |
-| 标题 | 页面标题 |
-| 摘要 | 列表和 SEO 描述用 |
-| 正文 | Markdown |
-| 状态 | 发布 / 草稿 |
-| 排序 | 列表顺序，小的在前 |
-
-Markdown 支持标题、列表、表格、代码块、链接、图片、引用这些常用语法。正文里的 HTML 会被转义，
-不会当标签执行。
-
-## 后台
-
-后台「内容」页有三个选项卡：全部 / 已发布 / 草稿。列表里能看标题、slug、状态、更新时间，
-可以新建、编辑、删除。删除是硬删除，没有回收站。
-
-插件还提供 `pages:sync` 命令，把插件 `content/` 目录里新增的默认页面补进库：
-
-```bash
-php bin/nomen plugins pages:sync
-```
-
-**只补缺，不覆盖**已经存在或被站内改过的页面。
-
-## 首页用页面
-
-后台「首页」把模式切成 `page`，填页面 slug，首页就渲染这个页面。外层仍走当前皮肤。
-
-## 站点 API
-
-插件通过核心的 `/nomen-api` 暴露三个只读模块：
-
-```
-GET /nomen-api?action=query&list=allpages
-GET /nomen-api?action=query&prop=info&titles=welcome
-GET /nomen-api?action=query&prop=content&titles=welcome
-```
-
-`allpages` 支持 `limit` / `offset` / `drafts`；`info` 和 `content` 接受 `titles`（`|` 分隔）
-和 `drafts`。草稿只有管理员能读。详见 [站点 API](api.md)。
-
-## 配置
-
-| 项 | 位置 | 默认 |
-|---|---|---|
-| 挂载路径 | `config/plugins/pages.json` 的 `base_path` | `/w` |
-| 是否启用 | `config/plugins.php` 的 `enabled` | 启用 |
-| 随包默认页面 | 插件 `content/` 目录 | 欢迎、沙盒两页 |
-
-停用插件后 `/w` 消失，但库里的页面还在。重新启用就恢复。
+地址清单、导入细节、模板与皮肤的边界、Markdown 能力的限制：见
+[官方插件 / Pages](plugins/pages.md)。

@@ -1,91 +1,120 @@
 # 安全策略
 
-这一页列站点侧的安全相关配置和默认行为。改之前先理解每项在挡什么。
+这一页是「出厂设置里哪些是安全相关的、别乱动」。部署层面的（nginx、权限、备份）在
+[反向代理](integrate/reverse-proxy.md) 和 [备份恢复](integrate/backup-restore.md)。
 
-## 密钥
+## pepper
 
-| 项 | 位置 | 注意 |
-|---|---|---|
-| `APP_PEPPER` | `.env` / `installed.php` 的 `pepper` | 参与全部密码哈希。**上线后有用户就不能改**，改了所有密码永久无法验证 |
-| `APP_SECRET` | `.env` / `installed.php` 的 `secret` | 预留，当前代码没有使用 |
-| `APP_DEBUG` | `.env` | 线上必须 `0`。开着会显示异常类型、消息和调用栈 |
+密码是 `password_hash($password . $pepper, PASSWORD_ARGON2ID)`：**Argon2id，pepper 直接拼在明文后面**。
 
-pepper 还在用默认值时，PHP 错误日志会记一条 `[SECURITY]` 警告。
+- 存在 `.env` 的 `APP_PEPPER`（或 `installed.php` 的 `pepper`）。
+- **有用户之后绝不能改**：改了所有密码都验不过，而且无法回滚。
+- 老数据里的无 pepper 哈希会在一次成功登录后就地升级成带 pepper 的 Argon2id。
+- 没配时启动会往日志写 `[SECURITY] APP_PEPPER 未配置`。
 
-## 密码与令牌
+## CSRF
 
-- 密码、临时密钥、恢复码用 **Argon2id** 哈希。
-- OAuth 的 client_secret / access_token / refresh_token 用 `token_hash_algorithm`（默认 SHA-512）哈希后入库。
-- 授权码 10 分钟、access_token 1 小时、refresh_token 180 天；刷新时旧 refresh_token 立刻失效。
-- 恢复链接、邮箱验证链接都只存哈希，一次性。
+所有 POST 表单都带 token，`Csrf::field()` 输出，`Csrf::verify()` 校验。
 
-## 会话与请求
-
-| 项 | 默认 |
-|---|---|
-| 未登录访客的会话 | 2 小时 |
-| 登录保持 | 30 天滑动续期，最长 90 天；勾「这是公共设备」则为浏览器会话 |
-| 会话 cookie 名 | `NOMEN_SESSION` |
-| CSRF | 所有 POST 校验 `_csrf`，`csrf_enabled` 保持 `true` |
-| 响应头 | `X-Content-Type-Options: nosniff`、`X-Frame-Options: DENY`、`Referrer-Policy: strict-origin-when-cross-origin`、CSP `frame-ancestors 'none'` |
-
-HSTS 由 nginx 统一设置，程序不重复发。
-
-多套 Nomen 跑在同一个域名下时，`SESSION_NAME` 必须各不相同，否则会话会串。
+- 插件自己的 POST 处理函数要自己调 `Csrf::verify()`，路由层不做。
+- 站点 API 的写模块也要自己校验（核心只管读权限）。
+- 后台的表单用 `data-admin-ajax` 时，token 由外层接管，但**表单里仍然要有 `Csrf::field()`**。
 
 ## 登录防护
 
-| 项 | 默认 | 说明 |
+| 配置 | 默认 | 作用 |
 |---|---|---|
-| `login_captcha_threshold` | 5 次/分钟 | 单 IP 登录尝试超过这个数才要求人机验证（算术题） |
-| `login_ip_hard_limit` | 20 次/分钟 | 单 IP 硬上限，超过直接拒绝 |
-| 账号级限制 | 5 次/分钟 | 针对同一个账号 |
-| 注册 | 3 次/小时/IP | |
-| 回收未验证账号邮箱 | 20 次/小时/IP | `/register/verify` |
+| `login_captcha_threshold` | 5 | 单 IP 每分钟登录尝试超过这个值才要验证码 |
+| `login_ip_hard_limit` | 20 | 单 IP 每分钟硬上限，超了直接拒 |
+| `login_failed_method_ttl` | 900 | 「刚才这个方式没成功」的提醒保留多久 |
+| `two_factor_pending_ttl` | 600 | 二验待验证会话的有效期 |
 
-人机验证是一道两位数以内的加减法，题面和答案放在会话里、答一次作废。纯文本，不需要 GD，也不往第三方服务送数据。
+限流按 **IP** 算。前面有 CDN 时必须透传真实 IP，否则一个办公室共用一个限流桶。
 
-## 两步验证
+## 接口限流
 
-站点策略默认 `off`。可选 `new_device` / `every_login`，见 [两步验证](two-factor.md)。
-二验待验证会话 10 分钟有效。账号一个可用的第二因素都没有时直接放行，避免锁死。
-
-## 账号恢复
-
-| 项 | 默认 |
+| 端点 | 限制 |
 |---|---|
-| 单 IP 申诉提交 | 5 次/小时 |
-| 单 IP 附件上传 | 40 次/小时 |
-| 附件大小 / 数量 | 1MB / 5 张 |
-| 恢复链接 | 7 天、一次性 |
-| 新工单提醒 | 每天最多一封汇总 |
+| `POST /oauth/token` | 30 次 / 分钟 / IP |
+| `GET /api/userinfo` | 60 次 / 分钟 / IP |
+| `GET /api/token-info` | 30 次 / 分钟 / IP |
+| `GET /api/version` | 60 次 / 分钟 / IP |
+| `GET /auth/<slug>/redirect` | 120 次 / 分钟 / IP |
 
-恢复完成后强制撤销其他设备会话、全部 OAuth 令牌、全部第三方应用授权。
+超了回 429，带 `Retry-After`。
 
-## 限流依赖 Redis
+## 会话
 
-**限流只在配了 Redis 且连接正常时生效。** Redis 不可用时 `RateLimiter::check()` 直接放行——
-这是有意的取舍：限流是加固，不该在 Redis 抖动时把所有人挡在门外。代价是那段时间限流形同不存在，
-后台概览的 Redis 状态卡片会提示。
+| 项 | 值 |
+|---|---|
+| 未登录访客 | `session_lifetime`（2 小时） |
+| 登录后滑动有效期 | `login_ttl`（30 天，每次访问续期） |
+| 登录后硬上限 | `login_max_ttl`（90 天，从登录时刻算） |
+| 公共设备 | 浏览器会话 cookie，关浏览器即失效 |
 
-要高可用就配 Redis；不配的话，至少靠 nginx 层做一层 IP 限流。
+PHP 的 `gc_maxlifetime` 提到 90 天（PHP 只能全局设），所以匿名会话的服务端数据也留 90 天。
 
-## 邮件相关
+## 令牌
 
-发信限流（每用户 1/分钟、3/小时、5/天）挡的是验证码轰炸。拒收域名在 `config/email-policy.php`，
-见 [邮件与通知](email.md)。
+- access / refresh token **只存哈希**，明文只在签发那一次返回。
+- 授权码 10 分钟、access 1 小时、refresh 180 天。
+- refresh 一次旧的立刻失效（轮换）。
+- `sub` 按应用生成，应用之间无法串号。
 
-## 开放平台与第三方登录
+## 响应头
 
-- 授权页带 `state` 与 PKCE S256；回调地址必须和登记值完全一致。
-- `sub` 是应用级 ID，不同应用之间不可关联。
-- 第三方登录只信任提供方返回的**已验证**邮箱做自动绑定；未验证邮箱会新建账号。
-- 公共客户端强制 PKCE，机密客户端可以额外要求。
+`public/index.php` 里全局设置：
 
-## 部署侧
+```
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+Referrer-Policy: strict-origin-when-cross-origin
+Content-Security-Policy: frame-ancestors 'none'; base-uri 'self'; object-src 'none'
+```
 
-- web root 只指向 `public/`，不要把 `config/`、`data/`、`vendor/` 暴露出去。
-- `config/installed.php`、`.env` 不进仓库、不给 web 服务器之外的人读。
-- 传输走 HTTPS；反代 / CDN 场景下确认程序拿到的 `REMOTE_ADDR` 是真实访客地址，
-  否则限流会按反代 IP 统计。
-- 定期备份数据库、`data/`、`public/assets/avatars/`、`public/assets/recovery/`、`public/assets/develops/`。
+HSTS 交给 nginx 统一加，代码里不重复。**别把 CSP 收紧到禁止内联脚本**——布局里有防闪的内联脚本，
+会白屏。
+
+## 上传
+
+- 头像 135×135、2MB 上限，落 `public/assets/avatars/`。
+- 证明材料落 `public/assets/recovery/`，单张 1MB、最多 5 张。
+- 插件静态资源只发白名单类型（css/js/图片/字体/json），路径不能跳出 `assets/`。
+- **上传目录不能执行 PHP**：`public/assets/*` 下的 `.php` 应该由 nginx 拒绝执行。
+
+## 调试开关
+
+`.env` 的 `APP_DEBUG`：开着时 500 页面带异常类型、文件行号和调用栈。
+
+**线上永远关着。** 交付前检查：
+
+```bash
+grep -i '^APP_DEBUG' .env
+```
+
+## 插件和皮肤
+
+插件跑的是全权限 PHP，皮肤模板也是直接 `require`。**装第三方扩展等于把站点代码权限给它**，
+只装信得过的。核心的几个不变量（密码、二防、恢复审核）**不做成可改结果的钩子**。
+
+## 密码策略
+
+没有强制的复杂度规则（长度、字符种类）——这类规则实际收益低，还催生 `Password1!`。
+真正起作用的是：
+
+- Argon2id + pepper；
+- 登录限流 + 验证码；
+- 可选的两步验证；
+- 账号恢复流程要人工审核。
+
+要加自己的规则，在 `handleRegister` 里加校验，别改 `password_hash` 的调用方式。
+
+## 自查清单
+
+- [ ] `APP_PEPPER` 是随机的、备份过、从没改过
+- [ ] `APP_DEBUG` 线上关闭
+- [ ] CDN 透传真实 IP（限流才有意义）
+- [ ] 上传目录不执行 PHP
+- [ ] 装了插件 / 皮肤的都是信得过的
+- [ ] 两步验证按需开启，且 SMTP 可用
+- [ ] 备份文件不在 web root
