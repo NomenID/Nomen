@@ -24,4 +24,7 @@
 
 - 文件：`templates/special.php`
 - 变量：`title`、`body`、`n`、`name`
+  - `hideTitle`：传 true 就不渲染页面标题（Pages 插件用它）
+  - `pageClass`：追加到容器上的 class，比如 `special-page--docs`
+  - `extraCss`：额外的样式地址数组
 

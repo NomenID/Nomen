@@ -71,6 +71,40 @@
 | [静态资源](skin-dev/assets.md) | CSS 变量表、深浅色、RTL、`?v=` 规则 |
 | [发布皮肤](skin-dev/release.md) | 启用规则、发版前清单、核心升级后要复查什么 |
 
+## 架构与集成
+
+想知道「请求进来之后发生了什么」「接 Redis / Meili / SMTP / 反代怎么配」看这组。
+
+| 文档 | 内容 |
+|---|---|
+| [一次请求走过的路](internals/lifecycle.md) | 十四个阶段、两个全局闸、路由顺序、渲染链 |
+| [数据模型](internals/data-model.md) | 27 张表的关系、UNID 的取舍、哪些必须备份、两种数据库的差异 |
+| [权限模型](internals/permissions.md) | 角色、中间件、scope、插件必须自己判什么 |
+| [错误处理](internals/error-handling.md) | 报错页、500 编号、`APP_DEBUG`、日志前缀 |
+| [兼容与升级](internals/compatibility.md) | 版本号两档、升级流程、什么算破坏性改动、无伪静态模式 |
+| [把 Nomen 当身份提供方接入](integrate/oidc-client.md) | OIDC / OAuth 端点、PKCE、令牌、`sub`、错误码 |
+| [接入外部身份提供方](integrate/oauth-provider.md) | 后台配置、字段映射、已验证邮箱才合并 |
+| [邮件（SMTP）](integrate/smtp.md) | 配置、SPF/DKIM/DMARC、常见报错 |
+| [搜索后端](integrate/search-backends.md) | Meilisearch / OpenSearch / ES 配置、建索引、重建窗口期 |
+| [反向代理与 CDN](integrate/reverse-proxy.md) | nginx 必需片段、真实 IP、缓存、子路径 |
+| [备份与恢复](integrate/backup-restore.md) | 库和文件分别备什么、恢复顺序、演练方法 |
+
+## 官方扩展
+
+| 文档 | 内容 |
+|---|---|
+| [官方插件](plugins/index.md) | 七个插件各干什么、哪些随包、默认是否启用 |
+| [Pages](plugins/pages.md) | 站内文档：目录、侧边栏、Markdown 导入 |
+| [Open Platform](plugins/open-platform.md) | 开发者门户、应用自助管理 |
+| [GeoIP](plugins/geoip.md) | 依赖要自己装、mmdb 放哪、CDN 下的真实 IP |
+| [TOTP QR](plugins/totp-qr.md) | 本地画二维码、降级行为 |
+| [Search](plugins/search.md) | 站内搜索、引擎切换 |
+| [Quick Central Login](plugins/quick-central-login.md) | 第一方免确认、`spicallogin` |
+| [Site Notice](plugins/site-notice.md) | 登录页提示条（不随包） |
+| [官方皮肤](skins/index.md) | 两个皮肤的定位和启用规则 |
+| [nomen-2026](skins/nomen-2026.md) | 默认皮肤：星野、卡片式认证页 |
+| [nomen-ssr](skins/nomen-ssr.md) | 轻量皮肤：无星图、文字优先 |
+
 ## 配置改了什么时候生效
 
 - `.env` 和 `config/*.php`：PHP 每次请求都会重新读，保存后刷新页面即可。开了 opcache 且关闭了

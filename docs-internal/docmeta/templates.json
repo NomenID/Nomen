@@ -54,7 +54,12 @@
   },
   "special": {
     "file": "templates/special.php",
-    "desc": "特殊页的外壳。版本页、许可页、插件页这些 `/special/<slug>` 都套这一层。"
+    "desc": "特殊页的外壳。版本页、许可页、插件页这些 `/special/<slug>` 都套这一层。",
+    "vars": {
+      "hideTitle": "传 true 就不渲染页面标题（Pages 插件用它）",
+      "pageClass": "追加到容器上的 class，比如 `special-page--docs`",
+      "extraCss": "额外的样式地址数组"
+    }
   },
   "home": {
     "file": "templates/home.php",
