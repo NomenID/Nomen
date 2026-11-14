@@ -26,6 +26,7 @@
 | [OpenID Connect](oidc.md) | 发现文档、JWKS、id_token 与接入方要注意的事 |
 | [站内页面](pages.md) | Pages 插件：在站内写文档、Markdown 编辑器、挂载路径 |
 | [搜索](search.md) | 搜索插件：默认查数据库，也可接 Meilisearch / OpenSearch / Elasticsearch |
+| [API 发码登录](api-code.md) | api-code 插件：标识符绑定 + HTTP 接口发验证码登录 |
 | [站点 API](api.md) | `/nomen-api` 的只读接口与权限 |
 | [插件开发](plugins.md) | 插件清单、钩子、路由、后台页面、资源、迁移、命令 |
 | [皮肤开发](skins.md) | 皮肤结构、模板覆盖顺序、静态资源、品牌变量 |

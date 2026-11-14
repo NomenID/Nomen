@@ -47,7 +47,7 @@ $localSkins = rtrim(str_replace('\\', '/', (string)($paths['skins'] ?? '')), '/'
 $pluginsDir = $localPlugins === '' ? $root . '/plugins' : $localPlugins;
 $skinsDir = $localSkins === '' ? $root . '/skins' : $localSkins;
 
-$bundledPlugins = ['pages', 'open-platform', 'geoip', 'totp-qr', 'search'];
+$bundledPlugins = ['pages', 'open-platform', 'geoip', 'totp-qr', 'search', 'api-code'];
 $bundledSkins = ['nomen-2026', 'nomen-ssr'];
 foreach ($bundledPlugins as $bundled) {
     if (!is_file($pluginsDir . '/' . $bundled . '/plugin.json')) {
