@@ -119,7 +119,7 @@ driver 取 mysql / mariadb / sqlite SQLite 用 path，相对路径按项目根�
 |---|---|---|---|
 | `redis.host` | `REDIS_HOST` | 127.0.0.1 | Redis 主机名或 IP |
 | `redis.port` | `REDIS_PORT` | 6379 | Redis 端口 |
-| `redis.db` | `REDIS_DB` | 11 | Redis 库编号，和别的程序共用实例时错开 |
+| `redis.db` | `REDIS_DB` | 0 | Redis 库编号，和别的程序共用实例时错开 |
 | `redis.password` | `REDIS_PASSWORD` | '' | Redis 密码，没设密码就留空 |
 
 ## 缓存

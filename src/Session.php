@@ -153,7 +153,7 @@ class Session
 
         $host = $redis['host'];
         $port = (int)($redis['port'] ?? 6379);
-        $db   = (int)($redis['db'] ?? 11);
+        $db   = (int)($redis['db'] ?? 0);
         $pass = (string)($redis['password'] ?? '');
 
         $params = [

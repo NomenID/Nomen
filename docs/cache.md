@@ -13,7 +13,7 @@
 | `file` | 文件，落 `data/cache/` |
 | `db` | 数据库表 `cache_items` |
 
-Redis 默认用 **11 号库**（`config/app.php` 的 `redis.db`，也认 `.env` 的 `REDIS_DB`）。同一个 Redis
+Redis 的库号走 `config/app.php` 的 `redis.db`，`.env` 的 `REDIS_DB` 可覆盖。同一个 Redis
 上跑多个程序时，**给每个站分配不同的库**：库号相同的话，键名再带前缀也只能避免误删，避免不了
 `SCAN`、`DBSIZE` 这些操作互相看见对方的键。
 

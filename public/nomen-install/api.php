@@ -398,7 +398,7 @@ try {
             'pepper' => $pepper,
             'secret' => bin2hex(random_bytes(32)),
             'db' => $db,
-            'redis' => ['host' => '127.0.0.1', 'port' => 6379, 'db' => 11, 'password' => ''],
+            'redis' => ['host' => '127.0.0.1', 'port' => 6379, 'db' => 0, 'password' => ''],
             'smtp' => $smtp,
         ]);
 

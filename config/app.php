@@ -126,14 +126,14 @@ return [
     'redis' => [
         'host'     => getenv('REDIS_HOST') ?: ($redisConf['host'] ?? '127.0.0.1'),
         'port'     => getenv('REDIS_PORT') ?: ($redisConf['port'] ?? 6379),
-        'db'       => getenv('REDIS_DB') ?: ($redisConf['db'] ?? 11),
+        'db'       => ($env = getenv('REDIS_DB')) !== false && $env !== '' ? (int)$env : (int)($redisConf['db'] ?? 0),
         'password' => getenv('REDIS_PASSWORD') ?: ($redisConf['password'] ?? ''),
     ],
 
     // 缓存
     'cache' => [
         // 文件缓存目录的上限；超了按最旧优先淘汰。0 = 不限
-        'file_max_mb' => (int)(getenv('CACHE_FILE_MAX_MB') ?: ($appConf['cache']['file_max_mb'] ?? 64)),
+        'file_max_mb' => ($env = getenv('CACHE_FILE_MAX_MB')) !== false && $env !== '' ? (int)$env : (int)($appConf['cache']['file_max_mb'] ?? 64),
     ],
 
     // 可用的 OAuth scopes

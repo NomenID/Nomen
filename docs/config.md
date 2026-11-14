@@ -43,7 +43,7 @@ DB_PASS=<密码>
 
 REDIS_HOST=127.0.0.1
 REDIS_PORT=6379
-REDIS_DB=11
+REDIS_DB=0
 REDIS_PASSWORD=
 
 BRAND_NAME=Example
@@ -103,7 +103,7 @@ return [
 | `app.pretty_urls` | `false` 走 `index.php?page=`，没配伪静态就设它 |
 | `app.features` | `guardians` / `country` 两个可选功能，默认关 |
 | `pepper` | 参与密码哈希，**有用户后绝不能改** |
-| `redis.db` | 默认 11。同一个 Redis 上跑多个程序时，每个站分配不同的库 |
+| `redis.db` | 同一个 Redis 上跑多个程序时，每个站分配不同的库 |
 
 ## config/*.php
 
