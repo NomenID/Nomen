@@ -118,6 +118,7 @@ class ActivityLog
         'admin.app_delete'                => 'Admin deleted app',
         'admin.mount_update'              => 'Changed plugin mount',
         'admin.site_settings'             => 'Changed site settings',
+        'admin.cache_clear'               => 'Cleared the cache',
         'admin.homepage_update'           => 'Homepage settings changed',
         'admin.identity_create'           => 'Add sign-in method',
         'admin.identity_update'           => 'Update sign-in method',

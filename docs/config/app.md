@@ -6,7 +6,7 @@
 
 框架主配置：版本号、安全参数、会话有效期、限流阈值、可选功能开关、数据库和 Redis 连接。大部分键可以由 `.env` 或安装器生成的 `config/installed.php` 覆盖，表里的「默认值」是这两者都没写时用的兜底。
 
-共 50 项。
+共 51 项。
 
 ## 基本信息
 
@@ -113,16 +113,24 @@ driver 取 mysql / mariadb / sqlite SQLite 用 path，相对路径按项目根�
 | `db.pass` | `DB_PASS` | '' | 库密码 |
 | `db.path` | `DB_PATH` | database/nomen.sqlite | SQLite 文件路径，相对路径按项目根算 |
 
-## 其他
+## Redis
 
 | 键 | 环境变量 | 默认值 | 说明 |
 |---|---|---|---|
 | `redis.host` | `REDIS_HOST` | 127.0.0.1 | Redis 主机名或 IP |
 | `redis.port` | `REDIS_PORT` | 6379 | Redis 端口 |
-| `redis.db` | `REDIS_DB` | 1 | Redis 库编号，和别的程序共用实例时错开 |
+| `redis.db` | `REDIS_DB` | 11 | Redis 库编号，和别的程序共用实例时错开 |
 | `redis.password` | `REDIS_PASSWORD` | '' | Redis 密码，没设密码就留空 |
 
-## 其他
+## 缓存
+
+| 键 | 环境变量 | 默认值 | 说明 |
+|---|---|---|---|
+| `cache.file_max_mb` | `CACHE_FILE_MAX_MB` | 64 | 文件缓存目录的上限；超了按最旧优先淘汰。0 = 不限 |
+
+## OAuth scopes
+
+可用的 OAuth scopes
 
 | 键 | 环境变量 | 默认值 | 说明 |
 |---|---|---|---|

@@ -12,6 +12,7 @@ namespace Nomen\Src;
 use Nomen\Src\Cache\DbDriver;
 use Nomen\Src\Cache\Driver;
 use Nomen\Src\Cache\FileDriver;
+use Nomen\Src\Cache\Flushable;
 use Nomen\Src\Cache\RedisDriver;
 
 /**
@@ -28,8 +29,17 @@ class Cache
         'db'    => '数据库',
     ];
 
+    // 单个值超过这个大小就别进缓存了：撑大 Redis / 数据库，命中一次也省不了多少
+    private const MAX_VALUE_BYTES = 8 * 1024 * 1024;
+
+    // 代次号（Pages 这类）的寿命，比任何挂在它下面的缓存都长
+    private const GENERATION_TTL = 30 * 24 * 3600;
+
     /** @var array<string, callable> */
     private static array $drivers = [];
+
+    /** @var array<string, int> 标签 => 当前代次，请求内只读一次 */
+    private static array $generations = [];
 
     private static ?Driver $instance = null;
     private static string $name = '';
@@ -91,6 +101,16 @@ class Cache
         }
 
         try {
+            if (strlen(serialize($value)) > self::MAX_VALUE_BYTES) {
+                error_log('[cache] 值太大，跳过缓存: ' . $key);
+                return false;
+            }
+        } catch (\Throwable $e) {
+            error_log('[cache] 值无法序列化，跳过缓存: ' . $key . ' - ' . $e->getMessage());
+            return false;
+        }
+
+        try {
             $driver->put($key, $value, $ttl);
             return true;
         } catch (\Throwable $e) {
@@ -124,6 +144,51 @@ class Cache
         } catch (\Throwable $e) {
             error_log('[cache] 删除失败: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * 清空本站缓存。只删本站前缀，不会碰同一个库里的其他程序。
+     *
+     * @return array{backend: string, supported: bool, deleted: int, error?: string}
+     */
+    public static function flush(): array
+    {
+        self::$generations = [];
+
+        $driver = self::resolve();
+        if ($driver === null) {
+            return ['backend' => 'none', 'supported' => false, 'deleted' => 0];
+        }
+
+        if (!$driver instanceof Flushable) {
+            return ['backend' => self::$name, 'supported' => false, 'deleted' => 0];
+        }
+
+        try {
+            return ['backend' => self::$name, 'supported' => true, 'deleted' => $driver->flush()];
+        } catch (\Throwable $e) {
+            error_log('[cache] 清空失败: ' . $e->getMessage());
+            return ['backend' => self::$name, 'supported' => true, 'deleted' => 0, 'error' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * 一组缓存的当前代次。数据变了就 bump，旧键自然不再命中；TTL 只是兜底。
+     */
+    public static function generation(string $tag): int
+    {
+        if (isset(self::$generations[$tag])) {
+            return self::$generations[$tag];
+        }
+
+        return self::$generations[$tag] = max(1, (int)self::get('gen:' . $tag, 1));
+    }
+
+    public static function bump(string $tag): void
+    {
+        $next = max(1, (int)self::get('gen:' . $tag, 1)) + 1;
+        self::put('gen:' . $tag, $next, self::GENERATION_TTL);
+        self::$generations[$tag] = $next;
     }
 
     private static function resolve(): ?Driver
@@ -170,7 +235,7 @@ class Cache
                 return new RedisDriver($client, self::redisPrefix());
 
             case 'file':
-                return new FileDriver(dirname(__DIR__) . '/data/cache');
+                return new FileDriver(dirname(__DIR__) . '/data/cache', self::fileMaxBytes());
 
             case 'db':
                 return new DbDriver();
@@ -192,6 +257,15 @@ class Cache
     private static function miss(): object
     {
         return self::$miss ??= new \stdClass();
+    }
+
+    /** 文件缓存的大小上限（字节），0 表示不限 */
+    private static function fileMaxBytes(): int
+    {
+        $config = require dirname(__DIR__) . '/config/app.php';
+        $mb = (int)($config['cache']['file_max_mb'] ?? 64);
+
+        return max(0, $mb) * 1024 * 1024;
     }
 
     /** Redis 可能被多个站点共用，键里带上站点地址的哈希 */

@@ -27,7 +27,7 @@
 | `github.email_verified_field` | — | '' | 「邮箱是否已验证」的字段；留空表示信任对方返回的邮箱 |
 | `github.token_auth` | — | post | 换 token 时凭据放哪：`post` 放表单，`basic` 放 Authorization 头 |
 
-## 其他
+## google
 
 | 键 | 环境变量 | 默认值 | 说明 |
 |---|---|---|---|
@@ -46,7 +46,7 @@
 | `google.email_verified_field` | — | email_verified | 「邮箱是否已验证」的字段；留空表示信任对方返回的邮箱 |
 | `google.token_auth` | — | post | 换 token 时凭据放哪：`post` 放表单，`basic` 放 Authorization 头 |
 
-## 其他
+## microsoft
 
 | 键 | 环境变量 | 默认值 | 说明 |
 |---|---|---|---|
@@ -65,7 +65,7 @@
 | `microsoft.email_verified_field` | — | '' | 「邮箱是否已验证」的字段；留空表示信任对方返回的邮箱 |
 | `microsoft.token_auth` | — | post | 换 token 时凭据放哪：`post` 放表单，`basic` 放 Authorization 头 |
 
-## 其他
+## caellabid
 
 | 键 | 环境变量 | 默认值 | 说明 |
 |---|---|---|---|

@@ -124,6 +124,43 @@ class AdminSettingsController
         Response::json(['success' => true, 'message' => '设置已保存，下次请求生效']);
     }
 
+    /** POST /admin/settings/cache/clear - 只清本站前缀下的缓存 */
+    public function clearCache(): void
+    {
+        $admin = Admin::requireAdmin();
+
+        if (!Csrf::validate($_POST['_csrf'] ?? null)) {
+            Response::json(['success' => false, 'message' => '请求无效，请重试'], 422);
+        }
+
+        $result = Cache::flush();
+        Settings::forgetCache();
+
+        if (!$result['supported']) {
+            Response::json([
+                'success'   => false,
+                'supported' => false,
+                'backend'   => $result['backend'],
+            ], 422);
+        }
+
+        ActivityLog::record([
+            'action'         => 'admin.cache_clear',
+            'category'       => ActivityLog::CAT_ADMIN,
+            'actor_type'     => 'admin',
+            'actor_id'       => (int)$admin['id'],
+            'actor_username' => (string)$admin['username'],
+            'summary'        => '清空缓存（' . $result['backend'] . '，' . $result['deleted'] . ' 条）',
+        ]);
+
+        Response::json([
+            'success'   => true,
+            'supported' => true,
+            'backend'   => $result['backend'],
+            'deleted'   => (int)$result['deleted'],
+        ]);
+    }
+
     /** @return array<int, array<string, mixed>>|null */
     private static function decodeList(mixed $raw): ?array
     {

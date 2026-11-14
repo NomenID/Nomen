@@ -18,6 +18,7 @@ import AdminAlert from '../components/AdminAlert.vue'
 const { t } = useT()
 const loading = ref(true)
 const saving = ref(false)
+const clearing = ref(false)
 const error = ref('')
 const data = ref(null)
 const form = reactive({
@@ -77,6 +78,29 @@ async function save() {
   }
 }
 
+async function clearCache() {
+  const ok = await window.Nomen.confirm(
+    t('Clear cache'),
+    t('Clear this site\'s cache? It is rebuilt on the next request.'),
+    { confirmText: t('Clear'), cancelText: t('Cancel') },
+  )
+  if (!ok) return
+
+  clearing.value = true
+  try {
+    const result = await apiPost('/admin/settings/cache/clear')
+    if (result.success) {
+      window.Nomen.toast(t('Cleared {:count} entries', { count: result.deleted }), 'success')
+    } else {
+      window.Nomen.toast(result.message || t('This backend does not support clearing'), 'error')
+    }
+  } catch (err) {
+    window.Nomen.toast(t('This backend does not support clearing'), 'error')
+  } finally {
+    clearing.value = false
+  }
+}
+
 onMounted(load)
 </script>
 
@@ -109,6 +133,12 @@ onMounted(load)
           <select v-model="form.cache_backend" class="a-input a-input--narrow">
             <option v-for="(label, value) in data.cacheOptions" :key="value" :value="value">{{ label }}</option>
           </select>
+          <p class="a-card__desc">
+            {{ t('Only this site\'s keys are removed; other applications sharing the same Redis are untouched.') }}
+          </p>
+          <button class="a-btn" type="button" :disabled="clearing" @click="clearCache">
+            {{ clearing ? t('Clearing…') : t('Clear cache') }}
+          </button>
         </AdminCard>
 
         <AdminCard :title="t('Site API')">

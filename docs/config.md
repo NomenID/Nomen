@@ -77,7 +77,7 @@ FEATURE_COUNTRY=0
 return [
     'db'    => ['driver' => 'mysql', 'host' => '127.0.0.1', 'port' => 3306,
                 'name' => 'nomen', 'user' => 'nomen', 'pass' => '...'],
-    'redis' => ['host' => '127.0.0.1', 'port' => 6379, 'db' => 1, 'password' => ''],
+    'redis' => ['host' => '127.0.0.1', 'port' => 6379, 'db' => 11, 'password' => ''],
     'app'   => [
         'name'             => 'Example',
         'base_url'         => 'https://id.example.com',
@@ -103,6 +103,7 @@ return [
 | `app.pretty_urls` | `false` 走 `index.php?page=`，没配伪静态就设它 |
 | `app.features` | `guardians` / `country` 两个可选功能，默认关 |
 | `pepper` | 参与密码哈希，**有用户后绝不能改** |
+| `redis.db` | 默认 11。同一个 Redis 上跑多个程序时，每个站分配不同的库 |
 
 ## config/*.php
 

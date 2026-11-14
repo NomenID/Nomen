@@ -15,7 +15,7 @@
 | 接入点 | `/admin/mounts` | 插件占的公开地址，能改路径 |
 | 恢复工单 | `/admin/recovery` | 申诉审核 |
 | 活动日志 | `/admin/logs` | 登录与操作记录，可导出 CSV |
-| 设置 | `/admin/settings` | 两步验证策略、缓存后端、站点 API 开关 |
+| 设置 | `/admin/settings` | 两步验证策略、缓存后端与清空、站点 API 开关 |
 | 插件自带 | `/admin/<slug>` | 插件注册的页面，挂在「内容」这类分组下 |
 
 插件页由 `adminPages` 或 `Admin::page()` 注册，菜单文字和分组由插件给。
@@ -49,7 +49,7 @@
 | 分区 | 能改什么 |
 |---|---|
 | 登录两步验证 | `off` / `new_device` / `every_login` |
-| 缓存 | `auto` / `redis` / `file` / `db` |
+| 缓存 | `auto` / `redis` / `file` / `db`，以及「清空缓存」（只清本站前缀） |
 | 站点 API | 总开关 |
 | 首页 | 模式、标题、副标题、按钮、链接 |
 | 登录方式 | 五种方式的开关、默认登录方式 |

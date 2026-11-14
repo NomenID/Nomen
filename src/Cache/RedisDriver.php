@@ -11,7 +11,7 @@ namespace Nomen\Src\Cache;
 
 use Redis;
 
-class RedisDriver implements Driver
+class RedisDriver implements Driver, Flushable
 {
     private Redis $client;
     private string $prefix;
@@ -42,5 +42,30 @@ class RedisDriver implements Driver
     public function forget(string $key): void
     {
         $this->client->del($this->prefix . $key);
+    }
+
+    /**
+     * 只删本站前缀下的键。Redis 的淘汰器不认识前缀，所以这件事必须由我们自己做——
+     * 别用 FLUSHDB：同一个库里可能还有别的程序。
+     */
+    public function flush(): int
+    {
+        $iterator = null;
+        $deleted = 0;
+
+        while (true) {
+            $keys = $this->client->scan($iterator, $this->prefix . '*', 500);
+            if ($keys === false) {
+                break;
+            }
+            if ($keys !== []) {
+                $deleted += (int)$this->client->unlink($keys);
+            }
+            if ((int)$iterator === 0) {
+                break;
+            }
+        }
+
+        return $deleted;
     }
 }

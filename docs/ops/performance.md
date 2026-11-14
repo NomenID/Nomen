@@ -50,6 +50,9 @@ redis-cli -n <REDIS_DB> info stats | grep -E 'keyspace_hits|keyspace_misses'
 
 命中率长期低于 80% 说明缓存键设计有问题（TTL 太短、键太碎），加缓存没用。
 
+共用 Redis 实例时把 `maxmemory-policy` 设成 `volatile-lru`。`noeviction` 在内存满时直接拒绝写入：
+缓存写不进只是未命中，**会话写不进就是掉登录**。每个站用不同的 `REDIS_DB`，别挤在同一个库。
+
 ## 数据库
 
 | 问题 | 表现 | 处理 |

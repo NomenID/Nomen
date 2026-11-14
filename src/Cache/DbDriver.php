@@ -12,7 +12,7 @@ namespace Nomen\Src\Cache;
 use Nomen\Src\Database;
 use PDO;
 
-class DbDriver implements Driver
+class DbDriver implements Driver, Flushable
 {
     private ?PDO $db = null;
 
@@ -67,6 +67,14 @@ class DbDriver implements Driver
     public function forget(string $key): void
     {
         $this->db()->prepare('DELETE FROM cache_items WHERE k = :k')->execute([':k' => $key]);
+    }
+
+    public function flush(): int
+    {
+        $stmt = $this->db()->prepare('DELETE FROM cache_items');
+        $stmt->execute();
+
+        return $stmt->rowCount();
     }
 
     private function db(): PDO

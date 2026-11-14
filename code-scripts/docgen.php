@@ -202,6 +202,7 @@ function parseConfigFile(string $file): array
                 'intro' => joinLines($descLines),
             ];
             $heading = null;
+            $forceNew = false;
             continue;
         }
 

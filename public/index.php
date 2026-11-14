@@ -416,6 +416,7 @@ $router->get('/api/admin/logs',             [AdminController::class, 'logs'], ['
 $router->get('/api/admin/logs/{id}',        [AdminController::class, 'logDetail'], ['admin']);
 $router->get('/api/admin/settings',         [AdminSettingsController::class, 'index'], ['admin']);
 $router->post('/admin/settings',            [AdminSettingsController::class, 'update'], ['admin']);
+$router->post('/admin/settings/cache/clear', [AdminSettingsController::class, 'clearCache'], ['admin']);
 $router->get('/api/admin/homepage',         [AdminHomepageController::class, 'show'], ['admin']);
 $router->post('/admin/homepage',            [AdminHomepageController::class, 'update'], ['admin']);
 $router->get('/api/admin/identities',       [AdminIdentityController::class, 'index'], ['admin']);
