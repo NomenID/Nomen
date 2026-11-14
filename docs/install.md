@@ -105,6 +105,9 @@ curl -s https://你的站点/api/version
 
 `doctor` 会报数据库连接、目录权限、pepper、可选扩展。
 
+GeoIP 和搜索这些插件要额外的依赖（geoip2 / mmdb、外部搜索引擎），不装也能跑，只是功能空转；
+装法见[官方插件](plugins/index.md)。
+
 ## 五、命令行安装
 
 不想用网页向导：
