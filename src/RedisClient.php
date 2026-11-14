@@ -43,7 +43,7 @@ class RedisClient
             if (!empty($redis['password'])) {
                 $client->auth($redis['password']);
             }
-            $client->select((int)($redis['db'] ?? 1));
+            $client->select((int)($redis['db'] ?? 11));
             self::$client = $client;
         } catch (\Throwable $e) {
             error_log('[redis] 连接失败: ' . $e->getMessage());
