@@ -18,6 +18,7 @@ const props = defineProps({
   viewer: { type: Object, default: () => ({}) },
   brand: { type: Object, default: () => ({}) },
   menu: { type: Array, default: () => [] },
+  schedule: { type: Object, default: () => ({}) },
 })
 
 const route = useRoute()
@@ -113,6 +114,9 @@ const userInitial = computed(() => {
       </header>
 
       <main class="a-content">
+        <div v-if="schedule.stale" class="a-alert a-alert--warning a-schedule-alert">
+          <a :href="url('/admin/settings')">{{ t('The scheduler has not run yet. Add the cron entry under Settings.') }}</a>
+        </div>
         <slot />
       </main>
     </div>

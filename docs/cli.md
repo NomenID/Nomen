@@ -17,6 +17,8 @@ php bin/nomen help
 | `plugins list` | 列出插件三态和它们注册的命令 |
 | `plugins migrate [slug]` | 跑插件的迁移 |
 | `plugins <命令>` | 跑插件注册的命令（如 `pages:import`） |
+| `schedule run` | 跑这一分钟到点的定时任务（crontab 每分钟调用） |
+| `schedule list` | 列出任务、上次 / 下次时间、要加的 crontab |
 | `user:passwd <用户>` | 改密码 |
 | `user:promote <用户>` | 设为管理员 |
 | `user:demote <用户>` | 取消管理员 |
@@ -67,6 +69,16 @@ php bin/nomen plugins pages:sync
 php bin/nomen plugins pages:import docs --prefix=local-docs --update
 php bin/nomen plugins search:reindex --fresh
 ```
+
+### 定时任务
+
+```bash
+php bin/nomen schedule list
+php bin/nomen schedule run
+```
+
+服务器上由 crontab 每分钟调用 `schedule run`。配完用 `schedule list` 看心跳时间，
+没跑起来就照它打印的那行检查。细节见[定时任务](ops/schedule.md)。
 
 ### 备份
 

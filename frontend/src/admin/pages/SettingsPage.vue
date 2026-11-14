@@ -101,6 +101,34 @@ async function clearCache() {
   }
 }
 
+function formatted(ts) {
+  return ts ? new Date(ts * 1000).toLocaleString() : t('Never')
+}
+
+function scheduleText(task) {
+  if (task.dailyAt) return t('Daily at {:time}', { time: task.dailyAt })
+  const minutes = Math.round((task.every || 0) / 60)
+  return minutes <= 1 ? t('Every minute') : t('Every {:count} min', { count: minutes })
+}
+
+function tickStale(ts) {
+  return ts > 0 && Date.now() / 1000 - ts > 180
+}
+
+async function runTask(task) {
+  try {
+    const result = await apiPost('/admin/settings/schedule/run', { task: task.id })
+    if (result.success) {
+      window.Nomen.toast(t('Queued. It will run on the next tick (within a minute).'), 'success')
+      await load()
+    } else {
+      window.Nomen.toast(result.message || t('Save failed'), 'error')
+    }
+  } catch (err) {
+    window.Nomen.toast(t('Save failed'), 'error')
+  }
+}
+
 onMounted(load)
 </script>
 
@@ -139,6 +167,55 @@ onMounted(load)
           <button class="a-btn" type="button" :disabled="clearing" @click="clearCache">
             {{ clearing ? t('Clearing…') : t('Clear cache') }}
           </button>
+        </AdminCard>
+
+        <AdminCard :title="t('Scheduled tasks')">
+          <p class="a-card__desc">{{ t('Background tasks registered by the core and plugins. Without the cron entry everything still works; tasks just wait until you run them by hand.') }}</p>
+
+          <AdminAlert v-if="!data.schedule.ready" type="warning">
+            {{ t('The scheduled_tasks table is missing. Run {:cmd} first.', { cmd: 'php bin/nomen upgrade' }) }}
+          </AdminAlert>
+          <AdminAlert v-else-if="data.schedule.lastTick === 0" type="warning">
+            {{ t('The scheduler has not run yet. Add the cron entry below.') }}
+          </AdminAlert>
+          <AdminAlert v-else-if="tickStale(data.schedule.lastTick)" type="warning">
+            {{ t('Cron is not running (last tick: {:time}).', { time: formatted(data.schedule.lastTick) }) }}
+          </AdminAlert>
+          <p v-else class="a-text--muted">{{ t('Last tick: {:time}', { time: formatted(data.schedule.lastTick) }) }}</p>
+
+          <p class="a-text">{{ t('Add this line to the server\'s crontab:') }}</p>
+          <code class="a-code">{{ data.schedule.crontab }}</code>
+
+          <div v-if="data.schedule.tasks.length" class="a-table-wrap">
+            <table class="a-table">
+              <thead>
+                <tr>
+                  <th>{{ t('Task') }}</th>
+                  <th>{{ t('Schedule') }}</th>
+                  <th>{{ t('Last run') }}</th>
+                  <th>{{ t('Next run') }}</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="task in data.schedule.tasks" :key="task.id">
+                  <td>
+                    <strong>{{ task.label }}</strong>
+                    <div class="a-mono a-text--muted">{{ task.id }}</div>
+                  </td>
+                  <td>{{ scheduleText(task) }}</td>
+                  <td>{{ formatted(task.lastRun) }}</td>
+                  <td>{{ formatted(task.nextRun) }}</td>
+                  <td>
+                    <AdminBadge v-if="task.status === 'error'" tone="danger">{{ t('Failed') }}</AdminBadge>
+                    <AdminBadge v-else-if="task.status === 'running'" tone="primary">{{ t('Running') }}</AdminBadge>
+                    <AdminBadge v-else-if="task.status === 'ok'" tone="success">{{ t('OK') }}</AdminBadge>
+                    <button class="a-btn a-btn--sm" type="button" @click="runTask(task)">{{ t('Run now') }}</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </AdminCard>
 
         <AdminCard :title="t('Site API')">

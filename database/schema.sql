@@ -504,6 +504,22 @@ CREATE TABLE `cache_items` (
   KEY `idx_expires_at` (`expires_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `scheduled_tasks`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `scheduled_tasks` (
+  `name` varchar(64) NOT NULL,
+  `interval_seconds` int unsigned NOT NULL DEFAULT 300,
+  `next_run_at` bigint NOT NULL DEFAULT 0,
+  `running_until` bigint NOT NULL DEFAULT 0,
+  `last_run_at` bigint NOT NULL DEFAULT 0,
+  `last_finished_at` bigint NOT NULL DEFAULT 0,
+  `last_status` varchar(16) NOT NULL DEFAULT '',
+  `last_error` varchar(1000) NOT NULL DEFAULT '',
+  `failures` int unsigned NOT NULL DEFAULT 0,
+  PRIMARY KEY (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `identity_providers`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;

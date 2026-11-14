@@ -99,6 +99,24 @@
 
 索引：主键 `PRIMARY`（k）；普通 `idx_expires_at`（expires_at）
 
+### scheduled_tasks
+
+定时任务的运行状态。每个任务一行，记录间隔、下次运行时间、占用锁和上次结果，时间列都是 Unix 时间戳。
+
+| 字段 | 类型 | 可空 | 默认 | 说明 |
+|---|---|---|---|---|
+| `name` | VARCHAR(64) | 否 | — | 任务 id，核心是 `core.tick`，插件用 `slug.name` |
+| `interval_seconds` | INT | 否 | 300 | 任务声明的间隔，仅供后台展示，真正到期看 `next_run_at` |
+| `next_run_at` | BIGINT | 否 | 0 | 下一次到期时间；0 表示下一次心跳就跑 |
+| `running_until` | BIGINT | 否 | 0 | 占用锁的到期时间，0 表示空闲 |
+| `last_run_at` | BIGINT | 否 | 0 | 上一次开始执行的时间 |
+| `last_finished_at` | BIGINT | 否 | 0 | 上一次结束的时间 |
+| `last_status` | VARCHAR(16) | 否 | '' | `running` / `ok` / `error` |
+| `last_error` | VARCHAR(1000) | 否 | '' | 上一次失败的错误信息，成功时清空 |
+| `failures` | INT | 否 | 0 | 连续失败次数，成功一次清零 |
+
+索引：主键 `PRIMARY`（name）
+
 ### plugin_migrations
 
 插件迁移的执行记录。`php bin/nomen plugins migrate` 按表和文件名判断哪些已经跑过。

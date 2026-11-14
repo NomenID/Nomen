@@ -114,6 +114,7 @@
 | [性能与容量](ops/performance.md) | opcache、Redis、索引、磁盘随机读、内存怎么看、规模参考 |
 | [日常运维](ops/maintenance.md) | 每天 / 每周 / 每月 / 每季各查什么 |
 | [日志与监控](ops/logs.md) | 日志在哪、前缀约定、怎么 grep、探针打哪个地址 |
+| [定时任务](ops/schedule.md) | crontab 一行、任务从哪来、没配会怎样 |
 | [升级与发布检查清单](ops/upgrade-checklist.md) | 发布前、上传前、上传顺序、部署后验收、回滚 |
 
 ## 配置改了什么时候生效

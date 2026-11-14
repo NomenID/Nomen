@@ -226,5 +226,10 @@
     "type": "filter",
     "args": "methods",
     "when": "登录页组装登录方式时；插件返回条目注册自己的登录方式（id / label 成品文案 / url 入口 / logo 可选 / by 插件显示名），登录页渲染成独立选项，可被设为默认方式"
+  },
+  "schedule.tasks": {
+    "type": "filter",
+    "args": "tasks",
+    "when": "定时任务清单组装时（`schedule:run`、后台设置页）；返回条目注册插件自己的任务，id 用 `slug.name`，间隔写 `every`（秒）或 `daily_at`（HH:MM），`run` 是回调"
   }
 }

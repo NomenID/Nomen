@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{ActivityLog, Admin, Brand, Cache, Csrf, Email, Hooks, Response, Settings};
+use Nomen\Src\{ActivityLog, Admin, Brand, Cache, Csrf, Email, Hooks, Response, Schedule, Settings};
 use PDOException;
 
 class AdminSettingsController
@@ -48,6 +48,7 @@ class AdminSettingsController
             'effectiveBackend' => Cache::driverName(),
             'mailConfigured'   => Email::isConfigured(),
             'settingsReady'    => Settings::ready(),
+            'schedule'         => Schedule::status(),
             'apiEnabled'       => (string)Settings::get('api.nomen_api', '1') !== '0',
             'apiEndpoint'      => rtrim((string)Brand::get('base_url'), '/') . '/nomen-api',
             'policies'         => Brand::configuredPolicies(),
@@ -159,6 +160,32 @@ class AdminSettingsController
             'backend'   => $result['backend'],
             'deleted'   => (int)$result['deleted'],
         ]);
+    }
+
+    /** POST /admin/settings/schedule/run - 把任务排到下一次心跳，不在这个请求里执行 */
+    public function scheduleRun(): void
+    {
+        $admin = Admin::requireAdmin();
+
+        if (!Csrf::validate($_POST['_csrf'] ?? null)) {
+            Response::json(['success' => false, 'message' => '请求无效，请重试'], 422);
+        }
+
+        $task = trim((string)($_POST['task'] ?? ''));
+        if (!Schedule::requestNow($task)) {
+            Response::json(['success' => false, 'message' => '没有这个任务，或者数据库还没升级'], 422);
+        }
+
+        ActivityLog::record([
+            'action'         => 'admin.schedule_run',
+            'category'       => ActivityLog::CAT_ADMIN,
+            'actor_type'     => 'admin',
+            'actor_id'       => (int)$admin['id'],
+            'actor_username' => (string)$admin['username'],
+            'summary'        => '排入定时任务：' . $task,
+        ]);
+
+        Response::json(['success' => true, 'task' => $task]);
     }
 
     /** @return array<int, array<string, mixed>>|null */

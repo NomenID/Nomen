@@ -110,6 +110,20 @@
   "cache_items": {
     "desc": "数据库缓存驱动用的表。没配 Redis 时缓存落在这里，按 key 存过期时间和序列化后的值。"
   },
+  "scheduled_tasks": {
+    "desc": "定时任务的运行状态。每个任务一行，记录间隔、下次运行时间、占用锁和上次结果，时间列都是 Unix 时间戳。",
+    "columns": {
+      "name": "任务 id，核心是 `core.tick`，插件用 `slug.name`",
+      "interval_seconds": "任务声明的间隔，仅供后台展示，真正到期看 `next_run_at`",
+      "next_run_at": "下一次到期时间；0 表示下一次心跳就跑",
+      "running_until": "占用锁的到期时间，0 表示空闲",
+      "last_run_at": "上一次开始执行的时间",
+      "last_finished_at": "上一次结束的时间",
+      "last_status": "`running` / `ok` / `error`",
+      "last_error": "上一次失败的错误信息，成功时清空",
+      "failures": "连续失败次数，成功一次清零"
+    }
+  },
   "plugin_migrations": {
     "desc": "插件迁移的执行记录。`php bin/nomen plugins migrate` 按表和文件名判断哪些已经跑过。"
   }

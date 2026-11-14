@@ -17,6 +17,7 @@ const props = defineProps({
   brand: { type: Object, default: () => ({}) },
   csrf: { type: String, required: true },
   menu: { type: Array, default: () => [] },
+  schedule: { type: Object, default: () => ({}) },
   pages: { type: Array, default: () => [] },
 })
 
@@ -26,7 +27,7 @@ provide('adminBrand', props.brand || {})
 </script>
 
 <template>
-  <AdminLayout :viewer="viewer" :brand="brand" :menu="menu">
+  <AdminLayout :viewer="viewer" :brand="brand" :menu="menu" :schedule="schedule">
     <RouterView />
   </AdminLayout>
 </template>

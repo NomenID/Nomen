@@ -137,6 +137,16 @@ php scripts/mail-drain.php
 
 用 systemd 或 cron 拉起，同时只能有一个实例（脚本自己用 `scripts/mail-drain.lock` 加锁）。
 
+## 定时任务
+
+插件有周期性的活（Pages 的 sitemap 预生成这类），由一条 cron 统一驱动：
+
+```bash
+* * * * * php /path/to/site/bin/nomen schedule:run >/dev/null 2>&1
+```
+
+不配也能用，只是任务要在后台手动触发；配完在后台「设置 → 定时任务」能看到心跳。细节见 `docs/ops/schedule.md`。
+
 ## 可选：GeoIP
 
 注册页按 IP 预填国家、活动日志显示地点，靠 `plugins/geoip`。

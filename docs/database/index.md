@@ -30,4 +30,5 @@
 | 站点与内容 | [notifications](site.md) | 站内通知。入库之后才会触发 `notification.created`，邮件是否发送由用户的分类开关决定。 |
 | 站点与内容 | [user_notification_settings](site.md) | 通知分类的开关。没有记录表示全部走默认，用户改过哪一类才存哪一行。 |
 | 站点与内容 | [cache_items](site.md) | 数据库缓存驱动用的表。没配 Redis 时缓存落在这里，按 key 存过期时间和序列化后的值。 |
+| 站点与内容 | [scheduled_tasks](site.md) | 定时任务的运行状态。每个任务一行，记录间隔、下次运行时间、占用锁和上次结果，时间列都是 Unix 时间戳。 |
 | 站点与内容 | [plugin_migrations](site.md) | 插件迁移的执行记录。`php bin/nomen plugins migrate` 按表和文件名判断哪些已经跑过。 |

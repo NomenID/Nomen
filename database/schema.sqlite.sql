@@ -628,6 +628,19 @@ CREATE TABLE cache_items (
 );
 CREATE INDEX idx_cache_items_expires_at ON cache_items (expires_at);
 
+DROP TABLE IF EXISTS scheduled_tasks;
+CREATE TABLE scheduled_tasks (
+  name TEXT PRIMARY KEY,
+  interval_seconds INTEGER NOT NULL DEFAULT 300,
+  next_run_at INTEGER NOT NULL DEFAULT 0,
+  running_until INTEGER NOT NULL DEFAULT 0,
+  last_run_at INTEGER NOT NULL DEFAULT 0,
+  last_finished_at INTEGER NOT NULL DEFAULT 0,
+  last_status TEXT NOT NULL DEFAULT '',
+  last_error TEXT NOT NULL DEFAULT '',
+  failures INTEGER NOT NULL DEFAULT 0
+);
+
 DROP TABLE IF EXISTS identity_providers;
 CREATE TABLE identity_providers (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

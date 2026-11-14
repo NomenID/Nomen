@@ -785,7 +785,7 @@ function buildDatabase(): void
         'oauth' => ['title' => 'OAuth 与开放平台', 'items' => ['oauth_clients', 'oauth_authorization_codes', 'oauth_access_tokens', 'oauth_refresh_tokens', 'developers', 'user_authorizations', 'user_app_subjects']],
         'identity' => ['title' => '第三方登录', 'items' => ['identity_providers', 'user_identities']],
         'recovery' => ['title' => '账号恢复与家庭', 'items' => ['account_recovery_requests', 'family_groups', 'family_members']],
-        'site' => ['title' => '站点与内容', 'items' => ['site_settings', 'app_meta', 'activity_logs', 'notifications', 'user_notification_settings', 'cache_items', 'plugin_migrations']],
+        'site' => ['title' => '站点与内容', 'items' => ['site_settings', 'app_meta', 'activity_logs', 'notifications', 'user_notification_settings', 'cache_items', 'scheduled_tasks', 'plugin_migrations']],
     ];
 
     $known = [];

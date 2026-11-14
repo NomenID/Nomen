@@ -46,5 +46,6 @@
 | [pages.content.before_save](content.md) | filter | 扩展侧 |
 | [pages.content.deleted](content.md) | run | 扩展侧 |
 | [pages.content.saved](content.md) | run | 扩展侧 |
+| [schedule.tasks](content.md) | filter | 1 处 |
 | [email.sending](notify.md) | filter | 1 处 |
 | [notification.created](notify.md) | run | 1 处 |

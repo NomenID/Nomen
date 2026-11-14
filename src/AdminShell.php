@@ -50,6 +50,7 @@ final class AdminShell
             ],
             'csrf'  => Csrf::getToken(),
             'menu'  => $menu,
+            'schedule' => Schedule::banner(),
             'pages' => Admin::pageMeta(),
         ], $userId);
 
