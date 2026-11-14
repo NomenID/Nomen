@@ -70,9 +70,18 @@ class DeviceController
             $os = 'Linux';
         }
 
-        if (preg_match('/(Edg|Chrome|Firefox|Safari|OPR)\/([\d.]+)/', $ua, $m)) {
-            $map = ['Edg' => 'Edge', 'Chrome' => 'Chrome', 'Firefox' => 'Firefox', 'Safari' => 'Safari', 'OPR' => 'Opera'];
-            $browser = $map[$m[1]] ?? $m[1];
+        // Edge/Opera 的 UA 里带着 Chrome/xxx 且位置靠前，得先认它们；
+        // Safari 放最后 —— Chrome 的 UA 里也带 Safari/537.36
+        if (str_contains($ua, 'Edg/')) {
+            $browser = 'Edge';
+        } elseif (str_contains($ua, 'OPR/')) {
+            $browser = 'Opera';
+        } elseif (str_contains($ua, 'Firefox/')) {
+            $browser = 'Firefox';
+        } elseif (str_contains($ua, 'Chrome/')) {
+            $browser = 'Chrome';
+        } elseif (str_contains($ua, 'Safari/')) {
+            $browser = 'Safari';
         }
 
         return trim("{$os} · {$browser}", ' ·');
