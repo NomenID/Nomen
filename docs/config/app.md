@@ -13,7 +13,7 @@
 | 键 | 环境变量 | 默认值 | 说明 |
 |---|---|---|---|
 | `name` | — | ← brand.name | 取自 `config/brand.php` 的 `name` |
-| `version` | — | 1.7.0 | 版本号，整个仓库只有这一处；发版改这里，打包脚本从它取包名 |
+| `version` | — | 1.6.0 | 版本号，整个仓库只有这一处；发版改这里，打包脚本从它取包名 |
 | `base_url` | — | ← brand.base_url | 取自 `config/brand.php` 的 `base_url` |
 
 ## 安全
