@@ -1,7 +1,7 @@
 # 官方插件
 
-随发布包发的是这五个：`pages`、`open-platform`、`geoip`、`totp-qr`、`search`。另外两个（`quick-central-login`、
-`site-notice`）不在包里，按需自己装。
+随发布包发的是这六个：`pages`、`open-platform`、`geoip`、`totp-qr`、`search`、`api-code`。另外两个
+（`quick-central-login`、`site-notice`）不在包里，按需自己装。
 
 每个插件都是**独立仓库、Apache-2.0**，跟核心的版本节奏无关。启用方式都一样：目录放进 `plugins/`，
 名字写进 `config/plugins.php` 的 `enabled`。
@@ -13,6 +13,7 @@
 | [geoip](geoip.md) | 是 | 按 IP 查国家 / 地点 | **要自己装 geoip2 和 mmdb** |
 | [totp-qr](totp-qr.md) | 是 | 在浏览器里画两步验证二维码 | 无 |
 | [search](search.md) | **否** | 站内搜索 | 可选外部引擎 |
+| [api-code](../api-code.md) | **否** | 标识符绑定 + HTTP 接口发验证码登录 | 一个能发码的 HTTP 接口 |
 | [quick-central-login](quick-central-login.md) | 不随包 | 第一方应用免确认登录 | 核心 ≥ 1.3.2 |
 | [site-notice](site-notice.md) | 不随包 | 登录页 / 首页的提示条 | 核心 ≥ 1.5.0 |
 

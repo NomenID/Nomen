@@ -19,7 +19,7 @@ php bin/nomen plugins list          # 看装了哪些、加载成功没
 
 ## 随包与独立
 
-- 随包五个：`pages`、`open-platform`、`geoip`、`totp-qr`、`search`。
+- 随包六个：`pages`、`open-platform`、`geoip`、`totp-qr`、`search`、`api-code`（`search` 和 `api-code` 装好默认关闭）。
 - 不随包：`quick-central-login`、`site-notice`，自己 clone。
 - 每个都是独立仓库、Apache-2.0，跟核心版本节奏无关。
 
