@@ -77,7 +77,7 @@ FEATURE_COUNTRY=0
 return [
     'db'    => ['driver' => 'mysql', 'host' => '127.0.0.1', 'port' => 3306,
                 'name' => 'nomen', 'user' => 'nomen', 'pass' => '...'],
-    'redis' => ['host' => '127.0.0.1', 'port' => 6379, 'db' => 11, 'password' => ''],
+    'redis' => ['host' => '127.0.0.1', 'port' => 6379, 'db' => 0, 'password' => ''],
     'app'   => [
         'name'             => 'Example',
         'base_url'         => 'https://id.example.com',
