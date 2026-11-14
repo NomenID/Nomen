@@ -53,6 +53,7 @@ grep '3f9a1c7e' /www/wwwlogs/example.com.error.log
 | 插件页面 404 | 插件没启用，或路由没注册（`plugins list` 看状态） |
 | `/special/*` 404 | slug 拼错，或插件没加载 |
 | 页面有内容但状态 404 | 面板的敏感文件规则按结尾拦了，看 nginx 的拦截规则 |
+| 明明活着却测出 404 | 用 `curl -I`（HEAD）测的：路由只注册 GET，HEAD 一律 404。验活用 `curl -s -o /dev/null -w '%{http_code}'`；静态资源的缓存头才可以 `-I` |
 
 ## 插件样式 / 脚本全丢
 

@@ -127,7 +127,10 @@ tar czf /tmp/nomen-files-$(date +%Y%m%d).tar.gz -C /www/wwwroot nomenid
 
 # 2. 替换文件，排除这些
 #    config/installed.php  .env  data/  public/assets/{avatars,recovery,develops}/  config/plugins/
-#    public/.user.ini（被 chattr +i 锁着）
+#    config/plugins.php  config/skins.php  public/.user.ini（被 chattr +i 锁着）
+#
+#    plugins.php 和 skins.php 里的 enabled 列表是站点配置，不是发行包模板——
+#    被包覆盖会把你启用的插件 / 皮肤重置回默认。
 
 # 3. 迁移
 php bin/nomen upgrade

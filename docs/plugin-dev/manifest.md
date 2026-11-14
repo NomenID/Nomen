@@ -164,3 +164,15 @@ $base = \Nomen\Src\Plugins::mountUrl('example');   // '/example'，没装返回 
 | 改了东西没生效 | 文件在，但 `enabled` 里没加；或者 opcache 没刷新 |
 | `plugin.json` 明明写了 `specialPages` 却 404 | 键名大小写没问题的话，看 `handler` 是否可调用；特殊页 slug 是小写匹配的 |
 | 描述在中文站还是英文 | `i18n/zh-hans.json` 缺这一条；`description` 的键就是英文原句本身 |
+
+读配置 / 环境变量时，0 是合法值的键（开关上限之类）**别用 `?:` 兜底**——PHP 里 `"0"` 是 falsy，
+用户设了 0 会被静默跳回默认值，报错都看不到。用 `??` 读数组，环境变量用显式判空：
+
+```php
+// 错：设 0 会被吞掉，永远拿到 64
+$max = (int)(getenv('EXAMPLE_MAX') ?: ($config['max'] ?? 64));
+
+// 对：0 就是 0
+$env = getenv('EXAMPLE_MAX');
+$max = ($env !== false && $env !== '') ? (int)$env : (int)($config['max'] ?? 64);
+```
