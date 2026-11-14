@@ -41,6 +41,7 @@
 | [admin.user.status_changed](admin.md) | run | 1 处 |
 | [admin.users.rows](admin.md) | filter | 1 处 |
 | [api.siteinfo](content.md) | filter | 1 处 |
+| [login.methods](content.md) | filter | 1 处 |
 | [pages.admin.editor.extras](content.md) | filter | 扩展侧 |
 | [pages.content.before_save](content.md) | filter | 扩展侧 |
 | [pages.content.deleted](content.md) | run | 扩展侧 |

@@ -76,8 +76,8 @@ function firstAvailable(available) {
   return null
 }
 
-export function recommendMethod(available) {
-  const fallback = firstAvailable(available)
+export function recommendMethod(available, siteDefault = '') {
+  const fallback = siteDefault && available(siteDefault) ? siteDefault : firstAvailable(available)
   if (!fallback) return null
 
   const id = rememberedAccount()

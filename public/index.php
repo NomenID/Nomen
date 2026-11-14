@@ -423,6 +423,7 @@ $router->post('/admin/identities/save',     [AdminIdentityController::class, 'sa
 $router->post('/admin/identities/delete',   [AdminIdentityController::class, 'delete'], ['admin']);
 $router->post('/admin/identities/toggle',   [AdminIdentityController::class, 'toggle'], ['admin']);
 $router->post('/admin/identities/toggle-method', [AdminIdentityController::class, 'toggleMethod'], ['admin']);
+$router->post('/admin/identities/default-method', [AdminIdentityController::class, 'defaultMethod'], ['admin']);
 
 // 开放平台
 

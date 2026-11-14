@@ -36,6 +36,8 @@ const props = defineProps({
   authNotice: { type: String, default: '' },
   providers: { type: Array, default: () => [] },
   methods: { type: Object, default: () => ({ password: true, email_code: true, biometric: true, temp_key: true, oauth: true }) },
+  defaultMethod: { type: String, default: '' },
+  extraMethods: { type: Array, default: () => [] },
   urls: { type: Object, default: () => ({}) },
 })
 
@@ -50,7 +52,16 @@ const remembered = rememberedAccount()
 
 const biometricSupported = ref(!!(window.PublicKeyCredential && navigator.credentials && navigator.credentials.get))
 
+const extraById = computed(() => {
+  const map = {}
+  for (const method of props.extraMethods || []) {
+    if (method && method.id) map[method.id] = method
+  }
+  return map
+})
+
 function available(method) {
+  if (extraById.value[method]) return true
   if (method === 'password') return props.methods.password
   if (method === 'email_code') return props.methods.email_code && props.mailEnabled
   if (method === 'biometric') return props.methods.biometric && biometricSupported.value
@@ -62,10 +73,24 @@ function providerUrl(slug) {
   return form.temporary ? base + '&temporary=1' : base
 }
 
+function extraUrl(method) {
+  if (!method?.url) return ''
+  const joiner = method.url.includes('?') ? '&' : '?'
+  const base = `${method.url}${joiner}redirect_to=${encodeURIComponent(props.redirectTo)}`
+  return form.temporary ? base + '&temporary=1' : base
+}
+
+function goExtra(method) {
+  const url = extraUrl(method)
+  if (url) window.location.href = url
+}
+
 const localMethods = ['password', 'email_code', 'biometric']
 const localAvailable = computed(() => localMethods.filter(available))
 const moreAvailable = computed(() =>
-  localAvailable.value.some((method) => method !== current.value) || props.methods.temp_key
+  localAvailable.value.some((method) => method !== current.value)
+  || props.methods.temp_key
+  || (props.extraMethods || []).length > 0
 )
 
 const tried = reactive({})
@@ -73,7 +98,7 @@ for (const method of props.failedMethods || []) tried[method] = true
 
 const current = ref(pickLoginMethod(
   tried,
-  Object.keys(tried).length ? null : recommendMethod(available),
+  Object.keys(tried).length ? null : recommendMethod(available, props.defaultMethod),
   available,
 ))
 const moreOpen = ref(false)
@@ -118,6 +143,8 @@ const sendCodeText = computed(() => {
 })
 
 function labelFor(method) {
+  const extra = extraById.value[method]
+  if (extra) return extra.label || method
   return props.triedLabels[method] || method
 }
 
@@ -580,6 +607,22 @@ onBeforeUnmount(() => {
           @click="revealManual"
         >{{ t('No credential on this device? Enter a username or email manually') }}</button>
       </form>
+
+      <div
+        v-for="method in props.extraMethods"
+        :key="'panel-' + method.id"
+        v-show="current === method.id"
+        class="auth-form login-extra-panel"
+      >
+        <p v-if="method.by" class="login-biometric-tip">
+          {{ t('{:method} is provided by the plugin {:plugin} on this site.', { method: labelFor(method.id), plugin: method.by }) }}
+        </p>
+        <button
+          type="button"
+          class="btn btn-primary btn-block"
+          @click="goExtra(method)"
+        >{{ t('Continue with {:method}', { method: labelFor(method.id) }) }}</button>
+      </div>
     </div>
 
     <div v-show="triedMethods.length" class="login-tried" id="login-tried">
@@ -609,6 +652,13 @@ onBeforeUnmount(() => {
         <button v-show="current !== 'email_code'" v-if="props.methods.email_code && mailEnabled" type="button" class="login-more__item" @click="showMethod('email_code')">{{ t('Email code') }}</button>
         <button v-if="props.methods.biometric && biometricSupported" v-show="current !== 'biometric'" type="button" class="login-more__item" @click="showMethod('biometric')">{{ t('Biometric') }}</button>
         <a v-if="props.methods.temp_key" class="login-more__item" href="/fast-pass">{{ t('Temp key sign-in') }}</a>
+        <a
+          v-for="method in props.extraMethods"
+          :key="'extra-' + method.id"
+          v-show="current !== method.id"
+          class="login-more__item"
+          :href="extraUrl(method)"
+        >{{ labelFor(method.id) }}</a>
       </div>
     </div>
 

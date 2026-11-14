@@ -123,6 +123,8 @@ class ActivityLog
         'admin.identity_update'           => 'Update sign-in method',
         'admin.identity_delete'           => 'Remove sign-in method',
         'admin.identity_toggle'           => 'Enable/disable sign-in method',
+        'admin.login_method_toggle'       => 'Turn a sign-in method on or off',
+        'admin.login_method_default'      => 'Set the default sign-in method',
         'admin.developer_toggle'          => 'Admin enabled or disabled developer',
 
         'identity.linked'                 => 'Link third-party account',

@@ -24,7 +24,63 @@ class AdminIdentityController
             'providers'         => $providers,
             'presets'           => IdentityProviders::presets(),
             'methods'           => LoginMethods::all(),
+            'default_method'    => LoginMethods::default(),
+            'extra_methods'     => LoginMethods::extra(),
             'providers_enabled' => count(IdentityProviders::all(true)),
+        ]);
+    }
+
+    private static function methodName(string $method): string
+    {
+        $labels = [
+            'password'   => '密码登录',
+            'email_code' => '邮箱验证码登录',
+            'biometric'  => '生物识别登录',
+            'temp_key'   => '临时密钥登录',
+            'oauth'      => '第三方登录',
+        ];
+
+        if (isset($labels[$method])) {
+            return $labels[$method];
+        }
+
+        foreach (LoginMethods::extra() as $extra) {
+            if ($extra['id'] === $method) {
+                return $extra['label'];
+            }
+        }
+
+        return $method;
+    }
+
+    public function defaultMethod(): void
+    {
+        $admin = Admin::requireAdmin();
+
+        if (!Csrf::validate($_POST['_csrf'] ?? null)) {
+            Response::json(['success' => false, 'message' => '请求无效，请重试'], 422);
+        }
+
+        $method = (string)($_POST['method'] ?? '');
+        if (!LoginMethods::isDefaultable($method)) {
+            Response::json(['success' => false, 'message' => '该登录方式当前不可用，设不了为默认'], 422);
+        }
+
+        Settings::set('login.default', $method);
+
+        ActivityLog::record([
+            'action'         => 'admin.login_method_default',
+            'category'       => ActivityLog::CAT_ADMIN,
+            'actor_type'     => 'admin',
+            'actor_id'       => (int)$admin['id'],
+            'actor_username' => (string)$admin['username'],
+            'summary'        => '默认登录方式设为：' . self::methodName($method),
+        ]);
+
+        Response::json([
+            'success'        => true,
+            'message'        => '默认登录方式已改为：' . self::methodName($method),
+            'default_method' => $method,
         ]);
     }
 

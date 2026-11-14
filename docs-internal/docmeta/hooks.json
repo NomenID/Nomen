@@ -221,5 +221,10 @@
     "when": "Pages 插件后台的 Markdown 编辑器下方，返回值原样输出，用来给编辑器加额外表单片段",
     "note": "Pages 插件自己的钩子，核心不触发；没启用 Pages 就没有这个钩子。",
     "owner": "Pages 插件"
+  },
+  "login.methods": {
+    "type": "filter",
+    "args": "methods",
+    "when": "登录页组装登录方式时；插件返回条目注册自己的登录方式（id / label 成品文案 / url 入口 / logo 可选 / by 插件显示名），登录页渲染成独立选项，可被设为默认方式"
   }
 }

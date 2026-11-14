@@ -224,6 +224,7 @@ $claims = Hooks::filter('userinfo.claims', $claims, $user, $scopes);
 | `user.registered` | run | `userId`, `username`, `email`（可能为 null） | 注册成功、邮箱记录同步之后 |
 | `user.login.succeeded` | run | `userId`, `username` | 会话建立之后 |
 | `user.logout` | run | `userId`, `username` | 清会话之前 |
+| `login.methods` | filter | `methods` | 登录页组装登录方式时；返回条目注册插件自己的登录方式（`id` / `label` 成品文案 / `url` 入口 / `logo` 可选 / `by` 插件显示名），登录页渲染成独立选项，可被设为默认方式 |
 | `userinfo.claims` | filter | `claims`, `user`, `scopes` | `/api/userinfo` 组装完 claims 之后 |
 | `oidc.claims` | filter | `claims`, `user`, `scopes` | id_token 的 claims 组装完；`/api/userinfo` 不走这个钩子 |
 | `meta.tags` | filter | `tags`, `layout` | 页面 head 的 meta 组装完；以 `og:` 开头的按 `property` 输出，其余按 `name` |

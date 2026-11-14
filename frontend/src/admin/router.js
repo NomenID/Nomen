@@ -17,6 +17,7 @@ import AppsPage from './pages/AppsPage.vue'
 import AppCreatePage from './pages/AppCreatePage.vue'
 import AppDetailPage from './pages/AppDetailPage.vue'
 import IdentitiesPage from './pages/IdentitiesPage.vue'
+import IdentityFormPage from './pages/IdentityFormPage.vue'
 import MountsPage from './pages/MountsPage.vue'
 import RecoveryPage from './pages/RecoveryPage.vue'
 import RecoveryDetailPage from './pages/RecoveryDetailPage.vue'
@@ -35,6 +36,8 @@ export const routes = [
   { path: '/admin/apps/create', name: 'admin-app-create', component: AppCreatePage, meta: { title: 'New app' } },
   { path: '/admin/apps/:clientId', name: 'admin-app', component: AppDetailPage, meta: { title: 'App details' } },
   { path: '/admin/identities', name: 'admin-identities', component: IdentitiesPage, meta: { title: 'Sign-in methods' } },
+  { path: '/admin/identities/new', name: 'admin-identity-new', component: IdentityFormPage, meta: { title: 'Add sign-in method' } },
+  { path: '/admin/identities/:id(\\d+)/edit', name: 'admin-identity-edit', component: IdentityFormPage, meta: { title: 'Edit sign-in method' } },
   { path: '/admin/mounts', name: 'admin-mounts', component: MountsPage, meta: { title: 'Endpoints' } },
   { path: '/admin/recovery', name: 'admin-recovery', component: RecoveryPage, meta: { title: 'Recovery requests' } },
   { path: '/admin/recovery/:id([0-9A-HJKMNP-TV-Z]{26})', name: 'admin-recovery-detail', component: RecoveryDetailPage, meta: { title: 'Request details' } },
