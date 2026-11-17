@@ -16,7 +16,7 @@ const { t } = useT()
 
 export function usePageData(pageName, buildPath) {
   const initial = inject('initialPage')
-  const data = ref(initial && initial.name === pageName ? initial.data : null)
+  const data = ref(initial && initial.page === pageName ? initial.data : null)
   const loading = ref(!data.value)
   const error = ref('')
 
