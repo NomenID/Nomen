@@ -1116,7 +1116,6 @@
   "Use your own if you have one; otherwise leave empty and fill in the parent email below": "있으면 내 이메일을 입력하고, 없으면 비워 둔 채 아래 보호자 이메일을 입력해 주세요",
   "Used at": "사용 시각",
   "Used for": "하는 일",
-  "Used for notifications and account recovery. Change it in Email addresses below": "알림 보내기와 계정 찾기에 쓰여요. 바꾸려면 아래 '이메일 주소'에서 설정하세요",
   "User info": "사용자 정보",
   "User not found": "사용자가 없어요",
   "User not found or disabled": "사용자가 없거나 비활성 상태예요",
@@ -1191,7 +1190,6 @@
   "Y-m-d": "Y-m-d",
   "You already have {:max} addresses. Remove one before adding another.": "이메일이 이미 {:max}개까지 연결되어 있어요. 새로 추가하려면 먼저 하나를 제거하세요.",
   "You can bind up to {:n} emails. Notifications and account recovery use the primary one; any verified address works for signing in.": "이메일은 최대 {:n}개까지 연결할 수 있어요. 알림과 계정 찾기에는 '기본' 이메일을 쓰고, 로그인할 때는 인증된 주소라면 어느 것이든 쓸 수 있어요.",
-  "You can bind your own address in Email addresses below": "아래 '이메일 주소'에서 내 이메일을 연결할 수 있어요",
   "You can read our full privacy policy: ": "전체 개인정보 처리방침은 여기서 볼 수 있어요: ",
   "You can read our full privacy policy: {:url}": "전체 개인정보 처리방침은 여기서 볼 수 있어요: {:url}",
   "You can use the email bound to this account, or a temp email if the account's address isn't available": "현재 계정에 연결된 이메일을 입력할 수 있어요. 다만 계정 이메일을 쓸 수 없을 때는 임시 이메일을 사용할 수 있어요",
@@ -1860,5 +1858,9 @@
   "{:total} users": "사용자 {:total}명",
   "Policies": "정책",
   "Additional terms": "추가 약관",
-  "Add": "추가"
+  "Add": "추가",
+  "Preferences": "Preferences",
+  "Sign-in and devices": "Sign-in and devices",
+  "Used for notifications and account recovery. Change it in Email addresses.": "Used for notifications and account recovery. Change it in Email addresses.",
+  "You can bind your own address in Email addresses.": "You can bind your own address in Email addresses."
 }

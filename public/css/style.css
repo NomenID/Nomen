@@ -1897,6 +1897,81 @@ form[data-submitting="1"] button:not([type]) {
     max-width: 480px;
 }
 
+/* 设置页：左侧分类导航 + 右侧子页 */
+.settings-layout {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+}
+
+.settings-nav {
+    position: sticky;
+    top: 84px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--color-radius-lg);
+}
+
+.settings-nav__link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: var(--color-radius);
+    color: var(--color-text-muted);
+    font-size: 14px;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+}
+
+.settings-nav__link:hover {
+    background: var(--color-bg-tertiary);
+    color: var(--color-text);
+}
+
+.settings-nav__link.is-active {
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+.settings-nav__link .icon {
+    flex-shrink: 0;
+}
+
+.settings-content {
+    min-width: 0;
+}
+
+@media (max-width: 860px) {
+    .settings-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .settings-nav {
+        position: static;
+        flex-direction: row;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .settings-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .settings-nav__link {
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+}
+
 /* ========== Info Grid ========== */
 .info-grid {
     display: flex;

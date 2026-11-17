@@ -92,6 +92,6 @@ class EmailController
     /** 本人已登录就回设置页，否则回登录页（点链接的人不一定是账号主，别把人塞进别人的会话） */
     private function backFromEmail(int $userId): string
     {
-        return (int)Session::get('user_id') === $userId ? '/settings' : '/login';
+        return (int)Session::get('user_id') === $userId ? '/settings/security#sec-emails' : '/login';
     }
 }

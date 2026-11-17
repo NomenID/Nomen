@@ -59,7 +59,7 @@ class DashboardController
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
             if ($isAjax) Response::json(['success' => false, 'message' => t('Invalid request, try again')]);
             Session::flash('error', t('Invalid request, try again'));
-            Response::redirect('/settings#sec-profile');
+            Response::redirect('/settings/profile#sec-profile');
         }
 
         $userId = Session::get('user_id');
@@ -89,7 +89,7 @@ class DashboardController
             Response::json(['success' => true, 'message' => t('Profile updated')]);
         }
         Session::flash('success', t('Profile updated'));
-        Response::redirect('/settings#sec-profile');
+        Response::redirect('/settings/profile#sec-profile');
     }
 
     /**
@@ -98,7 +98,7 @@ class DashboardController
     public function changePassword(): void
     {
         $recoveryMode = RecoveryHelper::isActiveFor((int)Session::get('user_id'));
-        $fallback = $recoveryMode ? '/recovery/secure#sec-password' : '/settings#sec-password';
+        $fallback = $recoveryMode ? '/recovery/secure#sec-password' : '/settings/security#sec-password';
         $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
                   strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
@@ -385,7 +385,7 @@ class DashboardController
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
             if ($isAjax) Response::json(['success' => false, 'message' => t('Invalid request')]);
             Session::flash('error', t('Invalid request'));
-            Response::redirect('/settings');
+            Response::redirect('/settings/access#sec-devices');
         }
 
         $deviceId = trim($_POST['device_id'] ?? '');
@@ -393,14 +393,14 @@ class DashboardController
         if (!$deviceId) {
             if ($isAjax) Response::json(['success' => false, 'message' => t('Missing device ID')]);
             Session::flash('error', t('Missing device ID'));
-            Response::redirect('/settings');
+            Response::redirect('/settings/access#sec-devices');
         }
 
         $currentDeviceId = $_COOKIE['caellab_device_id'] ?? '';
         if ($deviceId === $currentDeviceId) {
             if ($isAjax) Response::json(['success' => false, 'message' => t('The current device can\'t be revoked')]);
             Session::flash('error', t('The current device can\'t be revoked'));
-            Response::redirect('/settings');
+            Response::redirect('/settings/access#sec-devices');
         }
 
         $stmt = $this->db->prepare('SELECT device_name FROM user_devices WHERE user_id = :u AND device_id = :d LIMIT 1');
@@ -434,7 +434,7 @@ class DashboardController
             'summary'  => '移除设备「' . $deviceName . '」',
         ]);
         Session::flash('success', t('Device trust revoked, related Tokens invalidated'));
-        Response::redirect('/settings');
+        Response::redirect('/settings/access#sec-devices');
     }
 
     public function revokeAllDevices(): void
@@ -446,7 +446,7 @@ class DashboardController
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
             if ($isAjax) Response::json(['success' => false, 'message' => t('Invalid request')]);
             Session::flash('error', t('Invalid request'));
-            Response::redirect('/settings');
+            Response::redirect('/settings/access#sec-devices');
         }
 
         $currentDeviceId = $_COOKIE['caellab_device_id'] ?? '';
@@ -469,7 +469,7 @@ class DashboardController
             'summary'  => '移除其他全部设备',
         ]);
         Session::flash('success', t('All other devices revoked, related Tokens invalidated'));
-        Response::redirect('/settings');
+        Response::redirect('/settings/access#sec-devices');
     }
 
     /**
@@ -484,14 +484,14 @@ class DashboardController
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
             if ($isAjax) Response::json(['success' => false, 'message' => t('Invalid request')]);
             Session::flash('error', t('Invalid request'));
-            Response::redirect('/settings#sec-2fa');
+            Response::redirect('/settings/security#sec-2fa');
         }
 
         $policy = $_POST['policy'] ?? '';
         if (!in_array($policy, ['new_device', 'every_login'], true)) {
             if ($isAjax) Response::json(['success' => false, 'message' => t('Invalid policy option')]);
             Session::flash('error', t('Invalid policy option'));
-            Response::redirect('/settings#sec-2fa');
+            Response::redirect('/settings/security#sec-2fa');
         }
 
         // 防止自我锁死：「每次登录都验证」必须至少有一个第二因素可用
@@ -508,7 +508,7 @@ class DashboardController
                 $msg = t('Verify an email or set up an authenticator app before turning on “Verify at every sign-in”');
                 if ($isAjax) Response::json(['success' => false, 'message' => $msg]);
                 Session::flash('error', $msg);
-                Response::redirect('/settings#sec-2fa');
+                Response::redirect('/settings/security#sec-2fa');
             }
         }
 
@@ -534,7 +534,7 @@ class DashboardController
             Response::json(['success' => true, 'message' => t('Two-step verification policy updated')]);
         }
         Session::flash('success', t('Two-step verification policy updated'));
-        Response::redirect('/settings#sec-2fa');
+        Response::redirect('/settings/security#sec-2fa');
     }
 
     /**
@@ -549,14 +549,14 @@ class DashboardController
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
             if ($isAjax) Response::json(['success' => false, 'message' => t('Invalid request, try again')]);
             Session::flash('error', t('Invalid request, try again'));
-            Response::redirect('/settings');
+            Response::redirect('/settings/prefs#sec-locale');
             return;
         }
 
         if (!I18n::switchingAllowed()) {
             if ($isAjax) Response::json(['success' => false, 'message' => t('This site does not allow switching languages')]);
             Session::flash('error', t('This site does not allow switching languages'));
-            Response::redirect('/settings');
+            Response::redirect('/settings/prefs#sec-locale');
             return;
         }
 
@@ -565,7 +565,7 @@ class DashboardController
         if (!I18n::isValid($slug)) {
             if ($isAjax) Response::json(['success' => false, 'message' => t('Unsupported language')]);
             Session::flash('error', t('Unsupported language'));
-            Response::redirect('/settings');
+            Response::redirect('/settings/prefs#sec-locale');
             return;
         }
 
@@ -589,7 +589,7 @@ class DashboardController
             Response::json(['success' => true, 'message' => t('Language updated')]);
         }
         Session::flash('success', t('Language updated'));
-        Response::redirect('/settings');
+        Response::redirect('/settings/prefs#sec-locale');
     }
 
     /**
@@ -604,7 +604,7 @@ class DashboardController
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
             if ($isAjax) Response::json(['success' => false, 'message' => t('Invalid request, try again')]);
             Session::flash('error', t('Invalid request, try again'));
-            Response::redirect('/settings');
+            Response::redirect('/settings/prefs#sec-skin');
             return;
         }
 
@@ -613,7 +613,7 @@ class DashboardController
         if (!Skins::exists($slug)) {
             if ($isAjax) Response::json(['success' => false, 'message' => t('Unknown skin')]);
             Session::flash('error', t('Unknown skin'));
-            Response::redirect('/settings');
+            Response::redirect('/settings/prefs#sec-skin');
             return;
         }
 
@@ -637,7 +637,7 @@ class DashboardController
             Response::json(['success' => true, 'message' => t('Appearance updated')]);
         }
         Session::flash('success', t('Appearance updated'));
-        Response::redirect('/settings');
+        Response::redirect('/settings/prefs#sec-skin');
     }
 
     /**
@@ -651,7 +651,7 @@ class DashboardController
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
             if ($isAjax) Response::json(['success' => false, 'message' => t('Invalid request, try again')]);
             Session::flash('error', t('Invalid request, try again'));
-            Response::redirect('/settings#sec-notifications');
+            Response::redirect('/settings/prefs#sec-notifications');
             return;
         }
 
@@ -680,7 +680,7 @@ class DashboardController
             Response::json(['success' => true, 'message' => t('Notification preferences updated')]);
         }
         Session::flash('success', t('Notification preferences updated'));
-        Response::redirect('/settings#sec-notifications');
+        Response::redirect('/settings/prefs#sec-notifications');
     }
 
     /**
@@ -922,7 +922,7 @@ class DashboardController
     /** 邮箱相关动作该回哪个页面：恢复模式下回修复页，否则回设置页 */
     private function backFromEmail(int $userId): string
     {
-        return RecoveryHelper::isActiveFor($userId) ? '/recovery/secure' : '/settings';
+        return RecoveryHelper::isActiveFor($userId) ? '/recovery/secure' : '/settings/security';
     }
 
     private function emailVerifyUrl(string $token): string
@@ -1019,7 +1019,7 @@ class DashboardController
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
             if ($isAjax) Response::json(['success' => false, 'message' => t('Invalid request')]);
             Session::flash('error', t('Invalid request'));
-            Response::redirect('/settings');
+            Response::redirect('/settings/security#sec-reset-code');
         }
 
         // 频率限制（共用邮箱限速池）
@@ -1027,7 +1027,7 @@ class DashboardController
         if (!$rateCheck['allowed']) {
             if ($isAjax) Response::json(['success' => false, 'message' => $rateCheck['message'], 'retry_after' => $rateCheck['retry_after']]);
             Session::flash('error', $rateCheck['message']);
-            Response::redirect('/settings');
+            Response::redirect('/settings/security#sec-reset-code');
         }
 
         // 获取用户邮箱（未成年账号落的是监护人邮箱）
@@ -1040,7 +1040,7 @@ class DashboardController
         if ($contact === null) {
             if ($isAjax) Response::json(['success' => false, 'message' => t('The account has no usable mailbox — contact support')]);
             Session::flash('error', t('The account has no usable mailbox — contact support (id@caellab.com)'));
-            Response::redirect('/settings');
+            Response::redirect('/settings/security#sec-reset-code');
         }
 
         // 生成6位验证码
@@ -1070,7 +1070,7 @@ class DashboardController
             Session::flash('error', t('Email failed to send, try again later'));
         }
 
-        Response::redirect('/settings');
+        Response::redirect('/settings/security#sec-reset-code');
     }
 
     /**
@@ -1085,7 +1085,7 @@ class DashboardController
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
             if ($isAjax) Response::json(['success' => false, 'message' => t('Invalid request')]);
             Session::flash('error', t('Invalid request'));
-            Response::redirect('/settings');
+            Response::redirect('/settings/security#sec-reset-code');
         }
 
         $code = trim($_POST['reset_code'] ?? '');
@@ -1095,19 +1095,19 @@ class DashboardController
         if (!$code || !$newPassword || !$confirmPassword) {
             if ($isAjax) Response::json(['success' => false, 'message' => t('Please fill in all fields')]);
             Session::flash('error', t('Please fill in all fields'));
-            Response::redirect('/settings');
+            Response::redirect('/settings/security#sec-reset-code');
         }
 
         if (strlen($newPassword) < 8 || !preg_match('/[a-zA-Z]/', $newPassword) || !preg_match('/[0-9]/', $newPassword)) {
             if ($isAjax) Response::json(['success' => false, 'message' => t('New password needs 8+ characters with letters and digits')]);
             Session::flash('error', t('New password needs 8+ characters with letters and digits'));
-            Response::redirect('/settings');
+            Response::redirect('/settings/security#sec-reset-code');
         }
 
         if ($newPassword !== $confirmPassword) {
             if ($isAjax) Response::json(['success' => false, 'message' => t('The two new passwords don\'t match')]);
             Session::flash('error', t('The two new passwords don\'t match'));
-            Response::redirect('/settings');
+            Response::redirect('/settings/security#sec-reset-code');
         }
 
         // 查找用户验证码
@@ -1121,14 +1121,14 @@ class DashboardController
         if (!$user['password_reset_code'] || !hash_equals($user['password_reset_code'], $code)) {
             if ($isAjax) Response::json(['success' => false, 'message' => t('Wrong code')]);
             Session::flash('error', t('Wrong code'));
-            Response::redirect('/settings');
+            Response::redirect('/settings/security#sec-reset-code');
         }
 
         // 检查是否过期
         if (strtotime($user['password_reset_code_expires_at']) < time()) {
             if ($isAjax) Response::json(['success' => false, 'message' => t('The code expired — send a new one')]);
             Session::flash('error', t('The code expired — send a new one'));
-            Response::redirect('/settings');
+            Response::redirect('/settings/security#sec-reset-code');
         }
 
         // 重置密码
@@ -1139,7 +1139,7 @@ class DashboardController
             || password_verify($newPassword, $user['password_hash'])) {
             if ($isAjax) Response::json(['success' => false, 'message' => t('New password must differ from the current one')]);
             Session::flash('error', t('New password must differ from the current one'));
-            Response::redirect('/settings');
+            Response::redirect('/settings/security#sec-reset-code');
         }
 
         $newHash = password_hash($newPassword . $pepper, PASSWORD_ARGON2ID);
@@ -1160,7 +1160,7 @@ class DashboardController
 
         if ($isAjax) Response::json(['success' => true, 'message' => t('Password reset, other devices signed out')]);
         Session::flash('success', t('Password reset, other devices signed out'));
-        Response::redirect('/settings');
+        Response::redirect('/settings/security#sec-reset-code');
     }
 
     /**
@@ -1174,19 +1174,19 @@ class DashboardController
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
             if ($isAjax) Response::json(['success' => false, 'message' => t('Invalid request')]);
-            Response::redirect('/settings');
+            Response::redirect('/settings/profile#sec-avatar');
         }
 
         if (empty($_FILES['avatar'])) {
             if ($isAjax) Response::json(['success' => false, 'message' => t('Pick an avatar to upload')]);
-            Response::redirect('/settings');
+            Response::redirect('/settings/profile#sec-avatar');
         }
 
         $filename = $this->processAvatarUpload($_FILES['avatar']);
 
         if ($filename === null) {
             if ($isAjax) Response::json(['success' => false, 'message' => t('Avatar upload failed — check the file format and size')]);
-            Response::redirect('/settings');
+            Response::redirect('/settings/profile#sec-avatar');
         }
 
         // 获取旧头像文件名，以便删除
@@ -1224,7 +1224,7 @@ class DashboardController
             Response::json(['success' => true, 'message' => t('Avatar updated'), 'avatar_url' => '/assets/avatars/' . $filename]);
         }
         Session::flash('success', t('Avatar updated'));
-        Response::redirect('/settings');
+        Response::redirect('/settings/profile#sec-avatar');
     }
 
     /**

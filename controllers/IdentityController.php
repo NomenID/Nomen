@@ -25,7 +25,7 @@ class IdentityController
 
         $loggedIn = (bool)Session::get('user_id');
         $link = $loggedIn && ($_GET['link'] ?? '') !== 'no';
-        $redirectTo = $link ? '/settings' : $this->safeRedirect((string)($_GET['redirect_to'] ?? '/dashboard'));
+        $redirectTo = $link ? '/settings/access#sec-identities' : $this->safeRedirect((string)($_GET['redirect_to'] ?? '/dashboard'));
 
         Response::redirect(IdentityAuth::begin($provider, $link, $redirectTo, !empty($_GET['temporary'])));
     }
@@ -170,7 +170,7 @@ class IdentityController
         ]);
 
         Session::flash('success', t('{:name} is now linked — you can use it to sign in next time', ['name' => $provider['name']]));
-        Response::redirect('/settings');
+        Response::redirect('/settings/access#sec-identities');
     }
 
     /** @return array|null 落库后的用户行；失败时已经输出错误并返回 null */
@@ -368,7 +368,7 @@ class IdentityController
     private function fail(string $message): void
     {
         Session::flash('error', $message);
-        $target = Session::get('user_id') ? '/settings' : '/login';
+        $target = Session::get('user_id') ? '/settings/access#sec-identities' : '/login';
         Response::redirect($target);
     }
 }

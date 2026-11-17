@@ -1116,7 +1116,6 @@
   "Use your own if you have one; otherwise leave empty and fill in the parent email below": "Есть своя — укажите её; нет — оставьте поле пустым и впишите почту родителя ниже",
   "Used at": "Использован",
   "Used for": "За что отвечает",
-  "Used for notifications and account recovery. Change it in Email addresses below": "Используется для уведомлений и восстановления аккаунта. Сменить — в разделе «Адреса почты» ниже",
   "User info": "Данные пользователя",
   "User not found": "Пользователь не найден",
   "User not found or disabled": "Пользователь не найден или отключён",
@@ -1191,7 +1190,6 @@
   "Y-m-d": "d.m.Y",
   "You already have {:max} addresses. Remove one before adding another.": "У вас уже {:max} адресов. Чтобы добавить новый, сначала удалите один.",
   "You can bind up to {:n} emails. Notifications and account recovery use the primary one; any verified address works for signing in.": "Можно привязать до {:n} адресов. Уведомления и восстановление аккаунта идут на основную почту; для входа подойдёт любой подтверждённый адрес.",
-  "You can bind your own address in Email addresses below": "Свою почту можно привязать в разделе «Адреса почты» ниже",
   "You can read our full privacy policy: ": "Наша полная политика конфиденциальности: ",
   "You can read our full privacy policy: {:url}": "Полную политику конфиденциальности можно прочитать здесь: {:url}",
   "You can use the email bound to this account, or a temp email if the account's address isn't available": "Можно указать почту, привязанную к аккаунту, а если она недоступна — временный адрес",
@@ -1860,5 +1858,9 @@
   "{:total} users": "Пользователей: {:total}",
   "Policies": "Политики",
   "Additional terms": "Дополнительные условия",
-  "Add": "Добавить"
+  "Add": "Добавить",
+  "Preferences": "Preferences",
+  "Sign-in and devices": "Sign-in and devices",
+  "Used for notifications and account recovery. Change it in Email addresses.": "Used for notifications and account recovery. Change it in Email addresses.",
+  "You can bind your own address in Email addresses.": "You can bind your own address in Email addresses."
 }

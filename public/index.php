@@ -286,7 +286,13 @@ $router->post('/oauth/revoke',    [OAuthController::class, 'revoke']);
 
 // 用户仪表盘（需登录）
 $router->get('/dashboard', [DashboardController::class, 'index'], ['auth']);
-$router->get('/settings',  [DashboardController::class, 'settings'], ['auth']);
+$router->get('/settings',           function () {
+    Response::redirect('/settings/profile');
+}, ['auth']);
+$router->get('/settings/profile',  [DashboardController::class, 'settings'], ['auth']);
+$router->get('/settings/security', [DashboardController::class, 'settings'], ['auth']);
+$router->get('/settings/access',   [DashboardController::class, 'settings'], ['auth']);
+$router->get('/settings/prefs',    [DashboardController::class, 'settings'], ['auth']);
 $router->post('/settings/profile',  [DashboardController::class, 'updateProfile'], ['auth']);
 $router->post('/settings/avatar',  [DashboardController::class, 'uploadAvatar'], ['auth']);
 $router->post('/settings/password', [DashboardController::class, 'changePassword'], ['auth']);

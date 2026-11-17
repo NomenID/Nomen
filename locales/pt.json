@@ -1116,7 +1116,6 @@
   "Use your own if you have one; otherwise leave empty and fill in the parent email below": "Use o seu se tiver; se não, deixe vazio e informe o email do responsável abaixo",
   "Used at": "Usado em",
   "Used for": "Para que serve",
-  "Used for notifications and account recovery. Change it in Email addresses below": "Usado para avisos e recuperação de conta. Para trocar, use «Endereços de email» abaixo",
   "User info": "Informação do utilizador",
   "User not found": "Usuário não encontrado",
   "User not found or disabled": "Usuário não encontrado ou desativado",
@@ -1191,7 +1190,6 @@
   "Y-m-d": "d/m/Y",
   "You already have {:max} addresses. Remove one before adding another.": "Você já tem {:max} endereços. Remova um antes de adicionar outro.",
   "You can bind up to {:n} emails. Notifications and account recovery use the primary one; any verified address works for signing in.": "Você pode vincular até {:n} emails. Avisos e recuperação de conta usam o «principal»; qualquer endereço verificado serve para entrar.",
-  "You can bind your own address in Email addresses below": "Você pode vincular um email seu em «Endereços de email» abaixo",
   "You can read our full privacy policy: ": "Você pode ler nossa política de privacidade completa: ",
   "You can read our full privacy policy: {:url}": "Pode ler a nossa política de privacidade completa: {:url}",
   "You can use the email bound to this account, or a temp email if the account's address isn't available": "Você pode usar o email vinculado à conta atual, ou um email temporário se o endereço da conta não estiver disponível",
@@ -1860,5 +1858,9 @@
   "{:total} users": "{:total} usuários",
   "Policies": "Políticas",
   "Additional terms": "Termos adicionais",
-  "Add": "Adicionar"
+  "Add": "Adicionar",
+  "Preferences": "Preferences",
+  "Sign-in and devices": "Sign-in and devices",
+  "Used for notifications and account recovery. Change it in Email addresses.": "Used for notifications and account recovery. Change it in Email addresses.",
+  "You can bind your own address in Email addresses.": "You can bind your own address in Email addresses."
 }

@@ -234,6 +234,19 @@ const settingsPage = {
       { slug: 'en', name: 'English', english: 'English' },
     ],
     currentLocale: 'zh-hans',
+    features: { country: true, guardians: true },
+    skins: [
+      { slug: 'nomen-2026', name: 'Nomen 2026' },
+      { slug: 'nomen-ssr', name: 'Nomen SSR' },
+    ],
+    currentSkin: 'nomen-2026',
+    identities: [
+      { provider_id: 1, provider_slug: 'caellabid', provider_name: 'CaelLabID', display_name: '云云', email: 'yunyun@caellab.com' },
+    ],
+    identityProviders: [
+      { slug: 'caellabid', name: 'CaelLabID' },
+      { slug: 'github', name: 'GitHub' },
+    ],
     activeTokens: [
       { deviceId: 'dev-1', deviceName: 'Chrome · Windows', isCurrent: true, meta: 'IP: 1.2.3.4 · 首次: 2026-11-01 09:00 · 最近: 2026-11-04 22:00' },
     ],

@@ -73,7 +73,7 @@ class EmailTemplate
         $blocks    = $opts['blocks'] ?? [];
         $button    = $opts['button'] ?? null;
         $footnote  = $x((string)($opts['footnote'] ?? ''));
-        $prefsUrl  = (string)($opts['prefs_url'] ?? self::url('/settings#sec-notifications'));
+        $prefsUrl  = (string)($opts['prefs_url'] ?? self::url('/settings/prefs#sec-notifications'));
 
         foreach ($blocks as $i => $b) {
             switch ($b['type'] ?? 'paragraph') {
@@ -368,7 +368,7 @@ HTML;
             'title'      => $title,
             'blocks'     => $blocks,
             'button'     => ['text' => I18n::tIn($locale, 'Open in Nomen'), 'url' => $url],
-            'prefs_url'  => self::url('/settings#sec-notifications'),
+            'prefs_url'  => self::url('/settings/prefs#sec-notifications'),
         ], $locale);
     }
 }

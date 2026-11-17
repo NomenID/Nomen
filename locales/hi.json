@@ -1116,7 +1116,6 @@
   "Use your own if you have one; otherwise leave empty and fill in the parent email below": "अपना ईमेल हो तो वही डालें; न हो तो खाली छोड़ें और नीचे अभिभावक का ईमेल भरें",
   "Used at": "उपयोग का समय",
   "Used for": "किस काम आता है",
-  "Used for notifications and account recovery. Change it in Email addresses below": "सूचनाओं और खाता वापस पाने में इसी का उपयोग होता है। बदलना हो तो नीचे “ईमेल पते” में करें",
   "User info": "उपयोगकर्ता जानकारी",
   "User not found": "उपयोगकर्ता नहीं मिला",
   "User not found or disabled": "उपयोगकर्ता नहीं मिला या अक्षम है",
@@ -1191,7 +1190,6 @@
   "Y-m-d": "d/m/Y",
   "You already have {:max} addresses. Remove one before adding another.": "आपके {:max} पते पहले से जुड़े हैं। नया जोड़ने से पहले एक हटाएँ।",
   "You can bind up to {:n} emails. Notifications and account recovery use the primary one; any verified address works for signing in.": "आप अधिकतम {:n} ईमेल जोड़ सकते हैं। सूचनाएँ और खाता वापस पाना “प्राथमिक” वाले से होता है; साइन इन के लिए कोई भी सत्यापित पता चलेगा।",
-  "You can bind your own address in Email addresses below": "नीचे “ईमेल पते” में अपना ईमेल जोड़ सकते हैं",
   "You can read our full privacy policy: ": "आप हमारी पूरी प्राइवेसी नीति पढ़ सकते हैं: ",
   "You can read our full privacy policy: {:url}": "हमारी पूरी गोपनीयता नीति यहाँ पढ़ सकते हैं: {:url}",
   "You can use the email bound to this account, or a temp email if the account's address isn't available": "आप इस खाते से जुड़ा ईमेल डाल सकते हैं, और अगर खाते का ईमेल उपलब्ध न हो तो अस्थायी ईमेल इस्तेमाल करें",
@@ -1860,5 +1858,9 @@
   "{:loaded} enabled, {:bundled} bundled with the release: {:list}": "{:loaded} सक्षम, {:bundled} रिलीज़ के साथ: {:list}",
   "{:total} entries": "{:total} प्रविष्टियाँ",
   "{:total} in total": "कुल {:total}",
-  "{:total} users": "{:total} उपयोगकर्ता"
+  "{:total} users": "{:total} उपयोगकर्ता",
+  "Preferences": "Preferences",
+  "Sign-in and devices": "Sign-in and devices",
+  "Used for notifications and account recovery. Change it in Email addresses.": "Used for notifications and account recovery. Change it in Email addresses.",
+  "You can bind your own address in Email addresses.": "You can bind your own address in Email addresses."
 }

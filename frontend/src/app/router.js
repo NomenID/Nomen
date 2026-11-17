@@ -10,6 +10,10 @@ import { createRouter, createWebHistory, createMemoryHistory } from 'vue-router'
 import { currentPagePath, installQueryNavigation } from '../lib/url.js'
 import DashboardPage from './pages/DashboardPage.vue'
 import SettingsPage from './pages/SettingsPage.vue'
+import SettingsProfilePage from '../pages/settings/SettingsProfilePage.vue'
+import SettingsSecurityPage from '../pages/settings/SettingsSecurityPage.vue'
+import SettingsAccessPage from '../pages/settings/SettingsAccessPage.vue'
+import SettingsPreferencesPage from '../pages/settings/SettingsPreferencesPage.vue'
 import FamilyPage from './pages/FamilyPage.vue'
 import NotificationsPage from './pages/NotificationsPage.vue'
 import NotificationDetailPage from './pages/NotificationDetailPage.vue'
@@ -21,7 +25,18 @@ export const routes = [
   // dev harness 从 /dev/app.html 启动，把该路径重定向到仪表盘（生产环境不会命中）
   ...(import.meta.env.DEV ? [{ path: '/dev/app.html', redirect: '/dashboard' }] : []),
   { path: '/dashboard', name: 'dashboard', component: DashboardPage, meta: { title: t('Dashboard') } },
-  { path: '/settings', name: 'settings', component: SettingsPage, meta: { title: t('Settings') } },
+  {
+    path: '/settings',
+    component: SettingsPage,
+    meta: { title: t('Settings') },
+    children: [
+      { path: '', redirect: '/settings/profile' },
+      { path: 'profile', name: 'settings-profile', component: SettingsProfilePage, meta: { title: t('Profile') } },
+      { path: 'security', name: 'settings-security', component: SettingsSecurityPage, meta: { title: t('Security') } },
+      { path: 'access', name: 'settings-access', component: SettingsAccessPage, meta: { title: t('Sign-in and devices') } },
+      { path: 'prefs', name: 'settings-prefs', component: SettingsPreferencesPage, meta: { title: t('Preferences') } },
+    ],
+  },
   { path: '/family', name: 'family', component: FamilyPage, meta: { title: t('Family') } },
   { path: '/notifications', name: 'notifications', component: NotificationsPage, meta: { title: t('Messages') } },
   { path: '/notifications/:id(\\d+)', name: 'notification-detail', component: NotificationDetailPage, meta: { title: t('Message detail') } },

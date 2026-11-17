@@ -1116,7 +1116,6 @@
   "Use your own if you have one; otherwise leave empty and fill in the parent email below": "Αν έχετε, συμπληρώστε το δικό σας· αν όχι, αφήστε κενό και συμπληρώστε το email του γονέα παρακάτω",
   "Used at": "Χρόνος χρήσης",
   "Used for": "Σε τι χρησιμεύει",
-  "Used for notifications and account recovery. Change it in Email addresses below": "Οι ειδοποιήσεις και η ανάκτηση λογαριασμού χρησιμοποιούν αυτή τη διεύθυνση· για αλλαγή ορίστε την στο «Διεύθυνση email» παρακάτω",
   "User info": "Στοιχεία χρήστη",
   "User not found": "Ο χρήστης δεν βρέθηκε",
   "User not found or disabled": "Ο χρήστης δεν βρέθηκε ή είναι ανενεργός",
@@ -1191,7 +1190,6 @@
   "Y-m-d": "d/m/Y",
   "You already have {:max} addresses. Remove one before adding another.": "Έχετε φτάσει το όριο των {:max} email· αφαιρέστε ένα πριν προσθέσετε νέο.",
   "You can bind up to {:n} emails. Notifications and account recovery use the primary one; any verified address works for signing in.": "Μπορείτε να συνδέσετε έως {:n} email. Οι ειδοποιήσεις και η ανάκτηση λογαριασμού χρησιμοποιούν το «κύριο»· κατά τη σύνδεση οποιοδήποτε επαληθευμένο email είναι έγκυρο.",
-  "You can bind your own address in Email addresses below": "Στο «Διεύθυνση email» παρακάτω μπορείτε να συνδέσετε ένα δικό σας email",
   "You can read our full privacy policy: ": "Μπορείτε να διαβάσετε την πλήρη πολιτική απορρήτου μας:",
   "You can read our full privacy policy: {:url}": "Μπορείτε να διαβάσετε την πλήρη πολιτική απορρήτου μας: {:url}",
   "You can use the email bound to this account, or a temp email if the account's address isn't available": "Μπορείτε να συμπληρώσετε το συνδεδεμένο email του τρέχοντος λογαριασμού· αν το email του λογαριασμού δεν είναι διαθέσιμο, μπορείτε να χρησιμοποιήσετε προσωρινό email",
@@ -1860,5 +1858,9 @@
   "{:total} users": "{:total} χρήστες",
   "Policies": "Πολιτικές",
   "Additional terms": "Πρόσθετοι όροι",
-  "Add": "Προσθήκη"
+  "Add": "Προσθήκη",
+  "Preferences": "Preferences",
+  "Sign-in and devices": "Sign-in and devices",
+  "Used for notifications and account recovery. Change it in Email addresses.": "Used for notifications and account recovery. Change it in Email addresses.",
+  "You can bind your own address in Email addresses.": "You can bind your own address in Email addresses."
 }

@@ -1116,7 +1116,6 @@
   "Use your own if you have one; otherwise leave empty and fill in the parent email below": "有就填自己的；沒有就留空，填下面的家長信箱",
   "Used at": "使用時間",
   "Used for": "管什麼",
-  "Used for notifications and account recovery. Change it in Email addresses below": "發通知、找回帳號都用它；要換在下面「電子郵件地址」裡設",
   "User info": "User info",
   "User not found": "使用者不存在",
   "User not found or disabled": "使用者不存在或已停用",
@@ -1191,7 +1190,6 @@
   "Y-m-d": "Y年m月d日",
   "You already have {:max} addresses. Remove one before adding another.": "已經綁滿 {:max} 個信箱，要加新的請先移除一個。",
   "You can bind up to {:n} emails. Notifications and account recovery use the primary one; any verified address works for signing in.": "最多可以綁定 {:n} 個信箱。發通知、找回帳號用的是「首選」那一個；登入時任何一個已驗證的信箱都能用。",
-  "You can bind your own address in Email addresses below": "在下面「電子郵件地址」裡可以綁定一個屬於你自己的信箱",
   "You can read our full privacy policy: ": "你可以閱讀我們的完整隱私權政策：",
   "You can read our full privacy policy: {:url}": "您可以閱讀我們的完整隱私權政策：{:url}",
   "You can use the email bound to this account, or a temp email if the account's address isn't available": "您可以填寫目前帳號的綁定信箱，但當帳號的信箱無法使用時，可以使用臨時電子郵件地址",
@@ -1860,5 +1858,9 @@
   "{:total} users": "共 {:total} 個使用者",
   "Policies": "政策",
   "Additional terms": "附加條款",
-  "Add": "新增"
+  "Add": "新增",
+  "Preferences": "偏好",
+  "Sign-in and devices": "登入與裝置",
+  "Used for notifications and account recovery. Change it in Email addresses.": "發通知、找回帳號都用它；要換在「電子郵件地址」裡設",
+  "You can bind your own address in Email addresses.": "在「電子郵件地址」裡可以綁定一個屬於你自己的信箱"
 }

@@ -946,7 +946,7 @@ class RecoveryController
             'blocks'    => [
                 ['type' => 'paragraph', 'text' => $body],
             ],
-            'button'    => ['text' => 'Open {:sitename}', 'url' => EmailTemplate::url('/settings')],
+            'button'    => ['text' => 'Open {:sitename}', 'url' => EmailTemplate::url('/settings/security')],
         ], $locale));
     }
 }

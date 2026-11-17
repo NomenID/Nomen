@@ -1674,7 +1674,6 @@
     "Used for": "Used for",
     "Used for HTTPS, SMTP and passkeys.": "Used for HTTPS, SMTP and passkeys.",
     "Used for multilingual text and string handling.": "Used for multilingual text and string handling.",
-    "Used for notifications and account recovery. Change it in Email addresses below": "Used for notifications and account recovery. Change it in Email addresses below",
     "Used for password recovery and admin notifications; it counts as verified right away.": "Used for password recovery and admin notifications; it counts as verified right away.",
     "Used in the callback URL; lowercase letters, digits and hyphens only": "Used in the callback URL; lowercase letters, digits and hyphens only",
     "Used when the visitor's browser language does not match.": "Used when the visitor's browser language does not match.",
@@ -1768,7 +1767,6 @@
     "You already have {:max} addresses. Remove one before adding another.": "You already have {:max} addresses. Remove one before adding another.",
     "You can also continue without it: the site will use index.php?page= links, and you can switch later in config/installed.php.": "You can also continue without it: the site will use index.php?page= links, and you can switch later in config/installed.php.",
     "You can bind up to {:n} emails. Notifications and account recovery use the primary one; any verified address works for signing in.": "You can bind up to {:n} emails. Notifications and account recovery use the primary one; any verified address works for signing in.",
-    "You can bind your own address in Email addresses below": "You can bind your own address in Email addresses below",
     "You can read our full privacy policy: ": "You can read our full privacy policy: ",
     "You can read our full privacy policy: {:url}": "You can read our full privacy policy: {:url}",
     "You can use the email bound to this account, or a temp email if the account's address isn't available": "You can use the email bound to this account, or a temp email if the account's address isn't available",
@@ -1859,5 +1857,9 @@
     "{:total} entries": "{:total} entries",
     "{:total} in total": "{:total} in total",
     "{:total} users": "{:total} users",
-    "»": "»"
+    "»": "»",
+    "Preferences": "Preferences",
+    "Sign-in and devices": "Sign-in and devices",
+    "Used for notifications and account recovery. Change it in Email addresses.": "Used for notifications and account recovery. Change it in Email addresses.",
+    "You can bind your own address in Email addresses.": "You can bind your own address in Email addresses."
 }

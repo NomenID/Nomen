@@ -1116,7 +1116,6 @@
   "Use your own if you have one; otherwise leave empty and fill in the parent email below": "Jika ada, isi milik sendiri; jika tiada, kosongkan dan isi e-mel ibu bapa di bawah",
   "Used at": "Masa penggunaan",
   "Used for": "Kegunaan",
-  "Used for notifications and account recovery. Change it in Email addresses below": "Pemberitahuan dan pemulihan akaun menggunakan alamat ini; untuk menukarnya, tetapkan di “Alamat e-mel” di bawah",
   "User info": "Maklumat pengguna",
   "User not found": "Pengguna tidak ditemui",
   "User not found or disabled": "Pengguna tidak ditemui atau dinyahaktifkan",
@@ -1191,7 +1190,6 @@
   "Y-m-d": "d/m/Y",
   "You already have {:max} addresses. Remove one before adding another.": "Sudah mencapai had {:max} e-mel, padam satu sebelum menambah yang baharu.",
   "You can bind up to {:n} emails. Notifications and account recovery use the primary one; any verified address works for signing in.": "Maksimum {:n} e-mel boleh dipautkan. Pemberitahuan dan pemulihan akaun menggunakan e-mel “utama”; semasa log masuk, mana-mana e-mel yang disahkan boleh digunakan.",
-  "You can bind your own address in Email addresses below": "Di “Alamat e-mel” di bawah, anda boleh memautkan e-mel milik anda sendiri",
   "You can read our full privacy policy: ": "Anda boleh membaca dasar privasi penuh kami:",
   "You can read our full privacy policy: {:url}": "Anda boleh membaca dasar privasi penuh kami: {:url}",
   "You can use the email bound to this account, or a temp email if the account's address isn't available": "Anda boleh mengisi e-mel yang terpaut pada akaun semasa, tetapi jika e-mel akaun tidak tersedia, anda boleh menggunakan e-mel sementara",
@@ -1860,5 +1858,9 @@
   "{:total} users": "{:total} pengguna",
   "Policies": "Dasar",
   "Additional terms": "Terma tambahan",
-  "Add": "Tambah"
+  "Add": "Tambah",
+  "Preferences": "Preferences",
+  "Sign-in and devices": "Sign-in and devices",
+  "Used for notifications and account recovery. Change it in Email addresses.": "Used for notifications and account recovery. Change it in Email addresses.",
+  "You can bind your own address in Email addresses.": "You can bind your own address in Email addresses."
 }

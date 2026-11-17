@@ -734,7 +734,7 @@ class AuthController
                 ]],
                 ['type' => 'alert', 'tone' => 'danger', 'text' => 'If this wasn\'t you, change your password and delete that temp key right away.'],
             ],
-            'button'    => ['text' => 'Manage temp keys', 'url' => EmailTemplate::url('/settings')],
+            'button'    => ['text' => 'Manage temp keys', 'url' => EmailTemplate::url('/settings/access#sec-temp-keys')],
         ], $locale);
 
         // 未成年账号没有自己的邮箱，安全提醒发到监护人邮箱

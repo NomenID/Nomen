@@ -285,7 +285,7 @@ class FamilyController
             NotificationHelper::TYPE_SYSTEM_IMPORTANT,
             '家长为你创建了账号',
             '家长 ' . $user['username'] . ' 为你创建了账号 ' . $username . '。建议你登录后到设置里改掉初始密码。',
-            ['link' => '/settings']
+            ['link' => '/settings/security#sec-password']
         );
 
         $this->back('', t('Child account {:username} created. Hand the username and initial password to them — they can change the password after signing in.', ['username' => $username]));

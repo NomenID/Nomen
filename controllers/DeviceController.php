@@ -181,7 +181,7 @@ class DeviceController
                 ]],
                 ['type' => 'alert', 'tone' => 'danger', 'text' => 'If this wasn\'t you, change your password immediately and revoke that device\'s trust in settings.'],
             ],
-            'button'    => ['text' => 'View sign-in devices', 'url' => EmailTemplate::url('/settings')],
+            'button'    => ['text' => 'View sign-in devices', 'url' => EmailTemplate::url('/settings/access#sec-devices')],
         ], $locale);
     }
 }

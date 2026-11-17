@@ -1116,7 +1116,6 @@
   "Use your own if you have one; otherwise leave empty and fill in the parent email below": "Wenn Sie eine eigene haben, diese eintragen; sonst leer lassen und unten die Eltern-E-Mail angeben",
   "Used at": "Verwendet am",
   "Used for": "Zweck",
-  "Used for notifications and account recovery. Change it in Email addresses below": "Wird für Benachrichtigungen und die Konto-Wiederherstellung verwendet. Ändern Sie sie unten unter „E-Mail-Adressen“",
   "User info": "Benutzerinfo",
   "User not found": "Nutzer nicht gefunden",
   "User not found or disabled": "Nutzer nicht gefunden oder deaktiviert",
@@ -1191,7 +1190,6 @@
   "Y-m-d": "d.m.Y",
   "You already have {:max} addresses. Remove one before adding another.": "Es sind bereits {:max} Adressen hinterlegt. Entfernen Sie eine, bevor Sie eine neue hinzufügen.",
   "You can bind up to {:n} emails. Notifications and account recovery use the primary one; any verified address works for signing in.": "Sie können bis zu {:n} Adressen hinterlegen. Für Benachrichtigungen und die Konto-Wiederherstellung gilt die Primäradresse; zur Anmeldung funktioniert jede verifizierte Adresse.",
-  "You can bind your own address in Email addresses below": "Unten unter „E-Mail-Adressen“ können Sie Ihre eigene Adresse hinterlegen",
   "You can read our full privacy policy: ": "Sie können unsere vollständige Datenschutzrichtlinie lesen: ",
   "You can read our full privacy policy: {:url}": "Unsere vollständige Datenschutzerklärung können Sie hier lesen: {:url}",
   "You can use the email bound to this account, or a temp email if the account's address isn't available": "Sie können die hinterlegte Adresse dieses Kontos verwenden oder, falls sie nicht erreichbar ist, eine temporäre Adresse angeben",
@@ -1860,5 +1858,9 @@
   "{:total} users": "{:total} Benutzer",
   "Policies": "Richtlinien",
   "Additional terms": "Zusätzliche Bedingungen",
-  "Add": "Hinzufügen"
+  "Add": "Hinzufügen",
+  "Preferences": "Preferences",
+  "Sign-in and devices": "Sign-in and devices",
+  "Used for notifications and account recovery. Change it in Email addresses.": "Used for notifications and account recovery. Change it in Email addresses.",
+  "You can bind your own address in Email addresses.": "You can bind your own address in Email addresses."
 }

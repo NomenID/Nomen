@@ -1116,7 +1116,6 @@
   "Use your own if you have one; otherwise leave empty and fill in the parent email below": "নিজের থাকলে নিজেরটি দিন; না থাকলে খালি রাখুন এবং নিচে অভিভাবকের ইমেইল দিন",
   "Used at": "ব্যবহারের সময়",
   "Used for": "কী কাজে লাগে",
-  "Used for notifications and account recovery. Change it in Email addresses below": "বিজ্ঞপ্তি ও অ্যাকাউন্ট উদ্ধার—দুটোই এতে; বদলাতে নিচের ‘ইমেইল ঠিকানা’ থেকে সেট করুন",
   "User info": "ব্যবহারকারীর তথ্য",
   "User not found": "ব্যবহারকারী পাওয়া যায়নি",
   "User not found or disabled": "ব্যবহারকারী পাওয়া যায়নি বা নিষ্ক্রিয়",
@@ -1191,7 +1190,6 @@
   "Y-m-d": "d/m/Y",
   "You already have {:max} addresses. Remove one before adding another.": "ইতিমধ্যে {:max}টি ইমেইল যুক্ত হয়েছে, নতুন যোগ করতে আগে একটি সরান।",
   "You can bind up to {:n} emails. Notifications and account recovery use the primary one; any verified address works for signing in.": "সর্বোচ্চ {:n}টি ইমেইল যুক্ত করা যায়। বিজ্ঞপ্তি ও অ্যাকাউন্ট উদ্ধারে ‘প্রাথমিক’ ইমেইলটি ব্যবহৃত হয়; লগইনের সময় যেকোনো যাচাইকৃত ইমেইল ব্যবহার করা যায়।",
-  "You can bind your own address in Email addresses below": "নিচের ‘ইমেইল ঠিকানা’ থেকে নিজের একটি ইমেইল যুক্ত করতে পারেন",
   "You can read our full privacy policy: ": "আমাদের সম্পূর্ণ গোপনীয়তা নীতি পড়তে পারেন:",
   "You can read our full privacy policy: {:url}": "আমাদের সম্পূর্ণ গোপনীয়তা নীতি পড়তে পারেন: {:url}",
   "You can use the email bound to this account, or a temp email if the account's address isn't available": "আপনি বর্তমান অ্যাকাউন্টের যুক্ত ইমেইল দিতে পারেন, কিন্তু অ্যাকাউন্টের ইমেইল ব্যবহারযোগ্য না হলে সাময়িক ইমেইল ব্যবহার করতে পারেন",
@@ -1860,5 +1858,9 @@
   "{:loaded} enabled, {:bundled} bundled with the release: {:list}": "{:loaded}টি সক্রিয়, {:bundled}টি রিলিজের সাথে: {:list}",
   "{:total} entries": "{:total}টি প্রবিষ্টি",
   "{:total} in total": "মোট {:total}টি",
-  "{:total} users": "{:total} জন ব্যবহারকারী"
+  "{:total} users": "{:total} জন ব্যবহারকারী",
+  "Preferences": "Preferences",
+  "Sign-in and devices": "Sign-in and devices",
+  "Used for notifications and account recovery. Change it in Email addresses.": "Used for notifications and account recovery. Change it in Email addresses.",
+  "You can bind your own address in Email addresses.": "You can bind your own address in Email addresses."
 }

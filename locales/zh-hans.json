@@ -1116,7 +1116,6 @@
   "Use your own if you have one; otherwise leave empty and fill in the parent email below": "有就填自己的；没有就留空，填下面的家长邮箱",
   "Used at": "使用时间",
   "Used for": "管什么",
-  "Used for notifications and account recovery. Change it in Email addresses below": "发通知、找回账号都用它；要换在下面「邮箱地址」里设",
   "User info": "用户信息",
   "User not found": "用户不存在",
   "User not found or disabled": "用户不存在或已禁用",
@@ -1191,7 +1190,6 @@
   "Y-m-d": "Y年m月d日",
   "You already have {:max} addresses. Remove one before adding another.": "已经绑满 {:max} 个邮箱，要加新的请先移除一个。",
   "You can bind up to {:n} emails. Notifications and account recovery use the primary one; any verified address works for signing in.": "最多可以绑定 {:n} 个邮箱。发通知、找回账号用的是「首选」那一个；登录时任何一个已验证的邮箱都能用。",
-  "You can bind your own address in Email addresses below": "在下面「邮箱地址」里可以绑定一个属于你自己的邮箱",
   "You can read our full privacy policy: ": "你可以阅读我们的完整隐私政策：",
   "You can read our full privacy policy: {:url}": "你可以阅读我们的完整隐私政策：{:url}",
   "You can use the email bound to this account, or a temp email if the account's address isn't available": "您可以填写当前账号的绑定邮箱，但当账号的邮箱不可用时，可以使用临时邮箱",
@@ -1860,5 +1858,9 @@
   "{:total} users": "共 {:total} 个用户",
   "Policies": "政策",
   "Additional terms": "附加条款",
-  "Add": "添加"
+  "Add": "添加",
+  "Preferences": "偏好",
+  "Sign-in and devices": "登录与设备",
+  "Used for notifications and account recovery. Change it in Email addresses.": "发通知、找回账号都用它；要换在「邮箱地址」里设",
+  "You can bind your own address in Email addresses.": "在「邮箱地址」里可以绑定一个属于你自己的邮箱"
 }

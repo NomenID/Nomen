@@ -1116,7 +1116,6 @@
   "Use your own if you have one; otherwise leave empty and fill in the parent email below": "Varsa kendi adresinizi kullanın; yoksa boş bırakıp aşağıdaki ebeveyn e-postasını doldurun",
   "Used at": "Kullanım zamanı",
   "Used for": "Ne işe yarar",
-  "Used for notifications and account recovery. Change it in Email addresses below": "Bildirimler ve hesap kurtarma için kullanılır. Değiştirmek için aşağıdaki «E-posta adresleri» bölümünü kullanın",
   "User info": "Kullanıcı bilgileri",
   "User not found": "Kullanıcı bulunamadı",
   "User not found or disabled": "Kullanıcı bulunamadı veya devre dışı",
@@ -1191,7 +1190,6 @@
   "Y-m-d": "d.m.Y",
   "You already have {:max} addresses. Remove one before adding another.": "Zaten {:max} e-posta adresiniz var. Yeni eklemek için önce birini kaldırın.",
   "You can bind up to {:n} emails. Notifications and account recovery use the primary one; any verified address works for signing in.": "En fazla {:n} e-posta bağlayabilirsiniz. Bildirimler ve hesap kurtarma «birincil» olanı kullanır; giriş için doğrulanmış her adres çalışır.",
-  "You can bind your own address in Email addresses below": "Aşağıdaki «E-posta adresleri» bölümünden kendi e-posta adresinizi bağlayabilirsiniz",
   "You can read our full privacy policy: ": "Tam gizlilik politikamızı okuyabilirsiniz: ",
   "You can read our full privacy policy: {:url}": "Gizlilik politikamızın tamamını buradan okuyabilirsiniz: {:url}",
   "You can use the email bound to this account, or a temp email if the account's address isn't available": "Hesaba bağlı e-postayı girebilirsiniz; hesabın adresi kullanılamıyorsa geçici bir e-posta da kullanabilirsiniz",
@@ -1860,5 +1858,9 @@
   "{:total} users": "{:total} kullanıcı",
   "Policies": "Politikalar",
   "Additional terms": "Ek koşullar",
-  "Add": "Ekle"
+  "Add": "Ekle",
+  "Preferences": "Preferences",
+  "Sign-in and devices": "Sign-in and devices",
+  "Used for notifications and account recovery. Change it in Email addresses.": "Used for notifications and account recovery. Change it in Email addresses.",
+  "You can bind your own address in Email addresses.": "You can bind your own address in Email addresses."
 }

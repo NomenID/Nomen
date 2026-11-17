@@ -1116,7 +1116,6 @@
   "Use your own if you have one; otherwise leave empty and fill in the parent email below": "Có thì điền của mình; không có thì để trống và điền email phụ huynh bên dưới",
   "Used at": "Thời gian sử dụng",
   "Used for": "Dùng để làm gì",
-  "Used for notifications and account recovery. Change it in Email addresses below": "Thông báo và khôi phục tài khoản đều dùng địa chỉ này; muốn đổi thì đặt ở “Địa chỉ email” bên dưới",
   "User info": "Thông tin người dùng",
   "User not found": "Người dùng không tồn tại",
   "User not found or disabled": "Người dùng không tồn tại hoặc đã bị vô hiệu hóa",
@@ -1191,7 +1190,6 @@
   "Y-m-d": "d/m/Y",
   "You already have {:max} addresses. Remove one before adding another.": "Đã đạt giới hạn {:max} email, hãy xóa một email trước khi thêm mới.",
   "You can bind up to {:n} emails. Notifications and account recovery use the primary one; any verified address works for signing in.": "Tối đa liên kết {:n} email. Thông báo và khôi phục tài khoản dùng email “chính”; khi đăng nhập, bất kỳ email đã xác minh nào đều dùng được.",
-  "You can bind your own address in Email addresses below": "Trong “Địa chỉ email” bên dưới, bạn có thể liên kết email của riêng mình",
   "You can read our full privacy policy: ": "Bạn có thể đọc toàn bộ chính sách quyền riêng tư của chúng tôi:",
   "You can read our full privacy policy: {:url}": "Bạn có thể đọc toàn bộ chính sách quyền riêng tư của chúng tôi: {:url}",
   "You can use the email bound to this account, or a temp email if the account's address isn't available": "Bạn có thể điền email đã liên kết của tài khoản hiện tại, nhưng khi email tài khoản không dùng được, có thể dùng email tạm thời",
@@ -1860,5 +1858,9 @@
   "{:total} users": "{:total} người dùng",
   "Policies": "Chính sách",
   "Additional terms": "Điều khoản bổ sung",
-  "Add": "Thêm"
+  "Add": "Thêm",
+  "Preferences": "Preferences",
+  "Sign-in and devices": "Sign-in and devices",
+  "Used for notifications and account recovery. Change it in Email addresses.": "Used for notifications and account recovery. Change it in Email addresses.",
+  "You can bind your own address in Email addresses.": "You can bind your own address in Email addresses."
 }

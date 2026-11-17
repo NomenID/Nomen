@@ -1116,7 +1116,6 @@
   "Use your own if you have one; otherwise leave empty and fill in the parent email below": "استخدم بريدك إن كان لديك؛ وإلا فاتركه فارغًا واملأ بريد الوالد أدناه",
   "Used at": "وقت الاستخدام",
   "Used for": "ما الذي يخدمه",
-  "Used for notifications and account recovery. Change it in Email addresses below": "يُستخدم للإشعارات واستعادة الحساب. لتغييره استخدم «عناوين البريد» أدناه",
   "User info": "معلومات المستخدم",
   "User not found": "المستخدم غير موجود",
   "User not found or disabled": "المستخدم غير موجود أو معطّل",
@@ -1191,7 +1190,6 @@
   "Y-m-d": "d/m/Y",
   "You already have {:max} addresses. Remove one before adding another.": "لديك {:max} عنوانًا بالفعل. أزل واحدًا قبل إضافة آخر.",
   "You can bind up to {:n} emails. Notifications and account recovery use the primary one; any verified address works for signing in.": "يمكنك ربط {:n} بريدًا كحد أقصى. الإشعارات واستعادة الحساب تستخدم البريد الأساسي؛ وأي بريد مؤكد يصلح لتسجيل الدخول.",
-  "You can bind your own address in Email addresses below": "يمكنك ربط بريد خاص بك في «عناوين البريد» أدناه",
   "You can read our full privacy policy: ": "يمكنك قراءة سياسة الخصوصية الكاملة لدينا: ",
   "You can read our full privacy policy: {:url}": "يمكنك قراءة سياستنا الكاملة للخصوصية: {:url}",
   "You can use the email bound to this account, or a temp email if the account's address isn't available": "يمكنك استخدام البريد المرتبط بهذا الحساب، أو بريد مؤقت إن كان بريد الحساب غير متاح",
@@ -1860,5 +1858,9 @@
   "{:loaded} enabled, {:bundled} bundled with the release: {:list}": "مفعّل {:loaded}، ومرفق مع الإصدار {:bundled}: {:list}",
   "{:total} entries": "{:total} مدخلات",
   "{:total} in total": "المجموع {:total}",
-  "{:total} users": "{:total} مستخدمًا"
+  "{:total} users": "{:total} مستخدمًا",
+  "Preferences": "Preferences",
+  "Sign-in and devices": "Sign-in and devices",
+  "Used for notifications and account recovery. Change it in Email addresses.": "Used for notifications and account recovery. Change it in Email addresses.",
+  "You can bind your own address in Email addresses.": "You can bind your own address in Email addresses."
 }

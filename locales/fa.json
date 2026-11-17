@@ -1116,7 +1116,6 @@
   "Use your own if you have one; otherwise leave empty and fill in the parent email below": "اگر ایمیل خودتان را دارید وارد کنید؛ در غیر این صورت خالی بگذارید و ایمیل والد را در پایین پر کنید",
   "Used at": "زمان استفاده",
   "Used for": "چه کاری انجام می‌دهد",
-  "Used for notifications and account recovery. Change it in Email addresses below": "برای اعلان‌ها و بازیابی حساب از آن استفاده می‌شود. برای تغییر، در بخش «نشانی‌های ایمیل» پایین تنظیم کنید",
   "User info": "اطلاعات کاربر",
   "User not found": "کاربر یافت نشد",
   "User not found or disabled": "کاربر یافت نشد یا غیرفعال شده است",
@@ -1191,7 +1190,6 @@
   "Y-m-d": "Y/m/d",
   "You already have {:max} addresses. Remove one before adding another.": "همین حالا {:max} نشانی دارید. برای افزودن نشانی جدید، ابتدا یکی را حذف کنید.",
   "You can bind up to {:n} emails. Notifications and account recovery use the primary one; any verified address works for signing in.": "می‌توانید حداکثر {:n} ایمیل متصل کنید. اعلان‌ها و بازیابی حساب از ایمیل «اصلی» استفاده می‌کنند؛ برای ورود هر نشانی تأییدشده‌ای کار می‌کند.",
-  "You can bind your own address in Email addresses below": "در بخش «نشانی‌های ایمیل» پایین می‌توانید ایمیل خودتان را متصل کنید",
   "You can read our full privacy policy: ": "می‌توانید متن کامل سیاست حفظ حریم خصوصی ما را بخوانید: ",
   "You can read our full privacy policy: {:url}": "سیاست کامل حفظ حریم خصوصی ما را اینجا می‌توانید بخوانید: {:url}",
   "You can use the email bound to this account, or a temp email if the account's address isn't available": "می‌توانید ایمیل متصل به این حساب را وارد کنید، یا اگر آن نشانی در دسترس نیست از ایمیل موقت استفاده کنید",
@@ -1860,5 +1858,9 @@
   "{:loaded} enabled, {:bundled} bundled with the release: {:list}": "{:loaded} فعال، {:bundled} همراه انتشار: {:list}",
   "{:total} entries": "{:total} مورد",
   "{:total} in total": "مجموعاً {:total}",
-  "{:total} users": "{:total} کاربر"
+  "{:total} users": "{:total} کاربر",
+  "Preferences": "Preferences",
+  "Sign-in and devices": "Sign-in and devices",
+  "Used for notifications and account recovery. Change it in Email addresses.": "Used for notifications and account recovery. Change it in Email addresses.",
+  "You can bind your own address in Email addresses.": "You can bind your own address in Email addresses."
 }

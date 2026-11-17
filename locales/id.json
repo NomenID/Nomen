@@ -1116,7 +1116,6 @@
   "Use your own if you have one; otherwise leave empty and fill in the parent email below": "Jika punya, isi milik sendiri; jika tidak, kosongkan dan isi email orang tua di bawah",
   "Used at": "Waktu penggunaan",
   "Used for": "Kegunaan",
-  "Used for notifications and account recovery. Change it in Email addresses below": "Notifikasi dan pemulihan akun memakai alamat ini; untuk menggantinya, atur di “Alamat email” di bawah",
   "User info": "Info pengguna",
   "User not found": "Pengguna tidak ditemukan",
   "User not found or disabled": "Pengguna tidak ditemukan atau dinonaktifkan",
@@ -1191,7 +1190,6 @@
   "Y-m-d": "d/m/Y",
   "You already have {:max} addresses. Remove one before adding another.": "Sudah mencapai batas {:max} email, hapus satu sebelum menambah yang baru.",
   "You can bind up to {:n} emails. Notifications and account recovery use the primary one; any verified address works for signing in.": "Maksimal {:n} email dapat ditautkan. Notifikasi dan pemulihan akun memakai email “utama”; saat login, email terverifikasi mana pun dapat digunakan.",
-  "You can bind your own address in Email addresses below": "Di “Alamat email” di bawah, Anda dapat menautkan email milik Anda sendiri",
   "You can read our full privacy policy: ": "Anda dapat membaca kebijakan privasi lengkap kami:",
   "You can read our full privacy policy: {:url}": "Anda dapat membaca kebijakan privasi lengkap kami: {:url}",
   "You can use the email bound to this account, or a temp email if the account's address isn't available": "Anda dapat mengisi email yang tertaut ke akun saat ini, tetapi jika email akun tidak tersedia, Anda bisa memakai email sementara",
@@ -1860,5 +1858,9 @@
   "{:total} users": "{:total} pengguna",
   "Policies": "Kebijakan",
   "Additional terms": "Ketentuan tambahan",
-  "Add": "Tambah"
+  "Add": "Tambah",
+  "Preferences": "Preferences",
+  "Sign-in and devices": "Sign-in and devices",
+  "Used for notifications and account recovery. Change it in Email addresses.": "Used for notifications and account recovery. Change it in Email addresses.",
+  "You can bind your own address in Email addresses.": "You can bind your own address in Email addresses."
 }
