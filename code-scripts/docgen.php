@@ -865,11 +865,23 @@ foreach ($builders as $key => $fn) {
     }
 }
 
+// quickbuild 号只是部署记录：开发线 bump 出来的版本行不该让「文档与代码一致」变红
+$isQuickbuild = (bool)preg_match(
+    "/'version'\\s*=>\\s*'[^']*\\+qb\\.\\d+'/",
+    (string)file_get_contents($root . '/config/app.php')
+);
+
 $changed = [];
 foreach ($pages as $relPath => $content) {
     $target = $docsDir . '/' . $relPath;
     $current = is_file($target) ? (string)file_get_contents($target) : null;
     if ($current === $content) {
+        continue;
+    }
+    if ($isQuickbuild && $relPath === 'config/app.md' && $current !== null
+        && preg_replace('/^\| `version` \|.*$/m', '', $content)
+            === preg_replace('/^\| `version` \|.*$/m', '', $current)
+    ) {
         continue;
     }
     $changed[] = $relPath;
