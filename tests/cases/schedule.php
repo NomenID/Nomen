@@ -49,6 +49,6 @@ test('插件任务走 schedule.tasks，非法条目被忽略，核心不被顶�
     assertSame('Scheduler heartbeat', $tasks['core.tick']['label'], '核心任务不能被插件顶掉');
 });
 
-test('crontab 那行指向 schedule:run', static function (): void {
-    assertMatches('/schedule:run/', Schedule::crontab());
+test('crontab 那行指向 schedule run', static function (): void {
+    assertMatches('/schedule run/', Schedule::crontab());
 });

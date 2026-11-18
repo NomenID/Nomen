@@ -14,7 +14,7 @@ use PDOException;
 use Throwable;
 
 /**
- * 定时任务：服务器上一条 crontab 每分钟调用 `php bin/nomen schedule:run`，
+ * 定时任务：服务器上一条 crontab 每分钟调用 `php bin/nomen schedule run`，
  * 每个任务自己声明间隔，由这里决定这一分钟该跑谁。
  *
  * 没有 cron 的站点照常工作 —— 任务只是不按点跑，功能本身不依赖它们。
@@ -317,6 +317,6 @@ final class Schedule
             $bin = "'" . $bin . "'";
         }
 
-        return '* * * * * php ' . $bin . ' schedule:run >/dev/null 2>&1';
+        return '* * * * * php ' . $bin . ' schedule run >/dev/null 2>&1';
     }
 }

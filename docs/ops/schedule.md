@@ -7,10 +7,10 @@
 crontab 加一行，路径换成站点根目录：
 
 ```bash
-* * * * * php /www/wwwroot/example.org/bin/nomen schedule:run >/dev/null 2>&1
+* * * * * php /www/wwwroot/example.org/bin/nomen schedule run >/dev/null 2>&1
 ```
 
-宝塔：计划任务 → Shell 脚本 → 每分钟一次，命令填 `php /www/wwwroot/.../bin/nomen schedule:run`。
+宝塔：计划任务 → Shell 脚本 → 每分钟一次，命令填 `php /www/wwwroot/.../bin/nomen schedule run`。
 面板里选的 PHP 版本要和站点一致；命令行 `php` 不在 PATH 里时写完整路径
 （`/www/server/php/83/bin/php`）。
 
@@ -40,7 +40,7 @@ php bin/nomen schedule list
 ## 行为
 
 - 跑之前先在 `scheduled_tasks` 里占一行锁，最多占 10 分钟；同一分钟起了两个进程也只有一个会执行。
-- 一次 `schedule:run` 最多跑 45 秒，剩下的任务留给下一分钟（`NOMEN_SCHEDULE_BUDGET` 可改）。
+- 一次 `schedule run` 最多跑 45 秒，剩下的任务留给下一分钟（`NOMEN_SCHEDULE_BUDGET` 可改）。
 - 任务失败只记 `last_error` 和失败次数，不自动停用，也不会让站点报错。
 - 错过的任务不补跑：服务停了一天再起来，任务只跑一次，然后按自己的间隔重新计时。
 - `daily_at` 按 PHP 时区算（`date_default_timezone_get()`），不是 UTC。

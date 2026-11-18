@@ -14,7 +14,7 @@
 | `pages.content.before_save` | filter | data, existing, isNew | Pages 插件写库前，可改字段 |
 | `pages.content.deleted` | run | pageId, page, userId | Pages 插件删除前 |
 | `pages.content.saved` | run | pageId, data, isNew, userId | Pages 插件保存后 |
-| `schedule.tasks` | filter | tasks | 定时任务清单组装时（`schedule:run`、后台设置页）；返回条目注册插件自己的任务，id 用 `slug.name`，间隔写 `every`（秒）或 `daily_at`（HH:MM），`run` 是回调 |
+| `schedule.tasks` | filter | tasks | 定时任务清单组装时（`schedule run`、后台设置页）；返回条目注册插件自己的任务，id 用 `slug.name`，间隔写 `every`（秒）或 `daily_at`（HH:MM），`run` 是回调 |
 
 ## 触发点
 
@@ -67,7 +67,7 @@
 
 - 类型：filter
 - 参数：tasks
-- 时机：定时任务清单组装时（`schedule:run`、后台设置页）；返回条目注册插件自己的任务，id 用 `slug.name`，间隔写 `every`（秒）或 `daily_at`（HH:MM），`run` 是回调
+- 时机：定时任务清单组装时（`schedule run`、后台设置页）；返回条目注册插件自己的任务，id 用 `slug.name`，间隔写 `every`（秒）或 `daily_at`（HH:MM），`run` 是回调
 - 触发点：
   - `src/Schedule.php`（filter）
 
