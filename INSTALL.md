@@ -86,7 +86,7 @@ GRANT ALL PRIVILEGES ON `nomen`.* TO 'nomen'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
-表结构不用手动导，安装器会跑对应方言的 schema（`database/schema.sql` 或 `database/schema.sqlite.sql`，各 22 张表）。
+表结构不用手动导，安装器会跑对应方言的 schema（`database/schema.sql` 或 `database/schema.sqlite.sql`，各 28 张表）。
 
 ## 前端
 
