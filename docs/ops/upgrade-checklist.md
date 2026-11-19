@@ -12,11 +12,14 @@
 - [ ] 前端改过的话构建过（`npm run build`），产物在 `public/assets/dist/`
 - [ ] 打包：`php code-scripts/build-dist.php`（前端没改可加 `--skip-frontend`）
 - [ ] 包里有 `vendor/` 和 `public/assets/dist/`（缺了包会小很多，一眼能看出来）
+- [ ] 包里有 `.nomen-package.json`（自动更新用它核对文件清单）
 - [ ] 包大小和上一个版本差不多（差太多说明漏了东西）
 
 ## 二、上传前
 
 - [ ] 备份线上：库 + 文件，**备份放 `/tmp`，不要放 web root**
+- [ ] 站点开了自动更新的话，先确认 `data/updates/` 没有正在跑的更新（`update.lock` / `maintenance.json`），
+      或临时关掉总开关，避免手动部署和自动更新撞在一起
 - [ ] 比对线上文件的 md5，确认没有别人在改（并行改动很常见）
 - [ ] `rsync --dry-run` 看 `would delete` 列表，**确定要删的都是旧产物**
 

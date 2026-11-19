@@ -826,6 +826,16 @@
     overflow-wrap: anywhere;
 }
 
+.a-log {
+    margin-top: 16px;
+}
+
+.a-log summary {
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+}
+
 .a-alert {
     margin: 0 0 14px;
     padding: 11px 14px;

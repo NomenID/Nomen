@@ -155,12 +155,22 @@ class ApiController
 
         $config = require __DIR__ . '/../config/app.php';
         $version = (string)($config['version'] ?? '');
+        $release = ($_GET['action'] ?? '') === 'thissite' ? $version : Build::release($version);
 
-        Response::json([
+        $payload = [
             'product' => 'Nomen',
-            'version' => ($_GET['action'] ?? '') === 'thissite' ? $version : Build::release($version),
+            'version' => $release,
             'url'     => Version::PROJECT_URL,
-        ]);
+        ];
+
+        if (($_GET['action'] ?? '') !== 'thissite') {
+            $base = rtrim((string)($config['updates']['download_base'] ?? 'https://dl.caellab.com/file/nomen'), '/');
+            $payload['download'] = $base . '/nomen-' . $release . '.zip';
+            $payload['notes'] = Version::PROJECT_URL . 'w/changelog';
+            $payload['min_php'] = (string)($config['updates']['min_php'] ?? '8.1');
+        }
+
+        Response::json($payload);
     }
 
     // ========== 私有方法 ==========

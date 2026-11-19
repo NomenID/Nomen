@@ -136,6 +136,22 @@ return [
         'file_max_mb' => ($env = getenv('CACHE_FILE_MAX_MB')) !== false && $env !== '' ? (int)$env : (int)($appConf['cache']['file_max_mb'] ?? 64),
     ],
 
+    // 自动更新：后台开关存在 site_settings，这里只是下载源、间隔和包上限这类默认值。
+    // 开关默认关闭，站长在后台「设置 → 自动更新」里打开。
+    'updates' => [
+        'source'         => getenv('NOMEN_UPDATE_SOURCE') ?: 'https://nomenid.org/api/version', // 更新源；镜像站可换
+        'download_base'  => getenv('NOMEN_UPDATE_DOWNLOAD_BASE') ?: 'https://dl.caellab.com/file/nomen/', // 发布包所在目录
+        'min_php'        => '8.1',        // 低于这个 PHP 版本不自动更新
+        // 两次检查之间至少隔这么久（秒）；调度器本身每小时问一次，没到点就空转
+        'interval'       => 43200,
+        'max_package_mb' => 200,          // 更新包体积上限
+        'min_free_mb'    => 100,          // 更新前要求的最小剩余空间
+        'keep_backups'   => 2,            // 保留最近几个回滚备份
+        // 更新期间维护页最多挂这么久；进程中途被杀也会自动过期
+        'maintenance_ttl' => 900,
+        'lock_ttl'        => 900,         // 更新锁 / 中断判定的超时（秒）
+    ],
+
     // 可用的 OAuth scopes
     'scopes' => [
         'openid'  => 'Basic profile',

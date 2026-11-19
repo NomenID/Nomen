@@ -31,6 +31,7 @@ class ActivityLog
     public const CAT_FAMILY   = 'family';
     public const CAT_ADMIN    = 'admin';
     public const CAT_PAGES    = 'pages';
+    public const CAT_SYSTEM   = 'system';
 
     public const CATEGORIES = [
         self::CAT_AUTH     => 'Sign-in & account',
@@ -44,6 +45,7 @@ class ActivityLog
         self::CAT_FAMILY   => 'Family',
         self::CAT_ADMIN    => 'Admin action',
         self::CAT_PAGES    => 'Page',
+        self::CAT_SYSTEM   => 'System',
     ];
 
     public const CATEGORY_ICONS = [
@@ -58,6 +60,7 @@ class ActivityLog
         self::CAT_FAMILY   => 'family',
         self::CAT_ADMIN    => 'shield',
         self::CAT_PAGES    => 'file',
+        self::CAT_SYSTEM   => 'refresh',
     ];
 
     public const ACTIONS = [
@@ -119,6 +122,9 @@ class ActivityLog
         'admin.mount_update'              => 'Changed plugin mount',
         'admin.site_settings'             => 'Changed site settings',
         'admin.cache_clear'               => 'Cleared the cache',
+        'admin.update_reset'              => 'Reset the failed update state',
+        'system.update_success'           => 'Automatic update installed',
+        'system.update_failed'            => 'Automatic update failed',
         'admin.homepage_update'           => 'Homepage settings changed',
         'admin.identity_create'           => 'Add sign-in method',
         'admin.identity_update'           => 'Update sign-in method',

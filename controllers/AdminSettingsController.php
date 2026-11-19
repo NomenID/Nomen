@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{ActivityLog, Admin, Brand, Cache, Csrf, Email, Hooks, Response, Schedule, Settings};
+use Nomen\Src\{ActivityLog, Admin, AutoUpdate, Brand, Cache, Csrf, Email, Hooks, Response, Schedule, Settings};
 use PDOException;
 
 class AdminSettingsController
@@ -49,6 +49,7 @@ class AdminSettingsController
             'mailConfigured'   => Email::isConfigured(),
             'settingsReady'    => Settings::ready(),
             'schedule'         => Schedule::status(),
+            'autoUpdate'       => AutoUpdate::status(),
             'apiEnabled'       => (string)Settings::get('api.nomen_api', '1') !== '0',
             'apiEndpoint'      => rtrim((string)Brand::get('base_url'), '/') . '/nomen-api',
             'policies'         => Brand::configuredPolicies(),
@@ -74,14 +75,38 @@ class AdminSettingsController
         $oldPolicy = (string)Settings::get('security.login_2fa', 'off');
         $oldBackend = (string)Settings::get('cache.backend', 'auto');
         $oldApi = (string)Settings::get('api.nomen_api', '1');
+        $oldAuto = (string)Settings::get('update.auto', '0');
+        $oldChannel = (string)Settings::get('update.channel', 'minor');
+        $oldNotify = (string)Settings::get('update.notify_email', '');
+
         $apiEnabled = array_key_exists('api_nomen', $_POST)
             ? ((string)$_POST['api_nomen'] === '1' ? '1' : '0')
             : ($oldApi === '1' ? '1' : '0');
+
+        $updateAuto = array_key_exists('update_auto', $_POST)
+            ? ((string)$_POST['update_auto'] === '1' ? '1' : '0')
+            : ($oldAuto === '1' ? '1' : '0');
+        $updateChannel = array_key_exists('update_channel', $_POST)
+            ? (string)$_POST['update_channel']
+            : $oldChannel;
+        $updateNotify = array_key_exists('update_notify_email', $_POST)
+            ? trim((string)$_POST['update_notify_email'])
+            : $oldNotify;
+
+        if (!isset(AutoUpdate::CHANNELS[$updateChannel])) {
+            Response::json(['success' => false, 'message' => '更新通道不在列表里，请重新选择'], 422);
+        }
+        if ($updateNotify !== '' && !filter_var($updateNotify, FILTER_VALIDATE_EMAIL)) {
+            Response::json(['success' => false, 'message' => '通知邮箱格式不正确'], 422);
+        }
 
         $updates = [
             'security.login_2fa' => $policy,
             'cache.backend'      => $backend,
             'api.nomen_api'      => $apiEnabled,
+            'update.auto'        => $updateAuto,
+            'update.channel'     => $updateChannel,
+            'update.notify_email' => $updateNotify,
         ];
 
         if (array_key_exists('policies', $_POST)) {
@@ -114,11 +139,30 @@ class AdminSettingsController
             'actor_username' => (string)$admin['username'],
             'summary'        => '修改站点设置',
             'changes'        => ActivityLog::diff(
-                ['login_2fa' => $oldPolicy, 'cache_backend' => $oldBackend, 'api_nomen' => $oldApi],
-                ['login_2fa' => $policy, 'cache_backend' => $backend, 'api_nomen' => $apiEnabled],
-                ['login_2fa', 'cache_backend', 'api_nomen']
+                [
+                    'login_2fa' => $oldPolicy,
+                    'cache_backend' => $oldBackend,
+                    'api_nomen' => $oldApi,
+                    'update_auto' => $oldAuto,
+                    'update_channel' => $oldChannel,
+                    'update_notify_email' => $oldNotify,
+                ],
+                [
+                    'login_2fa' => $policy,
+                    'cache_backend' => $backend,
+                    'api_nomen' => $apiEnabled,
+                    'update_auto' => $updateAuto,
+                    'update_channel' => $updateChannel,
+                    'update_notify_email' => $updateNotify,
+                ],
+                ['login_2fa', 'cache_backend', 'api_nomen', 'update_auto', 'update_channel', 'update_notify_email']
             ),
         ]);
+
+        // 刚打开自动更新：把下一次检查排到最近一个心跳，不用等 12 小时
+        if ($oldAuto !== '1' && $updateAuto === '1') {
+            Schedule::requestNow('update.check');
+        }
 
         Hooks::run('admin.settings.saved', [$policy, $backend, (int)$admin['id'], $apiEnabled]);
 
@@ -186,6 +230,47 @@ class AdminSettingsController
         ]);
 
         Response::json(['success' => true, 'task' => $task]);
+    }
+
+    /** POST /admin/settings/update/check - 只查版本，不安装；结果直接回给后台 */
+    public function checkUpdate(): void
+    {
+        Admin::requireAdmin();
+
+        if (!Csrf::validate($_POST['_csrf'] ?? null)) {
+            Response::json(['success' => false, 'message' => '请求无效，请重试'], 422);
+        }
+
+        $result = AutoUpdate::check(false, true);
+
+        Response::json([
+            'success' => true,
+            'result'  => $result,
+            'status'  => AutoUpdate::status(),
+        ]);
+    }
+
+    /** POST /admin/settings/update/reset - 清掉失败记忆，让同一版本可以再试 */
+    public function resetUpdate(): void
+    {
+        $admin = Admin::requireAdmin();
+
+        if (!Csrf::validate($_POST['_csrf'] ?? null)) {
+            Response::json(['success' => false, 'message' => '请求无效，请重试'], 422);
+        }
+
+        AutoUpdate::resetFailure();
+
+        ActivityLog::record([
+            'action'         => 'admin.update_reset',
+            'category'       => ActivityLog::CAT_ADMIN,
+            'actor_type'     => 'admin',
+            'actor_id'       => (int)$admin['id'],
+            'actor_username' => (string)$admin['username'],
+            'summary'        => '清除自动更新失败记录',
+        ]);
+
+        Response::json(['success' => true, 'message' => '失败记录已清除，下一次检查会重新尝试']);
     }
 
     /** @return array<int, array<string, mixed>>|null */

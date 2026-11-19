@@ -29,6 +29,9 @@ switch ($cmd) {
     case 'schedule':
         exit(Nomen\Src\Cli\Schedule::run(array_slice($args, 2)));
 
+    case 'update':
+        exit(Nomen\Src\Cli\Update::run(array_slice($args, 2)));
+
     case 'auth:reset':
         exit(Nomen\Src\Cli\AuthReset::run(array_slice($args, 2)));
 
@@ -58,6 +61,10 @@ switch ($cmd) {
         echo '  plugins <命令>   跑插件注册的命令，plugins list 里能看到', PHP_EOL;
         echo '  schedule run     跑这一分钟到点的定时任务（服务器 crontab 每分钟调用）', PHP_EOL;
         echo '  schedule list    列出定时任务、上次 / 下次运行时间和要加的 crontab 那一行', PHP_EOL;
+        echo '  update status    查看自动更新状态（默认）', PHP_EOL;
+        echo '  update check     立即查一次新版本，不安装', PHP_EOL;
+        echo '  update run       立即查并安装（需要后台打开自动更新）', PHP_EOL;
+        echo '  update reset     清除失败记录，允许重新尝试同一版本', PHP_EOL;
         echo '  auth:reset       登录方式全关进不去后台时用：恢复默认（全部开启）', PHP_EOL;
         echo '  user:passwd <账号>   直接改密码（忘了管理员密码、发不出邮件时用），令牌一起撤销', PHP_EOL;
         echo '  user:promote <账号>  把账号提成管理员', PHP_EOL;

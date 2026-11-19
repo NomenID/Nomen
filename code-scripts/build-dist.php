@@ -125,6 +125,19 @@ foreach ($bundledSkins as $bundled) {
     $walk($skinsDir . '/' . $bundled, 'skins/' . $bundled);
 }
 
+ksort($files);
+
+// 自动更新用它核对包内容、并在下一版清理被移除的旧文件
+$packageManifest = json_encode([
+    'version'  => $version,
+    'built_at' => gmdate('Y-m-d\TH:i:s\Z'),
+    'files'    => array_keys($files),
+], JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+if ($packageManifest === false) {
+    fwrite(STDERR, '生成包清单失败：' . json_last_error_msg() . PHP_EOL);
+    exit(1);
+}
+
 $out = $root . '/dist/nomen-' . $version . '.zip';
 if (!is_dir($root . '/dist')) {
     mkdir($root . '/dist', 0777, true);
@@ -141,6 +154,7 @@ if ($zip->open($out, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
 foreach ($files as $rel => $source) {
     $zip->addFile($source, $rel);
 }
+$zip->addFromString('.nomen-package.json', (string)$packageManifest);
 $zip->close();
 
-printf('版本 %s，%d 个文件，%s 字节%s%s', $version, count($files), number_format(filesize($out)), PHP_EOL, $out);
+printf('版本 %s，%d 个文件 + 包清单，%s 字节%s%s', $version, count($files), number_format(filesize($out)), PHP_EOL, $out);

@@ -19,12 +19,16 @@ const { t } = useT()
 const loading = ref(true)
 const saving = ref(false)
 const clearing = ref(false)
+const checking = ref(false)
 const error = ref('')
 const data = ref(null)
 const form = reactive({
   login_2fa: 'off',
   cache_backend: 'auto',
   api_nomen: '1',
+  update_auto: '0',
+  update_channel: 'minor',
+  update_notify_email: '',
   policies: [],
   additional_terms: [],
 })
@@ -45,6 +49,9 @@ async function load() {
     form.login_2fa = data.value.policy
     form.cache_backend = data.value.backend
     form.api_nomen = data.value.apiEnabled ? '1' : '0'
+    form.update_auto = data.value.autoUpdate?.enabled ? '1' : '0'
+    form.update_channel = data.value.autoUpdate?.channel || 'minor'
+    form.update_notify_email = data.value.autoUpdate?.notifyEmail || ''
     form.policies = [0, 1, 2].map((i) => {
       const policy = data.value.policies?.[i] || {}
       return { role: policy.role || emptyPolicy(i).role, label: policy.label || '', url: policy.url || '' }
@@ -64,6 +71,9 @@ async function save() {
       login_2fa: form.login_2fa,
       cache_backend: form.cache_backend,
       api_nomen: form.api_nomen,
+      update_auto: form.update_auto,
+      update_channel: form.update_channel,
+      update_notify_email: form.update_notify_email,
       policies: JSON.stringify(form.policies.filter((policy) => policy.url.trim())),
       additional_terms: JSON.stringify(form.additional_terms.filter((term) => term.label.trim() && term.url.trim())),
     })
@@ -129,6 +139,48 @@ async function runTask(task) {
   }
 }
 
+async function checkUpdates() {
+  checking.value = true
+  try {
+    const result = await apiPost('/admin/settings/update/check')
+    if (result.success) {
+      window.Nomen.toast(result.result?.message || t('Check complete'), result.result?.status === 'current' ? 'success' : 'info')
+      await load()
+    } else {
+      window.Nomen.toast(result.message || t('Check failed'), 'error')
+    }
+  } catch (err) {
+    window.Nomen.toast(t('Check failed'), 'error')
+  } finally {
+    checking.value = false
+  }
+}
+
+async function resetUpdate() {
+  const ok = await window.Nomen.confirm(
+    t('Reset the failed update state'),
+    t('The updater will try the same version again on the next check.'),
+    { confirmText: t('Reset'), cancelText: t('Cancel') },
+  )
+  if (!ok) return
+
+  try {
+    const result = await apiPost('/admin/settings/update/reset')
+    if (result.success) {
+      window.Nomen.toast(result.message, 'success')
+      await load()
+    } else {
+      window.Nomen.toast(result.message || t('Save failed'), 'error')
+    }
+  } catch (err) {
+    window.Nomen.toast(t('Save failed'), 'error')
+  }
+}
+
+function logLine(entry) {
+  return `${entry.ts || ''} ${(entry.level || '').toUpperCase()} ${entry.step || ''}: ${entry.message || ''}`.trim()
+}
+
 onMounted(load)
 </script>
 
@@ -167,6 +219,78 @@ onMounted(load)
           <button class="a-btn" type="button" :disabled="clearing" @click="clearCache">
             {{ clearing ? t('Clearing…') : t('Clear cache') }}
           </button>
+        </AdminCard>
+
+        <AdminCard :title="t('Automatic updates')">
+          <p class="a-card__desc">
+            {{ t('Downloads official releases in the background, verifies the SHA-256, keeps a backup, and rolls back if anything goes wrong. The scheduled task must be running.') }}
+          </p>
+
+          <AdminAlert v-if="!data.autoUpdate.zipAvailable || !data.autoUpdate.curlAvailable" type="warning">
+            {{ t('Automatic updates need the PHP zip and curl extensions.') }}
+          </AdminAlert>
+          <AdminAlert v-else-if="!data.autoUpdate.writable" type="warning">
+            {{ t('The web server cannot write to the site directory, so automatic updates are unavailable.') }}
+          </AdminAlert>
+          <AdminAlert v-else-if="!data.autoUpdate.phpOk" type="warning">
+            {{ t('This release needs a newer PHP version.') }}
+          </AdminAlert>
+
+          <label class="a-check">
+            <input v-model="form.update_auto" type="checkbox" true-value="1" false-value="0">
+            <span>{{ t('Enable automatic updates') }}</span>
+          </label>
+
+          <p class="a-card__desc">{{ t('Update channel') }}</p>
+          <select v-model="form.update_channel" class="a-input a-input--narrow">
+            <option value="patch">{{ t('Patch releases only (x.y.z)') }}</option>
+            <option value="minor">{{ t('Same major version (x.y)') }}</option>
+            <option value="all">{{ t('All releases') }}</option>
+          </select>
+
+          <p class="a-card__desc">{{ t('Notification email') }}</p>
+          <input v-model="form.update_notify_email" class="a-input" type="email" :placeholder="data.autoUpdate.effectiveNotifyEmail || t('Administrator address')">
+          <p class="a-card__desc">{{ t('Leave empty to use the administrator address.') }}</p>
+
+          <p class="a-text">
+            {{ t('Current version:') }} <code class="a-mono">{{ data.autoUpdate.currentVersion }}</code>
+            <template v-if="data.autoUpdate.latest"> · {{ t('Latest:') }} <code class="a-mono">{{ data.autoUpdate.latest }}</code></template>
+          </p>
+          <p class="a-text a-text--muted">
+            {{ t('Last check:') }} {{ formatted(data.autoUpdate.lastCheckAt) }}
+            <template v-if="data.autoUpdate.lastCheckError"> — {{ data.autoUpdate.lastCheckError }}</template>
+          </p>
+
+          <AdminAlert v-if="data.autoUpdate.failed" type="warning">
+            {{ t('The last attempt for {:version} failed: {:error}', { version: data.autoUpdate.failed.version, error: data.autoUpdate.failed.reason }) }}
+          </AdminAlert>
+          <p v-else-if="data.autoUpdate.pending && !data.autoUpdate.enabled" class="a-text">
+            {{ t('Version {:version} is available. Turn on automatic updates to install it in the background.', { version: data.autoUpdate.pending }) }}
+          </p>
+          <p v-else-if="data.autoUpdate.pending" class="a-text">
+            {{ t('Version {:version} will be installed by the next scheduled check.', { version: data.autoUpdate.pending }) }}
+          </p>
+
+          <div class="a-form__actions">
+            <button class="a-btn" type="button" :disabled="checking" @click="checkUpdates">
+              {{ checking ? t('Checking…') : t('Check now') }}
+            </button>
+            <button v-if="data.autoUpdate.failed" class="a-btn a-btn--ghost" type="button" @click="resetUpdate">
+              {{ t('Reset the failed update state') }}
+            </button>
+          </div>
+
+          <p class="a-text">
+            {{ t('Mail is configured:') }}
+            <AdminBadge :tone="data.autoUpdate.mailConfigured ? 'success' : 'danger'">
+              {{ data.autoUpdate.mailConfigured ? t('Configured') : t('Not configured') }}
+            </AdminBadge>
+          </p>
+
+          <details v-if="data.autoUpdate.logTail?.length" class="a-log">
+            <summary>{{ t('Update log') }}</summary>
+            <pre class="a-code">{{ data.autoUpdate.logTail.map(logLine).join('\n') }}</pre>
+          </details>
         </AdminCard>
 
         <AdminCard :title="t('Scheduled tasks')">

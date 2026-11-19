@@ -27,6 +27,11 @@ if (!is_file(__DIR__ . '/../config/installed.php') && !is_file(__DIR__ . '/../.e
     exit;
 }
 
+// 自动更新正在覆盖文件 / 跑迁移：在会话和数据库之前拦住，统一返回 503
+if (\Nomen\Src\Maintenance::active()) {
+    \Nomen\Src\Maintenance::render();
+}
+
 // 多语言：先于一切输出，全局 t() 助手在这里定义
 require_once __DIR__ . '/../src/I18n.php';
 
@@ -424,6 +429,8 @@ $router->get('/api/admin/settings',         [AdminSettingsController::class, 'in
 $router->post('/admin/settings',            [AdminSettingsController::class, 'update'], ['admin']);
 $router->post('/admin/settings/cache/clear', [AdminSettingsController::class, 'clearCache'], ['admin']);
 $router->post('/admin/settings/schedule/run', [AdminSettingsController::class, 'scheduleRun'], ['admin']);
+$router->post('/admin/settings/update/check', [AdminSettingsController::class, 'checkUpdate'], ['admin']);
+$router->post('/admin/settings/update/reset', [AdminSettingsController::class, 'resetUpdate'], ['admin']);
 $router->get('/api/admin/homepage',         [AdminHomepageController::class, 'show'], ['admin']);
 $router->post('/admin/homepage',            [AdminHomepageController::class, 'update'], ['admin']);
 $router->get('/api/admin/identities',       [AdminIdentityController::class, 'index'], ['admin']);

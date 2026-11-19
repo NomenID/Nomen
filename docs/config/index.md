@@ -4,7 +4,7 @@
 
 | 文件 | 配置项 |
 |---|---|
-| [app.php](app.md) | 51 |
+| [app.php](app.md) | 60 |
 | [brand.php](brand.md) | 16 |
 | [consent-age.php](consent-age.md) | 46 |
 | [email-policy.php](email-policy.md) | 11 |

@@ -20,9 +20,16 @@ final class UpdateCheck
     private const RELEASE_URL = 'https://nomenid.org/w/download';
     private const CACHE_TTL = 1800;
 
-    /** @return array{version: string, url: string}|null 拉不到返回 null */
-    public static function latest(): ?array
+    /**
+     * @return array{version: string, url: string, download?: string, sha256?: string, min_php?: string, notes?: string}|null
+     *         拉不到返回 null
+     */
+    public static function latest(bool $force = false): ?array
     {
+        if ($force) {
+            Cache::forget('update_check.latest');
+        }
+
         $payload = Cache::remember('update_check.latest', self::CACHE_TTL, static fn(): array => self::fetch() ?? []);
         return $payload === [] ? null : $payload;
     }
@@ -59,7 +66,8 @@ final class UpdateCheck
             return null;
         }
 
-        $ch = curl_init(self::UPDATE_SOURCE);
+        $source = self::source();
+        $ch = curl_init($source);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_FOLLOWLOCATION => true,
@@ -79,10 +87,42 @@ final class UpdateCheck
 
         $data = json_decode((string)$raw, true);
         $version = trim((string)($data['version'] ?? ''));
-        if ($version === '') {
+        if (preg_match('/^\d+(\.\d+){1,3}([+-][0-9A-Za-z._-]+)?$/', $version) !== 1) {
             return null;
         }
 
-        return ['version' => $version, 'url' => self::RELEASE_URL];
+        $out = ['version' => $version, 'url' => self::RELEASE_URL];
+
+        $download = trim((string)($data['download'] ?? ''));
+        if (preg_match('#^https?://#i', $download) === 1) {
+            $out['download'] = $download;
+        }
+
+        $sha = strtolower(trim((string)($data['sha256'] ?? '')));
+        if (preg_match('/^[a-f0-9]{64}$/', $sha) === 1) {
+            $out['sha256'] = $sha;
+        }
+
+        $minPhp = trim((string)($data['min_php'] ?? ''));
+        if (preg_match('/^\d+(\.\d+){1,2}$/', $minPhp) === 1) {
+            $out['min_php'] = $minPhp;
+        }
+
+        $notes = trim((string)($data['notes'] ?? ''));
+        if (preg_match('#^https?://#i', $notes) === 1) {
+            $out['notes'] = $notes;
+        }
+
+        return $out;
+    }
+
+    /** 官方源可在 config/app.php 的 updates.source 里换（镜像站 / 本地测试） */
+    private static function source(): string
+    {
+        $file = dirname(__DIR__) . '/config/app.php';
+        $config = is_file($file) ? require $file : [];
+        $source = trim((string)($config['updates']['source'] ?? ''));
+
+        return preg_match('#^https?://#i', $source) === 1 ? $source : self::UPDATE_SOURCE;
     }
 }
