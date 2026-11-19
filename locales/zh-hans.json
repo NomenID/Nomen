@@ -2001,5 +2001,7 @@
   "Unknown check.": "没有这一项检查。",
   "Ignored a site health check": "忽略了站点健康检查",
   "Restored a site health check": "恢复了站点健康检查",
-  "Do not show this on the homepage for 7 days": "7 天内不再推送至首页"
+  "Do not show this on the homepage for 7 days": "7 天内不再推送至首页",
+  "Last checked {:time}": "上次检查：{:time}",
+  "Except {:window}": "除 {:window} 外"
 }

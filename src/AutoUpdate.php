@@ -105,6 +105,14 @@ final class AutoUpdate
             : '';
     }
 
+    /** allow = 只在窗口内安装（白名单）；deny = 窗口内不安装（黑名单）；窗口留空时两种模式都不限制 */
+    public static function windowMode(): string
+    {
+        $mode = strtolower(trim((string)(self::config()['window_mode'] ?? 'allow')));
+
+        return $mode === 'deny' ? 'deny' : 'allow';
+    }
+
     public static function minPriority(): string
     {
         $value = strtolower(trim((string)(self::config()['min_priority'] ?? 'normal')));
@@ -172,6 +180,7 @@ final class AutoUpdate
             'priorities'           => self::PRIORITY_LABELS,
             'checkAt'              => self::checkAt(),
             'window'               => self::window(),
+            'windowMode'           => self::windowMode(),
             'inWindow'             => self::inWindow(),
             'interval'             => self::interval(),
             'nextCheckAt'          => self::nextCheckAt($state),
@@ -179,6 +188,9 @@ final class AutoUpdate
             'effectiveNotifyEmail' => self::notifyEmail(),
             'currentVersion'       => $current,
             'latest'               => (string)($state['latest'] ?? ''),
+            'latestUrl'            => (string)($offer['url'] ?? ''),
+            'latestPriority'       => (string)($offer['priority'] ?? ''),
+            'latestReleasedAt'     => (string)($offer['released_at'] ?? ''),
             'pending'              => $pending,
             'pendingKind'          => $pending !== '' ? self::updateKind($current, $pending) : '',
             'pendingPriority'      => (string)($offer['priority'] ?? ''),
@@ -451,7 +463,19 @@ final class AutoUpdate
             return true;
         }
 
-        return self::windowAllows($window, (int)date('G') * 60 + (int)date('i'));
+        return self::windowAllowsMode($window, self::windowMode(), (int)date('G') * 60 + (int)date('i'));
+    }
+
+    /** 白名单 / 黑名单两种模式下的窗口判断；窗口留空一律放行，方便测试 */
+    public static function windowAllowsMode(string $window, string $mode, int $minutes): bool
+    {
+        if ($window === '') {
+            return true;
+        }
+
+        $inside = self::windowAllows($window, $minutes);
+
+        return $mode === 'deny' ? !$inside : $inside;
     }
 
     /** 按 interval 或每天固定时间判断这次该不该查 */

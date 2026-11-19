@@ -25,6 +25,7 @@ final class UpdateConfig
         'interval'       => 43200,
         'check_at'       => '',
         'window'         => '',
+        'window_mode'    => 'allow',
         'min_priority'   => 'normal',
         'notify_email'   => '',
         'backup'         => [

@@ -2000,5 +2000,7 @@
     "Unknown check.": "Unknown check.",
     "Ignored a site health check": "Ignored a site health check",
     "Restored a site health check": "Restored a site health check",
-    "Do not show this on the homepage for 7 days": "Do not show this on the homepage for 7 days"
+    "Do not show this on the homepage for 7 days": "Do not show this on the homepage for 7 days",
+    "Last checked {:time}": "Last checked {:time}",
+    "Except {:window}": "Except {:window}"
 }

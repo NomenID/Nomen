@@ -203,7 +203,12 @@ function kindText(kind) {
 
 function updateSchedule(au) {
   const check = au.checkAt ? t('Daily at {:time}', { time: au.checkAt }) : t('Every {:count} hours', { count: Math.max(1, Math.round((au.interval || 0) / 3600)) })
-  const window = au.window ? au.window : t('Any time')
+  let window = t('Any time')
+  if (au.window) {
+    window = au.windowMode === 'deny'
+      ? t('Except {:window}', { window: au.window })
+      : au.window
+  }
   return `${check} · ${t('Install window:')} ${window}`
 }
 

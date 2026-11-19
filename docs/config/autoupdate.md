@@ -4,7 +4,7 @@
 >
 > 来源：`config/autoupdate.php`
 
-共 21 项。
+共 22 项。
 
 ## 配置项
 
@@ -21,7 +21,13 @@
 | `scope` | `NOMEN_UPDATE_SCOPE` | patch | patch = 只更最后一位（默认）；minor = 第二位也允许；major = 都允许。可以用环境变量 NOMEN_UPDATE_SCOPE 覆盖。 |
 | `interval` | — | 43200 | 两次检查之间的最短间隔（秒）；check_at 非空时改按每天固定时间检查 |
 | `check_at` | — | '' | 每天固定检查时间（HH:MM）；留空则按 interval |
-| `window` | — | '' | 维护窗口（HH:MM-HH:MM）；普通更新只在窗口内安装，security/critical 会绕过。支持跨午夜，例如 23:00-02:00。留空 = 不限时间。 |
+| `window` | — | '' | 维护窗口（HH:MM-HH:MM）；security/critical 会绕过窗口。支持跨午夜，例如 23:00-02:00。留空 = 不限时间。 |
+
+## 窗口怎么用
+
+| 键 | 环境变量 | 默认值 | 说明 |
+|---|---|---|---|
+| `window_mode` | — | allow | allow = 白名单，只在窗口内安装（默认）； deny = 黑名单，窗口内不安装，其余时间都可以。 |
 
 ## 低于这个优先级只提示、不自动装
 

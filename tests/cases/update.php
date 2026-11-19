@@ -45,6 +45,22 @@ test('维护窗口支持普通段和跨午夜', static function (): void {
     assertTrue(AutoUpdate::windowAllows('', 12 * 60), '空窗口 = 不限');
 });
 
+test('维护窗口支持白名单和黑名单两种模式', static function (): void {
+    // 白名单：只在窗口内放行
+    assertTrue(AutoUpdate::windowAllowsMode('03:00-05:00', 'allow', 4 * 60));
+    assertTrue(!AutoUpdate::windowAllowsMode('03:00-05:00', 'allow', 12 * 60));
+
+    // 黑名单：窗口内不放行，其余时间放行
+    assertTrue(!AutoUpdate::windowAllowsMode('09:00-18:00', 'deny', 12 * 60));
+    assertTrue(AutoUpdate::windowAllowsMode('09:00-18:00', 'deny', 2 * 60));
+    assertTrue(!AutoUpdate::windowAllowsMode('23:00-02:00', 'deny', 23 * 60 + 30));
+    assertTrue(AutoUpdate::windowAllowsMode('23:00-02:00', 'deny', 12 * 60));
+
+    // 空窗口：两种模式都不限制
+    assertTrue(AutoUpdate::windowAllowsMode('', 'allow', 12 * 60));
+    assertTrue(AutoUpdate::windowAllowsMode('', 'deny', 12 * 60));
+});
+
 test('更新包路径不允许跳出站点根目录', static function (): void {
     assertTrue(UpdatePackage::isSafeEntry('src/AutoUpdate.php'));
     assertTrue(UpdatePackage::isSafeEntry('public/assets/dist/app.js'));

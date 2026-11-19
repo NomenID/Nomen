@@ -40,9 +40,13 @@ return [
     // 每天固定检查时间（HH:MM）；留空则按 interval
     'check_at' => '',
 
-    // 维护窗口（HH:MM-HH:MM）；普通更新只在窗口内安装，security/critical 会绕过。
+    // 维护窗口（HH:MM-HH:MM）；security/critical 会绕过窗口。
     // 支持跨午夜，例如 23:00-02:00。留空 = 不限时间。
     'window' => '',
+
+    // 窗口怎么用：allow = 白名单，只在窗口内安装（默认）；
+    // deny = 黑名单，窗口内不安装，其余时间都可以。
+    'window_mode' => 'allow',
 
     // 低于这个优先级只提示、不自动装：security > critical > normal > feature
     'min_priority' => 'normal',

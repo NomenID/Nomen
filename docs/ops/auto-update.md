@@ -68,8 +68,12 @@ NOMEN_UPDATE_SCOPE=patch
 ```php
 'interval' => 43200,      // 每 12 小时检查一次（秒）
 'check_at' => '03:30',    // 也可以改成每天固定时间；设置后优先于 interval
-'window'   => '03:00-05:00', // 普通更新只在这个窗口装；支持 23:00-02:00 跨午夜
+'window'   => '03:00-05:00', // 维护窗口；支持 23:00-02:00 跨午夜
+'window_mode' => 'allow', // allow = 只在窗口内装（白名单）；deny = 窗口内不装（黑名单）
 ```
+
+`window` 留空时两种模式都不限制安装时间（默认就是随时可装）。`window_mode` 默认 `allow`，
+想反过来用就写 `deny`，例如 `window => '09:00-18:00', window_mode => 'deny'` 表示上班时间不装。
 
 时间按 PHP 时区（`date_default_timezone_get()`）算。`security` / `critical` 不受窗口限制。
 

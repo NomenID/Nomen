@@ -63,8 +63,13 @@ async function loadVersion() {
   try {
     versionInfo.value = await apiGet('/api/admin/version')
   } catch {
-    // 拉不到更新源就只显示当前版本
+    // 读不到自动更新状态就只显示当前版本
   }
+}
+
+function lastCheckedAt() {
+  const ts = versionInfo.value?.lastCheckAt || 0
+  return ts ? new Date(ts * 1000).toLocaleString() : t('Never')
 }
 
 function canMove(id, delta) {
@@ -207,6 +212,9 @@ onMounted(() => {
                 · {{ t('Latest release') }}
                 <a class="a-link" :href="versionInfo.latest.url" target="_blank" rel="noopener">{{ versionInfo.latest.version }}</a>
                 <AdminBadge v-if="versionInfo.updateAvailable" tone="warning">{{ t('Update available') }}</AdminBadge>
+              </template>
+              <template v-if="versionInfo?.lastCheckAt">
+                · {{ t('Last checked {:time}', { time: lastCheckedAt() }) }}
               </template>
             </p>
           </AdminCard>

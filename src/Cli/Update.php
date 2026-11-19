@@ -52,7 +52,13 @@ class Update
         echo '检查计划：', $status['checkAt'] !== ''
             ? '每天 ' . $status['checkAt']
             : '每 ' . max(1, (int)round($status['interval'] / 3600)) . ' 小时', PHP_EOL;
-        echo '安装窗口：', $status['window'] !== '' ? $status['window'] : '不限', PHP_EOL;
+        $window = '不限';
+        if ($status['window'] !== '') {
+            $window = $status['windowMode'] === 'deny'
+                ? '除 ' . $status['window'] . ' 外'
+                : '仅 ' . $status['window'];
+        }
+        echo '安装窗口：', $window, PHP_EOL;
         echo '当前版本：', $status['currentVersion'], PHP_EOL;
         echo '最新版本：', $status['latest'] !== '' ? $status['latest'] : '未知', PHP_EOL;
         echo '上次检查：', self::time($status['lastCheckAt']),

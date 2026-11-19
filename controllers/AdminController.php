@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{ActivityLog, Cache, Csrf, Database, Email, EmailTemplate, FamilyHelper, Features, Hooks, I18n, Plugins, RecoveryHelper, RedisClient, Response, Session, SiteHealth, TextDiff, UpdateCheck, Upgrade};
+use Nomen\Src\{ActivityLog, AutoUpdate, Cache, Csrf, Database, Email, EmailTemplate, FamilyHelper, Features, Hooks, I18n, Plugins, RecoveryHelper, RedisClient, Response, Session, SiteHealth, TextDiff, UpdateCheck, Upgrade};
 use PDO;
 
 /**
@@ -301,20 +301,33 @@ class AdminController
     }
 
     /**
-     * GET /api/admin/version - 概览页「插件」卡异步查最新正式版。
-     * 拉不到只回 latest=null，前端只显示当前版本，不报错。
+     * GET /api/admin/version - 概览页「插件」卡显示版本。
+     * 读自动更新的状态（它按 update.check 的计划更新），不再单独拉发布源：
+     * 否则会出现「后台已经显示新版本、自动更新还没扫到」的错觉。
      */
     public function version(): void
     {
         $this->requireAdmin();
 
-        $current = (string)(self::config()['version'] ?? '');
-        $latest = UpdateCheck::latest();
+        $status = AutoUpdate::status();
+        $newer = (string)$status['latest'] !== ''
+            && UpdateCheck::isNewer((string)$status['latest'], (string)$status['currentVersion']);
+        $latest = $newer ? [
+            'version'     => (string)$status['latest'],
+            'url'         => (string)$status['latestUrl'] !== '' ? (string)$status['latestUrl'] : '/w/download',
+            'priority'    => (string)$status['latestPriority'],
+            'released_at' => (string)$status['latestReleasedAt'],
+        ] : null;
 
         Response::json([
             'success'         => true,
             'latest'          => $latest,
-            'updateAvailable' => $latest !== null && UpdateCheck::isNewer($latest['version'], $current),
+            'updateAvailable' => $newer && (string)$status['pending'] !== '',
+            'pending'         => (string)$status['pending'],
+            'pendingAuto'     => (bool)$status['pendingAuto'],
+            'lastCheckAt'     => (int)$status['lastCheckAt'],
+            'lastCheckOk'     => (bool)$status['lastCheckOk'],
+            'nextCheckAt'     => (int)$status['nextCheckAt'],
         ]);
     }
 
