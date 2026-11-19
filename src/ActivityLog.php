@@ -122,6 +122,8 @@ class ActivityLog
         'admin.mount_update'              => 'Changed plugin mount',
         'admin.site_settings'             => 'Changed site settings',
         'admin.cache_clear'               => 'Cleared the cache',
+        'admin.site_health_ignore'        => 'Ignored a site health check',
+        'admin.site_health_unignore'      => 'Restored a site health check',
         'admin.update_reset'              => 'Reset the failed update state',
         'system.update_success'           => 'Automatic update installed',
         'system.update_failed'            => 'Automatic update failed',

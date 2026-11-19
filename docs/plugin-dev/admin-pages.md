@@ -132,6 +132,9 @@ handler 都要能独立渲染。
     'status'      => 'recommended',         // good / recommended / critical
     'description' => t('The queue is not running.'),
     'value'       => '0 jobs',              // 可选
+    'links'       => [                      // 可选，最多 6 条 http(s) 链接
+        ['label' => t('Queue worker docs'), 'url' => 'https://example.com/queue'],
+    ],
 ]
 ```
 

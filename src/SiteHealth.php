@@ -15,19 +15,36 @@ use Throwable;
 /**
  * 站点健康：把 CLI doctor 和后台零散的检查收成一份结构化清单。
  *
- * 每条测试形如 ['id','label','status','description','value']，status 是
+ * 每条测试形如 ['id','label','status','description','value','links']，status 是
  * good / recommended / critical。插件可以用 admin.site_health.tests 钩子追加。
+ *
+ * 管理员可以把某一项加入忽略列表（site_settings 的 health.ignored），被忽略的项
+ * 不参与总体状态，也不再出现在检查结果里，只留在忽略列表里等恢复。
  */
 final class SiteHealth
 {
     private const RANK = ['good' => 0, 'recommended' => 1, 'critical' => 2];
 
-    /** @return array{status: string, tests: array<int, array<string, string>>, generatedAt: int} */
+    /** 检查项 id 的格式，插件追加的也走这一条 */
+    public const ID_PATTERN = '/^[a-z][a-z0-9._-]{0,63}$/';
+
+    private const IGNORE_KEY = 'health.ignored';
+
+    /** PHP2Shell 各分支的修复版本；8.2 以下只剩源码补丁，不再发官方二进制 */
+    private const PHP2SHELL_FIXED = [
+        '8.2' => '8.2.35',
+        '8.3' => '8.3.36',
+        '8.4' => '8.4.27',
+        '8.5' => '8.5.12',
+    ];
+
+    /** @return array{status: string, tests: array<int, array<string, mixed>>, ignored: array<int, array<string, string>>, generatedAt: int} */
     public static function run(): array
     {
         $tests = [];
 
-        self::add($tests, 'php', t('PHP version'), self::phpTest(), PHP_VERSION);
+        $php = self::phpTest();
+        self::add($tests, 'php', t('PHP version'), [$php['status'], $php['description']], PHP_VERSION, $php['links']);
 
         [$extStatus, $extDescription] = self::extensionsTest();
         self::add($tests, 'extensions', t('PHP extensions'), [$extStatus, $extDescription], '');
@@ -52,9 +69,6 @@ final class SiteHealth
 
         [$debugStatus, $debugDescription] = self::debugTest();
         self::add($tests, 'debug', t('Debug mode'), [$debugStatus, $debugDescription], '');
-
-        [$pepperStatus, $pepperDescription] = self::pepperTest();
-        self::add($tests, 'pepper', t('Security pepper'), [$pepperStatus, $pepperDescription], '');
 
         [$cacheStatus, $cacheDescription] = self::cacheTest();
         self::add($tests, 'cache', t('Cache'), [$cacheStatus, $cacheDescription], Cache::driverName());
@@ -87,12 +101,29 @@ final class SiteHealth
                 continue;
             }
             $id = (string)($test['id'] ?? '');
-            if (preg_match('/^[a-z][a-z0-9._-]{0,63}$/', $id) !== 1) {
+            if (preg_match(self::ID_PATTERN, $id) !== 1) {
                 continue;
             }
             $status = (string)($test['status'] ?? 'good');
             if (!isset(self::RANK[$status])) {
                 $status = 'good';
+            }
+            $links = [];
+            foreach ((array)($test['links'] ?? []) as $link) {
+                if (!is_array($link)) {
+                    continue;
+                }
+                $url = (string)($link['url'] ?? '');
+                if (preg_match('#^https?://#i', $url) !== 1) {
+                    continue;
+                }
+                $links[] = [
+                    'label' => (string)($link['label'] ?? $url),
+                    'url'   => $url,
+                ];
+                if (count($links) >= 6) {
+                    break;
+                }
             }
             $clean[] = [
                 'id'          => $id,
@@ -100,11 +131,31 @@ final class SiteHealth
                 'status'      => $status,
                 'description' => (string)($test['description'] ?? ''),
                 'value'       => (string)($test['value'] ?? ''),
+                'links'       => $links,
             ];
         }
 
-        $overall = 'good';
+        $ignoredIds = self::ignoredIds();
+        $tests = [];
+        $ignored = [];
+        $seen = [];
         foreach ($clean as $test) {
+            if (in_array($test['id'], $ignoredIds, true)) {
+                $ignored[] = ['id' => $test['id'], 'label' => $test['label']];
+                $seen[] = $test['id'];
+                continue;
+            }
+            $tests[] = $test;
+        }
+        // 插件被停用后，它的检查项已经跑不到了；仍让管理员能在忽略列表里看到并恢复
+        foreach ($ignoredIds as $id) {
+            if (!in_array($id, $seen, true)) {
+                $ignored[] = ['id' => $id, 'label' => $id];
+            }
+        }
+
+        $overall = 'good';
+        foreach ($tests as $test) {
             if (self::RANK[$test['status']] > self::RANK[$overall]) {
                 $overall = $test['status'];
             }
@@ -112,7 +163,8 @@ final class SiteHealth
 
         return [
             'status'      => $overall,
-            'tests'       => $clean,
+            'tests'       => $tests,
+            'ignored'     => $ignored,
             'generatedAt' => time(),
         ];
     }
@@ -130,7 +182,8 @@ final class SiteHealth
         return $worst;
     }
 
-    private static function add(array &$tests, string $id, string $label, array $result, string $value): void
+    /** @param array{0: string, 1: string} $result @param array<int, array{label: string, url: string}> $links */
+    private static function add(array &$tests, string $id, string $label, array $result, string $value, array $links = []): void
     {
         $tests[] = [
             'id'          => $id,
@@ -138,15 +191,44 @@ final class SiteHealth
             'status'      => $result[0],
             'description' => $result[1],
             'value'       => $value,
+            'links'       => $links,
         ];
     }
 
-    /** @return array{0: string, 1: string} */
+    /** @return array{status: string, description: string, links: array<int, array{label: string, url: string}>} */
     private static function phpTest(): array
     {
-        return version_compare(PHP_VERSION, '8.1.0', '>=')
-            ? ['good', t('PHP 8.1 or newer is required.')]
-            : ['critical', t('PHP 8.1 or newer is required; this server is running an older version.')];
+        $state = self::php2shell(PHP_VERSION);
+        if ($state['affected']) {
+            if ($state['fix'] === null) {
+                return [
+                    'status'      => 'critical',
+                    'description' => sprintf(
+                        t('PHP %s is affected by PHP2Shell (CVE-2026-109618 and CVE-2026-109619) and this branch no longer receives binary updates from the PHP project. If this site is reachable from the internet, move to PHP 8.2.35, 8.3.36, 8.4.27, 8.5.12 or newer, or apply your vendor\'s patch right now, or take the site offline until you can.'),
+                        PHP_VERSION
+                    ),
+                    'links'       => self::php2shellLinks(),
+                ];
+            }
+
+            return [
+                'status'      => 'critical',
+                'description' => sprintf(
+                    t('PHP %s is affected by PHP2Shell (CVE-2026-109618 and CVE-2026-109619), which lets an unauthenticated attacker run code on this server. If this site is reachable from the internet, upgrade to PHP %s or newer right now, or take the site offline until you can. Updating is the only complete fix.'),
+                    PHP_VERSION,
+                    $state['fix']
+                ),
+                'links'       => self::php2shellLinks(),
+            ];
+        }
+
+        return [
+            'status'      => version_compare(PHP_VERSION, '8.1.0', '>=') ? 'good' : 'critical',
+            'description' => version_compare(PHP_VERSION, '8.1.0', '>=')
+                ? t('PHP 8.1 or newer is required.')
+                : t('PHP 8.1 or newer is required; this server is running an older version.'),
+            'links'       => [],
+        ];
     }
 
     /** @return array{0: string, 1: string} */
@@ -271,16 +353,90 @@ final class SiteHealth
             : ['good', t('APP_DEBUG is off.')];
     }
 
-    /** @return array{0: string, 1: string} */
-    private static function pepperTest(): array
+    /**
+     * PHP2Shell（CVE-2026-109618 / CVE-2026-109619）修复于 8.2.35 / 8.3.36 / 8.4.27 / 8.5.12；
+     * 8.1 及更早只有源码补丁，没有官方二进制。
+     *
+     * @return array{affected: bool, fix: ?string}
+     */
+    public static function php2shell(string $version): array
     {
-        $config = self::config();
-        $pepper = (string)($config['pepper'] ?? '');
-        if ($pepper === '' || str_contains($pepper, 'change-me') || strlen($pepper) < 32) {
-            return ['critical', t('APP_PEPPER looks like a default or too short. Set a long random value before creating users.')];
+        $minor = implode('.', array_slice(explode('.', $version), 0, 2));
+        if (isset(self::PHP2SHELL_FIXED[$minor])) {
+            $fix = self::PHP2SHELL_FIXED[$minor];
+
+            return ['affected' => version_compare($version, $fix, '<'), 'fix' => $fix];
+        }
+        if (version_compare($version, '8.2.0', '<')) {
+            return ['affected' => true, 'fix' => null];
         }
 
-        return ['good', t('APP_PEPPER is configured.')];
+        // 8.6 及以后的分支在修复之后发布
+        return ['affected' => false, 'fix' => null];
+    }
+
+    /** @return array<int, array{label: string, url: string}> */
+    private static function php2shellLinks(): array
+    {
+        return [
+            ['label' => t('PHP security advisory'), 'url' => 'https://www.php.net/archive/2026.php#2026-10-21-5'],
+            ['label' => 'CVE-2026-109618', 'url' => 'https://github.com/php/php-src/security/advisories/GHSA-w8hw-w9fx-j79w'],
+            ['label' => 'CVE-2026-109619', 'url' => 'https://github.com/php/php-src/security/advisories/GHSA-6wmf-4rv5-p3rp'],
+            ['label' => '轻之舟百科', 'url' => 'https://130.wiki/wiki/PHP2Shell'],
+            ['label' => t('Wikipedia'), 'url' => 'https://en.wikipedia.org/wiki/PHP2Shell'],
+        ];
+    }
+
+    /** @return string[] */
+    public static function ignoredIds(): array
+    {
+        $raw = Settings::get(self::IGNORE_KEY, '[]');
+        $ids = is_string($raw) ? json_decode($raw, true) : null;
+        if (!is_array($ids)) {
+            return [];
+        }
+
+        return array_values(array_filter($ids, static fn(mixed $id): bool => is_string($id) && preg_match(self::ID_PATTERN, $id) === 1));
+    }
+
+    /** 把一项加入忽略列表；id 不合法时返回 false */
+    public static function ignoreId(string $id): bool
+    {
+        if (preg_match(self::ID_PATTERN, $id) !== 1) {
+            return false;
+        }
+
+        $ids = self::ignoredIds();
+        if (!in_array($id, $ids, true)) {
+            $ids[] = $id;
+            self::saveIgnored($ids);
+        }
+
+        return true;
+    }
+
+    /** 从忽略列表里移除一项；id 不合法时返回 false */
+    public static function unignoreId(string $id): bool
+    {
+        if (preg_match(self::ID_PATTERN, $id) !== 1) {
+            return false;
+        }
+
+        $ids = self::ignoredIds();
+        self::saveIgnored(array_values(array_filter($ids, static fn(string $item): bool => $item !== $id)));
+
+        return true;
+    }
+
+    /** @param string[] $ids */
+    private static function saveIgnored(array $ids): void
+    {
+        Settings::set(self::IGNORE_KEY, (string)json_encode(array_values(array_unique($ids)), JSON_UNESCAPED_SLASHES));
+
+        // 概览页的摘要按语言各缓一份，忽略规则变了要一起清掉，别让红条多留一分钟
+        foreach (I18n::slugs() as $slug) {
+            Cache::forget('admin.site_health.summary.' . $slug);
+        }
     }
 
     /** @return array{0: string, 1: string} */

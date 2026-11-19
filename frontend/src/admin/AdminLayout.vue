@@ -25,6 +25,14 @@ const route = useRoute()
 const sidebarOpen = ref(false)
 const currentTheme = ref(document.documentElement.getAttribute('data-theme') || 'dark')
 
+const SCHEDULE_BANNER_KEY = 'nomen.scheduleBannerHiddenUntil'
+const scheduleBannerHidden = ref(Number(localStorage.getItem(SCHEDULE_BANNER_KEY) || 0) > Date.now())
+
+function hideScheduleBanner() {
+  localStorage.setItem(SCHEDULE_BANNER_KEY, String(Date.now() + 7 * 24 * 60 * 60 * 1000))
+  scheduleBannerHidden.value = true
+}
+
 const groups = computed(() => {
   const map = new Map()
   for (const item of props.menu) {
@@ -114,8 +122,11 @@ const userInitial = computed(() => {
       </header>
 
       <main class="a-content">
-        <div v-if="schedule.stale" class="a-alert a-alert--warning a-schedule-alert">
+        <div v-if="schedule.stale && !scheduleBannerHidden" class="a-alert a-alert--warning a-schedule-alert">
           <a :href="url('/admin/settings')">{{ t('The scheduler has not run yet. Add the cron entry under Settings.') }}</a>
+          <button class="a-btn a-btn--ghost a-btn--sm" type="button" @click="hideScheduleBanner">
+            {{ t('Do not show this on the homepage for 7 days') }}
+          </button>
         </div>
         <slot />
       </main>

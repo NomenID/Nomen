@@ -423,6 +423,99 @@
     background: var(--color-bg-tertiary);
 }
 
+/* ========== 站点健康 ========== */
+
+.a-health-item {
+    border-top: 1px solid var(--color-border);
+}
+
+.a-health-item:first-child {
+    border-top: 0;
+}
+
+.a-health-item__summary {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    cursor: pointer;
+    list-style: none;
+}
+
+.a-health-item__summary::-webkit-details-marker {
+    display: none;
+}
+
+.a-health-item__summary::before {
+    content: '›';
+    flex: 0 0 auto;
+    color: var(--color-text-muted);
+    font-size: 16px;
+    line-height: 1;
+    transition: transform .15s ease;
+}
+
+.a-health-item[open] > .a-health-item__summary::before {
+    transform: rotate(90deg);
+}
+
+.a-health-item__main {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
+.a-health-item__hint {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--color-text-muted);
+    font-size: 13px;
+}
+
+.a-health-item__body {
+    padding: 0 0 14px 24px;
+}
+
+.a-health-item__actions {
+    margin-top: 10px;
+}
+
+.a-health-ignored {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.a-health-ignored li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 0;
+    border-top: 1px solid var(--color-border);
+}
+
+.a-health-ignored li:first-child {
+    border-top: 0;
+}
+
+.a-health-ignored__label {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    min-width: 0;
+}
+
+@media (max-width: 720px) {
+    .a-health-item__hint {
+        display: none;
+    }
+}
+
 .a-table--users td {
     vertical-align: middle;
 }
@@ -878,6 +971,14 @@
 .a-alert code {
     font-family: var(--font-mono);
     font-size: 12px;
+}
+
+.a-schedule-alert {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
 }
 
 .a-empty {
