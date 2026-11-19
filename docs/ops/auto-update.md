@@ -23,7 +23,18 @@ NOMEN_UPDATE_FEED=https://nomenid.org/official-api/releases/latest
 NOMEN_UPDATE_SCOPE=patch
 ```
 
-`/api/version` 只报本站实际在跑的版本。官方发布信息由 `official` 插件在官方站提供 `/official-api/releases/latest`，它读官方站 `data/releases.json`；普通站点默认没有这个接口，只把 `feed` 指向官方地址即可（也可以指向任何同格式的静态 JSON）。官方站要装并启用 `official` 插件，普通站不需要。
+`/api/version` 只报本站实际在跑的版本。官方发布信息由 `official` 插件在官方站提供 `/official-api/releases/latest`，它读官方站 `data/releases.json`；普通站点默认没有这个接口，只把 `feed` 指向官方地址即可（也可以指向任何同格式的静态 JSON）。官方站要装并启用 `official` 插件，普通站不需要。这个插件**不随核心发布包分发**，接口和返回文件在官方站自己的 `config/plugins/official.json` 里手写：
+
+```json
+{
+    "base_path": "/official-api",
+    "routes": {
+        "releases/latest": "data/releases.json"
+    }
+}
+```
+
+发版时只改 `data/releases.json`，插件本身不用动。
 
 ## 允许自动更新的范围
 
