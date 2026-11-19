@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{Database, FamilyHelper, Features, Response, RateLimiter, Hooks, Oidc, Special\Version};
+use Nomen\Src\{Build, Database, FamilyHelper, Features, Response, RateLimiter, Hooks, Oidc, Special\Version};
 use PDO;
 
 class ApiController
@@ -139,8 +139,10 @@ class ApiController
     }
 
     /**
-     * GET /api/version - 本站实际在跑的版本号（公开）。
-     * 发布源是单独的 /official-api/releases/latest；这里不再兼职报「最新正式版」。
+     * GET /api/version - 兼容旧客户端的更新检查。
+     * 默认报最近一次正式发版的号（data/build.json 的 release），
+     * ?action=thissite 报本站实际在跑的号。所有站点都保留这个接口。
+     * 新客户端判断更新走 /official-api/releases/latest。
      */
     public function siteVersion(): void
     {
@@ -153,10 +155,11 @@ class ApiController
         }
 
         $config = require __DIR__ . '/../config/app.php';
+        $version = (string)($config['version'] ?? '');
 
         Response::json([
             'product' => 'Nomen',
-            'version' => (string)($config['version'] ?? ''),
+            'version' => ($_GET['action'] ?? '') === 'thissite' ? $version : Build::release($version),
             'url'     => Version::PROJECT_URL,
         ]);
     }

@@ -10,11 +10,9 @@
 namespace Nomen\Src;
 
 /**
- * 查最新发布。更新源是站点自己配置的 feed（默认留空 = 不检查）：
- * 官方站把最新发布信息放在 /official-api/releases/latest，其它站点可以指向
- * 官方地址，也可以指向任何同格式的静态 JSON。
- *
- * /api/version 只报「这个站点实际在跑的版本」，不再兼职发布源。
+ * 新客户端查更新走独立的发布源 feed（默认留空 = 不检查）：官方站把最新发布信息放在
+ * /official-api/releases/latest，其它站点可以指向官方地址，也可以指向任何同格式的静态 JSON。
+ * 旧客户端的 /api/version 两档语义仍然保留，别混用。
  */
 final class UpdateCheck
 {

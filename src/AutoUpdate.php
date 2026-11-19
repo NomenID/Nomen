@@ -848,7 +848,7 @@ final class AutoUpdate
             return null;
         }
 
-        $url = rtrim((string)Brand::get('base_url'), '/') . '/api/version?_=' . time();
+        $url = rtrim((string)Brand::get('base_url'), '/') . '/api/version?action=thissite&_=' . time();
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,

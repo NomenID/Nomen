@@ -60,7 +60,7 @@ php bin/nomen upgrade
 php bin/nomen plugins migrate
 
 # 版本
-curl -s https://example.com/api/version
+curl -s 'https://example.com/api/version?action=thissite'
 
 # 页面
 for u in / /login /w/download /special/version; do
@@ -71,7 +71,7 @@ done
 tail -30 /www/wwwlogs/example.com.error.log
 ```
 
-- [ ] `/api/version` 是新版本号
+- [ ] `/api/version?action=thissite` 是新版本号
 - [ ] 首页 / 登录 / 文档 / 版本页 都是 200
 - [ ] 插件资源 200（`/plugin-assets/<slug>/...`）
 - [ ] 错误日志没有新的 `[nomen]` / `[Plugins]`

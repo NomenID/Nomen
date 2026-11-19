@@ -138,7 +138,7 @@ php bin/nomen upgrade
 php bin/nomen plugins migrate
 
 # 4. 验证
-curl -s https://你的站点/api/version
+curl -s 'https://你的站点/api/version?action=thissite'
 ```
 
 也可以让站点自己走[自动更新](ops/auto-update.md)，它会先备份数据库和文件，再覆盖、迁移、回访。
