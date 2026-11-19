@@ -76,7 +76,6 @@ class AdminSettingsController
         $oldBackend = (string)Settings::get('cache.backend', 'auto');
         $oldApi = (string)Settings::get('api.nomen_api', '1');
         $oldAuto = (string)Settings::get('update.auto', '0');
-        $oldChannel = (string)Settings::get('update.channel', 'minor');
         $oldNotify = (string)Settings::get('update.notify_email', '');
 
         $apiEnabled = array_key_exists('api_nomen', $_POST)
@@ -86,16 +85,10 @@ class AdminSettingsController
         $updateAuto = array_key_exists('update_auto', $_POST)
             ? ((string)$_POST['update_auto'] === '1' ? '1' : '0')
             : ($oldAuto === '1' ? '1' : '0');
-        $updateChannel = array_key_exists('update_channel', $_POST)
-            ? (string)$_POST['update_channel']
-            : $oldChannel;
         $updateNotify = array_key_exists('update_notify_email', $_POST)
             ? trim((string)$_POST['update_notify_email'])
             : $oldNotify;
 
-        if (!isset(AutoUpdate::CHANNELS[$updateChannel])) {
-            Response::json(['success' => false, 'message' => '更新通道不在列表里，请重新选择'], 422);
-        }
         if ($updateNotify !== '' && !filter_var($updateNotify, FILTER_VALIDATE_EMAIL)) {
             Response::json(['success' => false, 'message' => '通知邮箱格式不正确'], 422);
         }
@@ -105,7 +98,6 @@ class AdminSettingsController
             'cache.backend'      => $backend,
             'api.nomen_api'      => $apiEnabled,
             'update.auto'        => $updateAuto,
-            'update.channel'     => $updateChannel,
             'update.notify_email' => $updateNotify,
         ];
 
@@ -144,7 +136,6 @@ class AdminSettingsController
                     'cache_backend' => $oldBackend,
                     'api_nomen' => $oldApi,
                     'update_auto' => $oldAuto,
-                    'update_channel' => $oldChannel,
                     'update_notify_email' => $oldNotify,
                 ],
                 [
@@ -152,10 +143,9 @@ class AdminSettingsController
                     'cache_backend' => $backend,
                     'api_nomen' => $apiEnabled,
                     'update_auto' => $updateAuto,
-                    'update_channel' => $updateChannel,
                     'update_notify_email' => $updateNotify,
                 ],
-                ['login_2fa', 'cache_backend', 'api_nomen', 'update_auto', 'update_channel', 'update_notify_email']
+                ['login_2fa', 'cache_backend', 'api_nomen', 'update_auto', 'update_notify_email']
             ),
         ]);
 

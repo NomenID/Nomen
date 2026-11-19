@@ -142,6 +142,16 @@
     "args": "site",
     "when": "概览页站点信息块"
   },
+  "admin.dashboard.news": {
+    "type": "filter",
+    "args": "items, context",
+    "when": "概览页新闻卡"
+  },
+  "admin.site_health.tests": {
+    "type": "filter",
+    "args": "tests, context",
+    "when": "站点健康测试列表"
+  },
   "admin.users.rows": {
     "type": "filter",
     "args": "rows",

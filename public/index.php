@@ -36,7 +36,7 @@ if (\Nomen\Src\Maintenance::active()) {
 require_once __DIR__ . '/../src/I18n.php';
 
 use Nomen\Src\{Api, Router, Session, Response, Database, RecoveryHelper, FamilyHelper, Features, AppData, Nav, Admin, Plugins, Oidc};
-use Nomen\Controllers\{AuthController, OAuthController, DashboardController, ApiController, ActivationController, BiometricController, TwoFactorController, NotificationController, RecoveryController, AdminController, AdminAppsController, AdminMountsController, AdminSettingsController, AdminHomepageController, AdminIdentityController, IdentityController, FamilyController, EmailController};
+use Nomen\Controllers\{AuthController, OAuthController, DashboardController, ApiController, ActivationController, BiometricController, TwoFactorController, NotificationController, RecoveryController, AdminController, AdminAppsController, AdminMountsController, AdminSettingsController, AdminHomepageController, AdminIdentityController, IdentityController, FamilyController, EmailController, SiteHealthController};
 
 // 全局安全响应头（HSTS 由 nginx 统一设置，此处不重复）
 header('X-Content-Type-Options: nosniff');
@@ -80,6 +80,7 @@ Admin::menu('identities', '/admin/identities', 'Sign-in methods', 35, 'Users and
 Admin::menu('mounts', '/admin/mounts', 'Endpoints', 40, 'Users and access');
 Admin::menu('recovery', '/admin/recovery', 'Recovery requests', 50, 'Security');
 Admin::menu('logs', '/admin/logs', 'Activity log', 60, 'Security');
+Admin::menu('site-health', '/admin/site-health', 'Site Health', 65, 'System');
 Admin::menu('settings', '/admin/settings', 'Settings', 70, 'System');
 
 // 核心自带的特殊页面。注册在插件之后，插件不能顶掉它。
@@ -250,6 +251,7 @@ $router->post('/register/verify/resend', [AuthController::class, 'resendRegister
 $router->get('/api/check-username', [AuthController::class, 'checkUsername']);
 $router->get('/api/consent-age', [ApiController::class, 'consentAge']);
 $router->get('/api/version',     [ApiController::class, 'siteVersion']);
+$router->get('/official-api/releases/latest', [ApiController::class, 'releaseFeed']);
 $router->get('/logout',   [AuthController::class, 'logout']);
 
 // 第三方登录（GitHub / Google / Microsoft / CaelLabID / 自定义 OAuth2）
@@ -403,6 +405,7 @@ $router->get('/admin/{path:.*}', function (string $path): void {
 }, ['admin']);
 
 $router->get('/api/admin/dashboard',        [AdminController::class, 'index'], ['admin']);
+$router->post('/admin/dashboard/order',     [AdminController::class, 'saveDashboardOrder'], ['admin']);
 $router->get('/api/admin/version',          [AdminController::class, 'version'], ['admin']);
 $router->get('/api/admin/users',            [AdminController::class, 'users'], ['admin']);
 $router->get('/api/admin/users/{id}',       [AdminController::class, 'userDetail'], ['admin']);
@@ -426,6 +429,7 @@ $router->post('/admin/recovery/resend',     [AdminController::class, 'recoveryRe
 $router->get('/api/admin/logs',             [AdminController::class, 'logs'], ['admin']);
 $router->get('/api/admin/logs/{id}',        [AdminController::class, 'logDetail'], ['admin']);
 $router->get('/api/admin/settings',         [AdminSettingsController::class, 'index'], ['admin']);
+$router->get('/api/admin/site-health',      [SiteHealthController::class, 'index'], ['admin']);
 $router->post('/admin/settings',            [AdminSettingsController::class, 'update'], ['admin']);
 $router->post('/admin/settings/cache/clear', [AdminSettingsController::class, 'clearCache'], ['admin']);
 $router->post('/admin/settings/schedule/run', [AdminSettingsController::class, 'scheduleRun'], ['admin']);

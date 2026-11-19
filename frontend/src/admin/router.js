@@ -24,6 +24,7 @@ import RecoveryDetailPage from './pages/RecoveryDetailPage.vue'
 import LogsPage from './pages/LogsPage.vue'
 import LogDetailPage from './pages/LogDetailPage.vue'
 import SettingsPage from './pages/SettingsPage.vue'
+import SiteHealthPage from './pages/SiteHealthPage.vue'
 import PluginPage from './pages/PluginPage.vue'
 
 // meta.title 存的是词典键，标题在 afterEach 里按当前语言翻
@@ -43,6 +44,7 @@ export const routes = [
   { path: '/admin/recovery/:id([0-9A-HJKMNP-TV-Z]{26})', name: 'admin-recovery-detail', component: RecoveryDetailPage, meta: { title: 'Request details' } },
   { path: '/admin/logs', name: 'admin-logs', component: LogsPage, meta: { title: 'Activity log' } },
   { path: '/admin/logs/:id([0-9A-HJKMNP-TV-Z]{26})', name: 'admin-log-detail', component: LogDetailPage, meta: { title: 'Log details' } },
+  { path: '/admin/site-health', name: 'admin-site-health', component: SiteHealthPage, meta: { title: 'Site Health' } },
   { path: '/admin/settings', name: 'admin-settings', component: SettingsPage, meta: { title: 'Settings' } },
   { path: '/admin/:slug', name: 'admin-plugin', component: PluginPage, meta: { title: 'Plugin page' } },
   { path: '/admin/:pathMatch(.*)*', redirect: '/admin' },

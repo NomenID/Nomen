@@ -39,6 +39,7 @@
 | `GET /api/userinfo` | 60 次 / 分钟 / IP |
 | `GET /api/token-info` | 30 次 / 分钟 / IP |
 | `GET /api/version` | 60 次 / 分钟 / IP |
+| `GET /official-api/releases/latest` | 60 次 / 分钟 / IP |
 | `GET /auth/<slug>/redirect` | 120 次 / 分钟 / IP |
 
 超了回 429，带 `Retry-After`。

@@ -836,6 +836,16 @@
     color: var(--color-text-secondary);
 }
 
+.a-span-2 {
+    grid-column: 1 / -1;
+}
+
+.a-news__item + .a-news__item {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--color-border);
+}
+
 .a-alert {
     margin: 0 0 14px;
     padding: 11px 14px;

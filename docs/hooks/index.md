@@ -27,6 +27,7 @@
 | [admin.apps.detail](admin.md) | filter | 1 处 |
 | [admin.apps.list](admin.md) | filter | 1 处 |
 | [admin.dashboard.cards](admin.md) | filter | 1 处 |
+| [admin.dashboard.news](admin.md) | filter | 1 处 |
 | [admin.dashboard.site](admin.md) | filter | 1 处 |
 | [admin.logs.rows](admin.md) | filter | 1 处 |
 | [admin.menu.items](admin.md) | filter | 1 处 |
@@ -36,6 +37,7 @@
 | [admin.settings.data](admin.md) | filter | 1 处 |
 | [admin.settings.saved](admin.md) | run | 1 处 |
 | [admin.shell.props](admin.md) | filter | 1 处 |
+| [admin.site_health.tests](admin.md) | filter | 1 处 |
 | [admin.user.detail](admin.md) | filter | 1 处 |
 | [admin.user.role_changed](admin.md) | run | 1 处 |
 | [admin.user.status_changed](admin.md) | run | 1 处 |

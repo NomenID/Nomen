@@ -25,7 +25,7 @@ crontab 加一行，路径换成站点根目录：
 
 - 核心：`core.tick`，每分钟一次，本身什么都不做 —— 它的 `last_run_at` 就是 cron 的健康信号。
 - 核心：`update.check`，每小时被叫一次，但真正要不要查由 [自动更新](auto-update.md) 的
-  `updates.interval` 决定（默认 12 小时一次）；后台开关关着时只查不装。
+  `config/autoupdate.php`（`interval` / `check_at`）决定；后台开关关着时只查不装。
 - 插件：注册 `schedule.tasks` 钩子，见 [钩子参考](../hooks/index.md)。
 
 任务 id 带点（`pages.sitemap`），同 id 先注册的生效，核心的不会被插件顶掉。

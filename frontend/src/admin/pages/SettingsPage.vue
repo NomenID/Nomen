@@ -27,7 +27,6 @@ const form = reactive({
   cache_backend: 'auto',
   api_nomen: '1',
   update_auto: '0',
-  update_channel: 'minor',
   update_notify_email: '',
   policies: [],
   additional_terms: [],
@@ -49,8 +48,7 @@ async function load() {
     form.login_2fa = data.value.policy
     form.cache_backend = data.value.backend
     form.api_nomen = data.value.apiEnabled ? '1' : '0'
-    form.update_auto = data.value.autoUpdate?.enabled ? '1' : '0'
-    form.update_channel = data.value.autoUpdate?.channel || 'minor'
+    form.update_auto = data.value.autoUpdate?.autoSetting ? '1' : '0'
     form.update_notify_email = data.value.autoUpdate?.notifyEmail || ''
     form.policies = [0, 1, 2].map((i) => {
       const policy = data.value.policies?.[i] || {}
@@ -72,7 +70,6 @@ async function save() {
       cache_backend: form.cache_backend,
       api_nomen: form.api_nomen,
       update_auto: form.update_auto,
-      update_channel: form.update_channel,
       update_notify_email: form.update_notify_email,
       policies: JSON.stringify(form.policies.filter((policy) => policy.url.trim())),
       additional_terms: JSON.stringify(form.additional_terms.filter((term) => term.label.trim() && term.url.trim())),
@@ -181,6 +178,35 @@ function logLine(entry) {
   return `${entry.ts || ''} ${(entry.level || '').toUpperCase()} ${entry.step || ''}: ${entry.message || ''}`.trim()
 }
 
+function priorityText(priority) {
+  const labels = {
+    security: t('Security update'),
+    critical: t('Critical update'),
+    normal: t('Normal update'),
+    feature: t('Feature update'),
+  }
+  return labels[priority] || priority
+}
+
+function scopeText(scope) {
+  if (scope === 'patch') return t('Patch releases only')
+  if (scope === 'minor') return t('Same major version')
+  return t('All releases')
+}
+
+function kindText(kind) {
+  if (kind === 'patch') return t('patch update')
+  if (kind === 'minor') return t('minor update')
+  if (kind === 'major') return t('major update')
+  return kind
+}
+
+function updateSchedule(au) {
+  const check = au.checkAt ? t('Daily at {:time}', { time: au.checkAt }) : t('Every {:count} hours', { count: Math.max(1, Math.round((au.interval || 0) / 3600)) })
+  const window = au.window ? au.window : t('Any time')
+  return `${check} · ${t('Install window:')} ${window}`
+}
+
 onMounted(load)
 </script>
 
@@ -223,10 +249,21 @@ onMounted(load)
 
         <AdminCard :title="t('Automatic updates')">
           <p class="a-card__desc">
-            {{ t('Downloads official releases in the background, verifies the SHA-256, keeps a backup, and rolls back if anything goes wrong. The scheduled task must be running.') }}
+            {{ t('Checks the release feed in the background, verifies the SHA-256, keeps a backup, and rolls back if anything goes wrong.') }}
+          </p>
+          <p class="a-card__desc a-text--muted">
+            {{ t('Before changing config/autoupdate.php for special needs, turn automatic updates off first.') }}
           </p>
 
-          <AdminAlert v-if="!data.autoUpdate.zipAvailable || !data.autoUpdate.curlAvailable" type="warning">
+          <p class="a-card__desc">
+            {{ t('Update feed:') }}
+            <code class="a-mono">{{ data.autoUpdate.feed || t('Not configured') }}</code>
+          </p>
+
+          <AdminAlert v-if="!data.autoUpdate.feedConfigured" type="warning">
+            {{ t('No update feed is configured. Set feed in config/autoupdate.php (or NOMEN_UPDATE_FEED in .env) to enable update checks.') }}
+          </AdminAlert>
+          <AdminAlert v-else-if="!data.autoUpdate.zipAvailable || !data.autoUpdate.curlAvailable" type="warning">
             {{ t('Automatic updates need the PHP zip and curl extensions.') }}
           </AdminAlert>
           <AdminAlert v-else-if="!data.autoUpdate.writable" type="warning">
@@ -236,17 +273,18 @@ onMounted(load)
             {{ t('This release needs a newer PHP version.') }}
           </AdminAlert>
 
+          <AdminAlert v-if="data.autoUpdate.eol" type="warning">
+            {{ t('This version is no longer supported. Update to at least {:version}.', { version: data.autoUpdate.eol.min_supported }) }}
+          </AdminAlert>
+
           <label class="a-check">
-            <input v-model="form.update_auto" type="checkbox" true-value="1" false-value="0">
+            <input v-model="form.update_auto" type="checkbox" true-value="1" false-value="0" :disabled="!data.autoUpdate.feedConfigured">
             <span>{{ t('Enable automatic updates') }}</span>
           </label>
 
-          <p class="a-card__desc">{{ t('Update channel') }}</p>
-          <select v-model="form.update_channel" class="a-input a-input--narrow">
-            <option value="patch">{{ t('Patch releases only (x.y.z)') }}</option>
-            <option value="minor">{{ t('Same major version (x.y)') }}</option>
-            <option value="all">{{ t('All releases') }}</option>
-          </select>
+          <p class="a-card__desc">
+            {{ t('Only patch releases are installed automatically by default. To allow the second or first digit, set scope to minor or major in config/autoupdate.php.') }}
+          </p>
 
           <p class="a-card__desc">{{ t('Notification email') }}</p>
           <input v-model="form.update_notify_email" class="a-input" type="email" :placeholder="data.autoUpdate.effectiveNotifyEmail || t('Administrator address')">
@@ -254,25 +292,39 @@ onMounted(load)
 
           <p class="a-text">
             {{ t('Current version:') }} <code class="a-mono">{{ data.autoUpdate.currentVersion }}</code>
-            <template v-if="data.autoUpdate.latest"> · {{ t('Latest:') }} <code class="a-mono">{{ data.autoUpdate.latest }}</code></template>
+            <template v-if="data.autoUpdate.latest">
+              · {{ t('Latest:') }} <code class="a-mono">{{ data.autoUpdate.latest }}</code>
+              <AdminBadge v-if="data.autoUpdate.pendingPriority" tone="muted">{{ priorityText(data.autoUpdate.pendingPriority) }}</AdminBadge>
+            </template>
           </p>
           <p class="a-text a-text--muted">
             {{ t('Last check:') }} {{ formatted(data.autoUpdate.lastCheckAt) }}
             <template v-if="data.autoUpdate.lastCheckError"> — {{ data.autoUpdate.lastCheckError }}</template>
           </p>
+          <p class="a-text a-text--muted">{{ updateSchedule(data.autoUpdate) }}</p>
+          <p class="a-text a-text--muted">
+            {{ t('Automatic scope:') }} {{ scopeText(data.autoUpdate.scope) }} ·
+            {{ t('Minimum priority:') }} {{ priorityText(data.autoUpdate.minPriority) }}
+          </p>
 
           <AdminAlert v-if="data.autoUpdate.failed" type="warning">
             {{ t('The last attempt for {:version} failed: {:error}', { version: data.autoUpdate.failed.version, error: data.autoUpdate.failed.reason }) }}
           </AdminAlert>
+          <p v-else-if="data.autoUpdate.pending && !data.autoUpdate.pendingAuto" class="a-text">
+            {{ t('Version {:version} is a {:kind}; it will not be installed automatically. Update it manually.', { version: data.autoUpdate.pending, kind: kindText(data.autoUpdate.pendingKind) }) }}
+          </p>
           <p v-else-if="data.autoUpdate.pending && !data.autoUpdate.enabled" class="a-text">
             {{ t('Version {:version} is available. Turn on automatic updates to install it in the background.', { version: data.autoUpdate.pending }) }}
+          </p>
+          <p v-else-if="data.autoUpdate.pending && !data.autoUpdate.inWindow" class="a-text">
+            {{ t('Version {:version} is waiting for the maintenance window.', { version: data.autoUpdate.pending }) }}
           </p>
           <p v-else-if="data.autoUpdate.pending" class="a-text">
             {{ t('Version {:version} will be installed by the next scheduled check.', { version: data.autoUpdate.pending }) }}
           </p>
 
           <div class="a-form__actions">
-            <button class="a-btn" type="button" :disabled="checking" @click="checkUpdates">
+            <button class="a-btn" type="button" :disabled="checking || !data.autoUpdate.feedConfigured" @click="checkUpdates">
               {{ checking ? t('Checking…') : t('Check now') }}
             </button>
             <button v-if="data.autoUpdate.failed" class="a-btn a-btn--ghost" type="button" @click="resetUpdate">

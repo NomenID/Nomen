@@ -11,21 +11,38 @@ use Nomen\Src\AutoUpdate;
 use Nomen\Src\UpdateCheck;
 use Nomen\Src\UpdatePackage;
 
-test('自动更新通道按大版本 / 小版本筛', static function (): void {
-    assertTrue(AutoUpdate::channelAllows('1.7.0', '1.7.1', 'patch'));
-    assertTrue(AutoUpdate::channelAllows('1.7.0', '1.7.1', 'minor'));
-    assertTrue(AutoUpdate::channelAllows('1.7.0', '1.7.1', 'all'));
+test('自动更新只默认覆盖最后一位，第二位/第一位要显式放开', static function (): void {
+    assertSame('patch', AutoUpdate::updateKind('1.7.0', '1.7.1'));
+    assertSame('minor', AutoUpdate::updateKind('1.7.0', '1.8.0'));
+    assertSame('major', AutoUpdate::updateKind('1.7.0', '2.0.0'));
+    assertSame('none', AutoUpdate::updateKind('1.7.0', '1.7.0'));
 
-    assertTrue(!AutoUpdate::channelAllows('1.7.0', '1.8.0', 'patch'));
-    assertTrue(AutoUpdate::channelAllows('1.7.0', '1.8.0', 'minor'));
-    assertTrue(AutoUpdate::channelAllows('1.7.0', '1.8.0', 'all'));
+    // 默认 scope = patch
+    assertTrue(AutoUpdate::scopeAllows('1.7.0', '1.7.1'));
+    assertTrue(!AutoUpdate::scopeAllows('1.7.0', '1.8.0'));
+    assertTrue(!AutoUpdate::scopeAllows('1.7.0', '2.0.0'));
+    assertTrue(AutoUpdate::scopeAllows('1.7.0+qb.20261118', '1.7.1'), 'quickbuild 后缀不参与比较');
+});
 
-    assertTrue(!AutoUpdate::channelAllows('1.7.0', '2.0.0', 'patch'));
-    assertTrue(!AutoUpdate::channelAllows('1.7.0', '2.0.0', 'minor'));
-    assertTrue(AutoUpdate::channelAllows('1.7.0', '2.0.0', 'all'));
+test('优先级阈值只挡住更低级别', static function (): void {
+    assertTrue(AutoUpdate::priorityAllows('security'));
+    assertTrue(AutoUpdate::priorityAllows('critical'));
+    assertTrue(AutoUpdate::priorityAllows('normal'));
+    assertTrue(!AutoUpdate::priorityAllows('feature'), '默认最低优先级是 normal');
+    assertTrue(AutoUpdate::priorityBypassesWindow('security'));
+    assertTrue(AutoUpdate::priorityBypassesWindow('critical'));
+    assertTrue(!AutoUpdate::priorityBypassesWindow('normal'));
+});
 
-    assertTrue(!AutoUpdate::channelAllows('1.7.0', '1.6.9', 'all'), '不比当前版本旧');
-    assertTrue(AutoUpdate::channelAllows('1.7.0+qb.20261118', '1.7.1', 'patch'), 'quickbuild 后缀不参与比较');
+test('维护窗口支持普通段和跨午夜', static function (): void {
+    assertTrue(AutoUpdate::windowAllows('03:00-05:00', 4 * 60));
+    assertTrue(!AutoUpdate::windowAllows('03:00-05:00', 5 * 60));
+    assertTrue(!AutoUpdate::windowAllows('03:00-05:00', 2 * 60));
+
+    assertTrue(AutoUpdate::windowAllows('23:00-02:00', 23 * 60 + 30));
+    assertTrue(AutoUpdate::windowAllows('23:00-02:00', 60));
+    assertTrue(!AutoUpdate::windowAllows('23:00-02:00', 12 * 60));
+    assertTrue(AutoUpdate::windowAllows('', 12 * 60), '空窗口 = 不限');
 });
 
 test('更新包路径不允许跳出站点根目录', static function (): void {

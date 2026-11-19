@@ -45,13 +45,31 @@ class Update
     {
         $status = AutoUpdate::status();
 
-        echo '自动更新：', $status['enabled'] ? '开启' : '关闭', PHP_EOL;
-        echo '  通道：', $status['channel'], '（', $status['channels'][$status['channel']] ?? '', '）', PHP_EOL;
-        echo '  当前版本：', $status['currentVersion'], PHP_EOL;
-        echo '  最新版本：', $status['latest'] !== '' ? $status['latest'] : '未知', PHP_EOL;
-        echo '  上次检查：', self::time($status['lastCheckAt']),
+        echo '自动开关：', $status['autoSetting'] ? '开' : '关', PHP_EOL;
+        echo '更新源：', $status['feedConfigured'] ? $status['feed'] : '未配置（设置 NOMEN_UPDATE_FEED 后才会检查）', PHP_EOL;
+        echo '自动范围：', $status['scope'], '（', $status['scopes'][$status['scope']] ?? '', '）', PHP_EOL;
+        echo '最低优先级：', $status['minPriority'], PHP_EOL;
+        echo '检查计划：', $status['checkAt'] !== ''
+            ? '每天 ' . $status['checkAt']
+            : '每 ' . max(1, (int)round($status['interval'] / 3600)) . ' 小时', PHP_EOL;
+        echo '安装窗口：', $status['window'] !== '' ? $status['window'] : '不限', PHP_EOL;
+        echo '当前版本：', $status['currentVersion'], PHP_EOL;
+        echo '最新版本：', $status['latest'] !== '' ? $status['latest'] : '未知', PHP_EOL;
+        echo '上次检查：', self::time($status['lastCheckAt']),
             ($status['lastCheckAt'] > 0 && !$status['lastCheckOk']) ? '（失败）' : '', PHP_EOL;
-        echo '  通知邮箱：', $status['effectiveNotifyEmail'] !== '' ? $status['effectiveNotifyEmail'] : '未配置', PHP_EOL;
+        echo '通知邮箱：', $status['effectiveNotifyEmail'] !== '' ? $status['effectiveNotifyEmail'] : '未配置', PHP_EOL;
+
+        if ($status['eol'] !== null) {
+            echo PHP_EOL, '提醒：当前版本已低于最低支持版本 ', $status['eol']['min_supported'] ?? '', PHP_EOL;
+        }
+
+        if ($status['pending'] !== '') {
+            echo PHP_EOL, '待安装：', $status['pending'], '（', $status['pendingKind'], '）';
+            if ($status['pendingPriority'] !== '') {
+                echo '，优先级 ', $status['pendingPriority'];
+            }
+            echo PHP_EOL;
+        }
 
         $last = $status['lastRun'];
         if (is_array($last)) {

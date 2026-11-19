@@ -1,0 +1,1 @@
+ALTER TABLE users ADD COLUMN dashboard_order TEXT DEFAULT NULL;

@@ -22,6 +22,7 @@
 | `gender` | VARCHAR(30) | 是 | NULL | 性别，取值在 `config/genders.php` |
 | `locale` | VARCHAR(16) | 是 | NULL | 账号的语言偏好，优先级高于浏览器语言 |
 | `skin` | VARCHAR(32) | 是 | NULL | 账号选的皮肤，未登录设备用站点默认 |
+| `dashboard_order` | TEXT | 是 | — | — |
 | `password_hash` | VARCHAR(255) | 否 | '' | 密码哈希（掺了 `config/app.php` 的 pepper） |
 | `display_name` | VARCHAR(64) | 是 | NULL | 显示名，留空时界面上回退成用户名 |
 | `avatar` | VARCHAR(512) | 是 | NULL | 头像地址，上传的落在 `public/assets/avatars/` |

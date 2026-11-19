@@ -83,6 +83,7 @@ final class UpdatePackage
         if (!is_dir($this->dir) && !@mkdir($this->dir, 0755, true) && !is_dir($this->dir)) {
             throw new UpdateException('files_not_writable', '无法创建 ' . $this->dir);
         }
+        Ownership::adopt($this->dir);
         if (!is_writable($this->dir)) {
             throw new UpdateException('files_not_writable', $this->dir . ' 不可写');
         }
@@ -288,7 +289,7 @@ final class UpdatePackage
         $this->previousFiles = $this->readPreviousManifest();
     }
 
-    /** 覆盖之前把会被改动 / 删除的文件打进 data/updates 下的备份包 */
+    /** 覆盖之前把会改动 / 删除的文件、站点配置和其它非代码数据打进备份包 */
     public function backup(): void
     {
         $targets = [];
@@ -305,6 +306,9 @@ final class UpdatePackage
                 $targets[$rel] = true;
             }
         }
+        foreach ($this->extraBackupTargets() as $rel) {
+            $targets[$rel] = true;
+        }
 
         if ($targets === []) {
             throw new UpdateException('backup_failed', '没有可备份的文件');
@@ -313,6 +317,14 @@ final class UpdatePackage
         $estimated = 0;
         foreach (array_keys($targets) as $rel) {
             $estimated += (int)@filesize($this->root . '/' . $rel);
+        }
+        $maxMb = max(1, (int)(self::config()['backup']['max_mb'] ?? 512));
+        if ($estimated > $maxMb * 1048576) {
+            throw new UpdateException(
+                'backup_too_large',
+                '备份体积约 ' . number_format($estimated / 1048576, 1) . ' MB，超过上限 ' . $maxMb
+                . ' MB。先手动备份，或在 config/autoupdate.php 调整 backup.max_mb / backup.exclude。'
+            );
         }
         $this->ensureDiskSpace($estimated + (int)@filesize($this->zip) + 50 * 1024 * 1024);
 
@@ -332,7 +344,144 @@ final class UpdatePackage
         if (!is_file($this->backup) || (int)@filesize($this->backup) <= 0) {
             throw new UpdateException('backup_failed', '备份包是空的');
         }
+
+        // 备份必须能重新打开、条目齐全，否则宁可中止也不动站点
+        $check = new ZipArchive();
+        if ($check->open($this->backup, ZipArchive::CHECKCONS) !== true) {
+            throw new UpdateException('backup_failed', '备份包完整性校验失败');
+        }
+        if ($check->numFiles !== count($targets)) {
+            $check->close();
+            throw new UpdateException('backup_failed', '备份包条目数与预期不一致');
+        }
+        foreach (array_keys($targets) as $rel) {
+            if ($check->locateName($rel) === false) {
+                $check->close();
+                throw new UpdateException('backup_failed', '备份包缺少文件：' . $rel);
+            }
+        }
+        $check->close();
+
+        @chmod($this->backup, 0600);
         Ownership::adopt($this->backup);
+    }
+
+    /**
+     * 站点自己的配置、插件/皮肤/模板、上传和额外路径。
+     * 这些不一定被更新覆盖，但「宁愿失败也不丢数据」，统一留一份。
+     *
+     * @return string[]
+     */
+    private function extraBackupTargets(): array
+    {
+        $targets = [];
+        $config = self::config();
+        $rootReal = (string)realpath($this->root);
+
+        $addFile = function (string $rel) use (&$targets, $rootReal): void {
+            $rel = self::normalizeEntry($rel);
+            if ($rel === '' || !self::isSafeEntry($rel) || isset($targets[$rel])) {
+                return;
+            }
+            if ($this->backupExcluded($rel)) {
+                return;
+            }
+            $path = $this->root . '/' . $rel;
+            if (!is_file($path) || is_link($path)) {
+                return;
+            }
+            $real = (string)realpath($path);
+            if ($rootReal === '' || !str_starts_with($real, $rootReal . DIRECTORY_SEPARATOR)) {
+                return;
+            }
+            $targets[$rel] = true;
+        };
+
+        $addDir = function (string $rel) use ($addFile): void {
+            $rel = trim(str_replace('\\', '/', $rel), '/');
+            if ($rel === '' || !self::isSafeEntry($rel)) {
+                return;
+            }
+            $dir = $this->root . '/' . $rel;
+            if (!is_dir($dir) || is_link($dir)) {
+                return;
+            }
+            try {
+                $it = new RecursiveIteratorIterator(
+                    new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS)
+                );
+                foreach ($it as $item) {
+                    if ($item->isLink() || !$item->isFile()) {
+                        continue;
+                    }
+                    $path = str_replace('\\', '/', $item->getPathname());
+                    $prefix = rtrim(str_replace('\\', '/', $this->root), '/') . '/';
+                    if (str_starts_with($path, $prefix)) {
+                        $addFile(substr($path, strlen($prefix)));
+                    }
+                }
+            } catch (Throwable $e) {
+                error_log('[update] 扫描备份目录失败 ' . $rel . ': ' . $e->getMessage());
+            }
+        };
+
+        $addDir('config');
+        $addFile('.env');
+        $addFile('public/.user.ini');
+        $addDir('public/assets/brand');
+        $addDir('plugins');
+        $addDir('skins');
+        $addDir('templates');
+
+        foreach (['.htaccess', 'public/.htaccess', 'public/robots.txt', 'public/BingSiteAuth.xml',
+                  'data/oidc-key.json', 'data/build.json'] as $file) {
+            $addFile($file);
+        }
+
+        if (!empty($config['backup']['uploads'])) {
+            foreach (['public/assets/avatars', 'public/assets/recovery', 'public/assets/develops'] as $dir) {
+                $addDir($dir);
+            }
+        }
+
+        foreach ((array)($config['backup']['extra'] ?? []) as $extra) {
+            $rel = self::normalizeEntry((string)$extra);
+            if ($rel === '' || !self::isSafeEntry($rel)) {
+                continue;
+            }
+            if (is_dir($this->root . '/' . $rel)) {
+                $addDir($rel);
+            } else {
+                $addFile($rel);
+            }
+        }
+
+        return array_keys($targets);
+    }
+
+    private function backupExcluded(string $rel): bool
+    {
+        $builtin = ['frontend/', 'dist/', 'tests/', 'docs-internal/', 'vendor/',
+                    'data/cache/', 'data/updates/', 'data/backups/'];
+        $extra = (array)(self::config()['backup']['exclude'] ?? []);
+
+        foreach (['.git/', 'node_modules/'] as $segment) {
+            if (str_contains('/' . $rel . '/', '/' . $segment)) {
+                return true;
+            }
+        }
+
+        foreach (array_merge($builtin, $extra) as $prefix) {
+            $prefix = trim(str_replace('\\', '/', (string)$prefix), '/');
+            if ($prefix === '') {
+                continue;
+            }
+            if ($rel === $prefix || str_starts_with($rel, $prefix . '/')) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function backupPath(): string
@@ -454,7 +603,7 @@ final class UpdatePackage
             @unlink($this->zip . '.part');
         }
 
-        $keep = max(1, (int)(self::config()['keep_backups'] ?? 2));
+        $keep = max(1, (int)(self::config()['backup']['keep'] ?? 5));
         $backups = glob($this->dir . '/backup-*.zip') ?: [];
         usort($backups, static fn(string $a, string $b): int => (int)@filemtime($b) <=> (int)@filemtime($a));
         foreach (array_slice($backups, $keep) as $old) {
@@ -504,6 +653,10 @@ final class UpdatePackage
 
     private function deletable(string $rel): bool
     {
+        if ($this->protectedByConfig($rel)) {
+            return false;
+        }
+
         foreach (self::PROTECTED_FILES as $file) {
             if ($rel === $file) {
                 return false;
@@ -526,6 +679,10 @@ final class UpdatePackage
 
     private function shouldSkip(string $rel, bool $exists): bool
     {
+        if ($this->protectedByConfig($rel)) {
+            return true;
+        }
+
         foreach (self::PROTECTED_FILES as $file) {
             if ($rel === $file) {
                 return true;
@@ -545,6 +702,22 @@ final class UpdatePackage
             if ($rel === $prefix || str_starts_with($rel, $prefix)) {
                 // config/app.php 例外：版本号和新配置键要跟着新版走
                 return !($rel === 'config/app.php');
+            }
+        }
+
+        return false;
+    }
+
+    /** config/autoupdate.php 里的 protect 列表：永远不覆盖、不删除 */
+    private function protectedByConfig(string $rel): bool
+    {
+        foreach ((array)(self::config()['protect'] ?? []) as $path) {
+            $path = trim(str_replace('\\', '/', (string)$path), '/');
+            if ($path === '') {
+                continue;
+            }
+            if ($rel === $path || str_starts_with($rel, $path . '/')) {
+                return true;
             }
         }
 
@@ -583,6 +756,12 @@ final class UpdatePackage
                 throw new UpdateException('files_not_writable', $dir . ' 不可写');
             }
             if ($dir !== $this->root && is_link($dir)) {
+                throw new UpdateException('files_not_writable', $dir . ' 是符号链接，自动更新不处理这种目录');
+            }
+        }
+        foreach (['plugins', 'skins', 'templates'] as $name) {
+            $dir = $this->root . '/' . $name;
+            if (is_link($dir)) {
                 throw new UpdateException('files_not_writable', $dir . ' 是符号链接，自动更新不处理这种目录');
             }
         }
@@ -638,10 +817,7 @@ final class UpdatePackage
     /** @return array<string, mixed> */
     private static function config(): array
     {
-        $file = dirname(__DIR__) . '/config/app.php';
-        $config = is_file($file) ? require $file : [];
-
-        return is_array($config['updates'] ?? null) ? $config['updates'] : [];
+        return UpdateConfig::all();
     }
 
     private function maxPackageBytes(): int

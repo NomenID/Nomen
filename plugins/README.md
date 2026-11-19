@@ -250,6 +250,8 @@ $claims = Hooks::filter('userinfo.claims', $claims, $user, $scopes);
 | `admin.shell.props` | filter | `props`, `adminId` | 后台 SPA 首屏数据 |
 | `admin.dashboard.cards` | filter | `cards`, `stats` | 概览页统计卡 |
 | `admin.dashboard.site` | filter | `site` | 概览页站点信息块 |
+| `admin.dashboard.news` | filter | `items`, `context` | 概览页新闻卡 |
+| `admin.site_health.tests` | filter | `tests`, `context` | 站点健康测试列表 |
 | `admin.users.rows` | filter | `rows` | 用户列表返回前 |
 | `admin.user.detail` | filter | `payload`, `userId`, `user`, `admin` | 用户详情返回前 |
 | `admin.apps.list` | filter | `apps` | 应用列表返回前 |

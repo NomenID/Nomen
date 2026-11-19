@@ -53,7 +53,7 @@ final class Schedule
                 'id'    => 'update.check',
                 'label' => 'Update check',
                 'owner' => 'core',
-                // 每小时问一次，AutoUpdate 自己按 updates.interval（默认 12 小时）决定要不要真的查
+                // 每小时问一次，AutoUpdate 自己按 config/autoupdate.php 的 interval / check_at 决定要不要真的查
                 'every' => 3600,
                 'run'   => static function (): void {
                     AutoUpdate::scheduled();

@@ -128,6 +128,7 @@ tar czf /tmp/nomen-files-$(date +%Y%m%d).tar.gz -C /www/wwwroot nomenid
 # 2. 替换文件，排除这些
 #    config/installed.php  .env  data/  public/assets/{avatars,recovery,develops}/  config/plugins/
 #    config/plugins.php  config/skins.php  public/.user.ini（被 chattr +i 锁着）
+#    config/autoupdate.php（改过更新源 / 备份 / 计划的话）
 #
 #    plugins.php 和 skins.php 里的 enabled 列表是站点配置，不是发行包模板——
 #    被包覆盖会把你启用的插件 / 皮肤重置回默认。
@@ -137,8 +138,10 @@ php bin/nomen upgrade
 php bin/nomen plugins migrate
 
 # 4. 验证
-curl -s https://你的站点/api/version?action=thissite
+curl -s https://你的站点/api/version
 ```
+
+也可以让站点自己走[自动更新](ops/auto-update.md)，它会先备份数据库和文件，再覆盖、迁移、回访。
 
 升级细节和「什么算破坏性改动」见 [兼容与升级](internals/compatibility.md)。
 

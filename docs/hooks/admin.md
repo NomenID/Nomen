@@ -11,6 +11,7 @@
 | `admin.apps.detail` | filter | app, clientId | 应用详情返回前 |
 | `admin.apps.list` | filter | apps | 应用列表返回前 |
 | `admin.dashboard.cards` | filter | cards, stats | 概览页统计卡 |
+| `admin.dashboard.news` | filter | items, context | 概览页新闻卡 |
 | `admin.dashboard.site` | filter | site | 概览页站点信息块 |
 | `admin.logs.rows` | filter | rows | 活动日志列表返回前 |
 | `admin.menu.items` | filter | items | 后台侧栏菜单组装完 |
@@ -20,6 +21,7 @@
 | `admin.settings.data` | filter | payload | 站点设置页数据 |
 | `admin.settings.saved` | run | policy, backend, adminId, apiEnabled | 站点设置保存后 |
 | `admin.shell.props` | filter | props, adminId | 后台 SPA 首屏数据 |
+| `admin.site_health.tests` | filter | tests, context | 站点健康测试列表 |
 | `admin.user.detail` | filter | payload, userId, user, admin | 用户详情返回前 |
 | `admin.user.role_changed` | run | userId, role, adminId | 管理员授予/撤销管理员之后 |
 | `admin.user.status_changed` | run | userId, status, adminId | 管理员启用/禁用账户之后 |
@@ -48,6 +50,14 @@
 - 类型：filter
 - 参数：cards, stats
 - 时机：概览页统计卡
+- 触发点：
+  - `controllers/AdminController.php`（filter）
+
+### admin.dashboard.news
+
+- 类型：filter
+- 参数：items, context
+- 时机：概览页新闻卡
 - 触发点：
   - `controllers/AdminController.php`（filter）
 
@@ -122,6 +132,14 @@
 - 时机：后台 SPA 首屏数据
 - 触发点：
   - `src/AdminShell.php`（filter）
+
+### admin.site_health.tests
+
+- 类型：filter
+- 参数：tests, context
+- 时机：站点健康测试列表
+- 触发点：
+  - `src/SiteHealth.php`（filter）
 
 ### admin.user.detail
 

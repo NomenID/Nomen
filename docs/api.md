@@ -81,6 +81,34 @@ curl -s 'https://你的站点/nomen-api?action=query&titles=start&prop=content'
 
 `page=nomen-api` 这一段是路由，后面的参数和正常模式一样。
 
+## 版本与发布源
+
+这两个是独立于 `/nomen-api` 的小接口：
+
+| 端点 | 说明 |
+|---|---|
+| `GET /api/version` | 本站实际在跑的版本（`product` / `version` / `url`） |
+| `GET /official-api/releases/latest` | 官方发布源；读站点根 `data/releases.json`，没有这个文件就 404 |
+
+发布源返回：
+
+```json
+{
+  "product": "Nomen",
+  "version": "1.7.1",
+  "priority": "normal",
+  "released_at": "2026-11-20T00:00:00Z",
+  "download": "https://dl.caellab.com/file/nomen/nomen-1.7.1.zip",
+  "sha256": "<64 位>",
+  "min_php": "8.1",
+  "min_supported": "1.7.0",
+  "notes": "https://nomenid.org/w/changelog"
+}
+```
+
+`priority` 是 `security` / `critical` / `normal` / `feature`。自动更新的规则见
+[自动更新](ops/auto-update.md)。
+
 ## 坑
 
 - **`formatversion`**：返回形状固定是 `formatversion=2` 的风格（对象数组），不认 `formatversion` 参数。

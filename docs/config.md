@@ -16,12 +16,14 @@
 | `.env` | 运维，手工 | 不进（`.gitignore` 挡着） |
 | `config/installed.php` | 安装器生成，之后手工改 | 不进（部署时排除） |
 | `config/*.php` | 开发者 / 站长改默认值 | 进 |
+| `config/autoupdate.php` | 站长配更新源 / 备份 / 计划 | 进模板，站点改过的版本升级时保留 |
 | 后台「设置」 | 站长 | 进数据库 |
 
-**升级时排除 `config/installed.php` 和 `.env`**，否则等于重新装一遍。
+**升级时排除 `config/installed.php` 和 `.env`**，否则等于重新装一遍；改过 `config/autoupdate.php` 的站点也
+把它排除（自动更新本身不会覆盖它）。
 
 可选配置文件（`genders.php`、`countries.php`、`consent-age*.php`、`email-policy.php`、
-`identity-providers.php`、`plugins.php`、`skins.php`、`brand.php`）**不在时用内置默认值**，
+`identity-providers.php`、`plugins.php`、`skins.php`、`brand.php`、`autoupdate.php`）**不在时用内置默认值**，
 不会报错；`config/app.php`（含数据库连接）和 `installed.php` 仍是必需的。
 
 ## .env
@@ -143,11 +145,11 @@ return [
 ## 验证配置生效
 
 ```bash
-# 站点地址和版本
+# 站点地址和实际在跑的版本
 curl -s https://你的站点/api/version
 
-# 实际在跑的版本（含快速构建标记）
-curl -s 'https://你的站点/api/version?action=thissite'
+# 官方发布源（只对配置了 feed 的站点有意义）
+curl -s https://nomenid.org/official-api/releases/latest
 
 # 版本页会显示站点名、皮肤、语言
 curl -s https://你的站点/special/version | grep -o '<title>[^<]*'
@@ -168,4 +170,4 @@ curl -s https://你的站点/special/version | grep -o '<title>[^<]*'
 - [ ] `base_url` 和实际地址一致（含 https）
 - [ ] `APP_PEPPER` 记在安全的地方
 - [ ] `APP_DEBUG` 线上是关的
-- [ ] 改完配置用 `/api/version?action=thissite` 验过
+- [ ] 改完配置用 `/api/version` 验过

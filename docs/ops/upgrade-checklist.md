@@ -10,7 +10,8 @@
 - [ ] `php docs-internal/i18n/extract.php --check` 通过
 - [ ] `find . -name '*.php' -not -path './vendor/*' -exec php -l {} \;` 没有语法错误
 - [ ] 前端改过的话构建过（`npm run build`），产物在 `public/assets/dist/`
-- [ ] 打包：`php code-scripts/build-dist.php`（前端没改可加 `--skip-frontend`）
+- [ ] 打包：`php code-scripts/build-dist.php --priority=normal --min-supported=<最低支持版本>`（前端没改可加 `--skip-frontend`）
+- [ ] `dist/release.json` 已放到官方站 `data/releases.json`（自动更新的发布源读它）
 - [ ] 包里有 `vendor/` 和 `public/assets/dist/`（缺了包会小很多，一眼能看出来）
 - [ ] 包里有 `.nomen-package.json`（自动更新用它核对文件清单）
 - [ ] 包大小和上一个版本差不多（差太多说明漏了东西）
@@ -33,6 +34,7 @@ public/assets/avatars/
 public/assets/recovery/
 public/assets/develops/
 config/plugins/
+config/autoupdate.php     # 改过更新源 / 备份 / 计划的话
 public/.user.ini          # 被 chattr +i 锁着，不排除 rsync 会报 23
 vendor/                   # 线上有自己的依赖（geoip2 这类）
 ```
@@ -58,7 +60,7 @@ php bin/nomen upgrade
 php bin/nomen plugins migrate
 
 # 版本
-curl -s https://example.com/api/version?action=thissite
+curl -s https://example.com/api/version
 
 # 页面
 for u in / /login /w/download /special/version; do
@@ -69,7 +71,7 @@ done
 tail -30 /www/wwwlogs/example.com.error.log
 ```
 
-- [ ] `/api/version?action=thissite` 是新版本号
+- [ ] `/api/version` 是新版本号
 - [ ] 首页 / 登录 / 文档 / 版本页 都是 200
 - [ ] 插件资源 200（`/plugin-assets/<slug>/...`）
 - [ ] 错误日志没有新的 `[nomen]` / `[Plugins]`

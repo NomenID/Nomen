@@ -374,6 +374,7 @@ CREATE TABLE users (
   gender TEXT DEFAULT NULL,
   locale TEXT DEFAULT NULL,
   skin TEXT DEFAULT NULL,
+  dashboard_order TEXT DEFAULT NULL,
   password_hash TEXT NOT NULL DEFAULT '',
   display_name TEXT DEFAULT NULL,
   avatar TEXT DEFAULT NULL,

@@ -6,7 +6,7 @@
 
 框架主配置：版本号、安全参数、会话有效期、限流阈值、可选功能开关、数据库和 Redis 连接。大部分键可以由 `.env` 或安装器生成的 `config/installed.php` 覆盖，表里的「默认值」是这两者都没写时用的兜底。
 
-共 60 项。
+共 51 项。
 
 ## 基本信息
 
@@ -127,22 +127,6 @@ driver 取 mysql / mariadb / sqlite SQLite 用 path，相对路径按项目根�
 | 键 | 环境变量 | 默认值 | 说明 |
 |---|---|---|---|
 | `cache.file_max_mb` | `CACHE_FILE_MAX_MB` | 64 | 文件缓存目录的上限；超了按最旧优先淘汰。0 = 不限 |
-
-## 自动更新
-
-后台开关存在 site_settings，这里只是下载源、间隔和包上限这类默认值。开关默认关闭，站长在后台「设置 → 自动更新」里打开。
-
-| 键 | 环境变量 | 默认值 | 说明 |
-|---|---|---|---|
-| `updates.source` | `NOMEN_UPDATE_SOURCE` | https://nomenid.org/api/version | 更新源；镜像站可换 |
-| `updates.download_base` | `NOMEN_UPDATE_DOWNLOAD_BASE` | https://dl.caellab.com/file/nomen/ | 发布包所在目录 |
-| `updates.min_php` | — | 8.1 | 低于这个 PHP 版本不自动更新 |
-| `updates.interval` | — | 43200 | 两次检查之间至少隔这么久（秒）；调度器本身每小时问一次，没到点就空转 |
-| `updates.max_package_mb` | — | 200 | 更新包体积上限 |
-| `updates.min_free_mb` | — | 100 | 更新前要求的最小剩余空间 |
-| `updates.keep_backups` | — | 2 | 保留最近几个回滚备份 |
-| `updates.maintenance_ttl` | — | 900 | 更新期间维护页最多挂这么久；进程中途被杀也会自动过期 |
-| `updates.lock_ttl` | — | 900 | 更新锁 / 中断判定的超时（秒） |
 
 ## OAuth scopes
 

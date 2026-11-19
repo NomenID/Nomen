@@ -12,11 +12,36 @@ $root = dirname(__DIR__);
 $args = array_slice($argv, 1);
 
 if (in_array('--help', $args, true) || in_array('-h', $args, true)) {
-    echo '用法：php code-scripts/build-dist.php [--skip-frontend]', PHP_EOL, PHP_EOL;
-    echo '  跑一次 vite build，再把发布用的文件打成 dist/nomen-<版本>.zip', PHP_EOL;
-    echo '  --skip-frontend  跳过前端构建', PHP_EOL;
+    echo '用法：php code-scripts/build-dist.php [--skip-frontend] [--priority=normal] [--min-supported=1.7.0] [--notes=URL]', PHP_EOL, PHP_EOL;
+    echo '  跑一次 vite build，再把发布用的文件打成 dist/nomen-<版本>.zip，并生成 dist/release.json', PHP_EOL;
+    echo '  --skip-frontend      跳过前端构建', PHP_EOL;
+    echo '  --priority           发布优先级：security / critical / normal / feature（默认 normal）', PHP_EOL;
+    echo '  --min-supported      最低支持版本；低于它的站点会在后台看到停更提醒', PHP_EOL;
+    echo '  --notes              更新说明链接（默认站内 /w/changelog）', PHP_EOL;
     exit(0);
 }
+
+$option = static function (string $name, string $default = '') use ($args): string {
+    foreach ($args as $arg) {
+        if (str_starts_with($arg, '--' . $name . '=')) {
+            return trim(substr($arg, strlen($name) + 3));
+        }
+    }
+
+    return $default;
+};
+
+$releasePriority = strtolower($option('priority', 'normal'));
+if (!in_array($releasePriority, ['security', 'critical', 'normal', 'feature'], true)) {
+    fwrite(STDERR, '优先级只能是 security / critical / normal / feature' . PHP_EOL);
+    exit(1);
+}
+$minSupported = $option('min-supported');
+if ($minSupported !== '' && preg_match('/^\d+(\.\d+){1,3}$/', $minSupported) !== 1) {
+    fwrite(STDERR, '--min-supported 要是 x.y 或 x.y.z' . PHP_EOL);
+    exit(1);
+}
+$releaseNotes = $option('notes', 'https://nomenid.org/w/changelog');
 
 if (!in_array('--skip-frontend', $args, true)) {
     $npm = PHP_OS_FAMILY === 'Windows' ? 'npm.cmd' : 'npm';
@@ -157,4 +182,41 @@ foreach ($files as $rel => $source) {
 $zip->addFromString('.nomen-package.json', (string)$packageManifest);
 $zip->close();
 
-printf('版本 %s，%d 个文件 + 包清单，%s 字节%s%s', $version, count($files), number_format(filesize($out)), PHP_EOL, $out);
+$config = is_file($root . '/config/app.php') ? require $root . '/config/app.php' : [];
+$updateConfig = is_file($root . '/config/autoupdate.php') ? require $root . '/config/autoupdate.php' : [];
+$downloadBase = rtrim((string)($updateConfig['download_base'] ?? 'https://dl.caellab.com/file/nomen'), '/');
+$sha256 = hash_file('sha256', $out);
+if (!is_string($sha256) || $sha256 === '') {
+    fwrite(STDERR, '算不出发布包的 SHA-256' . PHP_EOL);
+    exit(1);
+}
+$release = [
+    'version'     => $version,
+    'priority'    => $releasePriority,
+    'released_at' => gmdate('Y-m-d\TH:i:s\Z'),
+    'download'    => $downloadBase . '/nomen-' . $version . '.zip',
+    'sha256'      => $sha256,
+    'min_php'     => (string)($updateConfig['min_php'] ?? '8.1'),
+    'notes'       => $releaseNotes,
+];
+if ($minSupported !== '') {
+    $release['min_supported'] = $minSupported;
+}
+$releaseFile = $root . '/dist/release.json';
+$releaseJson = json_encode($release, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+if ($releaseJson === false || @file_put_contents($releaseFile, $releaseJson . PHP_EOL) === false) {
+    fwrite(STDERR, '生成 dist/release.json 失败' . PHP_EOL);
+    exit(1);
+}
+
+printf(
+    '版本 %s，%d 个文件 + 包清单，%s 字节%s%s%s发布信息：%s%s',
+    $version,
+    count($files),
+    number_format(filesize($out)),
+    PHP_EOL,
+    $out,
+    PHP_EOL,
+    $releaseFile,
+    PHP_EOL
+);

@@ -111,6 +111,8 @@ handler 都要能独立渲染。
 | `admin.menu.items` | 侧栏菜单项 | 自定义菜单项（不进 `pages` 注册表的那种） |
 | `admin.dashboard.cards` | 概览页统计卡 | 插件自己的计数卡 |
 | `admin.dashboard.site` | 概览页站点信息块 | 运行状态、版本之类的补充 |
+| `admin.dashboard.news` | 概览页新闻卡 | 插件自己的公告 / 动态 |
+| `admin.site_health.tests` | 站点健康测试列表 | 插件自己的健康检查 |
 | `admin.users.rows` | 用户列表行 | 每个用户加一列数据 |
 | `admin.user.detail` | 用户详情 payload | 详情页加一块 |
 | `admin.apps.list` / `admin.apps.detail` | 应用列表 / 详情 | 同上 |
@@ -118,6 +120,25 @@ handler 都要能独立渲染。
 | `admin.settings.data` | 设置页数据 | 设置页加分区 |
 | `admin.settings.saved` | 保存后的设置值 | 跟着落库或清缓存 |
 | `admin.plugin.page.body` | 插件后台页的 HTML | 在别人的插件页上加东西（少用） |
+
+### 站点健康测试的格式
+
+往 `admin.site_health.tests` 里追加的每一项：
+
+```php
+[
+    'id'          => 'myplugin.queue',      // 小写字母开头，最长 64
+    'label'       => t('Queue worker'),     // 直接给最终文案
+    'status'      => 'recommended',         // good / recommended / critical
+    'description' => t('The queue is not running.'),
+    'value'       => '0 jobs',              // 可选
+]
+```
+
+`label` / `description` 由插件自己翻译；核心只负责归类和展示。
+
+概览页新闻项（`admin.dashboard.news`）用 `{id, title, date, url, priority, summary}`；
+`priority` 用 `security` / `critical` / `normal` / `feature`，只影响徽章颜色。
 
 往 `admin.users.rows` 加字段时注意：**别把敏感值放进去**，后台列表会导出 CSV。
 

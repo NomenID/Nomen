@@ -5,15 +5,12 @@
 只有一处：`config/app.php` 的 `version`。`build-dist.php` 从它取包名，`/special/version` 显示它，
 `/api/version` 报它。
 
-`/api/version` 分两档：
+`/api/version` **只报本站实际在跑的版本**，不再分「最新正式版 / 本站版本」两档。quickbuild 的
+`+qb.<日期>` 后缀原样返回；要判断有没有新版，看发布源 `/official-api/releases/latest`（或站点自己
+`config/autoupdate.php` 里配的 feed），它带下载地址、SHA-256、优先级和最低支持版本。
 
-| 请求 | 报什么 |
-|---|---|
-| `GET /api/version` | **最近一次正式发版**的号（`data/build.json` 的 `release`） |
-| `GET /api/version?action=thissite` | 本站**实际在跑**的号 |
-
-为什么分两档：别的实例靠这个接口判断「有没有新版」。快速构建版（`1.5.0+qb.20261112`）不该让全网以为发了新版，
-所以对外报正式号，只有问 `thissite` 才说实话。
+旧版本客户端曾把 `/api/version` 当发布源用；升级到新版本后这个用法不再成立，需要手动升级一次，
+之后的更新检查走新的发布源。
 
 ## 升级流程
 
@@ -22,13 +19,13 @@
 mysqldump --single-transaction -u<用户> -p <库> > /tmp/nomen-$(date +%Y%m%d).sql
 tar czf /tmp/nomen-files-$(date +%Y%m%d).tar.gz -C /www/wwwroot <站点目录>
 
-# 2. 替换文件（排除 config/installed.php、.env、data/、上传目录）
+# 2. 替换文件（排除 config/installed.php、.env、data/、上传目录、config/autoupdate.php）
 
 # 3. 跑迁移
 php bin/nomen upgrade
 
 # 4. 验版本
-curl -s https://<域名>/api/version?action=thissite
+curl -s https://<域名>/api/version
 ```
 
 `upgrade` 做四件事：跑核心迁移、补 UNID（分批 500 行）、更新版本记录、清临时缓存。
@@ -119,6 +116,6 @@ ALTER TABLE `bookmarks` ADD COLUMN `note` text NOT NULL;
 - [ ] 升级前备份了库和文件，备份不在 web root
 - [ ] `upgrade` 和 `plugins migrate` 都跑了
 - [ ] `plugins list` 里没有被静默跳过的插件
-- [ ] `/api/version?action=thissite` 是新号
+- [ ] `/api/version` 是新号
 - [ ] 版本页没有残留的 `data/build.json`
 - [ ] 无伪静态站点抽查过站内链接

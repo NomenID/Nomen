@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{ActivityLog, Csrf, Database, Email, EmailTemplate, FamilyHelper, Features, Hooks, I18n, Plugins, RecoveryHelper, RedisClient, Response, Session, TextDiff, UpdateCheck, Upgrade};
+use Nomen\Src\{ActivityLog, Cache, Csrf, Database, Email, EmailTemplate, FamilyHelper, Features, Hooks, I18n, Plugins, RecoveryHelper, RedisClient, Response, Session, SiteHealth, TextDiff, UpdateCheck, Upgrade};
 use PDO;
 
 /**
@@ -92,10 +92,139 @@ class AdminController
             'recentLogs'       => self::logRows(ActivityLog::listFor([], 1, 10)['items']),
             'upgradePending'   => Upgrade::mismatch($this->db),
             'plugins'          => self::pluginSummary(),
+            'health'           => self::healthSummary(),
+            'news'             => Hooks::filter('admin.dashboard.news', self::newsItems(), []),
+            'dashboardOrder'   => self::dashboardOrder((int)$admin['id']),
             'site'             => Hooks::filter('admin.dashboard.site', [
                 'version' => (string)(self::config()['version'] ?? ''),
             ]),
         ]);
+    }
+
+    /** 概览页可上下移动的卡片；数字统计固定在最上面 */
+    private const DASHBOARD_SECTIONS = ['health', 'redis', 'plugins', 'news', 'activity'];
+
+    /** @return string[] */
+    private static function defaultDashboardOrder(): array
+    {
+        return self::DASHBOARD_SECTIONS;
+    }
+
+    /** @return string[] */
+    private function dashboardOrder(int $userId): array
+    {
+        $default = self::defaultDashboardOrder();
+        try {
+            $stmt = $this->db->prepare('SELECT dashboard_order FROM users WHERE id = :id LIMIT 1');
+            $stmt->execute([':id' => $userId]);
+            $raw = $stmt->fetchColumn();
+        } catch (\PDOException) {
+            return $default;
+        }
+
+        $saved = is_string($raw) ? json_decode($raw, true) : null;
+        if (!is_array($saved)) {
+            return $default;
+        }
+
+        $order = [];
+        foreach ($saved as $id) {
+            $id = (string)$id;
+            if (in_array($id, $default, true) && !in_array($id, $order, true)) {
+                $order[] = $id;
+            }
+        }
+        foreach ($default as $id) {
+            if (!in_array($id, $order, true)) {
+                $order[] = $id;
+            }
+        }
+
+        return $order;
+    }
+
+    /** POST /admin/dashboard/order - 保存当前管理员的卡片顺序，只认白名单里的 id */
+    public function saveDashboardOrder(): void
+    {
+        $admin = $this->requireAdmin();
+
+        if (!Csrf::validate($_POST['_csrf'] ?? null)) {
+            Response::json(['success' => false, 'message' => '请求无效，请重试'], 422);
+        }
+
+        $raw = $_POST['order'] ?? '';
+        $list = is_array($raw) ? $raw : json_decode((string)$raw, true);
+        if (!is_array($list) || $list === []) {
+            Response::json(['success' => false, 'message' => '卡片顺序格式不正确'], 422);
+        }
+
+        $order = [];
+        foreach ($list as $id) {
+            $id = (string)$id;
+            if (in_array($id, self::DASHBOARD_SECTIONS, true) && !in_array($id, $order, true)) {
+                $order[] = $id;
+            }
+        }
+        if ($order === []) {
+            Response::json(['success' => false, 'message' => '卡片顺序里没有可识别的卡片'], 422);
+        }
+
+        try {
+            $this->db->prepare('UPDATE users SET dashboard_order = :order WHERE id = :id')
+                ->execute([':order' => json_encode($order, JSON_UNESCAPED_SLASHES), ':id' => (int)$admin['id']]);
+        } catch (\PDOException $e) {
+            error_log('[admin] 保存概览顺序失败: ' . $e->getMessage());
+            Response::json(['success' => false, 'message' => '数据库还没升级，先跑 php bin/nomen upgrade'], 500);
+        }
+
+        Response::json(['success' => true, 'order' => $order]);
+    }
+
+    /** @return array{status: string, counts: array<string, int>, generatedAt: int} */
+    private static function healthSummary(): array
+    {
+        try {
+            $health = Cache::remember('admin.site_health.summary.' . I18n::locale(), 60, static fn(): array => SiteHealth::run());
+        } catch (\Throwable $e) {
+            error_log('[admin] 站点健康摘要失败: ' . $e->getMessage());
+            $health = ['tests' => [], 'status' => 'recommended', 'generatedAt' => time()];
+        }
+        $counts = ['critical' => 0, 'recommended' => 0, 'good' => 0];
+        foreach ($health['tests'] as $test) {
+            $status = (string)($test['status'] ?? 'good');
+            if (isset($counts[$status])) {
+                $counts[$status]++;
+            }
+        }
+
+        return [
+            'status'      => (string)$health['status'],
+            'counts'      => $counts,
+            'generatedAt' => (int)$health['generatedAt'],
+        ];
+    }
+
+    /** @return array<int, array<string, string>> 概览页「新闻」卡；插件可以用 admin.dashboard.news 追加 */
+    private static function newsItems(): array
+    {
+        $latest = UpdateCheck::cached();
+        if ($latest === null) {
+            return [];
+        }
+
+        $current = (string)(self::config()['version'] ?? '');
+        if (!UpdateCheck::isNewer((string)($latest['version'] ?? ''), $current)) {
+            return [];
+        }
+
+        return [[
+            'id'       => 'release-' . (string)($latest['version'] ?? ''),
+            'title'    => I18n::t('Nomen {:version} is available', ['version' => (string)($latest['version'] ?? '')]),
+            'date'     => (string)($latest['released_at'] ?? ''),
+            'url'      => (string)($latest['notes'] ?? $latest['url'] ?? ''),
+            'priority' => (string)($latest['priority'] ?? 'normal'),
+            'summary'  => I18n::t('See the changelog for details.'),
+        ]];
     }
 
     /** @return array<int, array{label: string, value: int, hint: string, alert?: bool}> */

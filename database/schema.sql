@@ -444,6 +444,7 @@ CREATE TABLE `users` (
   `gender` varchar(30) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `locale` varchar(16) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `skin` varchar(32) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `dashboard_order` text COLLATE utf8mb4_unicode_ci,
   `password_hash` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `display_name` varchar(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `avatar` varchar(512) COLLATE utf8mb4_unicode_ci DEFAULT NULL,

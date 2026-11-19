@@ -15,11 +15,12 @@ use Throwable;
 /**
  * 自动更新：查版本、判策略、加锁、安装、回滚、记账、发信。
  *
- * 设计参照 WordPress 的后台自动更新：
- *  - 默认关闭，站长在后台打开；
+ * 设计参照 WordPress 的后台自动更新，但自动安装范围收得更紧：
+ *  - 只有补丁版（x.y.z -> x.y.z+1）会自动装；第二位 / 第一位变动一律只提示；
+ *  - 更新源（config/autoupdate.php 的 feed）留空就完全不检查；
+ *  - 每个站点自己在配置里定检查间隔 / 每天检查时间 / 维护窗口 / 最低优先级；
  *  - 同一时间只允许一个更新（文件锁 + 调度器抢占）；
- *  - 覆盖前先打备份，失败自动回滚；
- *  - 下载包必须校验 SHA-256；
+ *  - 覆盖前先打备份，失败自动回滚；下载包必须校验 SHA-256；
  *  - 成功 / 失败各通知管理员一次，同一版本不重复发；
  *  - 下载这类瞬时失败隔一小时重试一次，再失败才发信。
  *
@@ -27,10 +28,26 @@ use Throwable;
  */
 final class AutoUpdate
 {
-    public const CHANNELS = [
-        'patch' => 'Patch releases only (x.y.z)',
-        'minor' => 'Same major version (x.y)',
-        'all'   => 'All releases',
+    /** 优先级从高到低；security / critical 不受维护窗口限制 */
+    public const PRIORITY_RANK = [
+        'security' => 3,
+        'critical' => 2,
+        'normal'   => 1,
+        'feature'  => 0,
+    ];
+
+    public const PRIORITY_LABELS = [
+        'security' => 'Security update',
+        'critical' => 'Critical update',
+        'normal'   => 'Normal update',
+        'feature'  => 'Feature update',
+    ];
+
+    /** 允许自动更新的版本范围；默认只允许最后一位 */
+    public const SCOPES = [
+        'patch' => 'Patch releases only',
+        'minor' => 'Same major version',
+        'major' => 'All releases',
     ];
 
     private const STATE_DIR = '/data/updates';
@@ -43,21 +60,63 @@ final class AutoUpdate
 
     // ==================== 对外入口 ====================
 
-    public static function enabled(): bool
+    /** 更新源地址；空 = 这个站点不检查更新 */
+    public static function feed(): string
+    {
+        return UpdateCheck::feed();
+    }
+
+    public static function feedConfigured(): bool
+    {
+        return self::feed() !== '';
+    }
+
+    public static function autoSetting(): bool
     {
         return (string)Settings::get('update.auto', '0') === '1';
     }
 
-    public static function channel(): string
+    /** 总开关 + 更新源都就绪才算真正开启 */
+    public static function enabled(): bool
     {
-        $value = (string)Settings::get('update.channel', 'minor');
-
-        return isset(self::CHANNELS[$value]) ? $value : 'minor';
+        return self::autoSetting() && self::feedConfigured();
     }
 
     public static function interval(): int
     {
         return max(3600, (int)(self::config()['interval'] ?? 43200));
+    }
+
+    /** HH:MM；设置后每天这个时间检查一次，优先于 interval */
+    public static function checkAt(): string
+    {
+        $at = trim((string)(self::config()['check_at'] ?? ''));
+
+        return preg_match('/^([01]?\d|2[0-3]):([0-5]\d)$/', $at) === 1 ? $at : '';
+    }
+
+    /** HH:MM-HH:MM；空 = 不限时间。支持跨午夜 */
+    public static function window(): string
+    {
+        $window = trim((string)(self::config()['window'] ?? ''));
+
+        return preg_match('/^([01]?\d|2[0-3]):([0-5]\d)\s*-\s*([01]?\d|2[0-3]):([0-5]\d)$/', $window) === 1
+            ? $window
+            : '';
+    }
+
+    public static function minPriority(): string
+    {
+        $value = strtolower(trim((string)(self::config()['min_priority'] ?? 'normal')));
+
+        return isset(self::PRIORITY_RANK[$value]) ? $value : 'normal';
+    }
+
+    public static function scope(): string
+    {
+        $value = strtolower(trim((string)(self::config()['scope'] ?? 'patch')));
+
+        return isset(self::SCOPES[$value]) ? $value : 'patch';
     }
 
     /** 后台 / 邮件用的收件人：设置 > 品牌里的管理员信箱 > 最早的管理员账号 */
@@ -66,6 +125,11 @@ final class AutoUpdate
         $email = trim((string)Settings::get('update.notify_email', ''));
         if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return $email;
+        }
+
+        $configured = trim((string)UpdateConfig::get('notify_email', ''));
+        if ($configured !== '' && filter_var($configured, FILTER_VALIDATE_EMAIL)) {
+            return $configured;
         }
 
         $brand = trim((string)Brand::get('admin_notify_email', ''));
@@ -93,32 +157,51 @@ final class AutoUpdate
     {
         $root = self::root();
         $state = self::state();
+        $current = self::currentVersion();
+        $pending = (string)($state['pending'] ?? '');
+        $offer = (array)($state['offer'] ?? []);
 
         return [
-            'enabled'             => self::enabled(),
-            'channel'             => self::channel(),
-            'channels'            => self::CHANNELS,
-            'notifyEmail'         => (string)Settings::get('update.notify_email', ''),
+            'feed'                 => self::feed(),
+            'feedConfigured'       => self::feedConfigured(),
+            'autoSetting'          => self::autoSetting(),
+            'enabled'              => self::enabled(),
+            'scope'                => self::scope(),
+            'scopes'               => self::SCOPES,
+            'minPriority'          => self::minPriority(),
+            'priorities'           => self::PRIORITY_LABELS,
+            'checkAt'              => self::checkAt(),
+            'window'               => self::window(),
+            'inWindow'             => self::inWindow(),
+            'interval'             => self::interval(),
+            'nextCheckAt'          => self::nextCheckAt($state),
+            'notifyEmail'          => (string)Settings::get('update.notify_email', ''),
             'effectiveNotifyEmail' => self::notifyEmail(),
-            'currentVersion'      => self::currentVersion(),
-            'latest'              => (string)($state['latest'] ?? ''),
-            'pending'             => (string)($state['pending'] ?? ''),
-            'lastCheckAt'         => (int)($state['last_check_at'] ?? 0),
-            'lastCheckOk'         => (bool)($state['last_check_ok'] ?? false),
-            'lastCheckError'      => (string)($state['last_check_error'] ?? ''),
-            'lastRun'             => $state['history'][0] ?? null,
-            'history'             => array_slice((array)($state['history'] ?? []), 0, 5),
-            'failed'              => $state['failed'] ?? null,
-            'running'             => $state['running'] ?? null,
-            'logTail'             => self::logTail(60),
-            'mailConfigured'      => Email::isConfigured(),
-            'zipAvailable'        => class_exists(\ZipArchive::class),
-            'curlAvailable'       => function_exists('curl_init'),
-            'writable'            => is_writable($root) && is_writable($root . '/src')
+            'currentVersion'       => $current,
+            'latest'               => (string)($state['latest'] ?? ''),
+            'pending'              => $pending,
+            'pendingKind'          => $pending !== '' ? self::updateKind($current, $pending) : '',
+            'pendingPriority'      => (string)($offer['priority'] ?? ''),
+            'pendingAuto'          => $pending !== ''
+                && self::scopeAllows($current, $pending)
+                && self::priorityAllows((string)($offer['priority'] ?? 'normal')),
+            'minSupported'         => (string)($offer['min_supported'] ?? ''),
+            'eol'                  => ($state['eol'] ?? []) !== [] ? $state['eol'] : null,
+            'lastCheckAt'          => (int)($state['last_check_at'] ?? 0),
+            'lastCheckOk'          => (bool)($state['last_check_ok'] ?? false),
+            'lastCheckError'       => (string)($state['last_check_error'] ?? ''),
+            'lastRun'              => $state['history'][0] ?? null,
+            'history'              => array_slice((array)($state['history'] ?? []), 0, 5),
+            'failed'               => ($state['failed'] ?? []) !== [] ? $state['failed'] : null,
+            'running'              => ($state['running'] ?? []) !== [] ? $state['running'] : null,
+            'logTail'              => self::logTail(60),
+            'mailConfigured'       => Email::isConfigured(),
+            'zipAvailable'         => class_exists(\ZipArchive::class),
+            'curlAvailable'        => function_exists('curl_init'),
+            'writable'             => is_writable($root) && is_writable($root . '/src')
                 && is_writable($root . '/public') && is_writable($root . '/config')
                 && self::stateDirWritable(),
-            'phpOk'               => version_compare(PHP_VERSION, (string)(self::config()['min_php'] ?? '8.1'), '>='),
-            'interval'            => self::interval(),
+            'phpOk'                => version_compare(PHP_VERSION, (string)(self::config()['min_php'] ?? '8.1'), '>='),
         ];
     }
 
@@ -156,16 +239,25 @@ final class AutoUpdate
             ];
         }
 
+        // 没有配置更新源 = 这个站点不检查更新
+        if (!self::feedConfigured()) {
+            return [
+                'status'  => 'disabled',
+                'current' => $current,
+                'latest'  => '',
+                'message' => '未配置更新源；在 .env 设置 NOMEN_UPDATE_FEED 后才会检查更新',
+            ];
+        }
+
         $pending = (string)($state['pending'] ?? '');
         $offer = (array)($state['offer'] ?? []);
+        $due = $force || self::dueForCheck($state);
 
-        if (!$force && $pending === '' && !self::retryDue($state)
-            && (int)($state['last_check_at'] ?? 0) > 0
-            && time() - (int)$state['last_check_at'] < self::interval()) {
+        if (!$due && $pending === '' && !self::retryDue($state)) {
             return ['status' => 'idle', 'current' => $current, 'latest' => (string)($state['latest'] ?? ''), 'message' => ''];
         }
 
-        if ($offer === [] || $force) {
+        if ($force || $offer === [] || $due) {
             $fetched = UpdateCheck::latest($force);
             if ($fetched === null) {
                 $state['last_check_at'] = time();
@@ -191,6 +283,8 @@ final class AutoUpdate
             return ['status' => 'check_failed', 'current' => $current, 'latest' => '', 'message' => '更新源没有返回版本号'];
         }
 
+        self::syncEol($state, $offer, $current);
+
         if (!UpdateCheck::isNewer($latest, $current)) {
             $state['pending'] = '';
             unset($state['offer']);
@@ -199,20 +293,29 @@ final class AutoUpdate
             return ['status' => 'current', 'current' => $current, 'latest' => $latest, 'message' => '已是最新版本'];
         }
 
-        if (!self::channelAllows($current, $latest, self::channel())) {
-            $state['pending'] = '';
-            self::saveState($state);
+        // 先记下待安装版本；范围 / 优先级不允许时只提示，不下载
+        $state['pending'] = $latest;
+        $state['offer'] = $offer;
+        self::saveState($state);
 
+        if (!self::scopeAllows($current, $latest)) {
             return [
-                'status'  => 'channel_skipped',
+                'status'  => 'manual_required',
                 'current' => $current,
                 'latest'  => $latest,
-                'message' => '新版本不在当前更新通道内',
+                'message' => '第二位或第一位版本需要手动更新；要自动装需在 config/autoupdate.php 里把 scope 改成 minor 或 major',
             ];
         }
 
-        $state['pending'] = $latest;
-        self::saveState($state);
+        $priority = (string)($offer['priority'] ?? 'normal');
+        if (!self::priorityAllows($priority)) {
+            return [
+                'status'  => 'manual_required',
+                'current' => $current,
+                'latest'  => $latest,
+                'message' => '这个更新的优先级低于站点设置的最低优先级，需要手动更新',
+            ];
+        }
 
         if (self::enabled() && self::blocked($state, $latest)) {
             return [
@@ -229,6 +332,15 @@ final class AutoUpdate
                 'current' => $current,
                 'latest'  => $latest,
                 'message' => self::enabled() ? '有新版本，等待安装' : '有新版本；自动更新未开启',
+            ];
+        }
+
+        if (!self::priorityBypassesWindow($priority) && !self::inWindow()) {
+            return [
+                'status'  => 'waiting',
+                'current' => $current,
+                'latest'  => $latest,
+                'message' => '有新版本，等待维护窗口 ' . self::window(),
             ];
         }
 
@@ -263,22 +375,147 @@ final class AutoUpdate
         self::log('info', 'reset', '管理员清除了失败记录');
     }
 
-    /** 通道判断；版本只看前三段数字，+qb.<日期> 后缀不参与 */
-    public static function channelAllows(string $current, string $target, string $channel): bool
+    /** 版本变动类型：patch（最后一位）/ minor（第二位）/ major（第一位） */
+    public static function updateKind(string $current, string $target): string
     {
         if (!UpdateCheck::isNewer($target, $current)) {
+            return 'none';
+        }
+
+        [$cm, $cn, $cp] = self::versionParts($current);
+        [$tm, $tn, $tp] = self::versionParts($target);
+
+        if ($tm !== $cm) {
+            return 'major';
+        }
+        if ($tn !== $cn) {
+            return 'minor';
+        }
+        if ($tp !== $cp) {
+            return 'patch';
+        }
+
+        return 'none';
+    }
+
+    /** 站点配置的自动更新范围是否覆盖这次变动 */
+    public static function scopeAllows(string $current, string $target): bool
+    {
+        $kind = self::updateKind($current, $target);
+        if ($kind === 'none') {
             return false;
         }
 
-        [$cm, $cn] = self::versionParts($current);
-        [$tm, $tn] = self::versionParts($target);
-
-        return match ($channel) {
-            'patch' => $cm === $tm && $cn === $tn,
-            'minor' => $cm === $tm,
-            'all'   => true,
+        return match (self::scope()) {
+            'patch' => $kind === 'patch',
+            'minor' => in_array($kind, ['patch', 'minor'], true),
+            'major' => true,
             default => false,
         };
+    }
+
+    public static function priorityAllows(string $priority): bool
+    {
+        $rank = self::PRIORITY_RANK[$priority] ?? self::PRIORITY_RANK['normal'];
+
+        return $rank >= self::PRIORITY_RANK[self::minPriority()];
+    }
+
+    public static function priorityBypassesWindow(string $priority): bool
+    {
+        return in_array($priority, ['security', 'critical'], true);
+    }
+
+    /** 窗口判断抽成纯函数，方便测试；跨午夜也支持 */
+    public static function windowAllows(string $window, int $minutes): bool
+    {
+        if (preg_match('/^([01]?\d|2[0-3]):([0-5]\d)\s*-\s*([01]?\d|2[0-3]):([0-5]\d)$/', $window, $m) !== 1) {
+            return true;
+        }
+
+        $start = (int)$m[1] * 60 + (int)$m[2];
+        $end = (int)$m[3] * 60 + (int)$m[4];
+        if ($start === $end) {
+            return true;
+        }
+
+        return $start < $end
+            ? ($minutes >= $start && $minutes < $end)
+            : ($minutes >= $start || $minutes < $end);
+    }
+
+    public static function inWindow(): bool
+    {
+        $window = self::window();
+        if ($window === '') {
+            return true;
+        }
+
+        return self::windowAllows($window, (int)date('G') * 60 + (int)date('i'));
+    }
+
+    /** 按 interval 或每天固定时间判断这次该不该查 */
+    private static function dueForCheck(array $state): bool
+    {
+        $at = self::checkAt();
+        if ($at !== '') {
+            $today = self::todayAt($at);
+
+            return $today > 0 && time() >= $today && (int)($state['last_check_at'] ?? 0) < $today;
+        }
+
+        $last = (int)($state['last_check_at'] ?? 0);
+
+        return $last === 0 || time() - $last >= self::interval();
+    }
+
+    private static function todayAt(string $hhmm): int
+    {
+        if (preg_match('/^([01]?\d|2[0-3]):([0-5]\d)$/', $hhmm, $m) !== 1) {
+            return 0;
+        }
+
+        $zone = new \DateTimeZone(date_default_timezone_get());
+
+        return (new \DateTimeImmutable('now', $zone))
+            ->setTime((int)$m[1], (int)$m[2])
+            ->getTimestamp();
+    }
+
+    private static function nextCheckAt(array $state): int
+    {
+        $at = self::checkAt();
+        if ($at !== '') {
+            $today = self::todayAt($at);
+
+            return $today > time() ? $today : $today + 86400;
+        }
+
+        $last = (int)($state['last_check_at'] ?? 0);
+
+        return $last > 0 ? $last + self::interval() : time();
+    }
+
+    /** 当前版本低于发布源声明的最低支持版本时，记一条提醒 */
+    private static function syncEol(array &$state, array $offer, string $current): void
+    {
+        $min = (string)($offer['min_supported'] ?? '');
+        if ($min === '' || !UpdateCheck::isNewer($min, $current)) {
+            unset($state['eol']);
+
+            return;
+        }
+
+        $changed = (string)($state['eol']['min_supported'] ?? '') !== $min;
+        $state['eol'] = [
+            'current'       => $current,
+            'min_supported' => $min,
+            'at'            => time(),
+        ];
+
+        if ($changed) {
+            self::log('warning', 'eol', '当前版本 ' . $current . ' 已低于最低支持版本 ' . $min);
+        }
     }
 
     // ==================== 安装流程 ====================
@@ -344,6 +581,15 @@ final class AutoUpdate
             $step('backup', '备份当前文件');
             $package->backup();
             $backup = $package->backupPath();
+            $run['backup'] = basename($backup);
+
+            if ((bool)UpdateConfig::get('backup.database', true)) {
+                $step('backup_db', '备份数据库');
+                $run['db_backup'] = basename(self::backupDatabase());
+            } else {
+                $run['warning'] = trim(($run['warning'] ?? '') . ' 数据库备份已关闭（backup.database=false）。');
+                self::log('warning', 'backup_db', '数据库备份已关闭', ['run' => $run['id']]);
+            }
 
             $step('maintenance', '进入维护模式');
             Maintenance::start((int)(self::config()['maintenance_ttl'] ?? 900), 'Automatic update to ' . $to);
@@ -363,7 +609,7 @@ final class AutoUpdate
             $step('cache', '清理缓存');
             Cache::flush();
             Settings::forgetCache();
-            Cache::forget('update_check.latest');
+            UpdateCheck::forget();
 
             Maintenance::stop();
 
@@ -484,6 +730,90 @@ final class AutoUpdate
         }
     }
 
+    /** 跑 bin/nomen backup 导出数据库；失败/超时都中止更新，不带病往下走 */
+    private static function backupDatabase(): string
+    {
+        $dir = self::root() . '/data/backups';
+        if (!is_dir($dir) && !@mkdir($dir, 0755, true) && !is_dir($dir)) {
+            throw new UpdateException('backup_failed', '建不了数据库备份目录：' . $dir);
+        }
+        Ownership::adopt($dir);
+
+        $before = self::databaseBackups($dir);
+
+        $php = PHP_BINDIR . DIRECTORY_SEPARATOR . (PHP_OS_FAMILY === 'Windows' ? 'php.exe' : 'php');
+        if (!is_file($php) || !is_executable($php)) {
+            $php = PHP_BINARY;
+        }
+        $cmd = [$php, self::root() . '/bin/nomen', 'backup', $dir];
+        $timeout = max(30, (int)UpdateConfig::get('backup.timeout', 300));
+
+        $proc = @proc_open($cmd, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+        if (!is_resource($proc)) {
+            throw new UpdateException('backup_failed', '启动不了数据库备份进程');
+        }
+
+        stream_set_blocking($pipes[1], false);
+        stream_set_blocking($pipes[2], false);
+        $out = '';
+        $err = '';
+        $exit = null;
+        $started = microtime(true);
+
+        while (true) {
+            $status = proc_get_status($proc);
+            $out .= (string)stream_get_contents($pipes[1]);
+            $err .= (string)stream_get_contents($pipes[2]);
+
+            if (!$status['running']) {
+                $exit = (int)$status['exitcode'];
+                break;
+            }
+            if (microtime(true) - $started > $timeout) {
+                @proc_terminate($proc, 9);
+                fclose($pipes[1]);
+                fclose($pipes[2]);
+                @proc_close($proc);
+                throw new UpdateException('backup_failed', '数据库备份超时（' . $timeout . ' 秒）');
+            }
+            usleep(200000);
+        }
+
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        @proc_close($proc);
+
+        if ($exit !== 0) {
+            $detail = trim($err !== '' ? $err : strip_tags($out));
+            throw new UpdateException('backup_failed', '数据库备份失败：' . ($detail !== '' ? $detail : '未知错误'));
+        }
+
+        $new = array_values(array_diff(self::databaseBackups($dir), $before));
+        if ($new === []) {
+            throw new UpdateException('backup_failed', '数据库备份命令结束了，但没有生成备份文件');
+        }
+        usort($new, static fn(string $a, string $b): int => (int)@filemtime($b) <=> (int)@filemtime($a));
+        $file = $new[0];
+        if ((int)@filesize($file) <= 0) {
+            throw new UpdateException('backup_failed', '数据库备份文件是空的：' . $file);
+        }
+
+        @chmod($file, 0600);
+        Ownership::adopt($file);
+        self::log('info', 'backup_db', '数据库备份：' . $file);
+
+        return $file;
+    }
+
+    /** @return string[] */
+    private static function databaseBackups(string $dir): array
+    {
+        return array_merge(
+            glob($dir . '/nomen-*.sql') ?: [],
+            glob($dir . '/nomen-*.sqlite') ?: []
+        );
+    }
+
     private static function migrate(): void
     {
         ob_start();
@@ -518,7 +848,7 @@ final class AutoUpdate
             return null;
         }
 
-        $url = rtrim((string)Brand::get('base_url'), '/') . '/api/version?action=thissite&_=' . time();
+        $url = rtrim((string)Brand::get('base_url'), '/') . '/api/version?_=' . time();
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
@@ -803,6 +1133,7 @@ final class AutoUpdate
             'offer'            => [],
             'pending'          => '',
             'failed'           => [],
+            'eol'              => [],
             'notified'         => [],
             'running'          => [],
             'history'          => [],
@@ -982,10 +1313,6 @@ final class AutoUpdate
             return self::$config;
         }
 
-        $file = self::root() . '/config/app.php';
-        $config = is_file($file) ? require $file : [];
-        self::$config = is_array($config['updates'] ?? null) ? $config['updates'] : [];
-
-        return self::$config;
+        return self::$config = UpdateConfig::all();
     }
 }
