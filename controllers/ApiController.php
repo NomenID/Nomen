@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{Build, Database, FamilyHelper, Features, Response, RateLimiter, Hooks, Oidc, Special\Version};
+use Nomen\Src\{Database, FamilyHelper, Features, Response, RateLimiter, Hooks, Oidc, Special\Version};
 use PDO;
 
 class ApiController
@@ -139,10 +139,8 @@ class ApiController
     }
 
     /**
-     * GET /api/version - 兼容旧客户端的更新检查。
-     * 默认报最近一次正式发版的号（data/build.json 的 release），
-     * ?action=thissite 报本站实际在跑的号。所有站点都保留这个接口。
-     * 新客户端判断更新走 /official-api/releases/latest。
+     * GET /api/version - 本站实际在跑的版本号（公开）。
+     * 只报真相，quickbuild 的 +qb 后缀也不藏。发布源由官方站的 official 插件提供。
      */
     public function siteVersion(): void
     {
@@ -155,132 +153,15 @@ class ApiController
         }
 
         $config = require __DIR__ . '/../config/app.php';
-        $version = (string)($config['version'] ?? '');
 
         Response::json([
             'product' => 'Nomen',
-            'version' => ($_GET['action'] ?? '') === 'thissite' ? $version : Build::release($version),
+            'version' => (string)($config['version'] ?? ''),
             'url'     => Version::PROJECT_URL,
         ]);
     }
 
-    /**
-     * GET /official-api/releases/latest - 官方站发布源。
-     * 读站点根 data/releases.json；没有这个文件的站点返回 404，客户端就不会检查更新。
-     */
-    public function releaseFeed(): void
-    {
-        $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
-        $rateCheck = RateLimiter::check("api:releases:{$ip}", 60, 60);
-        if (!$rateCheck['allowed']) {
-            header('Retry-After: ' . $rateCheck['retry_after']);
-            Response::json(['error' => 'rate_limited', 'error_description' => t('Too many requests, try again later')], 429);
-            return;
-        }
-
-        $file = dirname(__DIR__) . '/data/releases.json';
-        if (!is_file($file)) {
-            Response::json([
-                'error' => 'release_feed_unavailable',
-                'error_description' => 'This site does not publish a release feed.',
-            ], 404);
-            return;
-        }
-
-        $data = json_decode((string)@file_get_contents($file), true);
-        $release = is_array($data) ? self::pickRelease($data) : null;
-        $payload = $release !== null ? self::releasePayload($release) : null;
-        if ($payload === null) {
-            Response::json([
-                'error' => 'invalid_release_feed',
-                'error_description' => 'The release feed is malformed.',
-            ], 500);
-            return;
-        }
-
-        header('Cache-Control: public, max-age=60');
-        Response::json(['product' => 'Nomen'] + $payload);
-    }
-
     // ========== 私有方法 ==========
-
-    /** 单条发布信息，或 {"releases":[...]} 里版本最高的一条 */
-    private static function pickRelease(array $data): ?array
-    {
-        if (!isset($data['releases']) || !is_array($data['releases'])) {
-            return $data;
-        }
-
-        $best = null;
-        $bestVersion = '';
-        foreach ($data['releases'] as $release) {
-            if (!is_array($release)) {
-                continue;
-            }
-            $version = trim((string)($release['version'] ?? ''));
-            if (preg_match('/^\d+(\.\d+){1,3}$/', $version) !== 1) {
-                continue;
-            }
-            if ($best === null || version_compare($version, $bestVersion, '>')) {
-                $best = $release;
-                $bestVersion = $version;
-            }
-        }
-
-        return $best;
-    }
-
-    /** 发布源对外只输出白名单字段，data/releases.json 里的其它东西不外泄 */
-    private static function releasePayload(array $release): ?array
-    {
-        $version = trim((string)($release['version'] ?? ''));
-        if (preg_match('/^\d+(\.\d+){1,3}$/', $version) !== 1) {
-            return null;
-        }
-
-        $download = trim((string)($release['download'] ?? ''));
-        if (preg_match('#^https?://#i', $download) !== 1) {
-            return null;
-        }
-
-        $priority = strtolower(trim((string)($release['priority'] ?? 'normal')));
-        if (!in_array($priority, \Nomen\Src\UpdateCheck::PRIORITIES, true)) {
-            $priority = 'normal';
-        }
-
-        $out = [
-            'version'  => $version,
-            'priority' => $priority,
-            'download' => $download,
-        ];
-
-        $sha = strtolower(trim((string)($release['sha256'] ?? '')));
-        if (preg_match('/^[a-f0-9]{64}$/', $sha) === 1) {
-            $out['sha256'] = $sha;
-        }
-
-        $minPhp = trim((string)($release['min_php'] ?? ''));
-        if (preg_match('/^\d+(\.\d+){1,2}$/', $minPhp) === 1) {
-            $out['min_php'] = $minPhp;
-        }
-
-        $minSupported = trim((string)($release['min_supported'] ?? ''));
-        if (preg_match('/^\d+(\.\d+){1,3}$/', $minSupported) === 1) {
-            $out['min_supported'] = $minSupported;
-        }
-
-        $notes = trim((string)($release['notes'] ?? ''));
-        if (preg_match('#^https?://#i', $notes) === 1) {
-            $out['notes'] = $notes;
-        }
-
-        $released = trim((string)($release['released_at'] ?? ''));
-        if (preg_match('/^\d{4}-\d{2}-\d{2}([T ][0-9:.]+Z?)?$/', $released) === 1) {
-            $out['released_at'] = mb_substr($released, 0, 40);
-        }
-
-        return $out;
-    }
 
 
     private function authenticateToken(): ?array

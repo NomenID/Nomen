@@ -20,7 +20,8 @@
  * 任何同格式的静态 JSON（见 docs/ops/auto-update.md）。
  */
 return [
-    // 发布源；空 = 关闭更新检查
+    // 发布源；空 = 关闭更新检查。官方站由 official 插件提供下面这个地址，
+    // 普通站点不装 official，只把 feed 指过去拉取。
     'feed' => getenv('NOMEN_UPDATE_FEED') ?: '',
 
     // 发布包所在目录；feed 没给 download 时用它拼 nomen-<版本>.zip

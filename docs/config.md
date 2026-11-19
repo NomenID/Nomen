@@ -146,12 +146,9 @@ return [
 
 ```bash
 # 本站实际在跑的版本
-curl -s 'https://你的站点/api/version?action=thissite'
-
-# 旧客户端看到的「最近正式版」号
 curl -s https://你的站点/api/version
 
-# 新发布源（只对配置了 feed 的站点有意义）
+# 官方发布源（official 插件，只官方站有）
 curl -s https://nomenid.org/official-api/releases/latest
 
 # 版本页会显示站点名、皮肤、语言
@@ -173,4 +170,4 @@ curl -s https://你的站点/special/version | grep -o '<title>[^<]*'
 - [ ] `base_url` 和实际地址一致（含 https）
 - [ ] `APP_PEPPER` 记在安全的地方
 - [ ] `APP_DEBUG` 线上是关的
-- [ ] 改完配置用 `/api/version?action=thissite` 验过
+- [ ] 改完配置用 `/api/version` 验过

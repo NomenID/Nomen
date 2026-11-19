@@ -251,7 +251,6 @@ $router->post('/register/verify/resend', [AuthController::class, 'resendRegister
 $router->get('/api/check-username', [AuthController::class, 'checkUsername']);
 $router->get('/api/consent-age', [ApiController::class, 'consentAge']);
 $router->get('/api/version',     [ApiController::class, 'siteVersion']);
-$router->get('/official-api/releases/latest', [ApiController::class, 'releaseFeed']);
 $router->get('/logout',   [AuthController::class, 'logout']);
 
 // 第三方登录（GitHub / Google / Microsoft / CaelLabID / 自定义 OAuth2）

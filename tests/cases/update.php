@@ -8,7 +8,6 @@
  */
 
 use Nomen\Src\AutoUpdate;
-use Nomen\Src\Build;
 use Nomen\Src\UpdateCheck;
 use Nomen\Src\UpdatePackage;
 
@@ -63,9 +62,4 @@ test('版本比较只看前三段数字', static function (): void {
     assertTrue(UpdateCheck::isNewer('1.8.0', '1.7.9'));
     assertTrue(!UpdateCheck::isNewer('1.7.0', '1.7.0'));
     assertTrue(!UpdateCheck::isNewer('1.7.0', '1.7.1'));
-});
-
-test('Build::release 保留旧版更新检查的两档语义', static function (): void {
-    assertSame('1.7.0', Build::release('1.7.0+qb.20261119'));
-    assertSame('1.7.0', Build::release('1.7.0'));
 });

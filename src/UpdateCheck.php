@@ -12,7 +12,7 @@ namespace Nomen\Src;
 /**
  * 新客户端查更新走独立的发布源 feed（默认留空 = 不检查）：官方站把最新发布信息放在
  * /official-api/releases/latest，其它站点可以指向官方地址，也可以指向任何同格式的静态 JSON。
- * 旧客户端的 /api/version 两档语义仍然保留，别混用。
+ * /api/version 只报本站实际版本，别和发布源混用；官方站以外默认没有发布接口。
  */
 final class UpdateCheck
 {

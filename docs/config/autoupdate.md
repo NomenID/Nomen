@@ -10,7 +10,7 @@
 
 | 键 | 环境变量 | 默认值 | 说明 |
 |---|---|---|---|
-| `feed` | `NOMEN_UPDATE_FEED` | '' | 发布源；空 = 关闭更新检查 |
+| `feed` | `NOMEN_UPDATE_FEED` | '' | 发布源；空 = 关闭更新检查。官方站由 official 插件提供下面这个地址，普通站点不装 official，只把 feed 指过去拉取。 |
 | `download_base` | `NOMEN_UPDATE_DOWNLOAD_BASE` | https://dl.caellab.com/file/nomen/ | 发布包所在目录；feed 没给 download 时用它拼 nomen-<版本>.zip |
 | `min_php` | — | 8.1 | 新版本要求的最低 PHP；低于它不自动更新 |
 

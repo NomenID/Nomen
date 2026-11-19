@@ -87,8 +87,8 @@ curl -s 'https://你的站点/nomen-api?action=query&titles=start&prop=content'
 
 | 端点 | 说明 |
 |---|---|
-| `GET /api/version` | 旧客户端的更新检查：默认报最近正式版号，`?action=thissite` 报本站实际在跑的版本 |
-| `GET /official-api/releases/latest` | 新发布源；读站点根 `data/releases.json`，没有这个文件就 404 |
+| `GET /api/version` | 本站实际在跑的版本（`product` / `version` / `url`） |
+| `GET /official-api/releases/latest` | 官方发布源，由官方站的 `official` 插件提供；普通站点默认没有 |
 
 发布源返回：
 

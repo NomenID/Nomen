@@ -23,7 +23,7 @@ NOMEN_UPDATE_FEED=https://nomenid.org/official-api/releases/latest
 NOMEN_UPDATE_SCOPE=patch
 ```
 
-`/api/version` 保持旧客户端的两档行为（默认报最近正式版号，`?action=thissite` 报本站实际版本），所有站点都保留。官方发布信息走单独的 `/official-api/releases/latest`，它读官方站的 `data/releases.json`；第三方镜像也可以直接托管一份同格式的静态 JSON，把 `feed` 指过去即可。
+`/api/version` 只报本站实际在跑的版本。官方发布信息由 `official` 插件在官方站提供 `/official-api/releases/latest`，它读官方站 `data/releases.json`；普通站点默认没有这个接口，只把 `feed` 指向官方地址即可（也可以指向任何同格式的静态 JSON）。官方站要装并启用 `official` 插件，普通站不需要。
 
 ## 允许自动更新的范围
 
@@ -88,7 +88,7 @@ NOMEN_UPDATE_SCOPE=patch
 3. 安全解包（拒绝 `..`、绝对路径、反斜杠、符号链接、超大包），核对包内版本。
 4. 打文件备份、导出数据库；任何一步失败就停在这里。
 5. 进入维护模式，访客看到 503；覆盖文件、跑核心和插件迁移、清缓存。
-6. 退出维护模式，回访 `/api/version?action=thissite` 确认真新版本生效。
+6. 退出维护模式，回访 `/api/version` 确认真新版本生效。
 7. 成功：写更新清单、记活动日志、发成功邮件；失败：自动回滚文件、发失败邮件。
 
 覆盖时会跳过站点自己的东西：`.env`、`config/installed.php`、`config/plugins.php`、`config/skins.php`、`config/plugins/`、`data/`、上传目录、`public/.user.ini`、`public/nomen-install/`；`vendor/`、`composer.*`、其他 `config/*`、`public/assets/brand/` 已存在就保留。`config/app.php` 会随新版覆盖；`config/autoupdate.php` 不会被覆盖。
