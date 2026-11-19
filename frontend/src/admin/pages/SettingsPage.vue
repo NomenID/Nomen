@@ -26,7 +26,7 @@ const form = reactive({
   login_2fa: 'off',
   cache_backend: 'auto',
   api_nomen: '1',
-  update_auto: '0',
+  update_auto: '1',
   update_notify_email: '',
   policies: [],
   additional_terms: [],
@@ -262,11 +262,11 @@ onMounted(load)
 
           <p class="a-card__desc">
             {{ t('Update feed:') }}
-            <code class="a-mono">{{ data.autoUpdate.feed || t('Not configured') }}</code>
+            <code class="a-mono">{{ data.autoUpdate.feed || t('Off') }}</code>
           </p>
 
           <AdminAlert v-if="!data.autoUpdate.feedConfigured" type="warning">
-            {{ t('No update feed is configured. Set feed in config/autoupdate.php (or NOMEN_UPDATE_FEED in .env) to enable update checks.') }}
+            {{ t('Update checks are turned off. Set feed in config/autoupdate.php to the official release source to turn them back on.') }}
           </AdminAlert>
           <AdminAlert v-else-if="!data.autoUpdate.zipAvailable || !data.autoUpdate.curlAvailable" type="warning">
             {{ t('Automatic updates need the PHP zip and curl extensions.') }}

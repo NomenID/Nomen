@@ -73,7 +73,7 @@ final class AutoUpdate
 
     public static function autoSetting(): bool
     {
-        return (string)Settings::get('update.auto', '0') === '1';
+        return (string)Settings::get('update.auto', '1') === '1';
     }
 
     /** 总开关 + 更新源都就绪才算真正开启 */
@@ -251,13 +251,13 @@ final class AutoUpdate
             ];
         }
 
-        // 没有配置更新源 = 这个站点不检查更新
+        // feed = off 或者地址无效：这个站点不检查更新
         if (!self::feedConfigured()) {
             return [
                 'status'  => 'disabled',
                 'current' => $current,
                 'latest'  => '',
-                'message' => '未配置更新源；在 .env 设置 NOMEN_UPDATE_FEED 后才会检查更新',
+                'message' => '更新检查已关闭（config/autoupdate.php 的 feed 设成了 off 或不是有效地址）',
             ];
         }
 

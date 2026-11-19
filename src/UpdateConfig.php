@@ -10,15 +10,18 @@
 namespace Nomen\Src;
 
 /**
- * 读 config/autoupdate.php，缺省值写在这里。文件不在也能跑（默认关闭）。
+ * 读 config/autoupdate.php，缺省值写在这里。文件不在也能跑（默认走官方源）。
  * 少数几个键允许用环境变量覆盖，方便容器 / 面板部署。
  */
 final class UpdateConfig
 {
+    /** 官方发布源；feed 留空时用它，填 'off' 才真正关闭更新检查 */
+    public const OFFICIAL_FEED = 'https://nomenid.org/official-api/releases/latest';
+
     private static ?array $data = null;
 
     private const DEFAULTS = [
-        'feed'           => '',
+        'feed'           => self::OFFICIAL_FEED,
         'download_base'  => 'https://dl.caellab.com/file/nomen/',
         'min_php'        => '8.1',
         'scope'          => 'patch',
@@ -73,6 +76,15 @@ final class UpdateConfig
             if ($value !== false && $value !== '') {
                 $config[$key] = $value;
             }
+        }
+
+        // feed 的三种写法：URL = 用这个源；off = 关闭检查；留空 = 用官方源。
+        // 老站点的 config 里还是 'feed' => ''，升级后也按官方源走。
+        $feed = trim((string)$config['feed']);
+        if ($feed === '') {
+            $config['feed'] = self::OFFICIAL_FEED;
+        } elseif (in_array(strtolower($feed), ['off', 'none', 'false', 'disabled'], true)) {
+            $config['feed'] = '';
         }
 
         return self::$data = $config;

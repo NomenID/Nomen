@@ -75,7 +75,7 @@ class AdminSettingsController
         $oldPolicy = (string)Settings::get('security.login_2fa', 'off');
         $oldBackend = (string)Settings::get('cache.backend', 'auto');
         $oldApi = (string)Settings::get('api.nomen_api', '1');
-        $oldAuto = (string)Settings::get('update.auto', '0');
+        $oldAuto = (string)Settings::get('update.auto', '1');
         $oldNotify = (string)Settings::get('update.notify_email', '');
 
         $apiEnabled = array_key_exists('api_nomen', $_POST)

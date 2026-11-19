@@ -16,13 +16,13 @@
  *    3. 跑 `php bin/nomen update check` 确认能读到新版本；
  *    4. 再决定要不要重新打开，或者改更新流程。
  *
- * feed 留空 = 这个站点完全不检查更新。更新源可以指向官方站，也可以指向
- * 任何同格式的静态 JSON（见 docs/ops/auto-update.md）。
+ * feed 留空 = 走官方发布源；填 'off' 才是完全不检查更新。更新源可以指向官方站，
+ * 也可以指向任何同格式的静态 JSON（见 docs/ops/auto-update.md）。
  */
 return [
-    // 发布源；空 = 关闭更新检查。官方站由 official 插件提供下面这个地址，
-    // 普通站点不装 official，只把 feed 指过去拉取。
-    'feed' => getenv('NOMEN_UPDATE_FEED') ?: '',
+    // 发布源；留空 = 官方站。官方站由 official 插件提供下面这个地址，
+    // 普通站点不装 official，只把 feed 指过去拉取；不想检查就填 'off'。
+    'feed' => getenv('NOMEN_UPDATE_FEED') ?: 'https://nomenid.org/official-api/releases/latest',
 
     // 发布包所在目录；feed 没给 download 时用它拼 nomen-<版本>.zip
     'download_base' => getenv('NOMEN_UPDATE_DOWNLOAD_BASE') ?: 'https://dl.caellab.com/file/nomen/',

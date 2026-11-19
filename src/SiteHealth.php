@@ -289,18 +289,41 @@ final class SiteHealth
     private static function writableTest(): array
     {
         $root = dirname(__DIR__);
+        // data/ 是硬依赖；上传目录发布包里是空的、解包后可能没有，先试着建出来
         $dirs = ['data', 'public/assets/avatars', 'public/assets/recovery', 'public/assets/develops'];
-        $bad = [];
+        $missing = [];
+        $unwritable = [];
         foreach ($dirs as $dir) {
             $path = $root . '/' . $dir;
-            if (!is_dir($path) || !is_writable($path)) {
-                $bad[] = $dir;
+            if (!is_dir($path) && !@mkdir($path, 0775, true) && !is_dir($path)) {
+                $missing[] = $dir;
+            } elseif (!is_writable($path)) {
+                $unwritable[] = $dir;
             }
         }
 
-        return $bad === []
-            ? ['good', t('All runtime directories are writable.')]
-            : ['critical', sprintf(t('These directories are not writable: %s'), implode(', ', $bad))];
+        if ($missing === [] && $unwritable === []) {
+            return ['good', t('All runtime directories are writable.')];
+        }
+
+        $parts = [];
+        if ($missing !== []) {
+            $parts[] = sprintf(
+                t('These directories are missing and could not be created: %s. Create them manually and make sure the PHP process can write to them.'),
+                implode(', ', $missing)
+            );
+        }
+        if ($unwritable !== []) {
+            $parts[] = sprintf(
+                t('These directories exist but the PHP process cannot write to them: %s. Fix the ownership or permissions for the web server user.'),
+                implode(', ', $unwritable)
+            );
+        }
+
+        // 只有 data/ 出问题才算严重；三个上传目录坏了是功能受损，不至于整站告急
+        $critical = in_array('data', $missing, true) || in_array('data', $unwritable, true);
+
+        return [$critical ? 'critical' : 'recommended', implode(' ', $parts)];
     }
 
     /** @return array{0: string, 1: string} */
@@ -463,14 +486,15 @@ final class SiteHealth
                 ),
             ];
         }
-        if (!$status['feedConfigured']) {
-            return ['recommended', t('No update feed is configured; update checks are off.')];
+        if (!$status['feedConfigured'] || !$status['autoSetting']) {
+            // 默认是开的；走到这里说明站长自己关了（feed = off 或后台开关），不算问题
+            return ['good', t('Automatic updates are turned off.')];
         }
         if (is_array($status['failed'])) {
             return ['recommended', t('The last update attempt failed. Check the update log.')];
         }
 
-        return ['good', t('The update feed is configured.')];
+        return ['good', t('Automatic updates are enabled.')];
     }
 
     /** @return array{0: string, 1: string} */

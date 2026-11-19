@@ -46,7 +46,7 @@ class Update
         $status = AutoUpdate::status();
 
         echo '自动开关：', $status['autoSetting'] ? '开' : '关', PHP_EOL;
-        echo '更新源：', $status['feedConfigured'] ? $status['feed'] : '未配置（设置 NOMEN_UPDATE_FEED 后才会检查）', PHP_EOL;
+        echo '更新源：', $status['feedConfigured'] ? $status['feed'] : '已关闭（config/autoupdate.php 的 feed = off）', PHP_EOL;
         echo '自动范围：', $status['scope'], '（', $status['scopes'][$status['scope']] ?? '', '）', PHP_EOL;
         echo '最低优先级：', $status['minPriority'], PHP_EOL;
         echo '检查计划：', $status['checkAt'] !== ''
