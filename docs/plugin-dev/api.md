@@ -17,14 +17,27 @@ public static function boot(): void
 }
 ```
 
-四个注册方法签名一样：`(名字, 回调, 权限, 说明)`。权限只有两个值：
+四个注册方法签名一样：`(名字, 回调, 权限, 说明)`。权限有三个值：
 
 | 值 | 谁能读 |
 |---|---|
 | `public` | 匿名就能读 |
 | `admin` | 管理员会话，或带管理员 OAuth 令牌的 `Authorization: Bearer` |
+| 能力名，如 `users.manage` | 会话或令牌对应的账号拥有这个能力（先 `Permissions::register()` 注册） |
 
 **写错权限名会直接 500**，不会当成 public 放出去。这是故意的：权限判断的错误必须响亮。
+
+能力名在插件 `boot()` 里注册，后台「权限」页就会多一列，由站长决定给哪个组：
+
+```php
+Permissions::register('bookmarks.manage', [
+    'label' => 'Manage bookmarks',
+    'description' => 'Delete and reorder other users\' bookmarks',
+]);
+
+Api::list('bookmarks', [Modules::class, 'bookmarks'], 'public', 'List bookmarks (limit / offset)');
+Api::action('bookmark-purge', [Modules::class, 'purge'], 'bookmarks.manage', 'Purge all bookmarks');
+```
 
 ## 四种模块
 

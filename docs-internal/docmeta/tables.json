@@ -126,5 +126,24 @@
   },
   "plugin_migrations": {
     "desc": "插件迁移的执行记录。`php bin/nomen plugins migrate` 按表和文件名判断哪些已经跑过。"
+  },
+  "user_groups": {
+    "desc": "用户与权限组的归属。一个用户可以同时在多个组，能力取并集；隐式组（`*` / `user`）不写在这里。",
+    "columns": {
+      "user_id": "账号 id，对应 `users.id`",
+      "grp": "组名。组与默认授权在 `config/permissions.php` 里定义",
+      "granted_by": "执行指派的账号 id；0 表示安装器或命令行写入",
+      "granted_at": "指派时间"
+    }
+  },
+  "group_rules": {
+    "desc": "后台「权限」页写下的覆盖规则，优先于 `config/permissions.php` 的默认值；删掉一行就回落到配置。",
+    "note": "`allowed` = 0 是显式拒绝，压过其它任何组的允许。",
+    "columns": {
+      "grp": "组名",
+      "ability": "能力名，如 `users.manage`；也支持通配 `*` 和 `users.*`",
+      "allowed": "1 允许、0 拒绝",
+      "updated_at": "最后修改时间"
+    }
   }
 }

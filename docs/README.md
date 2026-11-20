@@ -48,7 +48,7 @@
 | [配置参考](config/index.md) | 每个 `config/*.php` 一页：键、环境变量、默认值、说明 |
 | [钩子参考](hooks/index.md) | 按域分组，每个钩子的类型、参数、时机和触发文件 |
 | [模板参考](templates/index.md) | 核心模板的变量表，按登录 / 恢复 / 外壳 / 首页 / 片段分组 |
-| [数据结构](database/index.md) | 28 张表按域分组，字段、类型、默认值、索引 |
+| [数据结构](database/index.md) | 30 张表按域分组，字段、类型、默认值、索引 |
 
 ## 扩展开发
 
@@ -79,8 +79,8 @@
 | 文档 | 内容 |
 |---|---|
 | [一次请求走过的路](internals/lifecycle.md) | 十四个阶段、两个全局闸、路由顺序、渲染链 |
-| [数据模型](internals/data-model.md) | 28 张表的关系、UNID 的取舍、哪些必须备份、两种数据库的差异 |
-| [权限模型](internals/permissions.md) | 角色、中间件、scope、插件必须自己判什么 |
+| [数据模型](internals/data-model.md) | 30 张表的关系、UNID 的取舍、哪些必须备份、两种数据库的差异 |
+| [权限模型](internals/permissions.md) | 组与能力、`Gate::can()`、中间件、scope、插件怎么注册能力 |
 | [错误处理](internals/error-handling.md) | 报错页、500 编号、`APP_DEBUG`、日志前缀 |
 | [兼容与升级](internals/compatibility.md) | 版本号两档、升级流程、什么算破坏性改动、无伪静态模式 |
 | [把 Nomen 当身份提供方接入](integrate/oidc-client.md) | OIDC / OAuth 端点、PKCE、令牌、`sub`、错误码 |

@@ -172,3 +172,31 @@ WebAuthn / 生物识别的凭据。公钥存这里，私钥在用户设备上，
 
 索引：主键 `PRIMARY`（id）；普通 `idx_user_temp_keys_user`（user_id）；普通 `idx_user_temp_keys_expires`（expires_at）
 
+### user_groups
+
+用户与权限组的归属。一个用户可以同时在多个组，能力取并集；隐式组（`*` / `user`）不写在这里。
+
+| 字段 | 类型 | 可空 | 默认 | 说明 |
+|---|---|---|---|---|
+| `user_id` | INT | 否 | — | 账号 id，对应 `users.id` |
+| `grp` | VARCHAR(64) | 否 | — | 组名。组与默认授权在 `config/permissions.php` 里定义 |
+| `granted_by` | INT | 否 | 0 | 执行指派的账号 id；0 表示安装器或命令行写入 |
+| `granted_at` | TIMESTAMP | 否 | CURRENT_TIMESTAMP | 指派时间 |
+
+索引：主键 `PRIMARY`（user_id, grp）；普通 `idx_user_groups_grp`（grp）
+
+### group_rules
+
+后台「权限」页写下的覆盖规则，优先于 `config/permissions.php` 的默认值；删掉一行就回落到配置。
+
+> `allowed` = 0 是显式拒绝，压过其它任何组的允许。
+
+| 字段 | 类型 | 可空 | 默认 | 说明 |
+|---|---|---|---|---|
+| `grp` | VARCHAR(64) | 否 | — | 组名 |
+| `ability` | VARCHAR(128) | 否 | — | 能力名，如 `users.manage`；也支持通配 `*` 和 `users.*` |
+| `allowed` | TINYINT | 否 | 1 | 1 允许、0 拒绝 |
+| `updated_at` | TIMESTAMP | 否 | CURRENT_TIMESTAMP | 最后修改时间 |
+
+索引：主键 `PRIMARY`（grp, ability）
+

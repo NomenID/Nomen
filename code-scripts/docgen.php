@@ -781,7 +781,7 @@ function buildDatabase(): void
     }
 
     $groups = [
-        'account' => ['title' => '账号与身份', 'items' => ['users', 'user_emails', 'pending_registrations', 'user_devices', 'user_biometrics', 'user_totp_secrets', 'user_recovery_codes', 'user_temp_keys']],
+        'account' => ['title' => '账号与身份', 'items' => ['users', 'user_emails', 'pending_registrations', 'user_devices', 'user_biometrics', 'user_totp_secrets', 'user_recovery_codes', 'user_temp_keys', 'user_groups', 'group_rules']],
         'oauth' => ['title' => 'OAuth 与开放平台', 'items' => ['oauth_clients', 'oauth_authorization_codes', 'oauth_access_tokens', 'oauth_refresh_tokens', 'developers', 'user_authorizations', 'user_app_subjects']],
         'identity' => ['title' => '第三方登录', 'items' => ['identity_providers', 'user_identities']],
         'recovery' => ['title' => '账号恢复与家庭', 'items' => ['account_recovery_requests', 'family_groups', 'family_members']],

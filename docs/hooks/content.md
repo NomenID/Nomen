@@ -9,6 +9,7 @@
 | 钩子 | 类型 | 参数 | 时机 |
 |---|---|---|---|
 | `api.siteinfo` | filter | info, siprops, params | `/nomen-api` 的 siteinfo 组装完 |
+| `gate.check` | filter | allowed, ability, userId, context | `Gate::userCan()` 算完组判定之后；插件可以改判（按 IP 段、按站点开关），返回布尔值覆盖结果 |
 | `login.methods` | filter | methods | 登录页组装登录方式时；插件返回条目注册自己的登录方式（id / label 成品文案 / url 入口 / logo 可选 / by 插件显示名），登录页渲染成独立选项，可被设为默认方式 |
 | `pages.admin.editor.extras` | filter | html, page | Pages 插件后台的 Markdown 编辑器下方，返回值原样输出，用来给编辑器加额外表单片段 |
 | `pages.content.before_save` | filter | data, existing, isNew | Pages 插件写库前，可改字段 |
@@ -27,6 +28,14 @@
 - 时机：`/nomen-api` 的 siteinfo 组装完
 - 触发点：
   - `src/Api/Core.php`（filter）
+
+### gate.check
+
+- 类型：filter
+- 参数：allowed, ability, userId, context
+- 时机：`Gate::userCan()` 算完组判定之后；插件可以改判（按 IP 段、按站点开关），返回布尔值覆盖结果
+- 触发点：
+  - `src/Gate.php`（filter）
 
 ### login.methods
 

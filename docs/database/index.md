@@ -12,6 +12,8 @@
 | 账号与身份 | [user_totp_secrets](account.md) | 两步验证（TOTP）的密钥与启用状态。密钥单独一张表，删掉一行就等于关掉该账号的二验。 |
 | 账号与身份 | [user_recovery_codes](account.md) | 备用恢复码。每个码只用一次，使用后标记时间，全部用完需要重新生成。 |
 | 账号与身份 | [user_temp_keys](account.md) | 临时密钥。给不方便输密码的场景发的一次性凭据，过期即失效。 |
+| 账号与身份 | [user_groups](account.md) | 用户与权限组的归属。一个用户可以同时在多个组，能力取并集；隐式组（`*` / `user`）不写在这里。 |
+| 账号与身份 | [group_rules](account.md) | 后台「权限」页写下的覆盖规则，优先于 `config/permissions.php` 的默认值；删掉一行就回落到配置。 |
 | OAuth 与开放平台 | [oauth_clients](oauth.md) | OAuth 应用。`client_id` / `client_secret`、回调白名单、允许的 scope 和所属开发者都在这张表。 |
 | OAuth 与开放平台 | [oauth_authorization_codes](oauth.md) | 一次性的授权码。有效期 10 分钟，换 token 时立刻作废，一个码只能换一次。 |
 | OAuth 与开放平台 | [oauth_access_tokens](oauth.md) | 已签发的访问令牌。表里只有哈希，明文只在签发那一次返回给应用。 |

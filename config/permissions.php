@@ -33,20 +33,20 @@
 return [
     'groups' => [
         '*' => [
-            'label' => 'Everyone',
+            'label' => 'Everyone',          // 所有请求者，含未登录
             // 隐式组：不出现在后台网格，也不可指派
             'implicit' => true,
             'abilities' => [],
         ],
 
         'user' => [
-            'label' => 'Signed-in users',
+            'label' => 'Signed-in users',   // 已登录且状态正常的账号
             'implicit' => true,
             'abilities' => [],
         ],
 
         'administrator' => [
-            'label' => 'Administrators',
+            'label' => 'Administrators',    // 管理员组，旧版的 users.role = 'admin'
             // 全部能力。等价于旧版 users.role = 'admin' 的一切权限。
             'abilities' => ['*'],
         ],

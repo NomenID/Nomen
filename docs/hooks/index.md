@@ -32,6 +32,7 @@
 | [admin.logs.rows](admin.md) | filter | 1 处 |
 | [admin.menu.items](admin.md) | filter | 1 处 |
 | [admin.mounts.list](admin.md) | filter | 1 处 |
+| [admin.permissions.grid](admin.md) | filter | 1 处 |
 | [admin.plugin.page.body](admin.md) | filter | 1 处 |
 | [admin.recovery.detail](admin.md) | filter | 1 处 |
 | [admin.settings.data](admin.md) | filter | 1 处 |
@@ -39,10 +40,12 @@
 | [admin.shell.props](admin.md) | filter | 1 处 |
 | [admin.site_health.tests](admin.md) | filter | 1 处 |
 | [admin.user.detail](admin.md) | filter | 1 处 |
+| [admin.user.groups_changed](admin.md) | run | 1 处 |
 | [admin.user.role_changed](admin.md) | run | 1 处 |
 | [admin.user.status_changed](admin.md) | run | 1 处 |
 | [admin.users.rows](admin.md) | filter | 1 处 |
 | [api.siteinfo](content.md) | filter | 1 处 |
+| [gate.check](content.md) | filter | 1 处 |
 | [login.methods](content.md) | filter | 1 处 |
 | [pages.admin.editor.extras](content.md) | filter | 扩展侧 |
 | [pages.content.before_save](content.md) | filter | 扩展侧 |

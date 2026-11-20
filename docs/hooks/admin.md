@@ -16,6 +16,7 @@
 | `admin.logs.rows` | filter | rows | 活动日志列表返回前 |
 | `admin.menu.items` | filter | items | 后台侧栏菜单组装完 |
 | `admin.mounts.list` | filter | mounts | 挂载点列表返回前 |
+| `admin.permissions.grid` | filter | grid | 后台「权限」页的矩阵数据组装完；返回的数组直接作为接口响应 |
 | `admin.plugin.page.body` | filter | html, slug, page, tab | 插件后台页面输出前 |
 | `admin.recovery.detail` | filter | payload, request, user | 恢复工单详情返回前 |
 | `admin.settings.data` | filter | payload | 站点设置页数据 |
@@ -23,6 +24,7 @@
 | `admin.shell.props` | filter | props, adminId | 后台 SPA 首屏数据 |
 | `admin.site_health.tests` | filter | tests, context | 站点健康测试列表 |
 | `admin.user.detail` | filter | payload, userId, user, admin | 用户详情返回前 |
+| `admin.user.groups_changed` | run | userId, groups, oldGroups, actorId | 后台改完某用户的组之后；`groups` 是新的组名列表，`oldGroups` 是改之前的 |
 | `admin.user.role_changed` | run | userId, role, adminId | 管理员授予/撤销管理员之后 |
 | `admin.user.status_changed` | run | userId, status, adminId | 管理员启用/禁用账户之后 |
 | `admin.users.rows` | filter | rows | 用户列表返回前 |
@@ -93,6 +95,14 @@
 - 触发点：
   - `controllers/AdminMountsController.php`（filter）
 
+### admin.permissions.grid
+
+- 类型：filter
+- 参数：grid
+- 时机：后台「权限」页的矩阵数据组装完；返回的数组直接作为接口响应
+- 触发点：
+  - `controllers/AdminController.php`（filter）
+
 ### admin.plugin.page.body
 
 - 类型：filter
@@ -148,6 +158,14 @@
 - 时机：用户详情返回前
 - 触发点：
   - `controllers/AdminController.php`（filter）
+
+### admin.user.groups_changed
+
+- 类型：run
+- 参数：userId, groups, oldGroups, actorId
+- 时机：后台改完某用户的组之后；`groups` 是新的组名列表，`oldGroups` 是改之前的
+- 触发点：
+  - `controllers/AdminController.php`（run）
 
 ### admin.user.role_changed
 

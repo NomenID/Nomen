@@ -251,5 +251,20 @@
     "type": "run",
     "args": "from, to, info",
     "when": "自动更新成功后的第一次正常站点请求（插件已按新代码启动）；更新进程内不会触发，一次更新只触发一次"
+  },
+  "gate.check": {
+    "type": "filter",
+    "args": "allowed, ability, userId, context",
+    "when": "`Gate::userCan()` 算完组判定之后；插件可以改判（按 IP 段、按站点开关），返回布尔值覆盖结果"
+  },
+  "admin.permissions.grid": {
+    "type": "filter",
+    "args": "grid",
+    "when": "后台「权限」页的矩阵数据组装完；返回的数组直接作为接口响应"
+  },
+  "admin.user.groups_changed": {
+    "type": "run",
+    "args": "userId, groups, oldGroups, actorId",
+    "when": "后台改完某用户的组之后；`groups` 是新的组名列表，`oldGroups` 是改之前的"
   }
 }

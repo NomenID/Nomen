@@ -1,6 +1,6 @@
 # 数据模型
 
-28 张表，中心是 `users`。表之间**没有外键约束**，靠应用层维护引用关系——这样删用户、搬库、灌测试数据都不会被
+30 张表，中心是 `users`。表之间**没有外键约束**，靠应用层维护引用关系——这样删用户、搬库、灌测试数据都不会被
 约束拦住，代价是孤儿行得自己清。
 
 ## 账号
@@ -12,9 +12,13 @@ users ─┬─ user_emails            一个账号多个邮箱，主邮箱标�
        ├─ user_totp_secrets      两步验证密钥
        ├─ user_recovery_codes    一次性恢复码
        ├─ user_temp_keys         临时密钥
+       ├─ user_groups            权限组归属（组定义在 config/permissions.php）
        ├─ pending_registrations  没点激活链接的注册（临时数据）
        └─ user_identities ─────── identity_providers   第三方身份绑定
 ```
+
+权限还有一张 `group_rules`：后台「权限」页写下的覆盖授权（组 × 能力 = 允许 / 拒绝），按组名和 `user_groups` 关联，
+不挂在具体用户下。
 
 几条容易踩的：
 
