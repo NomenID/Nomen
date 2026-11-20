@@ -126,7 +126,12 @@ NOMEN_UPDATE_SCOPE=patch
 
 ## 停更提醒
 
-发布源可以带 `min_supported`。当前版本低于它时，后台设置卡和「站点健康」会提示，`data/updates/state.json` 里也会记一条 `eol`。要消除提醒只能升级到受支持的版本。
+发布源可以带 `min_supported`（对所有分支生效）和 `support`（按分支标状态）。当前版本低于 `min_supported`，或者它所在的分支被标成 `eol`，后台设置卡和「站点健康」都会提示，`data/updates/state.json` 里记一条 `eol`。
+
+停更分支不是直接甩到最新版：
+
+- 本分支还有更高的版本（通常是最后一版补丁）→ 先把那一版装上，装完下一次检查才提示跨分支。
+- 跨分支的升级**永远不自动装**，后台会给一条建议路径，比如 `1.7.3 → 1.8.5`，由管理员点「立即更新」或跑 `php bin/nomen update run`。
 
 ## 失败与重试
 
@@ -155,7 +160,9 @@ php bin/nomen update reset    # 清除失败记录
 
 ## 发布源格式
 
-官方站 `data/releases.json`：
+两种形状都认，客户端看 `support` 在不在决定用哪套规则。
+
+**单条**（老格式，只有一个「最新版本」）：
 
 ```json
 {
@@ -170,7 +177,38 @@ php bin/nomen update reset    # 清除失败记录
 }
 ```
 
-`php code-scripts/build-dist.php --priority=security --min-supported=1.7.0` 会额外生成 `dist/release.json`，把这份文件放到官方站 `data/releases.json` 即可。也可以写成 `{"releases":[...]}` 列表，客户端取版本最高的一条。
+**按分支列**（同时维护多个分支时用）：
+
+```json
+{
+  "version": "1.9.0",
+  "min_supported": "1.8.0",
+  "support": {
+    "1.9": { "status": "active" },
+    "1.8": { "status": "maintenance", "until": "2027-03-01" },
+    "1.7": { "status": "eol", "last": "1.7.3" }
+  },
+  "releases": [
+    { "version": "1.9.0", "branch": "1.9", "download": "https://dl.caellab.com/file/nomen/nomen-1.9.0.zip", "sha256": "<64 位>", "priority": "feature" },
+    { "version": "1.8.5", "branch": "1.8", "download": "https://dl.caellab.com/file/nomen/nomen-1.8.5.zip", "sha256": "<64 位>", "priority": "security" }
+  ]
+}
+```
+
+`status` 只有三个值：`active`（正常发版）、`maintenance`（只收安全修复）、`eol`（停止支持，可带 `last` 指向最后一版）。没列出来的分支按 `eol` 处理。
+
+客户端怎么挑：
+
+| 当前情况 | 装哪个 | 会不会自动装 |
+|---|---|---|
+| 本分支有更高版本 | 本分支最高 | 按 `scope` 判断（默认只装最后一位） |
+| 分支 `active` / `maintenance`，没有更高版本 | 不动 | — |
+| 分支 `eol` 或不在 `support` 里 | 最近的高一级受支持分支，附升级路径 | **不会**，只提示 |
+| 没有 `support` 表（老格式） | 全局最高版本 | 按 `scope` 判断 |
+
+发版时：`php code-scripts/build-dist.php --priority=security --branch=1.8` 生成的 `dist/release.json` 会带 `branch` 字段；把这一条**追加**到官方站 `data/releases.json` 的 `releases` 数组里，别覆盖整份。分支从 `maintenance` 转 `eol` 时手改一次 `support`。
+
+老客户端（1.9.0 及更早）读列表时只取版本最高的一条，行为和单条格式一样，不会被新格式带崩。
 
 ## 两个环境注意点
 

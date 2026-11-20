@@ -192,6 +192,11 @@ final class AutoUpdate
             'latestUrl'            => (string)($offer['url'] ?? ''),
             'latestPriority'       => (string)($offer['priority'] ?? ''),
             'latestReleasedAt'     => (string)($offer['released_at'] ?? ''),
+            'branch'               => (string)($state['branch'] ?? UpdateCheck::branch($current)),
+            'branchStatus'         => (string)($state['branch_status'] ?? ''),
+            'support'              => (array)($state['support'] ?? []),
+            'upgradePath'          => (array)($state['upgrade_path'] ?? []),
+            'upgradeReason'        => (string)($state['upgrade_reason'] ?? ''),
             'pending'              => $pending,
             'pendingKind'          => $pending !== '' ? self::updateKind($current, $pending) : '',
             'pendingPriority'      => (string)($offer['priority'] ?? ''),
@@ -275,8 +280,8 @@ final class AutoUpdate
         }
 
         if ($force || $offer === [] || $due) {
-            $fetched = UpdateCheck::latest($force);
-            if ($fetched === null) {
+            $resolved = UpdateCheck::resolve($current, $force);
+            if (!$resolved['ok']) {
                 $state['last_check_at'] = time();
                 $state['last_check_ok'] = false;
                 $state['last_check_error'] = '更新源不可达';
@@ -285,19 +290,53 @@ final class AutoUpdate
 
                 return ['status' => 'check_failed', 'current' => $current, 'latest' => '', 'message' => '更新源不可达'];
             }
-            $offer = $fetched;
+
+            $offer = (array)($resolved['offer'] ?? []);
             $state['last_check_at'] = time();
             $state['last_check_ok'] = true;
             $state['last_check_error'] = '';
-            $state['latest'] = (string)($offer['version'] ?? '');
-            $state['offer'] = $offer;
+            $state['branch'] = (string)$resolved['branch'];
+            $state['branch_status'] = (string)$resolved['branchStatus'];
+            $state['support'] = (array)$resolved['support'];
+            $state['upgrade_path'] = (array)$resolved['path'];
+            $state['upgrade_reason'] = (string)$resolved['reason'];
+
+            if ($offer === []) {
+                unset($state['offer']);
+                $state['latest'] = '';
+            } else {
+                $state['offer'] = $offer;
+                $state['latest'] = (string)($offer['version'] ?? '');
+            }
         }
 
         $latest = (string)($offer['version'] ?? '');
+        $upgrade = in_array((string)($state['upgrade_reason'] ?? ''), ['eol_branch', 'unknown_branch'], true);
+
         if ($latest === '') {
+            $state['pending'] = '';
             self::saveState($state);
 
-            return ['status' => 'check_failed', 'current' => $current, 'latest' => '', 'message' => '更新源没有返回版本号'];
+            $branch = (string)($state['branch'] ?? '');
+            $branchStatus = (string)($state['branch_status'] ?? '');
+            if ($branchStatus === 'eol') {
+                return [
+                    'status'  => 'eol_branch',
+                    'current' => $current,
+                    'latest'  => '',
+                    'message' => '分支 ' . $branch . ' 已停止维护，发布源里也没有可用的升级目标',
+                ];
+            }
+            if ($branchStatus === 'unknown') {
+                return [
+                    'status'  => 'unknown_branch',
+                    'current' => $current,
+                    'latest'  => '',
+                    'message' => '发布源里没有分支 ' . $branch . ' 的信息（可能是自建版本），不会自动升级',
+                ];
+            }
+
+            return ['status' => 'current', 'current' => $current, 'latest' => '', 'message' => '已是最新版本'];
         }
 
         self::syncEol($state, $offer, $current);
@@ -308,6 +347,24 @@ final class AutoUpdate
             self::saveState($state);
 
             return ['status' => 'current', 'current' => $current, 'latest' => $latest, 'message' => '已是最新版本'];
+        }
+
+        // 跨分支（当前分支停更）：只提示，不排队。跨分支要跑迁移，必须人点。
+        if ($upgrade && !$manual) {
+            $state['pending'] = '';
+            $state['offer'] = $offer;
+            self::saveState($state);
+
+            $path = (array)($state['upgrade_path'] ?? []);
+            self::log('warning', 'upgrade', '当前分支 ' . (string)($state['branch'] ?? '') . ' 已停止维护，建议升级到 ' . $latest);
+
+            return [
+                'status'  => 'upgrade_required',
+                'current' => $current,
+                'latest'  => $latest,
+                'message' => '当前分支已停止维护，需要手动升级到 ' . $latest
+                    . ($path !== [] ? '（建议按顺序：' . implode(' → ', $path) . '）' : ''),
+            ];
         }
 
         // 先记下待安装版本；范围 / 优先级不允许时只提示，不下载

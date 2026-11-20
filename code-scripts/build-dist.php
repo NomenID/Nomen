@@ -17,6 +17,7 @@ if (in_array('--help', $args, true) || in_array('-h', $args, true)) {
     echo '  --skip-frontend      跳过前端构建', PHP_EOL;
     echo '  --priority           发布优先级：security / critical / normal / feature（默认 normal）', PHP_EOL;
     echo '  --min-supported      最低支持版本；低于它的站点会在后台看到停更提醒', PHP_EOL;
+    echo '  --branch             这条发布属于哪个分支（默认取版本前两位，x.y）', PHP_EOL;
     echo '  --notes              更新说明链接（默认站内 /w/changelog）', PHP_EOL;
     exit(0);
 }
@@ -42,6 +43,11 @@ if ($minSupported !== '' && preg_match('/^\d+(\.\d+){1,3}$/', $minSupported) !==
     exit(1);
 }
 $releaseNotes = $option('notes', 'https://nomenid.org/w/changelog');
+$releaseBranch = $option('branch');
+if ($releaseBranch !== '' && preg_match('/^\d+\.\d+$/', $releaseBranch) !== 1) {
+    fwrite(STDERR, '--branch 要写成 x.y（比如 1.8）' . PHP_EOL);
+    exit(1);
+}
 
 if (!in_array('--skip-frontend', $args, true)) {
     $npm = PHP_OS_FAMILY === 'Windows' ? 'npm.cmd' : 'npm';
@@ -63,6 +69,9 @@ if (!preg_match("/'version'\s*=>\s*'([^']+)'/", (string)file_get_contents($root 
     exit(1);
 }
 $version = $m[1];
+if ($releaseBranch === '') {
+    $releaseBranch = implode('.', array_slice(explode('.', $version), 0, 2));
+}
 
 // 插件和官方皮肤是独立仓库。默认在 plugins/、skins/ 下找；本机把源码放在仓库外时，
 // 由不进 git 的 paths.local.php 指出位置（见 src/LocalPaths.php）。
@@ -194,6 +203,7 @@ if (!is_string($sha256) || $sha256 === '') {
 }
 $release = [
     'version'     => $version,
+    'branch'      => $releaseBranch,
     'priority'    => $releasePriority,
     'released_at' => gmdate('Y-m-d\TH:i:s\Z'),
     'download'    => $downloadBase . '/nomen-' . $version . '.zip',
