@@ -38,6 +38,9 @@ Thumbs.db
 .zcode/
 .workbuddy/
 .upload/
+.claudecode/
+.codex/
+.xce/
 
 AGENTS.md
 CLAUDE.md
