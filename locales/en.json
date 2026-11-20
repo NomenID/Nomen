@@ -2003,5 +2003,15 @@
     "Restored a site health check": "Restored a site health check",
     "Do not show this on the homepage for 7 days": "Do not show this on the homepage for 7 days",
     "Last checked {:time}": "Last checked {:time}",
-    "Except {:window}": "Except {:window}"
+    "Except {:window}": "Except {:window}",
+    "Update now": "Update now",
+    "Update now to {:version}": "Update now to {:version}",
+    "Updating…": "Updating…",
+    "Install version {:version} now? The site will be in maintenance mode for a moment.": "Install version {:version} now? The site will be in maintenance mode for a moment.",
+    "The update is queued. The scheduler will start it within a minute.": "The update is queued. The scheduler will start it within a minute.",
+    "Updated to {:version}.": "Updated to {:version}.",
+    "The update failed: {:error}": "The update failed: {:error}",
+    "The update did not start. Check that the scheduler is running.": "The update did not start. Check that the scheduler is running.",
+    "Still updating. Reload this page in a moment.": "Still updating. Reload this page in a moment.",
+    "Started a manual update": "Started a manual update"
 }

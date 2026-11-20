@@ -2004,5 +2004,15 @@
   "Restored a site health check": "恢復了站點健康檢查",
   "Do not show this on the homepage for 7 days": "7 天內不再推送至首頁",
   "Last checked {:time}": "上次檢查：{:time}",
-  "Except {:window}": "除 {:window} 外"
+  "Except {:window}": "除 {:window} 外",
+  "Update now": "立即更新",
+  "Update now to {:version}": "立即更新到 {:version}",
+  "Updating…": "正在更新…",
+  "Install version {:version} now? The site will be in maintenance mode for a moment.": "現在安裝 {:version}？站點會短暫進入維護模式。",
+  "The update is queued. The scheduler will start it within a minute.": "更新已排隊，排程器會在一分鐘內開始。",
+  "Updated to {:version}.": "已更新到 {:version}。",
+  "The update failed: {:error}": "更新失敗：{:error}",
+  "The update did not start. Check that the scheduler is running.": "更新沒有啟動，請檢查排程器是否在執行。",
+  "Still updating. Reload this page in a moment.": "還在更新，稍後重新整理本頁。",
+  "Started a manual update": "手動更新了站點"
 }

@@ -438,6 +438,7 @@ $router->post('/admin/settings',            [AdminSettingsController::class, 'up
 $router->post('/admin/settings/cache/clear', [AdminSettingsController::class, 'clearCache'], ['admin']);
 $router->post('/admin/settings/schedule/run', [AdminSettingsController::class, 'scheduleRun'], ['admin']);
 $router->post('/admin/settings/update/check', [AdminSettingsController::class, 'checkUpdate'], ['admin']);
+$router->post('/admin/settings/update/run',   [AdminSettingsController::class, 'runUpdate'], ['admin']);
 $router->post('/admin/settings/update/reset', [AdminSettingsController::class, 'resetUpdate'], ['admin']);
 $router->get('/api/admin/homepage',         [AdminHomepageController::class, 'show'], ['admin']);
 $router->post('/admin/homepage',            [AdminHomepageController::class, 'update'], ['admin']);

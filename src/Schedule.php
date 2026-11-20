@@ -59,6 +59,16 @@ final class Schedule
                     AutoUpdate::scheduled();
                 },
             ],
+            [
+                'id'    => 'update.manual',
+                'label' => 'Manual update',
+                'owner' => 'core',
+                // 后台点「立即更新」后写一个标记，这里每分钟捡一次
+                'every' => 60,
+                'run'   => static function (): void {
+                    AutoUpdate::runManualIfQueued();
+                },
+            ],
         ];
 
         foreach ($core as $task) {

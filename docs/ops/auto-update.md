@@ -138,10 +138,12 @@ NOMEN_UPDATE_SCOPE=patch
 
 ## 手动操作
 
+后台「设置 → 自动更新」发现新版本后会显示「立即更新到 x.y.z」。点它只是**排队**，由调度器在下一分钟执行（核心任务 `update.manual`），页面会轮询进度。管理员手动安装会绕过自动开关、`scope`、`min_priority` 和维护窗口，但仍然走 preflight、文件 / 数据库备份和失败记忆；上次失败过的版本要先「清除失败记录」。排队请求 10 分钟没被调度器捡起来就作废。
+
 ```bash
 php bin/nomen update status   # 看状态、上次结果、最近日志
 php bin/nomen update check    # 只查版本，不安装
-php bin/nomen update run      # 立即查并安装（需要后台已打开自动更新）
+php bin/nomen update run      # 立即查并安装（仍受自动开关、scope、优先级、窗口限制）
 php bin/nomen update reset    # 清除失败记录
 ```
 

@@ -125,6 +125,7 @@ class ActivityLog
         'admin.site_health_ignore'        => 'Ignored a site health check',
         'admin.site_health_unignore'      => 'Restored a site health check',
         'admin.update_reset'              => 'Reset the failed update state',
+        'admin.update_manual'             => 'Started a manual update',
         'system.update_success'           => 'Automatic update installed',
         'system.update_failed'            => 'Automatic update failed',
         'admin.homepage_update'           => 'Homepage settings changed',

@@ -9,6 +9,7 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { apiGet, apiPost } from '../../app/api'
+import { url } from '../../lib/url.js'
 import { useT } from '../../composables/useT.js'
 import AdminPage from '../components/AdminPage.vue'
 import AdminCard from '../components/AdminCard.vue'
@@ -20,6 +21,7 @@ const loading = ref(true)
 const saving = ref(false)
 const clearing = ref(false)
 const checking = ref(false)
+const updating = ref(false)
 const error = ref('')
 const data = ref(null)
 const form = reactive({
@@ -151,6 +153,85 @@ async function checkUpdates() {
   } finally {
     checking.value = false
   }
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+async function runUpdate() {
+  const version = data.value?.autoUpdate?.pending
+  if (!version) return
+
+  const ok = await window.Nomen.confirm(
+    t('Update now to {:version}', { version }),
+    t('Install version {:version} now? The site will be in maintenance mode for a moment.', { version }),
+    { confirmText: t('Update now'), cancelText: t('Cancel') },
+  )
+  if (!ok) return
+
+  updating.value = true
+  try {
+    const result = await apiPost('/admin/settings/update/run')
+    if (!result.success) {
+      window.Nomen.toast(result.message || t('Update failed'), 'error')
+      updating.value = false
+      return
+    }
+    window.Nomen.toast(result.message || t('The update is queued. The scheduler will start it within a minute.'), 'success')
+    await pollUpdate(version)
+  } catch (err) {
+    window.Nomen.toast(t('Update failed'), 'error')
+    updating.value = false
+  }
+}
+
+async function pollVersion() {
+  const response = await fetch(url('/api/admin/version'), {
+    headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' },
+    credentials: 'same-origin',
+  })
+  const type = response.headers.get('content-type') || ''
+  // 维护模式会回 503 HTML；别像 apiGet 那样整页跳过去
+  if (!response.ok || !type.includes('application/json')) return null
+  return response.json()
+}
+
+async function pollUpdate(version) {
+  for (let i = 0; i < 40; i++) {
+    await sleep(3000)
+    let info
+    try {
+      info = await pollVersion()
+    } catch (err) {
+      continue
+    }
+    if (!info) continue
+    if (info.running || info.manualQueued) continue
+    if (info.failed && info.failed.version === version) {
+      window.Nomen.toast(t('The update failed: {:error}', { error: info.failed.reason || info.lastRun?.error || '' }), 'error')
+      updating.value = false
+      await load()
+      return
+    }
+    if (!info.updateAvailable || info.pending !== version) {
+      window.Nomen.toast(t('Updated to {:version}.', { version }), 'success')
+      window.location.reload()
+      return
+    }
+    if (i >= 25) {
+      const message = info.lastCheckError
+        ? t('The update failed: {:error}', { error: info.lastCheckError })
+        : t('The update did not start. Check that the scheduler is running.')
+      window.Nomen.toast(message, 'error')
+      updating.value = false
+      await load()
+      return
+    }
+  }
+  window.Nomen.toast(t('Still updating. Reload this page in a moment.'), 'info')
+  updating.value = false
+  await load()
 }
 
 async function resetUpdate() {
@@ -329,6 +410,17 @@ onMounted(load)
           </p>
 
           <div class="a-form__actions">
+            <button
+              v-if="data.autoUpdate.pending"
+              class="a-btn"
+              type="button"
+              :disabled="updating || data.autoUpdate.running || data.autoUpdate.manualQueued"
+              @click="runUpdate"
+            >
+              {{ updating || data.autoUpdate.running || data.autoUpdate.manualQueued
+                ? t('Updating…')
+                : t('Update now to {:version}', { version: data.autoUpdate.pending }) }}
+            </button>
             <button class="a-btn" type="button" :disabled="checking || !data.autoUpdate.feedConfigured" @click="checkUpdates">
               {{ checking ? t('Checking…') : t('Check now') }}
             </button>

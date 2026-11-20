@@ -327,7 +327,12 @@ class AdminController
             'pendingAuto'     => (bool)$status['pendingAuto'],
             'lastCheckAt'     => (int)$status['lastCheckAt'],
             'lastCheckOk'     => (bool)$status['lastCheckOk'],
+            'lastCheckError'  => (string)$status['lastCheckError'],
             'nextCheckAt'     => (int)$status['nextCheckAt'],
+            'running'         => ($status['running'] ?? null) !== null,
+            'manualQueued'    => (bool)($status['manualQueued'] ?? false),
+            'failed'          => $status['failed'] ?? null,
+            'lastRun'         => $status['lastRun'] ?? null,
         ]);
     }
 

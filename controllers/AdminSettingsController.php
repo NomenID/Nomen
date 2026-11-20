@@ -240,6 +240,36 @@ class AdminSettingsController
         ]);
     }
 
+    /** POST /admin/settings/update/run - 管理员点「立即更新」：排队，由调度器在下一分钟执行 */
+    public function runUpdate(): void
+    {
+        $admin = Admin::requireAdmin();
+
+        if (!Csrf::validate($_POST['_csrf'] ?? null)) {
+            Response::json(['success' => false, 'message' => '请求无效，请重试'], 422);
+        }
+
+        $result = AutoUpdate::requestManual((int)$admin['id']);
+        if (empty($result['success'])) {
+            Response::json($result, 409);
+        }
+
+        ActivityLog::record([
+            'action'         => 'admin.update_manual',
+            'category'       => ActivityLog::CAT_ADMIN,
+            'actor_type'     => 'admin',
+            'actor_id'       => (int)$admin['id'],
+            'actor_username' => (string)$admin['username'],
+            'summary'        => '排入手动更新：' . (string)($result['version'] ?? ''),
+        ]);
+
+        Response::json([
+            'success' => true,
+            'message' => (string)($result['message'] ?? ''),
+            'version' => (string)($result['version'] ?? ''),
+        ]);
+    }
+
     /** POST /admin/settings/update/reset - 清掉失败记忆，让同一版本可以再试 */
     public function resetUpdate(): void
     {

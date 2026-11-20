@@ -168,6 +168,7 @@ final class AutoUpdate
         $current = self::currentVersion();
         $pending = (string)($state['pending'] ?? '');
         $offer = (array)($state['offer'] ?? []);
+        $manual = (array)($state['manual'] ?? []);
 
         return [
             'feed'                 => self::feed(),
@@ -206,6 +207,8 @@ final class AutoUpdate
             'history'              => array_slice((array)($state['history'] ?? []), 0, 5),
             'failed'               => ($state['failed'] ?? []) !== [] ? $state['failed'] : null,
             'running'              => ($state['running'] ?? []) !== [] ? $state['running'] : null,
+            'manualQueued'         => $manual !== [] && time() - (int)($manual['requested_at'] ?? 0) <= 600,
+            'manualRequestedAt'    => (int)($manual['requested_at'] ?? 0),
             'logTail'              => self::logTail(60),
             'mailConfigured'       => Email::isConfigured(),
             'zipAvailable'         => class_exists(\ZipArchive::class),
@@ -219,10 +222,12 @@ final class AutoUpdate
 
     /**
      * 查一次。$apply 为 false 时只检查，不安装（后台/CLI 的「立即检查」）。
+     * $manual = true 是管理员在后台点「立即更新」：绕过自动开关、scope、优先级和维护窗口，
+     * 但仍然走 preflight、备份和失败记忆。
      *
      * @return array{status: string, current: string, latest: string, message: string, run?: array}
      */
-    public static function check(bool $apply = true, bool $force = false, ?callable $onStep = null): array
+    public static function check(bool $apply = true, bool $force = false, ?callable $onStep = null, bool $manual = false): array
     {
         $current = self::currentVersion();
         $state = self::state();
@@ -310,7 +315,7 @@ final class AutoUpdate
         $state['offer'] = $offer;
         self::saveState($state);
 
-        if (!self::scopeAllows($current, $latest)) {
+        if (!$manual && !self::scopeAllows($current, $latest)) {
             return [
                 'status'  => 'manual_required',
                 'current' => $current,
@@ -320,7 +325,7 @@ final class AutoUpdate
         }
 
         $priority = (string)($offer['priority'] ?? 'normal');
-        if (!self::priorityAllows($priority)) {
+        if (!$manual && !self::priorityAllows($priority)) {
             return [
                 'status'  => 'manual_required',
                 'current' => $current,
@@ -329,7 +334,7 @@ final class AutoUpdate
             ];
         }
 
-        if (self::enabled() && self::blocked($state, $latest)) {
+        if (($manual || self::enabled()) && self::blocked($state, $latest)) {
             return [
                 'status'  => 'blocked',
                 'current' => $current,
@@ -338,7 +343,7 @@ final class AutoUpdate
             ];
         }
 
-        if (!$apply || !self::enabled()) {
+        if (!$apply || (!$manual && !self::enabled())) {
             return [
                 'status'  => 'available',
                 'current' => $current,
@@ -347,7 +352,7 @@ final class AutoUpdate
             ];
         }
 
-        if (!self::priorityBypassesWindow($priority) && !self::inWindow()) {
+        if (!$manual && !self::priorityBypassesWindow($priority) && !self::inWindow()) {
             return [
                 'status'  => 'waiting',
                 'current' => $current,
@@ -376,6 +381,73 @@ final class AutoUpdate
         } catch (Throwable $e) {
             self::log('error', 'scheduled', $e->getMessage());
             error_log('[update] 定时检查失败: ' . $e->getMessage());
+        }
+    }
+
+    /** 后台「立即更新」：记下请求，由调度器在下一分钟执行 */
+    public static function requestManual(int $adminId = 0): array
+    {
+        $state = self::state();
+        if ((array)($state['running'] ?? []) !== []) {
+            return ['success' => false, 'message' => '另一个更新正在进行'];
+        }
+        if (!self::feedConfigured()) {
+            return ['success' => false, 'message' => '更新检查已关闭（config/autoupdate.php 的 feed 设成了 off 或不是有效地址）'];
+        }
+
+        $current = self::currentVersion();
+        $pending = (string)($state['pending'] ?? '');
+        if ($pending === '' || !UpdateCheck::isNewer($pending, $current)) {
+            return ['success' => false, 'message' => '没有可安装的新版本，先点「立即检查」'];
+        }
+        if (self::blocked($state, $pending)) {
+            return ['success' => false, 'message' => '这个版本上次失败过，已暂停重试；请先清除失败记录'];
+        }
+
+        $state['manual'] = [
+            'requested_at' => time(),
+            'admin_id'     => $adminId,
+            'version'      => $pending,
+        ];
+        self::saveState($state);
+        self::log('info', 'manual', '管理员排入了手动更新：' . $pending, ['admin' => $adminId]);
+
+        return ['success' => true, 'version' => $pending, 'message' => '已排队，调度器会在一分钟内开始更新'];
+    }
+
+    /** 调度器每分钟调用：有手动请求就执行一次（请求 10 分钟没被捡起来就作废） */
+    public static function runManualIfQueued(): void
+    {
+        $state = self::state();
+        $manual = (array)($state['manual'] ?? []);
+        if ($manual === []) {
+            return;
+        }
+
+        if (time() - (int)($manual['requested_at'] ?? 0) > 600) {
+            unset($state['manual']);
+            self::saveState($state);
+            self::log('warning', 'manual', '手动更新请求已过期，未执行');
+            return;
+        }
+
+        if ((array)($state['running'] ?? []) !== []) {
+            return; // 有更新在跑，下一分钟再看
+        }
+
+        unset($state['manual']);
+        self::saveState($state);
+        self::log('info', 'manual', '开始执行手动更新');
+
+        try {
+            $result = self::check(true, true, null, true);
+            if (($result['status'] ?? '') === 'locked') {
+                $state = self::state();
+                $state['manual'] = $manual;
+                self::saveState($state);
+            }
+        } catch (Throwable $e) {
+            self::log('error', 'manual', '手动更新失败：' . $e->getMessage());
         }
     }
 
