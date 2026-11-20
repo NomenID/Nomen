@@ -48,6 +48,12 @@ switch ($cmd) {
     case 'perms:list':
         exit(Nomen\Src\Cli\Groups::run(['perms-list'] + array_slice($args, 1)));
 
+    case 'deploy':
+        exit(Nomen\Src\Cli\Deploy::run(array_slice($args, 2)));
+
+    case 'deploy:exclude':
+        exit(Nomen\Src\Cli\Deploy::run(['exclude'] + array_slice($args, 1)));
+
     case 'doctor':
         exit(Nomen\Src\Cli\Doctor::run(array_slice($args, 2)));
 

@@ -16,28 +16,40 @@
 - [ ] 包里有 `.nomen-package.json`（自动更新用它核对文件清单）
 - [ ] 包大小和上一个版本差不多（差太多说明漏了东西）
 
-## 二、上传前
+## 二、上传
+
+### 首选：让程序自己装（推荐）
+
+```bash
+# 传包到服务器任意位置，然后：
+php bin/nomen deploy /tmp/nomen-<版本>.zip --dry-run   # 先看：覆盖什么、跳过什么、删什么
+php bin/nomen deploy /tmp/nomen-<版本>.zip             # 确认后执行
+```
+
+它和自动更新走同一套 `UpdatePackage`：同一份「哪些文件不能碰」的规则、同一个预演、同一个备份和回滚。
+`--dry-run` 打印的「跳过」列表就是站点自己的东西（`config/`、`vendor/`、上传目录……），
+一个字节都不会动。这条路径**不需要你记排除清单**。
+
+加 `--sha256=<值>` 可以顺带校验包来源；不给就用本地实算值，只保证包完整。
+
+### 备选：rsync（只在需要精细控制时用）
+
+手工 rsync 唯一的坑是 `--delete` 会把「包里有、站点也有但版本不同」和「站点有、包里没有」一起处理掉。
+排除清单**不要手抄**，用命令生成：
+
+```bash
+php bin/nomen deploy:exclude
+```
+
+输出里有一行可以直接用的 rsync 参数。规则来自 `src/PackageRules.php`，和自动更新共用一份，
+不会漂移。核心就一条：`config/` 整个排除，只放行 `config/app.php`（版本号和新配置键靠它下发）。
+
+不管走哪条路，上传前都要：
 
 - [ ] 备份线上：库 + 文件，**备份放 `/tmp`，不要放 web root**
 - [ ] 站点开了自动更新的话，先确认 `data/updates/` 没有正在跑的更新（`update.lock` / `maintenance.json`），
       或临时关掉总开关，避免手动部署和自动更新撞在一起
 - [ ] 比对线上文件的 md5，确认没有别人在改（并行改动很常见）
-- [ ] `rsync --dry-run` 看 `would delete` 列表，**确定要删的都是旧产物**
-
-必须排除的路径（不同站点略有差异）：
-
-```
-config/installed.php
-.env
-data/
-public/assets/avatars/
-public/assets/recovery/
-public/assets/develops/
-config/plugins/
-config/autoupdate.php     # 改过更新源 / 备份 / 计划的话
-public/.user.ini          # 被 chattr +i 锁着，不排除 rsync 会报 23
-vendor/                   # 线上有自己的依赖（geoip2 这类）
-```
 
 ## 三、上传顺序
 
@@ -110,9 +122,10 @@ mysql <库> < /tmp/nomen-db-<日期>.sql.gz     # 或者 gunzip -c | mysql
 
 | 事故 | 预防 |
 |---|---|
-| 上传目录被 `--delete` 删掉 | dry-run 看 would delete，排除项写进脚本 |
-| `config/installed.php` 被覆盖 | 部署脚本里硬编码排除 |
+| 站点私有文件被删（`config/home-*.php`、`vendor/` 里手装的依赖） | 用 `php bin/nomen deploy --dry-run` 先看；别用 `rsync --delete` 配手抄清单 |
+| 上传目录被 `--delete` 删掉 | 非要用 rsync 时：`php bin/nomen deploy:exclude` 生成参数，`--dry-run` 先看 would delete |
+| `config/installed.php` / `config/plugins.php` 被覆盖 | 这两个在 `PackageRules::PROTECTED_FILES` 里，装包时永远不碰 |
 | 部署后样式全丢 | 先资源后模板；检查 `/plugin-assets/` 放行 |
 | 迁移跑到一半失败 | 先备份；迁移写成可重入 |
 | 只在自己浏览器看是新的 | 检查 CDN 和 `?v=` |
-| 忘了跑迁移 | 部署步骤里固定加上，做完 curl 版本号 |
+| 忘了跑迁移 | 用 `bin/nomen deploy` 会自动跑；手工传的话固定加上，做完 curl 版本号 |

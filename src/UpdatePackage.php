@@ -22,33 +22,8 @@ use ZipArchive;
  */
 final class UpdatePackage
 {
-    /** 站点自己的配置 / 运行期数据，更新包永远不碰 */
-    private const PROTECTED_FILES = [
-        '.env',
-        'config/installed.php',
-        'config/plugins.php',
-        'config/skins.php',
-        'public/.user.ini',
-        '.nomen-package.json',
-    ];
-
-    private const PROTECTED_DIRS = [
-        'data/',
-        'config/plugins/',
-        'public/nomen-install/',
-        'public/assets/avatars/',
-        'public/assets/recovery/',
-        'public/assets/develops/',
-    ];
-
-    /** 站点的依赖与品牌资源：文件已存在就不覆盖，缺的补上 */
-    private const PRESERVE_IF_EXISTS = [
-        'vendor/',
-        'composer.json',
-        'composer.lock',
-        'config/',
-        'public/assets/brand/',
-    ];
+    // 「哪些文件不能碰」的规则在 PackageRules 里，打包、部署、更新共用一份。
+    // 见 src/PackageRules.php 顶部的说明。
 
     private string $dir;
     private string $zip;
@@ -74,7 +49,7 @@ final class UpdatePackage
     ) {
         $this->dir = $root . '/data/updates';
         $version = (string)($offer['version'] ?? 'unknown');
-        $this->zip = $this->dir . '/nomen-' . self::safeName($version) . '.zip';
+        $this->zip = $this->dir . '/' . self::zipName($version);
         $this->stage = $this->dir . '/stage-' . self::safeName($version) . '-' . bin2hex(random_bytes(4));
     }
 
@@ -490,6 +465,29 @@ final class UpdatePackage
     }
 
     /**
+     * 预演：算出这次会覆盖、跳过、删除哪些文件，一个字节都不动。
+     *
+     * 部署前用它替代 `rsync --dry-run`——判定走的是 shouldSkip()，
+     * 和真正执行时是同一套规则，不会出现「预演说没事、真跑删了文件」。
+     *
+     * @return array{copy: string[], skip: string[], delete: string[]}
+     */
+    public function plan(): array
+    {
+        $copy = [];
+        $skip = [];
+        foreach ($this->files as $rel) {
+            if ($this->shouldSkip($rel, is_file($this->root . '/' . $rel))) {
+                $skip[] = $rel;
+            } else {
+                $copy[] = $rel;
+            }
+        }
+
+        return ['copy' => $copy, 'skip' => $skip, 'delete' => $this->deletions()];
+    }
+
+    /**
      * 把新文件覆盖上去，再按上一次的清单删掉新版本已经不要的文件。
      *
      * @return array{copied: int, skipped: string[], deleted: string[]}
@@ -498,14 +496,10 @@ final class UpdatePackage
     {
         $this->ensureWritable();
 
-        $copied = 0;
-        $skipped = [];
-        foreach ($this->files as $rel) {
-            if ($this->shouldSkip($rel, is_file($this->root . '/' . $rel))) {
-                $skipped[] = $rel;
-                continue;
-            }
+        $plan = $this->plan();
 
+        $copied = 0;
+        foreach ($plan['copy'] as $rel) {
             $src = $this->stage . '/' . $rel;
             $dst = $this->root . '/' . $rel;
             $this->mkdir(dirname($dst));
@@ -522,7 +516,7 @@ final class UpdatePackage
         }
 
         $deleted = [];
-        foreach ($this->deletions() as $rel) {
+        foreach ($plan['delete'] as $rel) {
             if (!is_file($this->root . '/' . $rel)) {
                 continue;
             }
@@ -532,7 +526,7 @@ final class UpdatePackage
             }
         }
 
-        return ['copied' => $copied, 'skipped' => $skipped, 'deleted' => $deleted];
+        return ['copied' => $copied, 'skipped' => $plan['skip'], 'deleted' => $deleted];
     }
 
     /** 回滚：把备份包原样铺回去（只覆盖，不删新版本多出来的文件） */
@@ -657,15 +651,8 @@ final class UpdatePackage
             return false;
         }
 
-        foreach (self::PROTECTED_FILES as $file) {
-            if ($rel === $file) {
-                return false;
-            }
-        }
-        foreach (self::PROTECTED_DIRS as $dir) {
-            if (str_starts_with($rel, $dir)) {
-                return false;
-            }
+        if (PackageRules::isSitePrivate($rel)) {
+            return false;
         }
 
         foreach (['src/', 'controllers/', 'templates/', 'public/', 'locales/', 'docs/', 'plugins/', 'skins/'] as $prefix) {
@@ -683,29 +670,15 @@ final class UpdatePackage
             return true;
         }
 
-        foreach (self::PROTECTED_FILES as $file) {
-            if ($rel === $file) {
-                return true;
-            }
-        }
-        foreach (self::PROTECTED_DIRS as $dir) {
-            if (str_starts_with($rel, $dir)) {
-                return true;
-            }
+        if (PackageRules::isSitePrivate($rel)) {
+            return true;
         }
 
         if (!$exists) {
             return false;
         }
 
-        foreach (self::PRESERVE_IF_EXISTS as $prefix) {
-            if ($rel === $prefix || str_starts_with($rel, $prefix)) {
-                // config/app.php 例外：版本号和新配置键要跟着新版走
-                return !($rel === 'config/app.php');
-            }
-        }
-
-        return false;
+        return PackageRules::preservesIfExists($rel);
     }
 
     /** config/autoupdate.php 里的 protect 列表：永远不覆盖、不删除 */
@@ -917,6 +890,16 @@ final class UpdatePackage
     private static function safeName(string $version): string
     {
         return preg_replace('/[^0-9A-Za-z._+-]/', '_', $version) ?: 'unknown';
+    }
+
+    /**
+     * 包在 data/updates/ 下的固定文件名。
+     *
+     * 手工部署（bin/nomen deploy）要把本地包放到这个位置才能复用这套装包逻辑。
+     */
+    public static function zipName(string $version): string
+    {
+        return 'nomen-' . self::safeName($version) . '.zip';
     }
 
     private static function mb(int $bytes): string

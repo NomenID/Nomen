@@ -13,6 +13,9 @@ php bin/nomen help
 | `install` | 命令行安装（交互式） |
 | `upgrade` | 跑核心迁移、补 UNID、更新版本记录 |
 | `migrate` | 单独跑核心迁移（不更新版本号） |
+| `deploy <包.zip> [--dry-run]` | 手工部署：装一个本地包，和自动更新同一套规则 |
+| `deploy:exclude` | 打印 rsync 的排除参数（规则来自 `src/PackageRules.php`） |
+| `update check\|run\|status\|reset` | 自动更新：查、装、看状态、清失败记录 |
 | `doctor` | 体检：数据库、目录权限、pepper、扩展、皮肤/插件目录 |
 | `plugins list` | 列出插件三态和它们注册的命令 |
 | `plugins migrate [slug]` | 跑插件的迁移 |
@@ -22,6 +25,10 @@ php bin/nomen help
 | `user:passwd <用户>` | 改密码 |
 | `user:promote <用户>` | 设为管理员 |
 | `user:demote <用户>` | 取消管理员 |
+| `group:assign <用户> <组>` | 把用户加进权限组（可多个组，能力取并集） |
+| `group:remove <用户> <组>` | 从组里移除 |
+| `group:list` | 列出组、成员数、展开后的能力 |
+| `perms:list` | 列出全部注册的能力（含插件注册的） |
 | `auth:reset` | 把五种登录方式全部恢复开启（关到没路可走时的兜底） |
 | `backup [目录]` | 备份数据库 |
 | `restore <文件> [--yes]` | 恢复数据库 |
@@ -60,6 +67,27 @@ php bin/nomen plugins migrate
 ```
 
 `upgrade` 是幂等的：跑过的迁移不会重跑，UNID 只补空的。
+
+### 手工部署（装一个本地包）
+
+```bash
+php bin/nomen deploy /tmp/nomen-1.9.0.zip --dry-run   # 先看：覆盖哪些、跳过哪些、删哪些
+php bin/nomen deploy /tmp/nomen-1.9.0.zip             # 确认后执行，自动跑迁移
+```
+
+和自动更新走同一套 `UpdatePackage`：同一份「哪些文件不能碰」的规则（`src/PackageRules.php`）、
+同一个预演、同一个文件备份。`--dry-run` 打印的「跳过」列表就是站点自己的东西（`config/`、`vendor/`、
+上传目录……）。
+
+选项：`--yes` 免确认（给脚本用），`--sha256=<值>` 校验来源，`--no-backup` / `--no-migrate` 跳过对应步骤（不推荐）。
+
+非要用 rsync 的话，排除参数别手抄：
+
+```bash
+php bin/nomen deploy:exclude
+```
+
+它输出一行现成的 rsync 参数，规则和装包逻辑同源。核心只有一条：`config/` 整个排除，只放行 `config/app.php`。
 
 ### 插件命令
 

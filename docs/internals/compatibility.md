@@ -13,19 +13,23 @@ SHA-256、优先级和最低支持版本。
 
 ## 升级流程
 
+最稳的是让程序自己装——它认识站点私有文件，会自己备份、自己跑迁移：
+
 ```bash
 # 1. 备份（库 + 文件），备份别放 web root
 mysqldump --single-transaction -u<用户> -p <库> > /tmp/nomen-$(date +%Y%m%d).sql
 tar czf /tmp/nomen-files-$(date +%Y%m%d).tar.gz -C /www/wwwroot <站点目录>
 
-# 2. 替换文件（排除 config/installed.php、.env、data/、上传目录、config/autoupdate.php）
+# 2. 装包：先预演，再执行
+php bin/nomen deploy /tmp/nomen-<版本>.zip --dry-run
+php bin/nomen deploy /tmp/nomen-<版本>.zip
 
-# 3. 跑迁移
-php bin/nomen upgrade
-
-# 4. 验版本
+# 3. 验版本
 curl -s https://<域名>/api/version
 ```
+
+`deploy` 和自动更新走同一个 `UpdatePackage`：同一份规则、同一个预演、同一个文件备份。
+`--dry-run` 打印的「跳过」列表就是站点自己的东西，一个字节都不动。
 
 `upgrade` 做四件事：跑核心迁移、补 UNID（分批 500 行）、更新版本记录、清临时缓存。
 **它不会**改 `config/` 里的东西，也不会动插件。
@@ -35,6 +39,34 @@ curl -s https://<域名>/api/version
 ```bash
 php bin/nomen plugins migrate
 ```
+
+### 手工替换文件时
+
+排除清单别手抄，用命令生成：
+
+```bash
+php bin/nomen deploy:exclude
+```
+
+输出一行现成的 rsync 参数，规则和装包逻辑同源。
+
+## 文件分三类
+
+装包时每个文件按三类处理，规则只在 `src/PackageRules.php` 写一份：
+
+| 类别 | 例子 | 装包时 |
+|---|---|---|
+| 站点私有 | `.env`、`config/installed.php`、`config/plugins.php`、`config/skins.php`、`data/`、`config/plugins/`、上传目录、`public/.user.ini` | 不覆盖、不删除 |
+| 已存在就保留 | `vendor/`、`composer.json`、`composer.lock`、`config/` 下除 `app.php` 的其他文件、`public/assets/brand/` | 缺的补上，有的不动 |
+| 程序文件 | `src/`、`controllers/`、`templates/`、`locales/`、`public/`、`plugins/`、`skins/`…… | 覆盖；新版不要的按清单删除 |
+
+`config/app.php` 是唯一的例外：它跟着新版走，版本号和新配置键靠它下发。
+
+站点上如果加了程序不知道的文件（自定义首页模板、手装的依赖），写进 `config/autoupdate.php` 的 `protect`，
+装包时一样不碰。
+
+**为什么这件事要写进代码而不是写进文档**：以前打包脚本、部署命令、运维文档各有一份排除清单，
+加一个站点私有文件要改三处。漏一处就在下一次部署时把文件删掉——不是没记录，是记录了三份、然后漂移了。
 
 ## 什么算破坏性改动
 

@@ -94,7 +94,31 @@ NOMEN_UPDATE_SCOPE=patch
   - 头像 / 证明材料 / 开发者图标（可在 `backup.uploads` 关掉）；
   - `data/oidc-key.json`、`data/build.json` 等。
 - 备份包会重新打开做完整性校验，条目数和文件列表都要对得上；体积超过 `backup.max_mb`（默认 512 MB）就中止，避免把磁盘写满。
-- 站点自己的额外文件用 `backup.extra` 加进来，用 `backup.exclude` 排除；不想被更新覆盖 / 删除的路径写进 `protect`。
+- 站点自己的额外文件用 `backup.extra` 加进来，用 `backup.exclude` 排除。
+
+### 保护站点自己的文件：`protect`
+
+更新只认识两类文件：**程序文件**跟着版本走，**站点私有文件**永远不碰。后者在 `src/PackageRules.php` 里定义，
+包括 `.env`、`config/installed.php`、`config/plugins.php`、`config/skins.php`、`data/`、`config/plugins/`、
+`public/nomen-install/`、上传目录、`public/.user.ini`。自动更新和 `bin/nomen deploy` 用的是同一份规则。
+
+在这之外，如果你在站点上放了程序不知道的东西——自定义首页模板 `config/home-<slug>.php`、手装的 PHP 依赖、
+自己写的静态页——**写进 `config/autoupdate.php` 的 `protect`**：
+
+```php
+'protect' => [
+    'config/home-acme.php',
+    'public/assets/enterprise',
+],
+```
+
+写目录就整棵子树都受保护。`protect` 里的路径更新时既不覆盖也不删除。
+
+`vendor/`、`composer.json`、`composer.lock`、`config/` 下的其他文件、`public/assets/brand/` 属于「已存在就保留」，
+缺的才补——所以手装的依赖不会因为一次更新消失。唯一跟着新版走的是 `config/app.php`（版本号和新配置键靠它下发）。
+
+**这些规则是给装包逻辑用的。** 如果你绕过 `bin/nomen deploy`、改用 `rsync --delete`，它不认识 `protect`，
+站点私有文件照样会被删。要么用 `bin/nomen deploy`，要么用 `php bin/nomen deploy:exclude` 生成 rsync 参数。
 
 **回滚只恢复程序文件。** 数据库迁移是增量的，不会自动回退；迁移失败时从 `data/backups/` 里更新前那份数据库备份恢复。备份里可能含密码哈希和密钥，不要放进 web root，也不要外传。数据库备份不会自动清理，定期手动清 `data/backups/`。
 
@@ -108,7 +132,11 @@ NOMEN_UPDATE_SCOPE=patch
 6. 退出维护模式，回访 `/api/version` 确认真新版本生效。
 7. 成功：写更新清单、记活动日志、发成功邮件；失败：自动回滚文件、发失败邮件。
 
-覆盖时会跳过站点自己的东西：`.env`、`config/installed.php`、`config/plugins.php`、`config/skins.php`、`config/plugins/`、`data/`、上传目录、`public/.user.ini`、`public/nomen-install/`；`vendor/`、`composer.*`、其他 `config/*`、`public/assets/brand/` 已存在就保留。`config/app.php` 会随新版覆盖；`config/autoupdate.php` 不会被覆盖。
+覆盖时会跳过站点自己的东西。完整清单在 `src/PackageRules.php`，这里只给个轮廓——文档里再抄一份，就等于多一个会漂移的地方：
+
+- **永远不覆盖、不删除**：`.env`、`config/installed.php`、`config/plugins.php`、`config/skins.php`、`public/.user.ini`、`data/`、`config/plugins/`、`public/nomen-install/`、头像 / 证明材料 / 开发者图标目录
+- **已存在就保留**：`vendor/`、`composer.json`、`composer.lock`、`config/` 下除 `app.php` 的其他文件、`public/assets/brand/`
+- **跟着新版走**：`config/app.php`，以及上面之外的其余程序文件
 
 ## 日志与状态
 

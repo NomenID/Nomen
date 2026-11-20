@@ -96,31 +96,14 @@ foreach ($bundledSkins as $bundled) {
     }
 }
 
+// 「哪些文件不进包」的规则在 src/PackageRules.php，和自动更新共用一份。
+// 以前这里和部署命令各写一份，加一个站点私有文件要改两处，漏一处就在下次部署时丢文件。
+require_once $root . '/src/PackageRules.php';
+
 // 源码、开发笔记、构建脚本和运行期数据都不进包
-$skip = [
-    '.git',
-    '.github',
-    '.zcode',
-    '.workbuddy',
-    '.claude',
-    'tests',
-    'node_modules',
-    'frontend',
-    'docs-internal',
-    'dist',
-    'code-scripts',
-    'data',
-    '.env',
-    '.gitignore',
-    'AGENTS.md',
-    'CLAUDE.md',
-    'paths.local.php',
-    'config/installed.php',
-    'config/home-nomenid.php',
-    'public/assets/avatars',
-    'public/assets/recovery',
-    'public/docs',
-];
+$skip = \Nomen\Src\PackageRules::packExcludes();
+// 官方站自己的自定义首页模板：站点私有，永远不进包
+$skip[] = 'config/home-nomenid.php';
 
 /** @var array<string, string> $files 包内路径 => 源文件绝对路径 */
 $files = [];
