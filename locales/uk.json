@@ -2035,5 +2035,7 @@
   "Groups saved": "Групи збережено",
   "You do not have permission to use this module.": "У вас немає дозволу використовувати цей модуль.",
   "Group": "Група",
-  "Updated groups": "Групи оновлено"
+  "Updated groups": "Групи оновлено",
+    "Branch {:branch} is no longer maintained.": "Branch {:branch} is no longer maintained.",
+    "Upgrade in order: {:path}.": "Upgrade in order: {:path}."
 }

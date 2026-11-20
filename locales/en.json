@@ -2039,5 +2039,7 @@
     "{:total} entries": "{:total} entries",
     "{:total} in total": "{:total} in total",
     "{:total} users": "{:total} users",
-    "»": "»"
+    "»": "»",
+    "Branch {:branch} is no longer maintained.": "Branch {:branch} is no longer maintained.",
+    "Upgrade in order: {:path}.": "Upgrade in order: {:path}."
 }

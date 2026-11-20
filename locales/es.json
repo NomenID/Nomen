@@ -2035,5 +2035,7 @@
   "Groups saved": "Grupos guardados",
   "You do not have permission to use this module.": "No tienes permiso para usar este módulo.",
   "Group": "Grupo",
-  "Updated groups": "Grupos actualizados"
+  "Updated groups": "Grupos actualizados",
+    "Branch {:branch} is no longer maintained.": "Branch {:branch} is no longer maintained.",
+    "Upgrade in order: {:path}.": "Upgrade in order: {:path}."
 }

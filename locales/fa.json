@@ -2035,5 +2035,7 @@
   "Groups saved": "گروه‌ها ذخیره شد",
   "You do not have permission to use this module.": "شما اجازه استفاده از این ماژول را ندارید.",
   "Group": "گروه",
-  "Updated groups": "گروه‌ها به‌روزرسانی شد"
+  "Updated groups": "گروه‌ها به‌روزرسانی شد",
+    "Branch {:branch} is no longer maintained.": "Branch {:branch} is no longer maintained.",
+    "Upgrade in order: {:path}.": "Upgrade in order: {:path}."
 }

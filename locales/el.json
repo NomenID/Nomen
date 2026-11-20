@@ -2035,5 +2035,7 @@
   "Groups saved": "Οι ομάδες αποθηκεύτηκαν",
   "You do not have permission to use this module.": "Δεν έχετε δικαίωμα χρήσης αυτής της ενότητας.",
   "Group": "Ομάδα",
-  "Updated groups": "Ενημερώθηκαν οι ομάδες"
+  "Updated groups": "Ενημερώθηκαν οι ομάδες",
+    "Branch {:branch} is no longer maintained.": "Branch {:branch} is no longer maintained.",
+    "Upgrade in order: {:path}.": "Upgrade in order: {:path}."
 }

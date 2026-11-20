@@ -2035,5 +2035,7 @@
   "Groups saved": "Grup disimpan",
   "You do not have permission to use this module.": "Anda tidak memiliki izin untuk menggunakan modul ini.",
   "Group": "Grup",
-  "Updated groups": "Grup diperbarui"
+  "Updated groups": "Grup diperbarui",
+    "Branch {:branch} is no longer maintained.": "Branch {:branch} is no longer maintained.",
+    "Upgrade in order: {:path}.": "Upgrade in order: {:path}."
 }

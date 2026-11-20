@@ -409,6 +409,13 @@ onMounted(load)
             {{ t('This version is no longer supported. Update to at least {:version}.', { version: data.autoUpdate.eol.min_supported }) }}
           </AdminAlert>
 
+          <AdminAlert v-if="data.autoUpdate.branchStatus === 'eol'" type="warning">
+            {{ t('Branch {:branch} is no longer maintained.', { branch: data.autoUpdate.branch }) }}
+            <template v-if="data.autoUpdate.upgradePath && data.autoUpdate.upgradePath.length">
+              {{ t('Upgrade in order: {:path}.', { path: data.autoUpdate.upgradePath.join(' → ') }) }}
+            </template>
+          </AdminAlert>
+
           <label class="a-check">
             <input v-model="form.update_auto" type="checkbox" true-value="1" false-value="0" :disabled="!data.autoUpdate.feedConfigured">
             <span>{{ t('Enable automatic updates') }}</span>

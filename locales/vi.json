@@ -2035,5 +2035,7 @@
   "Groups saved": "Đã lưu nhóm",
   "You do not have permission to use this module.": "Bạn không có quyền sử dụng mô-đun này.",
   "Group": "Nhóm",
-  "Updated groups": "Đã cập nhật nhóm"
+  "Updated groups": "Đã cập nhật nhóm",
+    "Branch {:branch} is no longer maintained.": "Branch {:branch} is no longer maintained.",
+    "Upgrade in order: {:path}.": "Upgrade in order: {:path}."
 }

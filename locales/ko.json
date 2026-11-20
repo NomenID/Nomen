@@ -2035,5 +2035,7 @@
   "Groups saved": "그룹이 저장되었습니다",
   "You do not have permission to use this module.": "이 모듈을 사용할 권한이 없습니다.",
   "Group": "그룹",
-  "Updated groups": "그룹을 업데이트했습니다"
+  "Updated groups": "그룹을 업데이트했습니다",
+    "Branch {:branch} is no longer maintained.": "Branch {:branch} is no longer maintained.",
+    "Upgrade in order: {:path}.": "Upgrade in order: {:path}."
 }

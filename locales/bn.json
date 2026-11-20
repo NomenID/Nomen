@@ -2035,5 +2035,7 @@
   "Groups saved": "গ্রুপ সংরক্ষিত হয়েছে",
   "You do not have permission to use this module.": "এই মডিউল ব্যবহারের অনুমতি আপনার নেই।",
   "Group": "গ্রুপ",
-  "Updated groups": "গ্রুপ হালনাগাদ হয়েছে"
+  "Updated groups": "গ্রুপ হালনাগাদ হয়েছে",
+    "Branch {:branch} is no longer maintained.": "Branch {:branch} is no longer maintained.",
+    "Upgrade in order: {:path}.": "Upgrade in order: {:path}."
 }

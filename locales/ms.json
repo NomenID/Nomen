@@ -2035,5 +2035,7 @@
   "Groups saved": "Kumpulan disimpan",
   "You do not have permission to use this module.": "Anda tiada kebenaran untuk menggunakan modul ini.",
   "Group": "Kumpulan",
-  "Updated groups": "Kumpulan dikemas kini"
+  "Updated groups": "Kumpulan dikemas kini",
+    "Branch {:branch} is no longer maintained.": "Branch {:branch} is no longer maintained.",
+    "Upgrade in order: {:path}.": "Upgrade in order: {:path}."
 }

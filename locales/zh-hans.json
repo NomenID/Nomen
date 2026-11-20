@@ -2035,5 +2035,7 @@
   "Groups saved": "组已保存",
   "You do not have permission to use this module.": "你没有使用这个模块的权限。",
   "Group": "组",
-  "Updated groups": "更新了组"
+  "Updated groups": "更新了组",
+    "Branch {:branch} is no longer maintained.": "分支 {:branch} 已停止维护。",
+    "Upgrade in order: {:path}.": "建议按顺序升级：{:path}。"
 }

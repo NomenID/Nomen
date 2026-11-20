@@ -2035,5 +2035,7 @@
   "Groups saved": "グループを保存しました",
   "You do not have permission to use this module.": "このモジュールを使用する権限がありません。",
   "Group": "グループ",
-  "Updated groups": "グループを更新しました"
+  "Updated groups": "グループを更新しました",
+    "Branch {:branch} is no longer maintained.": "Branch {:branch} is no longer maintained.",
+    "Upgrade in order: {:path}.": "Upgrade in order: {:path}."
 }

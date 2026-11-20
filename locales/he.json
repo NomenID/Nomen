@@ -2035,5 +2035,7 @@
   "Groups saved": "הקבוצות נשמרו",
   "You do not have permission to use this module.": "אין לכם הרשאה להשתמש במודול זה.",
   "Group": "קבוצה",
-  "Updated groups": "הקבוצות עודכנו"
+  "Updated groups": "הקבוצות עודכנו",
+    "Branch {:branch} is no longer maintained.": "Branch {:branch} is no longer maintained.",
+    "Upgrade in order: {:path}.": "Upgrade in order: {:path}."
 }
