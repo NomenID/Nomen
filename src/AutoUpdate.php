@@ -983,46 +983,70 @@ final class AutoUpdate
             return null;
         }
 
-        $url = rtrim((string)Brand::get('base_url'), '/') . '/api/version?_=' . time();
-        $ch = curl_init($url);
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_MAXREDIRS      => 3,
-            CURLOPT_CONNECTTIMEOUT => 5,
-            CURLOPT_TIMEOUT        => 15,
-            CURLOPT_SSL_VERIFYPEER => true,
-            CURLOPT_SSL_VERIFYHOST => 2,
-            CURLOPT_USERAGENT      => 'Nomen-AutoUpdate',
-        ]);
-        $raw = curl_exec($ch);
-        $status = (int)curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-        $error = curl_error($ch);
-        curl_close($ch);
+        // 文件刚覆盖完，FPM 那边不一定立刻按新版跑：opcache 的 revalidate_freq（宝塔默认 3 秒）
+        // 没到点就还用着旧 config/app.php，回访会拿到上一个版本号。一次对不上就回滚太狠，
+        // 给几次机会；也顺手把实际拿到的版本记下来，别只留一句「没有返回预期版本」。
+        $attempts = 5;
+        $running = '';
+        $lastStatus = 0;
+        $lastError = '';
 
-        if (!is_string($raw) || $status === 0) {
-            self::log('warning', 'post_check', '回访失败：' . ($error ?: '无响应'));
+        for ($i = 1; $i <= $attempts; $i++) {
+            if ($i > 1) {
+                sleep(2);
+            }
 
-            return null;
+            $url = rtrim((string)Brand::get('base_url'), '/') . '/api/version?_=' . time() . '.' . $i;
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_MAXREDIRS      => 3,
+                CURLOPT_CONNECTTIMEOUT => 5,
+                CURLOPT_TIMEOUT        => 15,
+                CURLOPT_SSL_VERIFYPEER => true,
+                CURLOPT_SSL_VERIFYHOST => 2,
+                CURLOPT_USERAGENT      => 'Nomen-AutoUpdate',
+            ]);
+            $raw = curl_exec($ch);
+            $lastStatus = (int)curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+            $lastError = curl_error($ch);
+            curl_close($ch);
+
+            if (!is_string($raw) || $lastStatus !== 200) {
+                continue;
+            }
+
+            $data = json_decode($raw, true);
+            $seen = is_array($data) ? (string)($data['version'] ?? '') : '';
+            if ($seen === '') {
+                continue;
+            }
+            if (self::sameVersion($seen, $expected)) {
+                return true;
+            }
+            $running = $seen;
         }
-        if ($status >= 500) {
+
+        if ($running !== '') {
+            self::log('error', 'post_check', '回访版本不符：期望 ' . $expected . '，实际 ' . $running, ['attempts' => $attempts]);
+
             return false;
         }
-        if ($status !== 200) {
-            self::log('warning', 'post_check', '回访返回 HTTP ' . $status . '，跳过判断');
+        if ($lastStatus >= 500) {
+            self::log('warning', 'post_check', '回访返回 HTTP ' . $lastStatus, ['attempts' => $attempts]);
+
+            return false;
+        }
+        if ($lastStatus !== 200 && $lastStatus !== 0) {
+            self::log('warning', 'post_check', '回访返回 HTTP ' . $lastStatus . '，跳过判断');
 
             return null;
         }
 
-        $data = json_decode($raw, true);
-        $running = is_array($data) ? (string)($data['version'] ?? '') : '';
-        if ($running === '') {
-            self::log('warning', 'post_check', '回访响应里没有版本号，跳过判断');
+        self::log('warning', 'post_check', '回访失败：' . ($lastError ?: '无响应'));
 
-            return null;
-        }
-
-        return self::sameVersion($running, $expected);
+        return null;
     }
 
     // ==================== 状态 / 日志 / 邮件 ====================
