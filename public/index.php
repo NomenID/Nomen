@@ -54,6 +54,9 @@ Session::start();
 // 插件：清单在 plugins/*/plugin.json，启用列表在 config/plugins.php
 \Nomen\Src\Plugins::boot();
 
+// 上次自动更新成功后，第一次正常请求里通知插件（此时磁盘和内存都是新代码）
+\Nomen\Src\AutoUpdate::fireCompleted();
+
 // 核心导航与后台菜单。插件在 boot 里已经登记过自己的，核心后登记，同名项由核心接管。
 Nav::add('notifications', [
     'label' => 'Messages', 'href' => '/notifications', 'icon' => 'bell', 'order' => 5,

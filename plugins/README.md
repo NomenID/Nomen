@@ -262,7 +262,9 @@ $claims = Hooks::filter('userinfo.claims', $claims, $user, $scopes);
 | `admin.settings.data` | filter | `payload` | 站点设置页数据 |
 | `admin.settings.saved` | run | `policy`, `backend`, `adminId`, `apiEnabled` | 站点设置保存后 |
 | `admin.plugin.page.body` | filter | `html`, `slug`, `page`, `tab` | 插件后台页面输出前 |
-| `schedule.tasks` | filter | `tasks` | 定时任务清单组装时（`schedule:run`、后台设置页）；返回条目带 `id`（`slug.name`）、`label`、`every` 秒或 `daily_at`（`HH:MM`）、`run` 回调 |
+| `schedule.tasks` | filter | `tasks` | 定时任务清单组装时（`schedule run`、后台设置页）；返回条目带 `id`（`slug.name`）、`label`、`every` 秒或 `daily_at`（`HH:MM`）、`run` 回调 |
+| `update.preflight` | filter | `reason`, `offer`, `current` | 自动更新下载校验后、覆盖文件前；返回非空字符串就中止这次更新 |
+| `update.completed` | run | `from`, `to`, `info` | 自动更新成功后的第一次正常站点请求；更新进程内不会触发 |
 | `pages.content.before_save` | filter | `data`, `existing`, `isNew` | Pages 插件写库前，可改字段 |
 | `pages.content.saved` | run | `pageId`, `data`, `isNew`, `userId` | Pages 插件保存后 |
 | `pages.content.deleted` | run | `pageId`, `page`, `userId` | Pages 插件删除前 |

@@ -536,12 +536,18 @@ final class SiteHealth
     {
         $enabled = Plugins::enabled();
         $all = Plugins::all();
+        $core = (string)(self::config()['version'] ?? '0');
         $bad = [];
 
         foreach ($enabled as $slug) {
             $manifest = $all[$slug] ?? null;
             if ($manifest === null) {
-                $bad[] = $slug . ' (missing)';
+                $bad[] = $slug . ' (not found)';
+                continue;
+            }
+            $need = (string)($manifest['requires']['Nomen'] ?? '');
+            if ($need !== '' && !Plugins::satisfies($core, $need)) {
+                $bad[] = $slug . ' (requires Nomen ' . $need . ', current ' . $core . ')';
                 continue;
             }
             $missing = array_filter(
@@ -549,13 +555,13 @@ final class SiteHealth
                 static fn(string $ext): bool => !extension_loaded($ext)
             );
             if ($missing !== []) {
-                $bad[] = $slug . ' (' . implode(', ', $missing) . ')';
+                $bad[] = $slug . ' (missing: ' . implode(', ', $missing) . ')';
             }
         }
 
         return $bad === []
-            ? ['good', t('Enabled plugins meet their PHP requirements.')]
-            : ['recommended', sprintf(t('These plugins are missing PHP extensions: %s'), implode('; ', $bad))];
+            ? ['good', t('Enabled plugins loaded successfully.')]
+            : ['recommended', sprintf(t('These plugins could not be loaded: %s'), implode('; ', $bad))];
     }
 
     /** @return array<string, mixed> */

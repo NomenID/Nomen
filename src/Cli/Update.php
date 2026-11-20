@@ -10,6 +10,7 @@
 namespace Nomen\Src\Cli;
 
 use Nomen\Src\AutoUpdate;
+use Nomen\Src\Plugins;
 
 class Update
 {
@@ -28,6 +29,10 @@ class Update
 
     private static function runCheck(bool $apply): int
     {
+        if ($apply) {
+            Plugins::boot(); // update.preflight 钩子要插件在
+        }
+
         $result = AutoUpdate::check($apply, true, static function (string $line): void {
             echo '  ', $line, PHP_EOL;
         });

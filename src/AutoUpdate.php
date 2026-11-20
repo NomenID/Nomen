@@ -356,7 +356,7 @@ final class AutoUpdate
             ];
         }
 
-        $preflight = self::preflight($offer);
+        $preflight = self::preflight($offer, $current);
         if ($preflight !== '') {
             $state = self::markCheckFailure($state, $preflight);
             self::saveState($state);
@@ -376,6 +376,39 @@ final class AutoUpdate
         } catch (Throwable $e) {
             self::log('error', 'scheduled', $e->getMessage());
             error_log('[update] 定时检查失败: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * 自动更新成功后的第一次正常请求里触发 update.completed。
+     * 更新进程内不能触发：那时内存里还是旧代码，磁盘上已经是新文件。
+     */
+    public static function fireCompleted(): void
+    {
+        $file = self::dir() . '/completed.json';
+        if (!is_file($file)) {
+            return;
+        }
+
+        $claimed = $file . '.firing';
+        if (!@rename($file, $claimed)) {
+            return; // 另一个请求先拿到了
+        }
+
+        $info = json_decode((string)@file_get_contents($claimed), true);
+        $info = is_array($info) ? $info : [];
+
+        try {
+            Hooks::run('update.completed', [
+                (string)($info['from'] ?? ''),
+                (string)($info['to'] ?? ''),
+                $info,
+            ]);
+        } catch (Throwable $e) {
+            self::log('error', 'completed_hook', 'update.completed 钩子失败：' . $e->getMessage());
+            error_log('[update] update.completed 钩子失败: ' . $e->getMessage());
+        } finally {
+            @unlink($claimed);
         }
     }
 
@@ -669,6 +702,12 @@ final class AutoUpdate
             $state['history'] = array_slice(array_merge([$run], (array)($state['history'] ?? [])), 0, self::HISTORY_MAX);
             self::saveState($state);
 
+            try {
+                self::queueCompleted($run);
+            } catch (Throwable $e) {
+                self::log('warning', 'completed_hook', '写更新完成标记失败：' . $e->getMessage(), ['run' => $run['id']]);
+            }
+
             self::activity('system.update_success', '自动更新 ' . $from . ' → ' . $to, $from, $to);
             try {
                 self::sendEmail('success', $run, $offer);
@@ -916,7 +955,7 @@ final class AutoUpdate
 
     // ==================== 状态 / 日志 / 邮件 ====================
 
-    private static function preflight(array $offer): string
+    private static function preflight(array $offer, string $current): string
     {
         $minPhp = (string)($offer['min_php'] ?? (self::config()['min_php'] ?? '8.1'));
         if ($minPhp !== '' && version_compare(PHP_VERSION, $minPhp, '<')) {
@@ -945,7 +984,7 @@ final class AutoUpdate
             return '磁盘剩余空间不足 ' . number_format($needed / 1048576) . ' MB';
         }
 
-        return '';
+        return (string)Hooks::filter('update.preflight', '', $offer, $current);
     }
 
     private static function blocked(array $state, string $version): bool
@@ -1275,6 +1314,28 @@ final class AutoUpdate
             flock($handle, LOCK_UN);
             fclose($handle);
         }
+    }
+
+    /** 写一个标记，等下一次正常请求（新代码、插件已启动）再触发 update.completed */
+    private static function queueCompleted(array $run): void
+    {
+        $dir = self::dir();
+        if (!is_dir($dir) && !@mkdir($dir, 0775, true) && !is_dir($dir)) {
+            throw new \RuntimeException('无法创建 ' . $dir);
+        }
+
+        $payload = json_encode([
+            'from'        => (string)($run['from'] ?? ''),
+            'to'          => (string)($run['to'] ?? ''),
+            'run'         => (string)($run['id'] ?? ''),
+            'finished_at' => (int)($run['finished_at'] ?? time()),
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+        if ($payload === false || @file_put_contents($dir . '/completed.json', $payload . "\n") === false) {
+            throw new \RuntimeException('无法写入 ' . $dir . '/completed.json');
+        }
+
+        Ownership::adopt($dir . '/completed.json');
     }
 
     private static function dir(): string

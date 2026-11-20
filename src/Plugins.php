@@ -369,7 +369,8 @@ class Plugins
         exit;
     }
 
-    private static function satisfies(string $version, string $constraint): bool
+    /** 清单里的 requires.Nomen 是否满足当前核心版本；站点健康也用它在后台说明插件为什么没加载 */
+    public static function satisfies(string $version, string $constraint): bool
     {
         if (!preg_match('/^(>=|<=|>|<|=)?\s*([0-9][0-9A-Za-z.\-]*)$/', $constraint, $m)) {
             return true;

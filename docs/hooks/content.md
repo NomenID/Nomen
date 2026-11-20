@@ -15,6 +15,8 @@
 | `pages.content.deleted` | run | pageId, page, userId | Pages 插件删除前 |
 | `pages.content.saved` | run | pageId, data, isNew, userId | Pages 插件保存后 |
 | `schedule.tasks` | filter | tasks | 定时任务清单组装时（`schedule run`、后台设置页）；返回条目注册插件自己的任务，id 用 `slug.name`，间隔写 `every`（秒）或 `daily_at`（HH:MM），`run` 是回调 |
+| `update.completed` | run | from, to, info | 自动更新成功后的第一次正常站点请求（插件已按新代码启动）；更新进程内不会触发，一次更新只触发一次 |
+| `update.preflight` | filter | reason, offer, current | 自动更新下载并校验完包、覆盖文件之前；返回非空字符串就中止这次更新（此时插件仍是旧代码，文件与数据库都完整，中止是安全的） |
 
 ## 触发点
 
@@ -70,4 +72,20 @@
 - 时机：定时任务清单组装时（`schedule run`、后台设置页）；返回条目注册插件自己的任务，id 用 `slug.name`，间隔写 `every`（秒）或 `daily_at`（HH:MM），`run` 是回调
 - 触发点：
   - `src/Schedule.php`（filter）
+
+### update.completed
+
+- 类型：run
+- 参数：from, to, info
+- 时机：自动更新成功后的第一次正常站点请求（插件已按新代码启动）；更新进程内不会触发，一次更新只触发一次
+- 触发点：
+  - `src/AutoUpdate.php`（run）
+
+### update.preflight
+
+- 类型：filter
+- 参数：reason, offer, current
+- 时机：自动更新下载并校验完包、覆盖文件之前；返回非空字符串就中止这次更新（此时插件仍是旧代码，文件与数据库都完整，中止是安全的）
+- 触发点：
+  - `src/AutoUpdate.php`（filter）
 
