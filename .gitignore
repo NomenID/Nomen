@@ -36,6 +36,7 @@ Thumbs.db
 .vscode/
 .idea/
 .zcode/
+.workbuddy/
 .upload/
 
 AGENTS.md
