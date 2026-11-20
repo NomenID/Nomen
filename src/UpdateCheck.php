@@ -113,16 +113,22 @@ final class UpdateCheck
             return $out;
         }
 
-        // 3. 分支还在维护、只是没有新补丁 = 已是最新
-        if (in_array($out['branchStatus'], ['active', 'maintenance'], true)) {
-            return $out;
-        }
-
-        // 4. 分支停更：给一个升级目标（最近的高一级受支持分支）
+        // 3. 本分支没有补丁：看有没有更高的受支持分支。维护中的分支也要提示新版，
+        //    只是「要不要自动装」仍旧交给 scope / 优先级，不在这里判死。
+        $supported = in_array($out['branchStatus'], ['active', 'maintenance'], true);
         $target = self::nextBranch($releases, $support, $branch);
         if ($target === null) {
             return $out;
         }
+
+        if ($supported) {
+            $out['reason'] = 'cross_branch';
+            $out['offer'] = $target;
+
+            return $out;
+        }
+
+        // 4. 分支停更：给升级目标和一条能照抄的路径
         $out['reason'] = $out['branchStatus'] === 'eol' ? 'eol_branch' : 'unknown_branch';
         $out['offer'] = $target;
         $out['path'] = self::path($releases, $support, $current, (string)$target['version']);

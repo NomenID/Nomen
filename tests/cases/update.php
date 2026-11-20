@@ -150,6 +150,27 @@ test('多分支发布源：停更分支给升级目标与路径', static functio
     assertSame('eol', $pick['branchStatus']);
 });
 
+test('多分支发布源：维护中的分支也会提示更高的次要版本', static function (): void {
+    $payload = [
+        'releases' => [['version' => '1.9.0', 'branch' => '1.9']],
+        'support' => [
+            '1.9' => ['status' => 'active'],
+            '1.8' => ['status' => 'maintenance'],
+        ],
+    ];
+
+    // 1.8 分支没有新补丁，但 1.9.0 是更高版本：不能装死说「已是最新」
+    $pick = UpdateCheck::select($payload, '1.8.4');
+    assertSame('cross_branch', $pick['reason']);
+    assertSame('1.9.0', $pick['offer']['version']);
+    assertSame('maintenance', $pick['branchStatus']);
+    assertSame([], $pick['path'], '维护中的分支不缺中间版本，不用给路径');
+
+    // 1.9.0 自己才是最新
+    $pick = UpdateCheck::select($payload, '1.9.0');
+    assertSame('up_to_date', $pick['reason']);
+});
+
 test('老格式单条发布源行为不变', static function (): void {
     $payload = ['releases' => [['version' => '1.9.0']], 'support' => []];
 
