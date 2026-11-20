@@ -295,7 +295,7 @@ final class Api
         self::error(500, 'internalerror', 'Unknown access level: ' . $access);
     }
 
-    /** 当前请求（管理员会话或 OAuth Bearer 令牌）有没有某个能力。 */
+    /** 当前请求（会话或 OAuth Bearer 令牌）有没有某个能力。 */
     public static function userCan(string $ability): bool
     {
         $tokenUserId = self::tokenUserId();
@@ -303,7 +303,9 @@ final class Api
             return Gate::userCan($tokenUserId, $ability);
         }
 
-        return Router::isAdmin() && Gate::can($ability);
+        // 会话用户直接按能力判：不要求顺带是管理员，
+        // 否则只有 users.manage 的客服组会被误拒。匿名会话自然为 false。
+        return Gate::can($ability);
     }
 
     private static function tokenAdmin(): bool

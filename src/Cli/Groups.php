@@ -98,13 +98,12 @@ class Groups
                     ->execute([':u' => $userId, ':g' => $group]);
             }
 
-            // role 快照与组保持一致（OAuth 令牌等旧路径还在看它）
-            $isAdmin = false;
-            $stmt = $db->prepare('SELECT 1 FROM user_groups WHERE user_id = :u AND grp = :g');
-            $stmt->execute([':u' => $userId, ':g' => Permissions::ADMIN_GROUP]);
-            $isAdmin = $stmt->fetchColumn() !== false;
-            $db->prepare('UPDATE users SET role = :r WHERE id = :u')
-                ->execute([':r' => $isAdmin ? 'admin' : 'user', ':u' => $userId]);
+            // role 只是 administrator 组的快照：只有动这个组才跟着改，
+            // 否则「给管理员加个客服组」会顺手把他降级
+            if ($group === Permissions::ADMIN_GROUP) {
+                $db->prepare('UPDATE users SET role = :r WHERE id = :u')
+                    ->execute([':r' => $action === 'assign' ? 'admin' : 'user', ':u' => $userId]);
+            }
 
             $db->commit();
         } catch (\Throwable $e) {

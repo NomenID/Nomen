@@ -30,6 +30,15 @@ class Database
         return self::$instance;
     }
 
+    /**
+     * 注入连接。测试用：`php tests/run.php` 拿不到站点配置，用内存库顶上。
+     * 传 null 清掉，下次 getInstance() 重新按配置连。
+     */
+    public static function setInstance(?PDO $pdo): void
+    {
+        self::$instance = $pdo;
+    }
+
     /** @throws PDOException */
     public static function connect(array $db): Connection
     {

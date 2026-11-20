@@ -254,23 +254,50 @@ final class Permissions
         return true;
     }
 
-    /** 单独加/移一个组；assignGroups 的薄封装，CLI 与 toggleAdmin 用。 */
+    /**
+     * 单独加一个组。只加这一行，**不重算 role**（除非加的就是 administrator）——
+     * 否则「给管理员加个客服组」会顺手把他降级。
+     */
     public static function assignGroup(int $userId, string $group, int $grantedBy = 0): bool
     {
-        $groups = self::assignedGroups($userId);
-        if (!in_array($group, $groups, true)) {
-            $groups[] = $group;
+        if (!self::validGroupName($group) || in_array($group, self::IMPLICIT_GROUPS, true)) {
+            return false;
         }
-        return self::assignGroups($userId, $groups, $grantedBy);
+
+        try {
+            $db = Database::getInstance();
+            self::insertGroupRow($db, $userId, $group, $grantedBy);
+
+            if ($group === self::ADMIN_GROUP) {
+                $db->prepare('UPDATE users SET role = :r WHERE id = :u')
+                    ->execute([':r' => 'admin', ':u' => $userId]);
+            }
+        } catch (\Throwable $e) {
+            return false;
+        }
+
+        Gate::flush();
+        return true;
     }
 
+    /** 单独移出一个组；只有移出 administrator 时才把 role 快照降回 user。 */
     public static function removeGroup(int $userId, string $group): bool
     {
-        $groups = array_values(array_filter(
-            self::assignedGroups($userId),
-            static fn(string $g): bool => $g !== $group
-        ));
-        return self::assignGroups($userId, $groups);
+        try {
+            $db = Database::getInstance();
+            $db->prepare('DELETE FROM user_groups WHERE user_id = :u AND grp = :g')
+                ->execute([':u' => $userId, ':g' => $group]);
+
+            if ($group === self::ADMIN_GROUP) {
+                $db->prepare('UPDATE users SET role = :r WHERE id = :u')
+                    ->execute([':r' => 'user', ':u' => $userId]);
+            }
+        } catch (\Throwable $e) {
+            return false;
+        }
+
+        Gate::flush();
+        return true;
     }
 
     /** @return string[] 数据库里被指派过的组名（网格与 groups() 用） */
@@ -300,6 +327,12 @@ final class Permissions
     public static function validGroupName(string $group): bool
     {
         return (bool)preg_match(self::GROUP_RE, $group);
+    }
+
+    /** 清掉按请求缓存的数据库规则。Gate::flush() 会连带调用；测试也用它隔离用例。 */
+    public static function flush(): void
+    {
+        self::$dbRules = null;
     }
 
     // =============== 内部 ===============
@@ -401,6 +434,24 @@ final class Permissions
         }
 
         return self::$dbRules = $out;
+    }
+
+    /** 写一行组归属，重复指派不报错。MySQL 与 SQLite 的 upsert 语法不同。 */
+    private static function insertGroupRow(\PDO $db, int $userId, string $group, int $grantedBy): void
+    {
+        if ($db->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql') {
+            $stmt = $db->prepare(
+                'INSERT INTO user_groups (user_id, grp, granted_by) VALUES (:u, :g, :b) '
+                . 'ON DUPLICATE KEY UPDATE grp = grp'
+            );
+        } else {
+            $stmt = $db->prepare(
+                'INSERT INTO user_groups (user_id, grp, granted_by) VALUES (:u, :g, :b) '
+                . 'ON CONFLICT(user_id, grp) DO NOTHING'
+            );
+        }
+
+        $stmt->execute([':u' => $userId, ':g' => $group, ':b' => $grantedBy]);
     }
 
     /** MySQL 的 upsert 语法（ON DUPLICATE KEY）和 SQLite 的（ON CONFLICT）不一样。 */

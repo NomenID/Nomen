@@ -118,6 +118,7 @@ final class Gate
     {
         self::$cache = [];
         self::$groupCache = [];
+        Permissions::flush();
     }
 
     private static function evaluate(int $userId, string $ability, array $context): bool
