@@ -22,6 +22,8 @@ const saving = ref(false)
 const clearing = ref(false)
 const checking = ref(false)
 const updating = ref(false)
+const browserChecking = ref(false)
+const browserResult = ref(null)
 const error = ref('')
 const data = ref(null)
 const form = reactive({
@@ -234,6 +236,50 @@ async function pollUpdate(version) {
   await load()
 }
 
+// 只读的浏览器检查：结果只放在当前页面内存里，不 POST 回服务器、不改变任何状态。
+// 服务器没有 CA / 连不上更新源时用，永远不能用来触发安装。
+async function checkInBrowser() {
+  const feed = data.value?.autoUpdate?.feed
+  if (!feed) return
+
+  browserChecking.value = true
+  browserResult.value = null
+  try {
+    const response = await fetch(feed, {
+      headers: { Accept: 'application/json' },
+      cache: 'no-store',
+      credentials: 'omit',
+    })
+    if (!response.ok) throw new Error('HTTP ' + response.status)
+    const info = await response.json()
+    const latest = String(info.version || '').trim()
+    if (!/^\d+\.\d+\.\d+([.+-][0-9A-Za-z.-]+)?$/.test(latest)) throw new Error('bad version')
+
+    const current = String(data.value?.autoUpdate?.currentVersion || '')
+    browserResult.value = compareVersion(latest, current) > 0
+      ? { status: 'newer', version: latest }
+      : { status: 'current', version: latest }
+  } catch (err) {
+    browserResult.value = { status: 'error' }
+  } finally {
+    browserChecking.value = false
+  }
+}
+
+function versionParts(value) {
+  return String(value || '').replace(/\+.*$/, '').split('.').map((part) => parseInt(part, 10) || 0)
+}
+
+function compareVersion(a, b) {
+  const left = versionParts(a)
+  const right = versionParts(b)
+  for (let i = 0; i < Math.max(left.length, right.length); i++) {
+    const diff = (left[i] || 0) - (right[i] || 0)
+    if (diff !== 0) return diff
+  }
+  return 0
+}
+
 async function resetUpdate() {
   const ok = await window.Nomen.confirm(
     t('Reset the failed update state'),
@@ -424,10 +470,32 @@ onMounted(load)
             <button class="a-btn" type="button" :disabled="checking || !data.autoUpdate.feedConfigured" @click="checkUpdates">
               {{ checking ? t('Checking…') : t('Check now') }}
             </button>
+            <button
+              v-if="data.autoUpdate.feed"
+              class="a-btn a-btn--ghost"
+              type="button"
+              :disabled="browserChecking"
+              @click="checkInBrowser"
+            >
+              {{ browserChecking ? t('Checking…') : t('Check in the browser') }}
+            </button>
             <button v-if="data.autoUpdate.failed" class="a-btn a-btn--ghost" type="button" @click="resetUpdate">
               {{ t('Reset the failed update state') }}
             </button>
           </div>
+
+          <AdminAlert v-if="browserResult?.status === 'newer'" type="warning">
+            {{ t('Your browser found version {:version}. The server could not check by itself; this notice is informational only and cannot install anything.', { version: browserResult.version }) }}
+          </AdminAlert>
+          <p v-else-if="browserResult?.status === 'current'" class="a-text a-text--muted">
+            {{ t('Your browser confirms this is the latest version.') }}
+          </p>
+          <p v-else-if="browserResult?.status === 'error'" class="a-text a-text--muted">
+            {{ t('The browser could not reach the update source either.') }}
+          </p>
+          <p v-if="data.autoUpdate.feed" class="a-text a-text--muted">
+            {{ t('Browser checks only read the public release feed; they never write anything back to this site.') }}
+          </p>
 
           <p class="a-text">
             {{ t('Mail is configured:') }}

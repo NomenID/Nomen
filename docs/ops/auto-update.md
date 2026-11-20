@@ -147,6 +147,12 @@ php bin/nomen update run      # 立即查并安装（仍受自动开关、scope�
 php bin/nomen update reset    # 清除失败记录
 ```
 
+## PHP 没有 CA / 服务器连不上更新源
+
+有些 PHP 环境没装 CA 证书，服务器自己请求发布源会失败（`update.log` 里是 `更新源不可达`）。后台「设置 → 自动更新」的「用浏览器检查」可以让浏览器直接读发布源：只发一个 GET，把版本号显示在页面上。**结果只留在页面内存里，不向本站写回任何内容，也不会启用「立即更新」**——安装仍然需要服务器能访问更新源。要根治就修 PHP 的 CA：更新系统的 `ca-certificates`，或在 `php.ini` 里配 `openssl.cafile` / `curl.cainfo`。
+
+发布源（官方站的 `official` 插件）对这条 GET 返回 `Access-Control-Allow-Origin: *`；第三方发布源也要允许跨域，浏览器才读得到。
+
 ## 发布源格式
 
 官方站 `data/releases.json`：
@@ -175,6 +181,7 @@ php bin/nomen update reset    # 清除失败记录
 
 - **后台提示更新检查已关闭**：`config/autoupdate.php` 的 `feed` 被设成了 `'off'`，或填的地址不是 http(s) 地址。改回官方地址（或删掉 `feed` 这一项）即可。
 - **一直「已是最新」但官方已经发版**：检查 feed 是否可达，或执行 `update check` 看具体错误。
+- **服务器报「更新源不可达」但浏览器能打开**：PHP 缺 CA，先修 CA；临时可以用后台「用浏览器检查」看版本，但它只能提示，不能安装。
 - **收不到邮件**：后台「设置」里的邮件状态会显示是否配置；`update.log` 里也有 `email` 步骤。
 - **更新后站点 503**：先看 `data/maintenance.json` 是否还在（正常更新结束会删掉，最多 15 分钟自动过期）；再看 PHP 错误日志和 `data/updates/update.log`。
 - **想彻底关掉**：后台关总开关，或把 `feed` 设成 `'off'`；已经安装的版本不会回退。
