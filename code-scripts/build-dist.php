@@ -92,6 +92,8 @@ $skip = [
     '.git',
     '.github',
     '.zcode',
+    '.workbuddy',
+    '.claude',
     'tests',
     'node_modules',
     'frontend',
