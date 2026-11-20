@@ -75,16 +75,18 @@ Nav::add('admin', [
     'visible' => static fn(?int $uid): bool => $uid !== null && $uid > 0 && AdminController::isAdminUser($uid),
 ]);
 
+// 菜单项的 ability：决定这条菜单在侧栏显不显（真正的拦截在路由中间件上）
 Admin::menu('dashboard', '/admin', 'Overview', 10, 'General');
-Admin::menu('homepage', '/admin/homepage', 'Home page', 14, 'Content');
-Admin::menu('users', '/admin/users', 'Users', 20, 'Users and access');
-Admin::menu('apps', '/admin/apps', 'Apps', 30, 'Users and access');
-Admin::menu('identities', '/admin/identities', 'Sign-in methods', 35, 'Users and access');
-Admin::menu('mounts', '/admin/mounts', 'Endpoints', 40, 'Users and access');
-Admin::menu('recovery', '/admin/recovery', 'Recovery requests', 50, 'Security');
-Admin::menu('logs', '/admin/logs', 'Activity log', 60, 'Security');
-Admin::menu('site-health', '/admin/site-health', 'Site Health', 65, 'System');
-Admin::menu('settings', '/admin/settings', 'Settings', 70, 'System');
+Admin::menu('permissions', '/admin/permissions', 'Permissions', 15, 'Users and access');
+Admin::menu('homepage', '/admin/homepage', 'Home page', 14, 'Content', 'homepage.manage');
+Admin::menu('users', '/admin/users', 'Users', 20, 'Users and access', 'users.manage');
+Admin::menu('apps', '/admin/apps', 'Apps', 30, 'Users and access', 'apps.manage');
+Admin::menu('identities', '/admin/identities', 'Sign-in methods', 35, 'Users and access', 'identities.manage');
+Admin::menu('mounts', '/admin/mounts', 'Endpoints', 40, 'Users and access', 'mounts.manage');
+Admin::menu('recovery', '/admin/recovery', 'Recovery requests', 50, 'Security', 'recovery.review');
+Admin::menu('logs', '/admin/logs', 'Activity log', 60, 'Security', 'logs.view');
+Admin::menu('site-health', '/admin/site-health', 'Site Health', 65, 'System', 'site-health.view');
+Admin::menu('settings', '/admin/settings', 'Settings', 70, 'System', 'settings.manage');
 
 // 核心自带的特殊页面。注册在插件之后，插件不能顶掉它。
 // title 存键原文，渲染时才翻译 —— 插件在清单里写的标题同样吃这套
@@ -401,53 +403,58 @@ $router->post('/recovery/secure/finish', [RecoveryController::class, 'finish']);
 $router->get('/admin', function (): void {
     \Nomen\Src\AdminShell::render();
 }, ['admin']);
-$router->get('/admin/logs/export',          [AdminController::class, 'logExport'], ['admin']);
+$router->get('/admin/logs/export',          [AdminController::class, 'logExport'], ['can:logs.view']);
 $router->get('/admin/{path:.*}', function (string $path): void {
     \Nomen\Src\AdminShell::render();
 }, ['admin']);
 
+// 后台数据接口按能力拆中间件（can:<ability>）；外壳 /admin 仍是 admin（= can:admin.access）。
+// administrator 组默认 '*'，管理员看到的行为与旧版完全一致。
 $router->get('/api/admin/dashboard',        [AdminController::class, 'index'], ['admin']);
 $router->post('/admin/dashboard/order',     [AdminController::class, 'saveDashboardOrder'], ['admin']);
 $router->get('/api/admin/version',          [AdminController::class, 'version'], ['admin']);
-$router->get('/api/admin/users',            [AdminController::class, 'users'], ['admin']);
-$router->get('/api/admin/users/{id}',       [AdminController::class, 'userDetail'], ['admin']);
-$router->post('/admin/users/toggle-status', [AdminController::class, 'toggleStatus'], ['admin']);
-$router->post('/admin/users/toggle-admin',  [AdminController::class, 'toggleAdmin'], ['admin']);
-$router->get('/api/admin/apps',             [AdminAppsController::class, 'index'], ['admin']);
-$router->get('/api/admin/apps/create',      [AdminAppsController::class, 'create'], ['admin']);
-$router->get('/api/admin/apps/{clientId}',  [AdminAppsController::class, 'show'], ['admin']);
-$router->post('/admin/apps/create',         [AdminAppsController::class, 'store'], ['admin']);
-$router->post('/admin/apps/{clientId}/update',       [AdminAppsController::class, 'update'], ['admin']);
-$router->post('/admin/apps/{clientId}/reset-secret', [AdminAppsController::class, 'resetSecret'], ['admin']);
-$router->post('/admin/apps/{clientId}/toggle',       [AdminAppsController::class, 'toggle'], ['admin']);
-$router->post('/admin/apps/{clientId}/delete',       [AdminAppsController::class, 'delete'], ['admin']);
-$router->get('/api/admin/mounts',           [AdminMountsController::class, 'index'], ['admin']);
-$router->post('/admin/mounts/{plugin}',     [AdminMountsController::class, 'updatePath'], ['admin']);
-$router->get('/api/admin/recovery',         [AdminController::class, 'recovery'], ['admin']);
-$router->get('/api/admin/recovery/{id}',    [AdminController::class, 'recoveryDetail'], ['admin']);
-$router->post('/admin/recovery/approve',    [AdminController::class, 'recoveryApprove'], ['admin']);
-$router->post('/admin/recovery/reject',     [AdminController::class, 'recoveryReject'], ['admin']);
-$router->post('/admin/recovery/resend',     [AdminController::class, 'recoveryResend'], ['admin']);
-$router->get('/api/admin/logs',             [AdminController::class, 'logs'], ['admin']);
-$router->get('/api/admin/logs/{id}',        [AdminController::class, 'logDetail'], ['admin']);
-$router->get('/api/admin/settings',         [AdminSettingsController::class, 'index'], ['admin']);
-$router->get('/api/admin/site-health',      [SiteHealthController::class, 'index'], ['admin']);
-$router->post('/admin/site-health/ignore',   [SiteHealthController::class, 'ignore'], ['admin']);
-$router->post('/admin/site-health/unignore', [SiteHealthController::class, 'unignore'], ['admin']);
-$router->post('/admin/settings',            [AdminSettingsController::class, 'update'], ['admin']);
-$router->post('/admin/settings/cache/clear', [AdminSettingsController::class, 'clearCache'], ['admin']);
-$router->post('/admin/settings/schedule/run', [AdminSettingsController::class, 'scheduleRun'], ['admin']);
-$router->post('/admin/settings/update/check', [AdminSettingsController::class, 'checkUpdate'], ['admin']);
-$router->post('/admin/settings/update/run',   [AdminSettingsController::class, 'runUpdate'], ['admin']);
-$router->post('/admin/settings/update/reset', [AdminSettingsController::class, 'resetUpdate'], ['admin']);
-$router->get('/api/admin/homepage',         [AdminHomepageController::class, 'show'], ['admin']);
-$router->post('/admin/homepage',            [AdminHomepageController::class, 'update'], ['admin']);
-$router->get('/api/admin/identities',       [AdminIdentityController::class, 'index'], ['admin']);
-$router->post('/admin/identities/save',     [AdminIdentityController::class, 'save'], ['admin']);
-$router->post('/admin/identities/delete',   [AdminIdentityController::class, 'delete'], ['admin']);
-$router->post('/admin/identities/toggle',   [AdminIdentityController::class, 'toggle'], ['admin']);
-$router->post('/admin/identities/toggle-method', [AdminIdentityController::class, 'toggleMethod'], ['admin']);
-$router->post('/admin/identities/default-method', [AdminIdentityController::class, 'defaultMethod'], ['admin']);
+$router->get('/api/admin/users',            [AdminController::class, 'users'], ['can:users.manage']);
+$router->get('/api/admin/users/{id}',       [AdminController::class, 'userDetail'], ['can:users.manage']);
+$router->post('/admin/users/toggle-status', [AdminController::class, 'toggleStatus'], ['can:users.manage']);
+$router->post('/admin/users/toggle-admin',  [AdminController::class, 'toggleAdmin'], ['can:users.manage']);
+$router->post('/admin/users/groups',        [AdminController::class, 'userGroups'], ['can:users.manage']);
+$router->get('/api/admin/permissions',      [AdminController::class, 'permissions'], ['admin']);
+$router->post('/admin/permissions/rule',    [AdminController::class, 'permissionRule'], ['admin']);
+$router->get('/api/admin/apps',             [AdminAppsController::class, 'index'], ['can:apps.manage']);
+$router->get('/api/admin/apps/create',      [AdminAppsController::class, 'create'], ['can:apps.manage']);
+$router->get('/api/admin/apps/{clientId}',  [AdminAppsController::class, 'show'], ['can:apps.manage']);
+$router->post('/admin/apps/create',         [AdminAppsController::class, 'store'], ['can:apps.manage']);
+$router->post('/admin/apps/{clientId}/update',       [AdminAppsController::class, 'update'], ['can:apps.manage']);
+$router->post('/admin/apps/{clientId}/reset-secret', [AdminAppsController::class, 'resetSecret'], ['can:apps.manage']);
+$router->post('/admin/apps/{clientId}/toggle',       [AdminAppsController::class, 'toggle'], ['can:apps.manage']);
+$router->post('/admin/apps/{clientId}/delete',       [AdminAppsController::class, 'delete'], ['can:apps.manage']);
+$router->get('/api/admin/mounts',           [AdminMountsController::class, 'index'], ['can:mounts.manage']);
+$router->post('/admin/mounts/{plugin}',     [AdminMountsController::class, 'updatePath'], ['can:mounts.manage']);
+$router->get('/api/admin/recovery',         [AdminController::class, 'recovery'], ['can:recovery.review']);
+$router->get('/api/admin/recovery/{id}',    [AdminController::class, 'recoveryDetail'], ['can:recovery.review']);
+$router->post('/admin/recovery/approve',    [AdminController::class, 'recoveryApprove'], ['can:recovery.review']);
+$router->post('/admin/recovery/reject',     [AdminController::class, 'recoveryReject'], ['can:recovery.review']);
+$router->post('/admin/recovery/resend',     [AdminController::class, 'recoveryResend'], ['can:recovery.review']);
+$router->get('/api/admin/logs',             [AdminController::class, 'logs'], ['can:logs.view']);
+$router->get('/api/admin/logs/{id}',        [AdminController::class, 'logDetail'], ['can:logs.view']);
+$router->get('/api/admin/settings',         [AdminSettingsController::class, 'index'], ['can:settings.manage']);
+$router->get('/api/admin/site-health',      [SiteHealthController::class, 'index'], ['can:site-health.view']);
+$router->post('/admin/site-health/ignore',   [SiteHealthController::class, 'ignore'], ['can:site-health.view']);
+$router->post('/admin/site-health/unignore', [SiteHealthController::class, 'unignore'], ['can:site-health.view']);
+$router->post('/admin/settings',            [AdminSettingsController::class, 'update'], ['can:settings.manage']);
+$router->post('/admin/settings/cache/clear', [AdminSettingsController::class, 'clearCache'], ['can:settings.manage']);
+$router->post('/admin/settings/schedule/run', [AdminSettingsController::class, 'scheduleRun'], ['can:settings.manage']);
+$router->post('/admin/settings/update/check', [AdminSettingsController::class, 'checkUpdate'], ['can:updates.manage']);
+$router->post('/admin/settings/update/run',   [AdminSettingsController::class, 'runUpdate'], ['can:updates.manage']);
+$router->post('/admin/settings/update/reset', [AdminSettingsController::class, 'resetUpdate'], ['can:updates.manage']);
+$router->get('/api/admin/homepage',         [AdminHomepageController::class, 'show'], ['can:homepage.manage']);
+$router->post('/admin/homepage',            [AdminHomepageController::class, 'update'], ['can:homepage.manage']);
+$router->get('/api/admin/identities',       [AdminIdentityController::class, 'index'], ['can:identities.manage']);
+$router->post('/admin/identities/save',     [AdminIdentityController::class, 'save'], ['can:identities.manage']);
+$router->post('/admin/identities/delete',   [AdminIdentityController::class, 'delete'], ['can:identities.manage']);
+$router->post('/admin/identities/toggle',   [AdminIdentityController::class, 'toggle'], ['can:identities.manage']);
+$router->post('/admin/identities/toggle-method', [AdminIdentityController::class, 'toggleMethod'], ['can:identities.manage']);
+$router->post('/admin/identities/default-method', [AdminIdentityController::class, 'defaultMethod'], ['can:identities.manage']);
 
 // 开放平台
 

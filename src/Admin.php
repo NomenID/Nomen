@@ -26,13 +26,18 @@ class Admin
     /** @var array<string, string> */
     private static array $scripts = [];
 
-    public static function menu(string $key, string $href, string $label, int $order = 100, string $group = ''): void
+    /**
+     * $ability：这条菜单要什么能力才显示（不填就只要 admin.access，即能进后台就显示）。
+     * 菜单只是显隐；真正的拦截在路由中间件上。
+     */
+    public static function menu(string $key, string $href, string $label, int $order = 100, string $group = '', ?string $ability = null): void
     {
         self::$menu[$key] = [
-            'href'  => $href,
-            'label' => $label,
-            'order' => $order,
-            'group' => $group,
+            'href'    => $href,
+            'label'   => $label,
+            'order'   => $order,
+            'group'   => $group,
+            'ability' => $ability,
         ];
     }
 
@@ -93,6 +98,12 @@ class Admin
         $items = self::$menu;
         uasort($items, static function (array $a, array $b): int {
             return [$a['order'], $a['label']] <=> [$b['order'], $b['label']];
+        });
+
+        // 按能力过滤：挂了的菜单不该出现在侧栏（真正的拦截仍在中间件）
+        $items = array_filter($items, static function (array $item): bool {
+            $ability = (string)($item['ability'] ?? '');
+            return $ability === '' || Gate::can($ability);
         });
 
         return Hooks::filter('admin.menu.items', $items);
@@ -194,11 +205,16 @@ class Admin
             Response::error(403);
         }
 
+        // 判定走 Gate（组 + role 兜底，实时查库），不认 session 里的 role 快照
+        if (!Gate::can('admin.access')) {
+            Response::error(403);
+        }
+
         $stmt = Database::getInstance()->prepare('SELECT id, username, role FROM users WHERE id = :id LIMIT 1');
         $stmt->execute([':id' => $userId]);
         $admin = $stmt->fetch();
 
-        if (!$admin || $admin['role'] !== 'admin') {
+        if (!$admin) {
             Response::error(403);
         }
 

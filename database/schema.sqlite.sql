@@ -687,4 +687,23 @@ CREATE UNIQUE INDEX idx_user_identities_provider_subject ON user_identities (pro
 CREATE UNIQUE INDEX idx_user_identities_user_provider ON user_identities (user_id, provider_id);
 CREATE INDEX idx_user_identities_user ON user_identities (user_id);
 
+DROP TABLE IF EXISTS user_groups;
+CREATE TABLE user_groups (
+  user_id INTEGER NOT NULL,
+  grp TEXT NOT NULL,
+  granted_by INTEGER NOT NULL DEFAULT 0,
+  granted_at INTEGER NOT NULL DEFAULT (strftime('%s','now')),
+  PRIMARY KEY (user_id, grp)
+);
+CREATE INDEX idx_user_groups_grp ON user_groups (grp);
+
+DROP TABLE IF EXISTS group_rules;
+CREATE TABLE group_rules (
+  grp TEXT NOT NULL,
+  ability TEXT NOT NULL,
+  allowed INTEGER NOT NULL DEFAULT 1,
+  updated_at INTEGER NOT NULL DEFAULT (strftime('%s','now')),
+  PRIMARY KEY (grp, ability)
+);
+
 PRAGMA foreign_keys = ON;

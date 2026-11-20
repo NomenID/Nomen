@@ -115,6 +115,16 @@ class Router
     private static function passMiddleware(array $middleware): bool
     {
         foreach ($middleware as $name) {
+            // can:<ability> —— 具体能力判定（WordPress 式：只认能力，不认角色）
+            if (str_starts_with($name, 'can:')) {
+                $ability = substr($name, 4);
+                if ($ability === '' || !Gate::can($ability)) {
+                    Response::error(403);
+                    return false;
+                }
+                continue;
+            }
+
             switch ($name) {
                 case 'auth':
                     if (!Session::get('user_id')) {
@@ -124,8 +134,9 @@ class Router
                     break;
 
                 case 'admin':
-                    // 每次查库判定，不信 session 里的 role 快照（降权后旧会话仍带着 admin）
-                    if (!self::isAdmin()) {
+                    // 每次查库判定，不信 session 里的 role 快照（降权后旧会话仍带着 admin）。
+                    // 等价于 can:admin.access，保留旧名是为了现有插件一行不用改。
+                    if (!Gate::can('admin.access')) {
                         Response::error(403);
                         return false;
                     }
@@ -144,13 +155,6 @@ class Router
 
     public static function isAdmin(): bool
     {
-        $userId = Session::get('user_id');
-        if (!$userId) {
-            return false;
-        }
-
-        $stmt = Database::getInstance()->prepare('SELECT role FROM users WHERE id = :id LIMIT 1');
-        $stmt->execute([':id' => (int)$userId]);
-        return $stmt->fetchColumn() === 'admin';
+        return Gate::can('admin.access');
     }
 }

@@ -13,6 +13,7 @@ import DashboardPage from './pages/DashboardPage.vue'
 import HomePage from './pages/HomePage.vue'
 import UsersPage from './pages/UsersPage.vue'
 import UserDetailPage from './pages/UserDetailPage.vue'
+import PermissionsPage from './pages/PermissionsPage.vue'
 import AppsPage from './pages/AppsPage.vue'
 import AppCreatePage from './pages/AppCreatePage.vue'
 import AppDetailPage from './pages/AppDetailPage.vue'
@@ -33,6 +34,7 @@ export const routes = [
   { path: '/admin/homepage', name: 'admin-homepage', component: HomePage, meta: { title: 'Home page' } },
   { path: '/admin/users', name: 'admin-users', component: UsersPage, meta: { title: 'Users' } },
   { path: '/admin/users/:id([0-9A-HJKMNP-TV-Z]{26})', name: 'admin-user', component: UserDetailPage, meta: { title: 'User details' } },
+  { path: '/admin/permissions', name: 'admin-permissions', component: PermissionsPage, meta: { title: 'Permissions' } },
   { path: '/admin/apps', name: 'admin-apps', component: AppsPage, meta: { title: 'Apps' } },
   { path: '/admin/apps/create', name: 'admin-app-create', component: AppCreatePage, meta: { title: 'New app' } },
   { path: '/admin/apps/:clientId', name: 'admin-app', component: AppDetailPage, meta: { title: 'App details' } },

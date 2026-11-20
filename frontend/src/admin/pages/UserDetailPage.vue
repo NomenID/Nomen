@@ -9,7 +9,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { apiGet, apiPost } from '../../app/api'
+import { apiGet, apiPost, apiPostForm } from '../../app/api'
 import { useT } from '../../composables/useT.js'
 import AdminPage from '../components/AdminPage.vue'
 import AdminCard from '../components/AdminCard.vue'
@@ -31,6 +31,7 @@ async function load() {
   error.value = ''
   try {
     data.value = await apiGet(`/api/admin/users/${userId.value}`)
+    syncGroupSelection()
   } catch (err) {
     error.value = t('The user does not exist or could not be loaded')
   } finally {
@@ -80,6 +81,29 @@ async function toggleAdmin() {
   }
 }
 
+// ============ 权限组 ============
+
+const selectedGroups = ref([])
+
+function syncGroupSelection() {
+  selectedGroups.value = [...(data.value?.groups || [])]
+}
+
+async function saveGroups() {
+  const user = data.value.user
+  busy.value = true
+  try {
+    const form = new FormData()
+    form.set('user_unid', user.unid)
+    for (const group of selectedGroups.value) form.append('groups[]', group)
+    const result = await apiPostForm('/admin/users/groups', form)
+    window.Nomen.toast(result.message || t('Groups saved'), result.success ? 'success' : 'error')
+    if (result.success) await load()
+  } finally {
+    busy.value = false
+  }
+}
+
 const methodEntries = computed(() => Object.entries(data.value?.methods || {}))
 const assistEntries = computed(() => Object.entries(data.value?.assistMethods || {}))
 
@@ -120,6 +144,28 @@ onMounted(load)
       </div>
 
       <div class="a-grid a-grid--2">
+        <AdminCard :title="t('Groups')" :description="t('Which permission groups this account belongs to. Abilities are the union of all groups.')">
+          <template v-if="data.groups !== undefined">
+            <label v-for="group in data.assignableGroups" :key="group" class="perms-group-row">
+              <input
+                v-model="selectedGroups"
+                type="checkbox"
+                :value="group"
+                :disabled="busy || data.isSelf"
+              >
+              <span class="a-mono">{{ group }}</span>
+              <AdminBadge v-if="group === 'administrator'" tone="primary">{{ t('Administrators') }}</AdminBadge>
+            </label>
+            <div v-if="data.isSelf" class="a-sub">{{ t('You cannot change your own groups') }}</div>
+            <button
+              class="a-btn a-btn--sm"
+              type="button"
+              :disabled="busy || data.isSelf"
+              @click="saveGroups"
+            >{{ t('Save groups') }}</button>
+          </template>
+        </AdminCard>
+
         <AdminCard :title="t('Account details')">
           <dl class="a-kv">
             <dt>{{ t('Email') }}</dt><dd>{{ data.user.email || '—' }}</dd>
@@ -230,3 +276,14 @@ onMounted(load)
     </template>
   </AdminPage>
 </template>
+
+<style scoped>
+.perms-group-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  cursor: pointer;
+}
+</style>
+

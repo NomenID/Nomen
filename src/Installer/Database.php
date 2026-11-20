@@ -105,6 +105,10 @@ class Database
              VALUES (?, ?, 1, 1, NOW())'
         )->execute([$userId, $email]);
 
+        // 管理员同时进 administrator 组，权限判定从此以组为准（role 只是兼容快照）
+        $pdo->prepare('INSERT INTO user_groups (user_id, grp) VALUES (?, ?)')
+            ->execute([$userId, 'administrator']);
+
         $pdo->commit();
     }
 

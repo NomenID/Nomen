@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{ActivityLog, AutoUpdate, Cache, Csrf, Database, Email, EmailTemplate, FamilyHelper, Features, Hooks, I18n, Plugins, RecoveryHelper, RedisClient, Response, Session, SiteHealth, TextDiff, UpdateCheck, Upgrade};
+use Nomen\Src\{ActivityLog, AutoUpdate, Cache, Csrf, Database, Email, EmailTemplate, FamilyHelper, Features, Gate, Hooks, I18n, Permissions, Plugins, RecoveryHelper, RedisClient, Response, Session, SiteHealth, TextDiff, UpdateCheck, Upgrade};
 use PDO;
 
 /**
@@ -32,11 +32,17 @@ class AdminController
     private function requireAdmin(): array
     {
         $userId = (int)Session::get('user_id');
+
+        // 判定走能力体系（实时查库），不认 session 里可能过期的 role 快照
+        if ($userId <= 0 || !Gate::userCan($userId, 'admin.access')) {
+            Response::error(403);
+        }
+
         $stmt = $this->db->prepare('SELECT id, username, role FROM users WHERE id = :id LIMIT 1');
         $stmt->execute([':id' => $userId]);
         $admin = $stmt->fetch();
 
-        if (!$admin || $admin['role'] !== 'admin') {
+        if (!$admin) {
             Response::error(403);
         }
         return $admin;
@@ -56,9 +62,7 @@ class AdminController
         if ($userId <= 0) {
             return false;
         }
-        $stmt = Database::getInstance()->prepare('SELECT role FROM users WHERE id = :id LIMIT 1');
-        $stmt->execute([':id' => $userId]);
-        return $stmt->fetchColumn() === 'admin';
+        return Gate::userCan($userId, 'admin.access');
     }
 
     // ========== 概览 ==========
@@ -457,6 +461,12 @@ class AdminController
             'user'                => $user,
             'methods'             => $groups['login'],
             'assistMethods'       => $groups['assist'],
+            // 权限组：已指派的 + 站点里可指派的（隐式组除外）
+            'groups'              => Permissions::assignedGroups($userId),
+            'assignableGroups'    => array_values(array_filter(
+                array_keys(Permissions::groups()),
+                static fn(string $g): bool => !in_array($g, Permissions::IMPLICIT_GROUPS, true)
+            )),
             'authorizations'      => $authorizations,
             'recoveryHistory'     => $recoveryHistory,
             'membership'          => $membership,
@@ -488,7 +498,7 @@ class AdminController
         if ((int)$target['id'] === (int)$admin['id']) {
             Response::json(['success' => false, 'message' => I18n::t('You cannot disable your own account')]);
         }
-        if ($target['role'] === 'admin' && (int)$target['status'] === 1) {
+        if (self::isAdminUser($userId) && (int)$target['status'] === 1) {
             Response::json(['success' => false, 'message' => I18n::t('You cannot disable another administrator. Revoke their administrator role first.')]);
         }
 
@@ -538,9 +548,15 @@ class AdminController
             Response::json(['success' => false, 'message' => I18n::t('You cannot change your own administrator role')]);
         }
 
-        $newRole = $target['role'] === 'admin' ? 'user' : 'admin';
-        $this->db->prepare('UPDATE users SET role = :r WHERE id = :id')
-            ->execute([':r' => $newRole, ':id' => $userId]);
+        // 判定看组与能力的现状，不看 users.role 快照（迁移前后行为一致）
+        $isAdmin = self::isAdminUser($userId);
+        $newRole = $isAdmin ? 'user' : 'admin';
+
+        if ($isAdmin) {
+            Permissions::removeGroup($userId, Permissions::ADMIN_GROUP);
+        } else {
+            Permissions::assignGroup($userId, Permissions::ADMIN_GROUP, (int)$admin['id']);
+        }
 
         ActivityLog::record([
             'action'   => $newRole === 'admin' ? 'admin.role_grant' : 'admin.role_revoke',
@@ -561,6 +577,155 @@ class AdminController
             'success' => true,
             'message' => $newRole === 'admin' ? I18n::t('Administrator role granted') : I18n::t('Administrator role revoked'),
             'role'    => $newRole,
+        ]);
+    }
+
+    // ========== 权限网格 ==========
+
+    /** GET /api/admin/permissions：能力清单 + 组 × 能力矩阵（后台「权限」页首屏） */
+    public function permissions(): void
+    {
+        $this->requireAdmin();
+
+        $abilities = [];
+        foreach (Permissions::abilities() as $name => $meta) {
+            $abilities[] = [
+                'name'        => $name,
+                'label'       => I18n::t($meta['label']),
+                'description' => I18n::t($meta['description']),
+                'core'        => $meta['core'],
+            ];
+        }
+        usort($abilities, static fn(array $a, array $b): int => [$a['core'] ? 0 : 1, $a['name']] <=> [$b['core'] ? 0 : 1, $b['name']]);
+
+        $groups = [];
+        foreach (Permissions::groups() as $group) {
+            $row = [
+                'name'      => $group['name'],
+                'label'     => I18n::t($group['label']),
+                'implicit'  => $group['implicit'],
+                'members'   => $group['implicit'] ? null : Permissions::groupMemberCount($group['name']),
+                'abilities' => [],
+            ];
+
+            if (!$group['implicit']) {
+                foreach (Permissions::abilities() as $name => $_meta) {
+                    $row['abilities'][$name] = [
+                        'allowed'  => Permissions::groupAbility($group['name'], $name),
+                        'override' => Permissions::hasDbRule($group['name'], $name),
+                    ];
+                }
+            }
+
+            $groups[] = $row;
+        }
+
+        Response::json(Hooks::filter('admin.permissions.grid', [
+            'success'   => true,
+            'abilities' => $abilities,
+            'groups'    => $groups,
+        ]));
+    }
+
+    /** POST /admin/permissions/rule：网格单元格三态切换（allow / deny / default） */
+    public function permissionRule(): void
+    {
+        $admin = $this->requireAdmin();
+
+        if (!Csrf::validate($_POST['_csrf'] ?? null)) {
+            Response::json(['success' => false, 'message' => I18n::t('Invalid request')], 403);
+        }
+
+        $group = (string)($_POST['group'] ?? '');
+        $ability = (string)($_POST['ability'] ?? '');
+        $state = (string)($_POST['state'] ?? '');
+
+        $allowed = match ($state) {
+            'allow'   => true,
+            'deny'    => false,
+            'default' => null,
+            default   => null,
+        };
+
+        if (!Permissions::setRule($group, $ability, $allowed)) {
+            Response::json(['success' => false, 'message' => I18n::t('Invalid request')], 422);
+        }
+
+        ActivityLog::record([
+            'action'     => $allowed === null ? 'admin.permission_reset' : ($allowed ? 'admin.permission_allow' : 'admin.permission_deny'),
+            'category'   => ActivityLog::CAT_ADMIN,
+            'target_type' => 'group',
+            'target_id'  => $group,
+            'target_name' => $group,
+            'summary'    => $ability . ' → ' . ($allowed === null ? 'default' : ($allowed ? 'allow' : 'deny')),
+            'changes'    => ['rule' => [
+                'old' => Permissions::groupAbility($group, $ability) === null ? '—' : (Permissions::groupAbility($group, $ability) ? 'allow' : 'deny'),
+                'new' => $allowed === null ? 'default' : ($allowed ? 'allow' : 'deny'),
+            ]],
+        ]);
+
+        Response::json([
+            'success' => true,
+            'group'   => $group,
+            'ability' => $ability,
+            'allowed' => Permissions::groupAbility($group, $ability),
+            'override' => Permissions::hasDbRule($group, $ability),
+        ]);
+    }
+
+    /** POST /admin/users/groups：全量替换某用户的组（用户详情页「组」区块） */
+    public function userGroups(): void
+    {
+        $admin = $this->requireAdmin();
+
+        if (!Csrf::validate($_POST['_csrf'] ?? null)) {
+            Response::json(['success' => false, 'message' => I18n::t('Invalid request')], 403);
+        }
+
+        $stmt = $this->db->prepare('SELECT id, username FROM users WHERE unid = :unid LIMIT 1');
+        $stmt->execute([':unid' => (string)($_POST['user_unid'] ?? '')]);
+        $target = $stmt->fetch();
+
+        if (!$target) {
+            Response::json(['success' => false, 'message' => I18n::t('User not found')]);
+        }
+
+        $userId = (int)$target['id'];
+        if ($userId === (int)$admin['id']) {
+            // 自己的组不改：把自己关在门外没人能从后台救
+            Response::json(['success' => false, 'message' => I18n::t('You cannot change your own groups')]);
+        }
+
+        $groups = array_values(array_filter(
+            (array)($_POST['groups'] ?? []),
+            static fn($g): bool => is_string($g) && Permissions::validGroupName($g)
+        ));
+
+        $oldGroups = Permissions::assignedGroups($userId);
+
+        if (!Permissions::assignGroups($userId, $groups, (int)$admin['id'])) {
+            Response::json(['success' => false, 'message' => I18n::t('Invalid request')], 500);
+        }
+
+        ActivityLog::record([
+            'action'     => 'admin.user_groups',
+            'category'   => ActivityLog::CAT_ADMIN,
+            'target_type' => 'user',
+            'target_id'  => $userId,
+            'target_name' => $target['username'],
+            'summary'    => I18n::t('{:action}: {:name}', ['action' => I18n::t('Updated groups'), 'name' => $target['username']]),
+            'changes'    => ['groups' => [
+                'old' => implode(', ', $oldGroups) ?: '—',
+                'new' => implode(', ', $groups) ?: '—',
+            ]],
+        ]);
+
+        Hooks::run('admin.user.groups_changed', [$userId, $groups, $oldGroups, (int)$admin['id']]);
+
+        Response::json([
+            'success' => true,
+            'groups'  => $groups,
+            'role'    => in_array(Permissions::ADMIN_GROUP, $groups, true) ? 'admin' : 'user',
         ]);
     }
 

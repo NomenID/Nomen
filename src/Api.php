@@ -283,15 +283,41 @@ final class Api
             return;
         }
 
+        // 能力名（如 'users.manage'）：会话和 OAuth 令牌都按能力判
+        if (preg_match('/^[a-z][a-z0-9.]*$/', $access)) {
+            if (!self::userCan($access)) {
+                self::error(403, 'permissiondenied', t('You do not have permission to use this module.'));
+            }
+            return;
+        }
+
         // 插件写错权限名时拒绝，不能当成 public 放出去
         self::error(500, 'internalerror', 'Unknown access level: ' . $access);
     }
 
+    /** 当前请求（管理员会话或 OAuth Bearer 令牌）有没有某个能力。 */
+    public static function userCan(string $ability): bool
+    {
+        $tokenUserId = self::tokenUserId();
+        if ($tokenUserId !== null) {
+            return Gate::userCan($tokenUserId, $ability);
+        }
+
+        return Router::isAdmin() && Gate::can($ability);
+    }
+
     private static function tokenAdmin(): bool
+    {
+        return self::tokenUserId() !== null
+            && Gate::userCan((int)self::tokenUserId(), 'admin.access');
+    }
+
+    /** Bearer 令牌对应的用户 id；令牌无效、被吊销或账号停用返回 null。 */
+    private static function tokenUserId(): ?int
     {
         $token = self::bearerToken();
         if ($token === null) {
-            return false;
+            return null;
         }
 
         $config = require dirname(__DIR__) . '/config/app.php';
@@ -300,19 +326,19 @@ final class Api
         $db = Database::getInstance();
         foreach ($algorithms as $algorithm) {
             $stmt = $db->prepare(
-                'SELECT u.role FROM oauth_access_tokens t JOIN users u ON u.id = t.user_id '
+                'SELECT u.id FROM oauth_access_tokens t JOIN users u ON u.id = t.user_id '
                 . 'WHERE t.token_hash = :hash AND t.revoked = 0 AND t.expires_at > NOW() '
                 . 'AND u.status = 1 LIMIT 1'
             );
             $stmt->execute([':hash' => hash($algorithm, $token)]);
-            $role = $stmt->fetchColumn();
+            $userId = $stmt->fetchColumn();
 
-            if ($role !== false) {
-                return $role === 'admin';
+            if ($userId !== false) {
+                return (int)$userId;
             }
         }
 
-        return false;
+        return null;
     }
 
     private static function bearerToken(): ?string

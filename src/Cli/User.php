@@ -91,6 +91,17 @@ class User
         $db->prepare('UPDATE users SET role = :r WHERE id = :id')
             ->execute([':r' => $role, ':id' => $user['id']]);
 
+        // 权限判定以组为准，role 只是兼容快照：两处一起改才一致
+        if ($role === 'admin') {
+            $upsert = $db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql'
+                ? 'INSERT INTO user_groups (user_id, grp) VALUES (:u, :g) ON DUPLICATE KEY UPDATE grp = grp'
+                : 'INSERT INTO user_groups (user_id, grp) VALUES (:u, :g) ON CONFLICT(user_id, grp) DO NOTHING';
+            $db->prepare($upsert)->execute([':u' => (int)$user['id'], ':g' => 'administrator']);
+        } else {
+            $db->prepare('DELETE FROM user_groups WHERE user_id = :u AND grp = :g')
+                ->execute([':u' => (int)$user['id'], ':g' => 'administrator']);
+        }
+
         echo '  已把 ', $user['username'], ' 设为 ', $role, '。', PHP_EOL;
         return 0;
     }

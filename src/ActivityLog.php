@@ -209,7 +209,8 @@ class ActivityLog
         if ($actorType === '') {
             $sessionUserId = Session::get('user_id');
             if ($sessionUserId) {
-                $isAdmin = Session::get('role') === 'admin';
+                // 实时判定，别信 session 里可能过期的 role 快照
+                $isAdmin = Router::isAdmin();
                 $actorType = $isAdmin ? 'admin' : 'user';
                 $actorId   = (int)$sessionUserId;
                 $actorName = $actorName ?? (string)Session::get('username', '');

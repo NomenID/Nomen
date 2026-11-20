@@ -40,6 +40,14 @@ switch ($cmd) {
     case 'user:demote':
         exit(Nomen\Src\Cli\User::run(array_merge([substr($cmd, 5)], array_slice($args, 2))));
 
+    case 'group:assign':
+    case 'group:remove':
+    case 'group:list':
+        exit(Nomen\Src\Cli\Groups::run(array_merge([substr($cmd, 6)], array_slice($args, 2))));
+
+    case 'perms:list':
+        exit(Nomen\Src\Cli\Groups::run(['perms-list'] + array_slice($args, 1)));
+
     case 'doctor':
         exit(Nomen\Src\Cli\Doctor::run(array_slice($args, 2)));
 
@@ -69,6 +77,10 @@ switch ($cmd) {
         echo '  user:passwd <账号>   直接改密码（忘了管理员密码、发不出邮件时用），令牌一起撤销', PHP_EOL;
         echo '  user:promote <账号>  把账号提成管理员', PHP_EOL;
         echo '  user:demote <账号>   把管理员降回普通用户', PHP_EOL;
+        echo '  group:assign <账号> <组>  把用户加进权限组', PHP_EOL;
+        echo '  group:remove <账号> <组>  把用户移出权限组', PHP_EOL;
+        echo '  group:list [账号]     列组与授权；给账号时列它所在的组', PHP_EOL;
+        echo '  perms:list           列出全部已注册能力', PHP_EOL;
         echo '  doctor           自检：扩展、目录可写、配置、数据库连接、待应用迁移', PHP_EOL;
         echo '  backup [目录]    备份数据库（默认 data/backups）', PHP_EOL;
         echo '  restore <文件>   从备份恢复，--yes 跳过确认；恢复前会自动备份当前库', PHP_EOL;
