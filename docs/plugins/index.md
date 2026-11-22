@@ -15,7 +15,7 @@
 | [search](search.md) | **否** | 站内搜索 | 可选外部引擎 |
 | [api-code](../api-code.md) | **否** | 标识符绑定 + HTTP 接口发验证码登录 | 一个能发码的 HTTP 接口 |
 | [quick-central-login](quick-central-login.md) | 不随包 | 第一方应用免确认登录 | 核心 ≥ 1.3.2 |
-| [site-notice](site-notice.md) | 不随包 | 登录页 / 首页的提示条 | 核心 ≥ 1.5.0 |
+| [site-notice](site-notice.md) | 不随包 | 登录页的提示条 | 核心 ≥ 1.5.0 |
 
 ## 装一个不随包的
 

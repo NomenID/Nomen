@@ -55,5 +55,5 @@ php bin/nomen schedule list
 
 ## 和邮件队列的关系
 
-通知邮件的补发还是 `scripts/mail-drain.php` 常驻进程（见 `INSTALL.md` 的「邮件」一节），
+通知邮件的补发还是 `scripts/mail-drain.php` 常驻进程（见[安装文档](../install.md)的「邮件」一节），
 不在这个调度器里。

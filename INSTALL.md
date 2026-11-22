@@ -86,7 +86,7 @@ GRANT ALL PRIVILEGES ON `nomen`.* TO 'nomen'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
-表结构不用手动导，安装器会跑对应方言的 schema（`database/schema.sql` 或 `database/schema.sqlite.sql`，各 28 张表）。
+表结构不用手动导，安装器会跑对应方言的 schema（`database/schema.sql` 或 `database/schema.sqlite.sql`，各 30 张表）。
 
 ## 前端
 
@@ -142,7 +142,7 @@ php scripts/mail-drain.php
 插件有周期性的活（Pages 的 sitemap 预生成这类），由一条 cron 统一驱动：
 
 ```bash
-* * * * * php /path/to/site/bin/nomen schedule:run >/dev/null 2>&1
+* * * * * php /path/to/site/bin/nomen schedule run >/dev/null 2>&1
 ```
 
 不配也能用，只是任务要在后台手动触发；配完在后台「设置 → 定时任务」能看到心跳。细节见 `docs/ops/schedule.md`。
@@ -220,6 +220,20 @@ mysqldump -u <数据库用户> -p <数据库名> > /tmp/nomen-backup-$(date +%F)
 - 装了非随包的插件或皮肤，`plugins/`、`skins/` 要一起打进去。
 
 备份文件放在 web root 之外（`/tmp` 或专门的备份目录）。放在 `public/` 下等于对外公开。
+
+### 用 `bin/nomen deploy`（1.9.1 起推荐）
+
+1.9.1 起可以直接用命令装本地包，规则和自动更新是同一套：
+
+```bash
+php bin/nomen deploy /tmp/nomen-<版本>.zip --dry-run   # 先看：覆盖哪些、跳过哪些、删哪些
+php bin/nomen deploy /tmp/nomen-<版本>.zip             # 确认后执行，自动备份并跑迁移
+```
+
+`--dry-run` 打印的「跳过」列表就是站点自己的东西：`config/installed.php`、`.env`、`data/`、上传目录、
+`config/plugins.php`、`config/skins.php` 这些都不会被碰。加 `--sha256=<值>` 可以顺带校验包来源。
+
+下面的手工覆盖流程适用于更老的版本，或者需要自己控制文件的时候。
 
 ### 覆盖文件
 

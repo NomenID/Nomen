@@ -17,13 +17,13 @@
 | [安装与升级](install.md) | 环境要求、网页向导、命令行安装、目录权限、升级步骤 |
 | [配置总览](config.md) | `.env`、`config/*.php`、`installed.php`、后台即时设置的优先级和全部配置项 |
 | [品牌与外观](branding.md) | 站点名、图标、版权、法律链接、页脚、首页 |
-| [账号与登录](accounts.md) | 注册、五种登录方式、会话、设备管理、邮箱管理 |
+| [账号与登录](accounts.md) | 注册、登录方式（含插件扩展）、会话、设备管理、邮箱管理 |
 | [两步验证](two-factor.md) | 站点策略、用户策略、TOTP、恢复码 |
 | [账号恢复](recovery.md) | 申诉流程、管理员审核、一次性恢复链接、强制安全修复 |
 | [家庭与监护](family.md) | 未成年账号、家长同意、家长邮箱、家庭页 |
 | [第三方登录](oauth-providers.md) | GitHub / Google / Microsoft / CaelLabID 与自定义 OAuth2 提供方 |
 | [开放平台](open-platform.md) | 开发者注册、自助创建 OAuth 应用、回调地址与 scope |
-| [OpenID Connect](oidc.md) | 发现文档、JWKS、id_token 与接入方要注意的事 |
+| [OpenID Connect](oidc.md) | OAuth 2.0 / OIDC 接入：授权码、PKCE、令牌、id_token、错误码 |
 | [站内页面](pages.md) | Pages 插件：在站内写文档、Markdown 编辑器、挂载路径 |
 | [搜索](search.md) | 搜索插件：默认查数据库，也可接 Meilisearch / OpenSearch / Elasticsearch |
 | [API 发码登录](api-code.md) | api-code 插件：标识符绑定 + HTTP 接口发验证码登录 |
@@ -83,7 +83,6 @@
 | [权限模型](internals/permissions.md) | 组与能力、`Gate::can()`、中间件、scope、插件怎么注册能力 |
 | [错误处理](internals/error-handling.md) | 报错页、500 编号、`APP_DEBUG`、日志前缀 |
 | [兼容与升级](internals/compatibility.md) | 版本号两档、升级流程、什么算破坏性改动、无伪静态模式 |
-| [把 Nomen 当身份提供方接入](integrate/oidc-client.md) | OIDC / OAuth 端点、PKCE、令牌、`sub`、错误码 |
 | [接入外部身份提供方](integrate/oauth-provider.md) | 后台配置、字段映射、已验证邮箱才合并 |
 | [邮件（SMTP）](integrate/smtp.md) | 配置、SPF/DKIM/DMARC、常见报错 |
 | [搜索后端](integrate/search-backends.md) | Meilisearch / OpenSearch / ES 配置、建索引、重建窗口期 |
@@ -94,12 +93,13 @@
 
 | 文档 | 内容 |
 |---|---|
-| [官方插件](plugins/index.md) | 七个插件各干什么、哪些随包、默认是否启用 |
+| [官方插件](plugins/index.md) | 八个插件各干什么、哪些随包、默认是否启用 |
 | [Pages](plugins/pages.md) | 站内文档：目录、侧边栏、Markdown 导入 |
 | [Open Platform](plugins/open-platform.md) | 开发者门户、应用自助管理 |
 | [GeoIP](plugins/geoip.md) | 依赖要自己装、mmdb 放哪、CDN 下的真实 IP |
 | [TOTP QR](plugins/totp-qr.md) | 本地画二维码、降级行为 |
 | [Search](plugins/search.md) | 站内搜索、引擎切换 |
+| [API 发码登录](api-code.md) | 标识符绑定、HTTP 接口发验证码登录（随包分发，默认关闭） |
 | [Quick Central Login](plugins/quick-central-login.md) | 第一方免确认、`spicallogin` |
 | [Site Notice](plugins/site-notice.md) | 登录页提示条（不随包） |
 | [官方皮肤](skins/index.md) | 两个皮肤的定位和启用规则 |

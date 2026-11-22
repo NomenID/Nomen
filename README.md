@@ -86,6 +86,7 @@ Nginx 要加伪静态，服务器环境、定时任务和升级见下面的[部�
 **管理与运维**
 
 - Vue 单页的管理后台：用户、应用、接入点、恢复工单、日志、插件
+- 后台权限按组分配：在「权限」页给组配能力，用户详情里勾组，菜单和接口一起生效
 - 活动日志可按类型、执行者、目标筛选，能看字段前后对比，也能导出 CSV
 - 站点健康检查：PHP 与扩展、数据库、目录权限、cron、邮件、缓存、更新、磁盘等，插件可以追加检查项
 - 概览页的活动 / 新闻卡片可以上下排序，按管理员保存
@@ -145,7 +146,14 @@ location / {
 
 ### 升级
 
-下载新版本覆盖旧文件，注意保留这几项：
+从 1.9.1 起推荐用 `bin/nomen deploy` 装本地包：它会先预演，确认后自动备份、跳过站点私有文件、跑迁移。
+
+```bash
+php bin/nomen deploy /tmp/nomen-<版本>.zip --dry-run
+php bin/nomen deploy /tmp/nomen-<版本>.zip
+```
+
+手工覆盖也可以，注意保留这几项：
 
 - `config/installed.php`
 - `.env`
@@ -173,6 +181,7 @@ php bin/nomen doctor
 | --- | --- |
 | `install` | 交互式安装：建库、导表、建管理员、写 `.env` |
 | `upgrade` | 覆盖新版本文件之后运行：核心迁移 + 插件迁移 |
+| `deploy <包.zip> [--dry-run]` | 装本地发布包：预演、备份、跳过站点私有文件、跑迁移 |
 | `doctor` | 自检：扩展、目录可写、配置、数据库连接、待执行的迁移 |
 | `backup [目录]` | 备份数据库，默认放在 `data/backups/` |
 | `restore <文件>` | 从备份恢复，恢复前会先把当前库再备份一次 |
@@ -210,7 +219,7 @@ php bin/nomen doctor
 
 还有两个不随包分发，需要时自己装：`quick-central-login`（第一方应用免确认登录）和 `site-notice`（登录页提示条）。
 
-开发文档：[plugins/README.md](plugins/README.md)
+开发文档：[插件开发](docs/plugin-dev/index.md)
 
 ### 皮肤
 
@@ -221,7 +230,7 @@ php bin/nomen doctor
 | [`nomen-2026`](https://github.com/NomenID/skin-nomen-2026) | 默认皮肤 |
 | [`nomen-ssr`](https://github.com/NomenID/skin-nomen-ssr) | 纯 PHP 服务端渲染 |
 
-开发文档：[skins/README.md](skins/README.md)
+开发文档：[皮肤开发](docs/skin-dev/index.md)
 
 ### 前端与测试
 

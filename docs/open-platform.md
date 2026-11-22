@@ -32,4 +32,4 @@
 ## 详细说明
 
 数据表、路由清单、坑：见 [官方插件 / Open Platform](plugins/open-platform.md)。
-接入方怎么用这些应用拿身份：见 [把 Nomen 当身份提供方接入](integrate/oidc-client.md)。
+接入方怎么用这些应用拿身份：见 [OpenID Connect](oidc.md)。

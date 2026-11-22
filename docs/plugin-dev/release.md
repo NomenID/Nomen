@@ -76,13 +76,13 @@ GitHub Release 里写这一版改了什么（用户能感受到的变化，不�
 
 ## 随核心包分发
 
-如果插件要跟核心发布包一起发（目前是五个：`pages`、`open-platform`、`geoip`、`totp-qr`、`search`），
+如果插件要跟核心发布包一起发（目前是六个：`pages`、`open-platform`、`geoip`、`totp-qr`、`search`、`api-code`），
 要做三件事：
 
 1. 核心仓 `code-scripts/build-dist.php` 的 `$bundledPlugins` 加上 slug；
 2. `config/plugins.php` 的 `enabled` 默认列表决定装完是否默认启用——**要谨慎**，默认启用意味着每个新站都多一份
    攻击面和维护面；`search` 就是随包但默认关闭的例子；
-3. `plugins/README.md` 的「自带插件」表格加一行。
+3. `docs/plugins/index.md` 的官方插件表格加一行。
 
 打包机会先把这些插件 clone 到 `plugins/` 再打包，缺一个脚本直接报错退出。
 

@@ -120,6 +120,15 @@ php bin/nomen install
 
 ## 六、升级
 
+1.9.1 起推荐用 `bin/nomen deploy`，它和自动更新走同一套规则：先预演，确认后自动备份、跳过站点私有文件、跑迁移。
+
+```bash
+php bin/nomen deploy /tmp/nomen-<版本>.zip --dry-run
+php bin/nomen deploy /tmp/nomen-<版本>.zip
+```
+
+手工覆盖的话：
+
 ```bash
 # 1. 备份
 mysqldump --single-transaction -u<用户> -p <库> | gzip > /tmp/nomen-db-$(date +%Y%m%d).sql.gz

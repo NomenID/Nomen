@@ -85,13 +85,13 @@ $bundledPlugins = ['pages', 'open-platform', 'geoip', 'totp-qr', 'search', 'api-
 $bundledSkins = ['nomen-2026', 'nomen-ssr'];
 foreach ($bundledPlugins as $bundled) {
     if (!is_file($pluginsDir . '/' . $bundled . '/plugin.json')) {
-        fwrite(STDERR, '缺插件：' . $pluginsDir . '/' . $bundled . '（见 plugins/README.md）' . PHP_EOL);
+        fwrite(STDERR, '缺插件：' . $pluginsDir . '/' . $bundled . '（见 docs/plugin-dev/index.md）' . PHP_EOL);
         exit(1);
     }
 }
 foreach ($bundledSkins as $bundled) {
     if (!is_file($skinsDir . '/' . $bundled . '/skin.json')) {
-        fwrite(STDERR, '缺皮肤：' . $skinsDir . '/' . $bundled . '（见 skins/README.md）' . PHP_EOL);
+        fwrite(STDERR, '缺皮肤：' . $skinsDir . '/' . $bundled . '（见 docs/skin-dev/index.md）' . PHP_EOL);
         exit(1);
     }
 }
