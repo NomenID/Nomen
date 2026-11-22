@@ -15,6 +15,10 @@
 可选扩展缺了会**降级**，不报错：没有 `gd` 时头像上传变成填链接，没有 `fileinfo` 时按扩展名判断，
 没有 `redis` 时会话和缓存退回文件。`php bin/nomen doctor` 会把当前能力列出来。
 
+Argon2 也是可选的：PHP 没编 Argon2 时密码会自动改用 bcrypt，日志里会有一条
+`[SECURITY] 密码哈希配置已降级`。内存很紧的主机可以在 `config/passwords.php` 里把
+`memory_cost` 调到 19456（19 MiB），继续用 Argon2id。
+
 ## 一、放文件
 
 ```bash

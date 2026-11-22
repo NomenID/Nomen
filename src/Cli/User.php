@@ -10,6 +10,7 @@
 namespace Nomen\Src\Cli;
 
 use Nomen\Src\Database;
+use Nomen\Src\Password;
 use PDO;
 
 /**
@@ -71,7 +72,7 @@ class User
         }
 
         $db->prepare('UPDATE users SET password_hash = :p WHERE id = :id')
-            ->execute([':p' => password_hash($password . $pepper, PASSWORD_ARGON2ID), ':id' => $user['id']]);
+            ->execute([':p' => Password::hash($password, $pepper), ':id' => $user['id']]);
 
         // 密码换了，之前发出去的令牌跟着失效，免得旧会话还能继续用
         $db->prepare('UPDATE oauth_access_tokens SET revoked = 1 WHERE user_id = :u')->execute([':u' => $user['id']]);

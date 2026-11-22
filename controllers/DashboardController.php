@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{ActivityLog, AppData, Database, Session, Csrf, Response, Email, EmailTemplate, EmailPolicy, EmailSet, I18n, RateLimiter, GeoIP, NotificationHelper, RecoveryHelper, FamilyHelper, Skins};
+use Nomen\Src\{ActivityLog, AppData, Database, Session, Csrf, Response, Email, EmailTemplate, EmailPolicy, EmailSet, I18n, RateLimiter, GeoIP, NotificationHelper, RecoveryHelper, FamilyHelper, Skins, Password};
 use Nomen\Controllers\DeviceController;
 use PDO;
 
@@ -138,25 +138,22 @@ class DashboardController
 
         $config = require __DIR__ . '/../config/app.php';
         $pepper = $config['pepper'] ?? '';
-        $currentPasswordWithPepper = $currentPassword . $pepper;
 
         if (!$recoveryMode
-            && !password_verify($currentPasswordWithPepper, $user['password_hash'])
-            && !password_verify($currentPassword, $user['password_hash'])) {
+            && !Password::verify($currentPassword, (string)$user['password_hash'], $pepper)) {
             if ($isAjax) Response::json(['success' => false, 'message' => t('Wrong current password')]);
             Session::flash('error', t('Wrong current password'));
             Response::redirect($fallback);
         }
 
         // 恢复模式下不校验旧密码，若允许改回原密码，恢复流程等于原地打转
-        if (password_verify($newPassword . $pepper, $user['password_hash'])
-            || password_verify($newPassword, $user['password_hash'])) {
+        if (Password::verify($newPassword, (string)$user['password_hash'], $pepper)) {
             if ($isAjax) Response::json(['success' => false, 'message' => t('New password must differ from the current one')]);
             Session::flash('error', t('New password must differ from the current one'));
             Response::redirect($fallback);
         }
 
-        $newHash = password_hash($newPassword . $pepper, PASSWORD_ARGON2ID);
+        $newHash = Password::hash($newPassword, $pepper);
         $stmt = $this->db->prepare('UPDATE users SET password_hash = :p WHERE id = :id');
         $stmt->execute([':p' => $newHash, ':id' => $userId]);
 
@@ -887,8 +884,7 @@ class DashboardController
         $pepper = (string)($config['pepper'] ?? '');
 
         if ($password === ''
-            || (!password_verify($password . $pepper, (string)$user['password_hash'])
-                && !password_verify($password, (string)$user['password_hash']))) {
+            || !Password::verify($password, (string)$user['password_hash'], $pepper)) {
             $this->emailBack($isAjax, t('Wrong current password'));
         }
 
@@ -1135,14 +1131,13 @@ class DashboardController
         $config = require __DIR__ . '/../config/app.php';
         $pepper = $config['pepper'] ?? '';
 
-        if (password_verify($newPassword . $pepper, $user['password_hash'])
-            || password_verify($newPassword, $user['password_hash'])) {
+        if (Password::verify($newPassword, (string)$user['password_hash'], $pepper)) {
             if ($isAjax) Response::json(['success' => false, 'message' => t('New password must differ from the current one')]);
             Session::flash('error', t('New password must differ from the current one'));
             Response::redirect('/settings/security#sec-reset-code');
         }
 
-        $newHash = password_hash($newPassword . $pepper, PASSWORD_ARGON2ID);
+        $newHash = Password::hash($newPassword, $pepper);
         $stmt = $this->db->prepare(
             'UPDATE users SET password_hash = :p, password_reset_code = NULL, password_reset_code_expires_at = NULL WHERE id = :id'
         );
@@ -1421,7 +1416,7 @@ class DashboardController
             Response::json(['success' => false, 'message' => t('Temp keys last at most 14 days')]);
         }
 
-        $keyHash = password_hash($keyValue, PASSWORD_ARGON2ID);
+        $keyHash = Password::hash($keyValue, '');
 
         $stmt = $this->db->prepare(
             'INSERT INTO user_temp_keys (user_id, key_hash, label, expires_at) VALUES (:u, :k, :l, :e)'

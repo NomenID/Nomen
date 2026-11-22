@@ -11,6 +11,7 @@
 | [email-policy.php](email-policy.md) | 11 |
 | [email.php](email.md) | 7 |
 | [identity-providers.php](identity-providers.md) | 56 |
+| [passwords.php](passwords.md) | 3 |
 | [permissions.php](permissions.md) | 11 |
 | [plugins.php](plugins.md) | 1 |
 | [skins.php](skins.md) | 2 |

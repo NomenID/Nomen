@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{ActivityLog, Csrf, Database, Hooks, IdentityAuth, IdentityProviders, LoginMethods, Response, Session, Unid};
+use Nomen\Src\{ActivityLog, Csrf, Database, Hooks, IdentityAuth, IdentityProviders, LoginMethods, Response, Session, Unid, Password};
 use PDO;
 use Throwable;
 
@@ -228,7 +228,7 @@ class IdentityController
         $base = $profile['name'] !== '' ? $profile['name'] : ($profile['email'] !== '' ? strstr($profile['email'], '@', true) : $provider['slug'] . '-user');
         $username = $this->uniqueUsername($base);
         $email = $profile['email'] !== '' ? $profile['email'] : null;
-        $passwordHash = password_hash(bin2hex(random_bytes(32)) . (string)($config['pepper'] ?? ''), PASSWORD_ARGON2ID);
+        $passwordHash = Password::hash(bin2hex(random_bytes(32)), (string)($config['pepper'] ?? ''));
 
         $stmt = $db->prepare(
             'INSERT INTO users (unid, username, email, password_hash, display_name, avatar, email_verified, locale)

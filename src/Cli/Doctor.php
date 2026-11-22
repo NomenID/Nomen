@@ -11,6 +11,7 @@ namespace Nomen\Src\Cli;
 
 use Nomen\Src\Brand;
 use Nomen\Src\Database;
+use Nomen\Src\Password;
 
 /**
  * 装完 / 搬家 / 升完级之后跑一遍：把「网站打不开但日志里看不出所以然」的那些前提逐条查掉。
@@ -61,6 +62,29 @@ class Doctor
 
         $pepper = (string)(getenv('APP_PEPPER') ?: ($installed['pepper'] ?? ''));
         self::check('APP_PEPPER', $pepper !== '' && !str_starts_with($pepper, 'change-me-to'), $pepper === '' ? '没配置' : '已配置');
+
+        try {
+            $password = Password::describe();
+            $detail = $password['algorithm'];
+            if ($password['degraded'] === 'no-argon2') {
+                $detail .= '（PHP 没有 Argon2，已自动降级）';
+            } elseif ($password['degraded'] === 'low-memory') {
+                $detail .= '（memory_limit 放不下 Argon2，已自动降级）';
+            } elseif ($password['degraded'] === 'invalid-config') {
+                $detail .= '（config/passwords.php 有无效值，已用默认）';
+            }
+
+            $problem = Password::problem();
+            if ($problem !== null) {
+                self::check('密码哈希', false, $problem);
+            } elseif ($password['degraded'] !== null) {
+                self::check('密码哈希', false, $detail, false);
+            } else {
+                self::check('密码哈希', true, $detail);
+            }
+        } catch (\Throwable $e) {
+            self::check('密码哈希', false, $e->getMessage());
+        }
 
         $baseUrl = (string)Brand::get('base_url', '');
         $looksLocal = $baseUrl === '' || str_contains($baseUrl, 'localhost') || str_contains($baseUrl, '127.0.0.1');

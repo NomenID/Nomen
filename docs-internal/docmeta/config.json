@@ -6,6 +6,7 @@
     "email-policy.php": "邮箱域名黑名单。注册和换邮箱时按这里拦截，拦下来统一回同一句文案，不按域名区分理由——分开说等于告诉对方只差一个域名就过了。",
     "email.php": "SMTP 发件配置。整份留空就不发信，注册激活、找回密码、通知邮件都会静默跳过，功能本身不受影响。",
     "identity-providers.php": "第三方登录的预设。后台「登录方式」里可以逐字段覆盖，这张表只是新建提供方时的初始值；字段名对应各家 userinfo 返回的 JSON 键。",
+    "passwords.php": "密码哈希。默认按主机能力自动选 Argon2id，PHP 没有 Argon2 或 `memory_limit` 放不下时自动改用 bcrypt。改动只影响以后写入的新哈希；已有哈希在用户下次登录时按 `upgrade` 自动改写。",
     "plugins.php": "启用的插件清单。改这里等于开关插件，插件代码在 `plugins/<slug>`（本地开发时可能是 `paths.local.php` 指的外部目录）。",
     "skins.php": "皮肤：站点默认用哪个、允许用户选哪些。用户自己的选择存在 `users.skin`，未登录设备用 `default`。"
   },

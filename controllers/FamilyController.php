@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{ActivityLog, AppData, Csrf, Database, Email, EmailTemplate, EmailPolicy, FamilyHelper, Gender, I18n, NotificationHelper, RateLimiter, RecoveryHelper, Response, Session, VerifyCode, Unid};
+use Nomen\Src\{ActivityLog, AppData, Csrf, Database, Email, EmailTemplate, EmailPolicy, FamilyHelper, Gender, I18n, NotificationHelper, RateLimiter, RecoveryHelper, Response, Session, VerifyCode, Unid, Password};
 use PDO;
 
 /**
@@ -247,7 +247,7 @@ class FamilyController
             $stmt->execute([
                 ':unid' => Unid::generate(),
                 ':u'  => $username,
-                ':p'  => password_hash($password . ($config['pepper'] ?? ''), PASSWORD_ARGON2ID),
+                ':p'  => Password::hash($password, (string)($config['pepper'] ?? '')),
                 ':d'  => $username,
                 ':c'  => $country,
                 ':bd' => $birthDate,
@@ -412,7 +412,7 @@ class FamilyController
 
         $config = require __DIR__ . '/../config/app.php';
         $this->db->prepare('UPDATE users SET password_hash = :p WHERE id = :id')
-            ->execute([':p' => password_hash($password . ($config['pepper'] ?? ''), PASSWORD_ARGON2ID), ':id' => $childId]);
+            ->execute([':p' => Password::hash($password, (string)($config['pepper'] ?? '')), ':id' => $childId]);
 
         // 密码变了就把孩子的其他会话踢掉，别让旧会话继续挂着
         Session::destroyOtherSessionsFor($childId);

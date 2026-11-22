@@ -1,9 +1,10 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{ActivityLog, Database, Session, Csrf, Response, RateLimiter, Email, EmailTemplate, Captcha, GeoIP, Gender, I18n, RecoveryHelper, VerifyCode, FamilyHelper, EmailPolicy, EmailSet, Settings, Skins, Hooks, Features, LoginMethods, Unid};
+use Nomen\Src\{ActivityLog, Database, Session, Csrf, Response, RateLimiter, Email, EmailTemplate, Captcha, GeoIP, Gender, I18n, RecoveryHelper, VerifyCode, FamilyHelper, EmailPolicy, EmailSet, Settings, Skins, Hooks, Features, LoginMethods, Unid, Password};
 use Nomen\Controllers\{DeviceController, DashboardController};
 use PDO;
+use Throwable;
 
 class AuthController
 {
@@ -122,14 +123,17 @@ class AuthController
         $user = null;
         $disabledMatch = null;
         foreach ($accounts as $candidate) {
-            if (!password_verify($password . $pepper, (string)$candidate['password_hash'])) {
-                if (password_verify($password, (string)$candidate['password_hash'])) {
-                    // 历史遗留的无 pepper 哈希，验证通过后就地升级
-                    $newHash = password_hash($password . $pepper, PASSWORD_ARGON2ID);
+            $checked = Password::check($password, (string)$candidate['password_hash'], $pepper);
+            if (!$checked['ok']) {
+                continue;
+            }
+            if ($checked['upgrade']) {
+                // 老算法 / 老参数 / 无 pepper 的哈希，登录成功后就地升级；写失败不影响这次登录
+                try {
                     $this->db->prepare('UPDATE users SET password_hash = :p WHERE id = :id')
-                        ->execute([':p' => $newHash, ':id' => $candidate['id']]);
-                } else {
-                    continue;
+                        ->execute([':p' => Password::hash($password, $pepper), ':id' => $candidate['id']]);
+                } catch (Throwable $e) {
+                    error_log('[SECURITY] 密码哈希升级失败: ' . $e->getMessage());
                 }
             }
             if ((int)$candidate['status'] === 1) {
@@ -672,7 +676,7 @@ class AuthController
         $keys = $stmt->fetchAll();
 
         foreach ($keys as $key) {
-            if (password_verify($password, $key['key_hash'])) {
+            if (Password::verify($password, (string)$key['key_hash'], '')) {
                 $stmt = $this->db->prepare(
                     'UPDATE user_temp_keys SET last_used_at = NOW() WHERE id = :id'
                 );
@@ -1361,7 +1365,7 @@ class AuthController
         // 创建用户
         $config = require __DIR__ . '/../config/app.php';
         $pepper = $config['pepper'] ?? '';
-        $passwordHash = password_hash($password . $pepper, PASSWORD_ARGON2ID);
+        $passwordHash = Password::hash($password, $pepper);
             $stmt = $this->db->prepare(
                 'INSERT INTO users (unid, username, email, password_hash, display_name, email_verified, country, birth_date, gender, locale) VALUES (:unid, :u, :e, :p, :d, 0, :c, :bd, :g, :loc)'
         );
@@ -1470,7 +1474,7 @@ class AuthController
 
         $config = require __DIR__ . '/../config/app.php';
         $code = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-        $passwordHash = password_hash($password . ($config['pepper'] ?? ''), PASSWORD_ARGON2ID);
+        $passwordHash = Password::hash($password, (string)($config['pepper'] ?? ''));
 
         // 过期的待注册行没人清理（这里没有定时任务），写入前顺手扫掉
         $this->db->prepare('DELETE FROM pending_registrations WHERE expires_at < NOW()')->execute();

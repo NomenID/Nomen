@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{ActivityLog, Database, Session, Csrf, Response, TOTP, Email, EmailTemplate, RateLimiter, GeoIP, I18n, RecoveryHelper, VerifyCode, FamilyHelper, EmailSet};
+use Nomen\Src\{ActivityLog, Database, Session, Csrf, Response, TOTP, Email, EmailTemplate, RateLimiter, GeoIP, I18n, RecoveryHelper, VerifyCode, FamilyHelper, EmailSet, Password};
 use Nomen\Controllers\DeviceController;
 use PDO;
 
@@ -391,8 +391,7 @@ class TwoFactorController
         $config = require __DIR__ . '/../config/app.php';
         $pepper = $config['pepper'] ?? '';
         if (!RecoveryHelper::isActiveFor($userId)
-            && !password_verify($password . $pepper, $user['password_hash'])
-            && !password_verify($password, $user['password_hash'])) {
+            && !Password::verify($password, (string)$user['password_hash'], $pepper)) {
             Response::json(['success' => false, 'message' => t('Wrong password')]);
         }
 
@@ -483,8 +482,7 @@ class TwoFactorController
         $config = require __DIR__ . '/../config/app.php';
         $pepper = $config['pepper'] ?? '';
         if (!RecoveryHelper::isActiveFor($userId)
-            && !password_verify($password . $pepper, $user['password_hash'])
-            && !password_verify($password, $user['password_hash'])) {
+            && !Password::verify($password, (string)$user['password_hash'], $pepper)) {
             Response::json(['success' => false, 'message' => t('Wrong password')]);
         }
 
@@ -503,7 +501,7 @@ class TwoFactorController
             $codes[] = $code;
             $rows[] = [
                 ':u' => $userId,
-                ':c' => password_hash($code, PASSWORD_ARGON2ID),
+                ':c' => Password::hash($code, ''),
                 ':b' => $batchId,
             ];
         }
@@ -552,8 +550,7 @@ class TwoFactorController
         $config = require __DIR__ . '/../config/app.php';
         $pepper = $config['pepper'] ?? '';
         if (!RecoveryHelper::isActiveFor($userId)
-            && !password_verify($password . $pepper, $user['password_hash'])
-            && !password_verify($password, $user['password_hash'])) {
+            && !Password::verify($password, (string)$user['password_hash'], $pepper)) {
             Response::json(['success' => false, 'message' => t('Wrong password')]);
         }
 
@@ -606,7 +603,7 @@ class TwoFactorController
         $codes = $stmt->fetchAll();
 
         foreach ($codes as $row) {
-            if (password_verify($code, $row['code_hash'])) {
+            if (Password::verify($code, (string)$row['code_hash'], '')) {
                 // 标记为已使用
                 $stmt = $this->db->prepare(
                     'UPDATE user_recovery_codes SET used_at = NOW() WHERE id = :id'
@@ -708,9 +705,7 @@ class TwoFactorController
 
                 $config = require __DIR__ . '/../config/app.php';
                 $pepper = $config['pepper'] ?? '';
-                if (password_verify($value . $pepper, $user['password_hash'])) return true;
-                if (password_verify($value, $user['password_hash'])) return true;
-                return false;
+                return Password::verify($value, (string)$user['password_hash'], $pepper);
 
             case 'email_code':
                 if (VerifyCode::check(VerifyCode::TWO_FACTOR, $userId, $value) !== 'ok') {
@@ -735,7 +730,7 @@ class TwoFactorController
                 $stmt->execute([':u' => $userId]);
                 $codes = $stmt->fetchAll();
                 foreach ($codes as $row) {
-                    if (password_verify($value, $row['code_hash'])) {
+                    if (Password::verify($value, (string)$row['code_hash'], '')) {
                         $this->db->prepare('UPDATE user_recovery_codes SET used_at = NOW() WHERE id = :id')
                             ->execute([':id' => $row['id']]);
                         ActivityLog::record([
@@ -794,7 +789,7 @@ class TwoFactorController
         for ($i = 0; $i < 8; $i++) {
             $code = $this->generateRecoveryCode();
             $codes[] = $code;
-            $stmt->execute([':u' => $userId, ':c' => password_hash($code, PASSWORD_ARGON2ID), ':b' => $batchId]);
+            $stmt->execute([':u' => $userId, ':c' => Password::hash($code, ''), ':b' => $batchId]);
         }
         return $codes;
     }

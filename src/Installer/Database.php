@@ -14,6 +14,7 @@ use Nomen\Src\Db\Connection;
 use Nomen\Src\Upgrade as AppUpgrade;
 use Nomen\Src\Db\Dialect;
 use Nomen\Src\Database as AppDatabase;
+use Nomen\Src\Password;
 use PDO;
 use PDOException;
 
@@ -94,7 +95,7 @@ class Database
             \Nomen\Src\Unid::generate(),
             $username,
             $email,
-            password_hash($password . $pepper, PASSWORD_ARGON2ID),
+            Password::hash($password, $pepper),
             $username,
         ]);
 

@@ -3,13 +3,28 @@
 这一页是「出厂设置里哪些是安全相关的、别乱动」。部署层面的（nginx、权限、备份）在
 [反向代理](integrate/reverse-proxy.md) 和 [备份恢复](integrate/backup-restore.md)。
 
+## 密码哈希
+
+算法和参数在 `config/passwords.php`，默认 `auto`：主机有 Argon2id 且 `memory_limit` 放得下
+（PHP 默认要 64 MiB）就用 Argon2id，否则自动改用 bcrypt。
+
+- 低内存主机不必直接换 bcrypt：把 Argon2id 降到 OWASP 的最低参数
+  `'memory_cost' => 19456, 'time_cost' => 2, 'threads' => 1` 更划算。
+  注意这只影响新哈希；已有 Argon2id 哈希验证时仍要按它自己的 `memory_cost` 分配内存。
+- 完全没编 Argon2 的 PHP 会退到 bcrypt，日志里有一条 `[SECURITY] 密码哈希配置已降级`；
+  站点健康会把它标成 `recommended`。
+- bcrypt 路径的 pepper 走 HMAC-SHA-384 预哈希，不会撞上 bcrypt 的 72 字节截断。
+- 换算法 / 换参数**不会让老用户登不上**：验证按库里那条哈希自己的算法走。
+- 老哈希在登录成功时自动改写（`upgrade => 'on_login'`）；无 pepper 的历史哈希也走这条路。
+  改成 `off` 就只等用户自己改密码。
+- **别在控制器里直接调 `password_hash`**，统一走 `Nomen\Src\Password`，否则换算法时会有漏网的。
+
 ## pepper
 
-密码是 `password_hash($password . $pepper, PASSWORD_ARGON2ID)`：**Argon2id，pepper 直接拼在明文后面**。
+pepper 拼在明文后面（Argon2id）或作为 HMAC 密钥（bcrypt），不存库。
 
 - 存在 `.env` 的 `APP_PEPPER`（或 `installed.php` 的 `pepper`）。
 - **有用户之后绝不能改**：改了所有密码都验不过，而且无法回滚。
-- 老数据里的无 pepper 哈希会在一次成功登录后就地升级成带 pepper 的 Argon2id。
 - 没配时启动会往日志写 `[SECURITY] APP_PEPPER 未配置`。
 
 ## CSRF
@@ -102,12 +117,13 @@ grep -i '^APP_DEBUG' .env
 没有强制的复杂度规则（长度、字符种类）——这类规则实际收益低，还催生 `Password1!`。
 真正起作用的是：
 
-- Argon2id + pepper；
+- Argon2id（主机不支持时 bcrypt）+ pepper；
 - 登录限流 + 验证码；
 - 可选的两步验证；
 - 账号恢复流程要人工审核。
 
-要加自己的规则，在 `handleRegister` 里加校验，别改 `password_hash` 的调用方式。
+要加自己的规则，在 `handleRegister` 里加校验；哈希统一走 `Nomen\Src\Password`，
+别在控制器里直接调 `password_hash`。
 
 ## 自查清单
 

@@ -17,14 +17,15 @@
 | `config/installed.php` | 安装器生成，之后手工改 | 不进（部署时排除） |
 | `config/*.php` | 开发者 / 站长改默认值 | 进 |
 | `config/autoupdate.php` | 站长配更新源 / 备份 / 计划 | 进模板，站点改过的版本升级时保留 |
+| `config/passwords.php` | 密码哈希算法 / 参数 / 升级策略 | 进模板，站点改过的版本升级时保留 |
 | 后台「设置」 | 站长 | 进数据库 |
 
 **升级时排除 `config/installed.php` 和 `.env`**，否则等于重新装一遍；改过 `config/autoupdate.php` 的站点也
 把它排除（自动更新本身不会覆盖它）。
 
 可选配置文件（`genders.php`、`countries.php`、`consent-age*.php`、`email-policy.php`、
-`identity-providers.php`、`plugins.php`、`skins.php`、`brand.php`、`autoupdate.php`）**不在时用内置默认值**，
-不会报错；`config/app.php`（含数据库连接）和 `installed.php` 仍是必需的。
+`identity-providers.php`、`plugins.php`、`skins.php`、`brand.php`、`autoupdate.php`、`passwords.php`）
+**不在时用内置默认值**，不会报错；`config/app.php`（含数据库连接）和 `installed.php` 仍是必需的。
 
 ## .env
 

@@ -64,6 +64,9 @@ final class SiteHealth
         [$mailStatus, $mailDescription] = self::mailTest();
         self::add($tests, 'mail', t('Mail'), [$mailStatus, $mailDescription], '');
 
+        [$passwordStatus, $passwordDescription] = self::passwordTest();
+        self::add($tests, 'password', t('Password hashing'), [$passwordStatus, $passwordDescription], Password::describe()['algorithm']);
+
         [$urlStatus, $urlDescription] = self::urlTest();
         self::add($tests, 'site-url', t('Site URL'), [$urlStatus, $urlDescription], (string)Brand::get('base_url'));
 
@@ -459,6 +462,57 @@ final class SiteHealth
         // 概览页的摘要按语言各缓一份，忽略规则变了要一起清掉，别让红条多留一分钟
         foreach (I18n::slugs() as $slug) {
             Cache::forget('admin.site_health.summary.' . $slug);
+        }
+    }
+
+    /** @return array{0: string, 1: string} */
+    private static function passwordTest(): array
+    {
+        $info = Password::describe();
+
+        $problem = Password::problem();
+        if ($problem !== null) {
+            return ['critical', sprintf(t('Password hashing is not working: %s'), $problem)];
+        }
+
+        $parts = [sprintf(t('Passwords use %s.'), $info['algorithm'])];
+        $status = 'good';
+        if ($info['degraded'] === 'no-argon2') {
+            $parts[] = t('PHP does not provide Argon2, so bcrypt is used instead.');
+            $status = 'recommended';
+        } elseif ($info['degraded'] === 'low-memory') {
+            $parts[] = t('The configured Argon2 memory does not fit this PHP\'s memory_limit, so bcrypt is used instead.');
+            $status = 'recommended';
+        } elseif ($info['degraded'] === 'invalid-config') {
+            $parts[] = t('config/passwords.php has invalid values; defaults are in use.');
+            $status = 'recommended';
+        }
+
+        $legacy = self::legacyHashCount($info['algorithm']);
+        if ($legacy > 0) {
+            $parts[] = $info['upgrade'] === 'off'
+                ? sprintf(t('%s stored passwords still use an older algorithm or parameters; automatic upgrades are off.'), $legacy)
+                : sprintf(t('%s stored passwords still use an older algorithm or parameters; they will be upgraded when the user signs in.'), $legacy);
+            $status = 'recommended';
+        }
+
+        return [$status, implode(' ', $parts)];
+    }
+
+    /** 还在老算法上的账号数；数据库查不了就按 0 处理，别把整页拖红 */
+    private static function legacyHashCount(string $algorithm): int
+    {
+        $pattern = $algorithm === 'bcrypt' ? '$2%' : '$argon2id$%';
+
+        try {
+            $stmt = Database::getInstance()->prepare(
+                "SELECT COUNT(*) FROM users WHERE password_hash <> '' AND password_hash NOT LIKE ?"
+            );
+            $stmt->execute([$pattern]);
+
+            return (int)$stmt->fetchColumn();
+        } catch (Throwable $e) {
+            return 0;
         }
     }
 
