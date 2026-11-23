@@ -74,6 +74,8 @@ final class PackageRules
         '.workbuddy',
         '.claude',
         'tests',
+        // 本地解包出来的测试实例（gitignore 里是 test/），别跟着发布包走
+        'test',
         'node_modules',
         'frontend',
         'docs-internal',
