@@ -19,6 +19,7 @@ node_modules/
 /public/assets/recovery/
 /public/assets/avatars/
 /public/assets/develops/
+/public/assets/i18n/
 
 /public/assets/dist/
 /config/installed.php

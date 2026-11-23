@@ -356,22 +356,28 @@ class I18n
 
     // ---------- 前端词典 ----------
 
-    /** 布局里挂的词典地址，?v= 取文件内容哈希，内容变了缓存自动失效。
-     *  不带 .js 后缀：nginx 的静态 location 会把 *.js 拦在 PHP 前面（2026-11-05 线上踩过） */
+    /** 布局里挂的词典地址。优先用 public/assets/i18n/ 下的静态文件，文件名带内容哈希。 */
     public static function catalogUrl(?string $slug = null): string
     {
         $slug = $slug ?? self::locale();
-        $file = __DIR__ . '/../locales/' . $slug . '.json';
-        $v = is_file($file) ? substr(md5_file($file), 0, 8) : '0';
-        $v .= '-' . substr(md5(implode(',', self::extensionDictDirs())), 0, 8);
+        $version = self::catalogVersion($slug);
+        $rel = 'assets/i18n/' . $slug . '-' . $version . '.js';
 
-        // 词典脚本是 immutable 缓存，里面带着地址模式；模式不同的 URL 必须不一样
-        $url = '/i18n/' . rawurlencode($slug) . '?v=' . $v;
+        if (!is_file(dirname(__DIR__) . '/public/' . $rel)) {
+            $rel = self::writeCatalog($slug, $version) ?? '';
+        }
+
+        if ($rel !== '') {
+            return '/' . $rel;
+        }
+
+        // public/ 不可写（只读部署 / 权限不对）时退回动态地址；缓存头还在，只是 CDN 不认。
+        $url = '/i18n/' . rawurlencode($slug) . '?v=' . $version;
 
         return Url::queryMode() ? $url . '&m=query' : $url;
     }
 
-    /** GET /i18n/{slug}.js —— 给 app.js 和 Vue 共用的词典（管理后台不挂，按键原样显示中文） */
+    /** GET /i18n/{slug} —— 动态兜底；正常情况下前端拿到的是静态文件。 */
     public static function serveScript(string $slug): void
     {
         if (!self::isValid($slug)) {
@@ -380,6 +386,97 @@ class I18n
             exit('not found');
         }
 
+        // 词典是静态资源，别让它带 session cookie（会把 CDN 缓存挡掉）
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+        header_remove('Set-Cookie');
+        header_remove('Expires');
+        header_remove('Pragma');
+
+        header('Content-Type: application/javascript; charset=utf-8');
+        header('Cache-Control: public, max-age=31536000, immutable');
+        header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 31536000) . ' GMT');
+        echo self::catalogScript($slug);
+        exit;
+    }
+
+    /**
+     * 词典的内容版本：核心语言文件 + 启用的插件 / 皮肤同语言文件 + 地址模式。
+     * 文件名里带它，内容一变 URL 就变。
+     */
+    private static function catalogVersion(string $slug): string
+    {
+        static $versions = [];
+        if (isset($versions[$slug])) {
+            return $versions[$slug];
+        }
+
+        $parts = [];
+        $file = __DIR__ . '/../locales/' . $slug . '.json';
+        $parts[] = is_file($file) ? (string)md5_file($file) : '0';
+        foreach (self::extensionDictDirs() as $dir) {
+            $extra = $dir . '/' . $slug . '.json';
+            $parts[] = is_file($extra) ? (string)md5_file($extra) : '-';
+        }
+        $parts[] = self::code($slug) . '|' . self::dir($slug);
+        $parts[] = (string)Brand::get('name', 'Nomen');
+        $parts[] = Url::queryMode() ? 'query' : 'pretty';
+        $parts[] = Url::base();
+
+        return $versions[$slug] = substr(md5(implode('|', $parts)), 0, 12);
+    }
+
+    /** 把词典写成 public/assets/i18n/<slug>-<version>.js；写不了返回 null。 */
+    private static function writeCatalog(string $slug, string $version): ?string
+    {
+        static $unwritable = false;
+        if ($unwritable) {
+            return null;
+        }
+
+        $root = dirname(__DIR__) . '/public';
+        $dir = $root . '/assets/i18n';
+        if (!is_dir($dir) && !@mkdir($dir, 0775, true) && !is_dir($dir)) {
+            $unwritable = true;
+
+            return null;
+        }
+
+        $rel = 'assets/i18n/' . $slug . '-' . $version . '.js';
+        $file = $root . '/' . $rel;
+        if (is_file($file)) {
+            return $rel;
+        }
+
+        $tmp = $file . '.' . bin2hex(random_bytes(6)) . '.tmp';
+        if (@file_put_contents($tmp, self::catalogScript($slug), LOCK_EX) === false) {
+            @unlink($tmp);
+            $unwritable = true;
+
+            return null;
+        }
+        if (!@rename($tmp, $file)) {
+            @unlink($tmp);
+            $unwritable = true;
+
+            return null;
+        }
+        @chmod($file, 0644);
+
+        // 同一语言只留当前版本；旧文件 7 天后清掉，避免反复换语言时越积越多
+        foreach (glob($dir . '/' . $slug . '-*.js') ?: [] as $old) {
+            if ($old !== $file && @filemtime($old) < time() - 7 * 86400) {
+                @unlink($old);
+            }
+        }
+
+        return $rel;
+    }
+
+    /** 前端词典脚本的正文（静态文件和动态兜底共用）。 */
+    private static function catalogScript(string $slug): string
+    {
         $file = __DIR__ . '/../locales/' . $slug . '.json';
         $data = is_file($file) ? json_decode((string)file_get_contents($file), true) : null;
         $data = is_array($data) ? $data : [];
@@ -401,17 +498,15 @@ class I18n
             }
         }
 
-        header('Content-Type: application/javascript; charset=utf-8');
-        header('Cache-Control: public, max-age=31536000, immutable');
-        echo 'window.NOMEN_I18N=' . json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . ';';
-        echo 'window.NOMEN_SITENAME=' . json_encode((string)Brand::get('name', 'Nomen'), JSON_UNESCAPED_UNICODE) . ';';
-        echo 'window.NOMEN_LOCALE=' . json_encode($slug) . ';';
-        echo 'window.NOMEN_LANG=' . json_encode(self::code($slug)) . ';';
-        echo 'window.NOMEN_DIR=' . json_encode(self::dir($slug)) . ';';
+        $js = 'window.NOMEN_I18N=' . json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . ';';
+        $js .= 'window.NOMEN_SITENAME=' . json_encode((string)Brand::get('name', 'Nomen'), JSON_UNESCAPED_UNICODE) . ';';
+        $js .= 'window.NOMEN_LOCALE=' . json_encode($slug) . ';';
+        $js .= 'window.NOMEN_LANG=' . json_encode(self::code($slug)) . ';';
+        $js .= 'window.NOMEN_DIR=' . json_encode(self::dir($slug)) . ';';
         // 前端拼站内地址用：有伪静态时原样，没有时换成 index.php?page=
-        echo 'window.NOMEN_URL_MODE=' . json_encode(Url::queryMode() ? 'query' : 'pretty') . ';';
-        echo 'window.NOMEN_URL_BASE=' . json_encode(Url::base()) . ';';
-        echo 'window.Nomen=window.Nomen||{};window.Nomen.url=function(p){'
+        $js .= 'window.NOMEN_URL_MODE=' . json_encode(Url::queryMode() ? 'query' : 'pretty') . ';';
+        $js .= 'window.NOMEN_URL_BASE=' . json_encode(Url::base()) . ';';
+        $js .= 'window.Nomen=window.Nomen||{};window.Nomen.url=function(p){'
             . 'if(!p||p.charAt(0)!=="/"||p.slice(0,2)==="//")return p;'
             . 'var b=window.NOMEN_URL_BASE||"";'
             . 'if(window.NOMEN_URL_MODE!=="query")return b+p;'
@@ -423,7 +518,8 @@ class I18n
             . 'if(p!==""&&p!=="/"){t+="?page="+encodeURI(p.replace(/^\/+/,""))+(q?"&"+q:"")}'
             . 'else if(q){t+="?"+q}'
             . 'return t+f;};';
-        exit;
+
+        return $js;
     }
 }
 

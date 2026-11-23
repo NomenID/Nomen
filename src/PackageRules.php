@@ -41,6 +41,7 @@ final class PackageRules
         'public/assets/avatars/',
         'public/assets/recovery/',
         'public/assets/develops/',
+        'public/assets/i18n/',
     ];
 
     /**
@@ -135,7 +136,7 @@ final class PackageRules
         return array_values(array_unique(array_merge(
             self::DEV_ONLY,
             self::PROTECTED_FILES,
-            ['public/assets/avatars', 'public/assets/recovery', 'public/assets/develops', 'public/docs'],
+            ['public/assets/avatars', 'public/assets/recovery', 'public/assets/develops', 'public/assets/i18n', 'public/docs'],
         )));
     }
 
