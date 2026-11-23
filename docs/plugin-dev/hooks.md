@@ -199,6 +199,30 @@ public static function screenLogin(array $screen, array $context): array
 `auth.page`（`page, context`）在登录 / 注册 / 临时密钥页渲染前触发，适合放设备 cookie、预置挑战状态。
 它只在这些页面被真正渲染时跑，不是每个请求都跑。
 
+### 人机验证：`auth.human_check`
+
+如果站点想用 PoW、第三方挑战这类方案替代核心的算术验证码，用这个 filter：
+
+```php
+public static function humanCheck(array $check, array $context): array
+{
+    if ($context['page'] === 'register' && $context['stage'] === 'render' && pow_available()) {
+        return ['required' => false, 'verified' => false]; // 不显示验证码
+    }
+
+    if ($context['stage'] === 'verify' && pow_passed()) {
+        return ['required' => true, 'verified' => true];   // 已经通过，跳过验证码
+    }
+
+    return $check;
+}
+```
+
+- `required`：这次要不要验证码；`false` 时页面不显示输入框。
+- `verified`：插件已经完成人机验证；`true` 时核心不再校验验证码。
+- `context.page` 是 `login` / `register`，`context.stage` 是 `render`（渲染页面）/ `verify`（提交时）。
+- 默认值是核心原来的行为：登录按 IP 频率决定，注册始终要求。返回非数组或异常都按默认值处理。
+
 ## SEO 与响应头
 
 ### `meta.robots`：控制 noindex

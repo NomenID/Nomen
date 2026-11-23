@@ -69,6 +69,8 @@ class AuthController
         // 图片验证码默认不出现，只有该 IP 短时间内尝试过多才要求
         $requireCaptcha = (bool)Session::getFlash('require_captcha')
             || ($this->isCaptchaRequired() && !$this->captchaGraceActive());
+        $human = self::humanCheck('login', 'render', $requireCaptcha);
+        $requireCaptcha = $human['required'] && !$human['verified'];
 
         $failedMethods = self::failedLoginMethods();
         $methods = LoginMethods::all();
@@ -335,6 +337,11 @@ class AuthController
             return false;
         }
 
+        // 风控插件要求过验证码（auth.login.pre 返回 challenge）时，下一次尝试要显示
+        if ((int)Session::get('captcha_required_until', 0) > time()) {
+            return true;
+        }
+
         $threshold = (int)($config['login_captcha_threshold'] ?? 5);
 
         return RateLimiter::count("auth:login:{$ip}", 60) > $threshold;
@@ -349,6 +356,35 @@ class AuthController
     }
 
     /**
+     * 人机验证扩展点：默认走核心算术验证码，插件可以用 PoW / 第三方挑战替代。
+     *
+     * @return array{required: bool, verified: bool}
+     */
+    private static function humanCheck(string $page, string $stage, bool $required, string $identifier = ''): array
+    {
+        $check = Hooks::filter('auth.human_check', [
+            'required' => $required,
+            'verified' => false,
+        ], [
+            'page'       => $page,
+            'stage'      => $stage,
+            'identifier' => $identifier,
+            'ip'         => (string)($_SERVER['REMOTE_ADDR'] ?? ''),
+            'user_agent' => (string)($_SERVER['HTTP_USER_AGENT'] ?? ''),
+        ]);
+
+        if (!is_array($check)) {
+            error_log('[Hooks] auth.human_check 的返回值不是数组，按默认处理');
+            return ['required' => $required, 'verified' => false];
+        }
+
+        return [
+            'required' => (bool)($check['required'] ?? $required),
+            'verified' => (bool)($check['verified'] ?? false),
+        ];
+    }
+
+    /**
      * 登录入口通用防护：条件图片验证码 + IP 硬上限 + 用户维度限流
      *
      * @return bool true 表示已经终止响应（调用方应立即 return）
@@ -358,14 +394,20 @@ class AuthController
         $config = require __DIR__ . '/../config/app.php';
         $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 
-        // 正常用户不会看到验证码；只有该 IP 尝试次数超过阈值才要求
+        // 正常用户不会看到验证码；只有该 IP 尝试次数超过阈值、风控要求、或插件判定需要时才要求
         // 通过后给 2 分钟宽限：验证码是用后即焚的，否则「先发验证码、再提交」会二次索要
-        if ($this->isCaptchaRequired() && !$this->captchaGraceActive()) {
+        $captchaRequired = $this->isCaptchaRequired() && !$this->captchaGraceActive();
+        $human = self::humanCheck('login', 'verify', $captchaRequired, (string)($_POST['username'] ?? $_POST['email'] ?? ''));
+        if ($human['verified']) {
+            // 插件已经完成了人机验证（比如 PoW），验证码标记作废
+            Session::remove('captcha_required_until');
+        } elseif ($human['required']) {
             if (!Captcha::verify($_POST['captcha'] ?? null)) {
                 Session::flash('require_captcha', true);
                 $this->failLogin($loginUrl, $isAjax, '登录尝试过于频繁，请输入图片验证码', null, $userId);
                 return true;
             }
+            Session::remove('captcha_required_until');
             Session::set('captcha_passed_until', time() + 120);
         }
 
@@ -1375,7 +1417,11 @@ class AuthController
             }
         }
 
-        Response::view('register', compact('error', 'old', 'detectedCountry', 'passwordRegistration'));
+        // 默认仍和以前一样显示验证码；插件可以用 PoW 这类方式替代
+        $human = self::humanCheck('register', 'render', true);
+        $requireCaptcha = $human['required'] && !$human['verified'];
+
+        Response::view('register', compact('error', 'old', 'detectedCountry', 'passwordRegistration', 'requireCaptcha'));
     }
 
     /**
@@ -1408,11 +1454,16 @@ class AuthController
             Response::redirect('/register');
         }
 
-        // 验证图片验证码（GD 没装时这一步整体跳过）
-        if (Captcha::available() && !Captcha::verify($_POST['captcha'] ?? null)) {
+        // 人机验证：默认走核心算术验证码，插件可以用 PoW 这类方式替代
+        $human = self::humanCheck('register', 'verify', true, (string)($old['email'] ?? $old['username'] ?? ''));
+        if ($human['verified']) {
+            Session::remove('captcha_required_until');
+        } elseif ($human['required'] && !Captcha::verify($_POST['captcha'] ?? null)) {
             Session::flash('error', t('Wrong code'));
             Session::flash('old', $old);
             Response::redirect('/register');
+        } else {
+            Session::remove('captcha_required_until');
         }
 
         // 检查是否同意条款

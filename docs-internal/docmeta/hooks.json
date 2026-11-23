@@ -44,6 +44,11 @@
     "args": "page, context",
     "when": "登录 / 注册 / 临时密钥页渲染前；`page` 是 `login` / `register` / `fast-pass`，插件可以在这一步设置设备 cookie、预置挑战状态"
   },
+  "auth.human_check": {
+    "type": "filter",
+    "args": "check, context",
+    "when": "登录 / 注册页渲染和提交时的人机验证；`check` 是 `required`（要不要验证码）/ `verified`（是否已经通过），`context` 有 page（login / register）、stage（render / verify）、identifier、ip、user_agent。插件可以用 PoW 等方案替代核心算术验证码：`verified=true` 时不再要求验证码，`required=false` 时连输入框都不显示"
+  },
   "auth.login.pre": {
     "type": "filter",
     "args": "screen, context",

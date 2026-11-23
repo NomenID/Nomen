@@ -52,6 +52,7 @@ $props = [
     ],
     'providers' => \Nomen\Src\IdentityProviders::publicList(),
     'passwordRegistration' => (bool)($passwordRegistration ?? true),
+    'requireCaptcha' => (bool)($requireCaptcha ?? true),
     'privacyUrl' => \Nomen\Src\Brand::privacyUrl(),
     'termsUrl' => \Nomen\Src\Brand::termsUrl(),
     'genders' => \Nomen\Src\Gender::translated(),

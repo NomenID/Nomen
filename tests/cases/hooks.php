@@ -83,6 +83,37 @@ test('Hooks::define 记定义，别的命名空间不能抢', function (): void 
     assertTrue(!Hooks::define('demo.page.rendered', ['owner' => 'demo', 'type' => 'whatever']), '类型不合法');
 });
 
+test('auth.human_check 的默认值与插件返回约定', function (): void {
+    $method = new ReflectionMethod(AuthController::class, 'humanCheck');
+    $method->setAccessible(true);
+
+    assertSame(
+        ['required' => true, 'verified' => false],
+        $method->invoke(null, 'login', 'render', true, 'alice'),
+        '没有插件时保持核心原来的行为'
+    );
+
+    $seen = [];
+    Hooks::add('auth.human_check', static function (array $check, array $context) use (&$seen): array {
+        $seen[] = $context;
+        return $context['page'] === 'login'
+            ? ['required' => false, 'verified' => false]
+            : ['required' => true, 'verified' => true];
+    }, 1);
+
+    assertSame(
+        ['required' => false, 'verified' => false],
+        $method->invoke(null, 'login', 'render', true, 'alice')
+    );
+    assertSame(
+        ['required' => true, 'verified' => true],
+        $method->invoke(null, 'register', 'verify', true, 'alice')
+    );
+    assertSame('alice', $seen[0]['identifier'] ?? '');
+    assertSame('login', $seen[0]['page'] ?? '');
+    assertSame('render', $seen[0]['stage'] ?? '');
+});
+
 test('Hooks::alias 两个方向都触发，并标记弃用', function (): void {
     $calls = [];
 

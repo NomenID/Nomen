@@ -8,6 +8,7 @@
 
 | 钩子 | 类型 | 参数 | 时机 |
 |---|---|---|---|
+| `auth.human_check` | filter | check, context | 登录 / 注册页渲染和提交时的人机验证；`check` 是 `required`（要不要验证码）/ `verified`（是否已经通过），`context` 有 page（login / register）、stage（render / verify）、identifier、ip、user_agent。插件可以用 PoW 等方案替代核心算术验证码：`verified=true` 时不再要求验证码，`required=false` 时连输入框都不显示 |
 | `auth.login.failed` | run | message, userId, context | 统一登录失败出口（活动日志写完之后）；`context` 带 method、identifier、ip、is_ajax，风险筛查拒绝时还有 decision |
 | `auth.login.pre` | filter | screen, context | 带凭据的登录入口在验证凭据 / 建立会话之前（密码、邮箱验证码、第三方登录）。`screen` 是 `decision`（`allow` / `block` / `challenge` / `degraded`）/ `message` / `payload`，`context` 有 method、identifier、accounts（只有 id / username / email）、ip、user_agent、is_ajax。`challenge` 会让下一次尝试要求图片验证码；插件拿不到密码，也不能替用户免验证通过 |
 | `auth.notice` | filter | html | 登录 / 注册页头部下方；返回值原样输出，PHP 与 Vue 两条渲染都生效 |
@@ -23,6 +24,14 @@
 | `user.registered` | run | userId, username, email（可能为 null） | 注册成功、邮箱记录同步之后 |
 
 ## 触发点
+
+### auth.human_check
+
+- 类型：filter
+- 参数：check, context
+- 时机：登录 / 注册页渲染和提交时的人机验证；`check` 是 `required`（要不要验证码）/ `verified`（是否已经通过），`context` 有 page（login / register）、stage（render / verify）、identifier、ip、user_agent。插件可以用 PoW 等方案替代核心算术验证码：`verified=true` 时不再要求验证码，`required=false` 时连输入框都不显示
+- 触发点：
+  - `controllers/AuthController.php`（filter）
 
 ### auth.login.failed
 

@@ -124,6 +124,11 @@ return array (
     'type' => 'filter',
     'args' => 'info, siprops, params',
   ),
+  'auth.human_check' => 
+  array (
+    'type' => 'filter',
+    'args' => 'check, context',
+  ),
   'auth.login.failed' => 
   array (
     'type' => 'run',

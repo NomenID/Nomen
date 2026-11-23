@@ -38,6 +38,7 @@ const props = defineProps({
   authNotice: { type: String, default: '' },
   providers: { type: Array, default: () => [] },
   passwordRegistration: { type: Boolean, default: true },
+  requireCaptcha: { type: Boolean, default: true },
   urls: { type: Object, default: () => ({}) },
 })
 
@@ -563,7 +564,7 @@ onMounted(() => {
             </p>
           </div>
 
-          <div class="form-group">
+          <div v-if="requireCaptcha" class="form-group">
             <label>{{ t('Code') }}</label>
             <CaptchaInput v-model="form.captcha" :url="urls.captcha" />
           </div>

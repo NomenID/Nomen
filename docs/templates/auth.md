@@ -17,7 +17,7 @@
 注册页。密码注册关闭时只剩第三方登录按钮，这个判断在 `RegisterApp` 的 `passwordRegistration` 属性里。
 
 - 文件：`templates/register.php`
-- 变量：`error`、`old`、`detectedCountry`、`passwordRegistration`
+- 变量：`error`、`old`、`detectedCountry`、`passwordRegistration`、`requireCaptcha`
 
 ### register-verify
 

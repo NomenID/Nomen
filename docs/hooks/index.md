@@ -4,6 +4,7 @@
 
 | 钩子 | 类型 | 触发点 |
 |---|---|---|
+| [auth.human_check](auth.md) | filter | 1 处 |
 | [auth.login.failed](auth.md) | run | 1 处 |
 | [auth.login.pre](auth.md) | filter | 1 处 |
 | [auth.notice](auth.md) | filter | 2 处 |
