@@ -20,4 +20,6 @@ if (mountEl && propsEl) {
     console.error('恢复修复页 props 解析失败', err)
   }
   createApp(RecoverySecureApp, props).mount(mountEl)
+  window.__nomenAppReady = true
+  window.dispatchEvent(new Event('nomen:app-ready'))
 }

@@ -14,6 +14,7 @@
  * @var array $appProps viewer + brand + csrf + menu
  */
 $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
+require __DIR__ . '/_loading.php';
 ?>
 <div id="admin-root" class="admin-root-host">
     <noscript><p class="admin-noscript"><?= t('The admin area requires JavaScript.') ?></p></noscript>

@@ -14,6 +14,7 @@
  * @var array $appProps  viewer + csrf + page（首屏数据，避免多一次请求）
  */
 $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
+require __DIR__ . '/_loading.php';
 ?>
 <div id="app-root" class="app-root-host">
     <noscript><p class="form-hint"><?= t('This page requires JavaScript.') ?></p></noscript>

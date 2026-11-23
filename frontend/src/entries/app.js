@@ -25,4 +25,7 @@ if (mountEl && propsEl) {
   const app = createApp(AppRoot, props)
   app.use(createAppRouter())
   app.mount(mountEl)
+  // 通知 loading.js 里的首屏加载层：真正挂载完成，可以淡出了
+  window.__nomenAppReady = true
+  window.dispatchEvent(new Event('nomen:app-ready'))
 }

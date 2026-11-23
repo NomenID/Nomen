@@ -54,6 +54,7 @@ $denyUrl = '/oauth/deny?client_id=' . urlencode($clientId)
     . '&redirect_uri=' . urlencode($redirectUri);
 
 $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
+require __DIR__ . '/_loading.php';
 ?>
 <div id="authorize-app" class="auth-container">
     <noscript>

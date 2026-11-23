@@ -20,4 +20,6 @@ if (mountEl && propsEl) {
     console.error('2FA props 解析失败', err)
   }
   createApp(TwoFactorApp, props).mount(mountEl)
+  window.__nomenAppReady = true
+  window.dispatchEvent(new Event('nomen:app-ready'))
 }

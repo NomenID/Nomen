@@ -54,6 +54,14 @@ class Response
             return;
         }
 
+        // 加载层必须出现在 body 最前面；模板只知道「需要」，由这里挂到
+        // layout.body.start，皮肤布局无论怎么排都不会先画天空 / 头部。
+        if (Loading::needed()) {
+            Hooks::add('layout.body.start', static function (string $html): string {
+                return $html . Loading::html();
+            }, 0, 'core');
+        }
+
         // 布局在 skins/<slug>/layouts/ 下，公共片段仍从 templates/ 取。
         // 布局渲染也进缓冲：中途抛异常（比如数据库挂了）时半截页面留在缓冲里，
         // 由全局处理器丢掉并换成干净的 500，而不是把 200 + 半截 HTML 发给访客

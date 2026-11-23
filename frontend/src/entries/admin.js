@@ -25,4 +25,6 @@ if (mountEl && propsEl) {
   const app = createApp(AdminRoot, props)
   app.use(createAdminRouter(props.brand?.name || 'Nomen'))
   app.mount(mountEl)
+  window.__nomenAppReady = true
+  window.dispatchEvent(new Event('nomen:app-ready'))
 }
