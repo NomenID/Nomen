@@ -419,7 +419,7 @@ class Plugins
                     error_log('[Plugins] ' . $manifest['slug'] . ' 的钩子 ' . $event . ' 不可调用');
                     continue;
                 }
-                Hooks::add((string)$event, $handler, $priority);
+                Hooks::add((string)$event, $handler, $priority, (string)$manifest['slug']);
             }
         }
     }
@@ -453,7 +453,9 @@ class Plugins
     }
 
     /**
-     * 插件在清单里用 provides 声明自己会触发的钩子：{"pages.rendered": "正文渲染完之后"}。
+     * 插件在清单里用 provides 声明自己会触发的钩子：
+     *   {"pages.rendered": "正文渲染完之后"}
+     *   {"pages.rendered": {"description": "...", "type": "filter", "args": "html, page"}}
      * 钩子名必须落在自己的 slug 前缀下，避免和核心或别的插件撞名。
      */
     private static function registerProvides(string $slug, array $manifest): void
@@ -461,16 +463,27 @@ class Plugins
         foreach ((array)($manifest['provides'] ?? []) as $hook => $description) {
             // 允许写成 {"pages.rendered": "说明"}，也允许直接列 ["pages.rendered"]
             if (is_int($hook)) {
-                $hook = (string)$description;
+                if (!is_string($description)) {
+                    error_log('[Plugins] ' . $slug . ' 的 provides 列表项必须是钩子名');
+                    continue;
+                }
+                $hook = $description;
                 $description = '';
             }
-            $hook = strtolower(trim((string)$hook));
-            if (!preg_match('/^[a-z0-9][a-z0-9_-]*(\.[a-z0-9][a-z0-9_-]*)+$/', $hook)
-                || !str_starts_with($hook, $slug . '.')) {
-                error_log('[Plugins] ' . $slug . ' 的 provides 钩子名不合法：' . $hook . '（必须以 ' . $slug . '. 开头）');
-                continue;
+
+            $meta = ['owner' => $slug, 'description' => ''];
+            if (is_string($description)) {
+                $meta['description'] = $description;
+            } elseif (is_array($description)) {
+                $meta['description'] = (string)($description['description'] ?? '');
+                $meta['type'] = (string)($description['type'] ?? '');
+                $meta['args'] = $description['args'] ?? '';
+                $meta['since'] = (string)($description['since'] ?? '');
             }
-            self::$provided[$slug][$hook] = is_string($description) ? $description : '';
+
+            if (Hooks::define((string)$hook, $meta)) {
+                self::$provided[$slug][strtolower(trim((string)$hook))] = $meta['description'];
+            }
         }
     }
 

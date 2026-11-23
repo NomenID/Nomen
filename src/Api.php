@@ -78,6 +78,9 @@ final class Api
         // 数组参数（?x[]=1）直接丢掉，后面都按字符串处理
         $params = array_filter(array_replace($_GET, $_POST), 'is_string');
 
+        // 插件可以改参数（加字段、改默认值、按 action 分流）
+        $params = Hooks::filter('api.request', $params);
+
         if (strtolower($params['format'] ?? 'json') !== 'json') {
             self::error(400, 'badvalue', 'Only format=json is supported.');
         }
@@ -391,6 +394,8 @@ final class Api
 
     private static function respond(array $data): void
     {
+        $data = Hooks::filter('api.response', $data);
+
         http_response_code(200);
         header('Content-Type: application/json; charset=utf-8');
         header('Cache-Control: no-store');

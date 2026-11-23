@@ -59,6 +59,16 @@
     "args": "screen, context",
     "when": "核心注册页和第三方建号写库之前；`screen` 形状同 `auth.login.pre`，`context` 有 username、email、ip、user_agent、data"
   },
+  "request.before": {
+    "type": "run",
+    "args": "method, path",
+    "when": "路由匹配之前（已去掉 base path、`?page=` 模式也已归一）；返回 `false` 表示插件自己已经输出响应，不再往下匹配。适合维护页、IP 拦截、整站跳转"
+  },
+  "route.not_found": {
+    "type": "run",
+    "args": "method, path",
+    "when": "没有任何路由命中、统一 404 之前；返回 `false` 表示插件已处理（自定义固定链接、旧地址跳转这类）"
+  },
   "userinfo.claims": {
     "type": "filter",
     "args": "claims, user, scopes",
@@ -299,6 +309,16 @@
     "type": "filter",
     "args": "info, siprops, params",
     "when": "`/nomen-api` 的 siteinfo 组装完"
+  },
+  "api.request": {
+    "type": "filter",
+    "args": "params",
+    "when": "`/nomen-api` 的参数（`$_GET` + `$_POST`）合并、类型过滤之后，format / action 校验之前；可以改参数或按 action 分流"
+  },
+  "api.response": {
+    "type": "filter",
+    "args": "data",
+    "when": "`/nomen-api` 正常响应编码成 JSON 之前；错误响应（`api.error`）不走这里"
   },
   "pages.admin.editor.extras": {
     "type": "filter",

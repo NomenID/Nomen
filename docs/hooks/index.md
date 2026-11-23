@@ -54,6 +54,10 @@
 | [admin.user.role_changed](admin.md) | run | 1 处 |
 | [admin.user.status_changed](admin.md) | run | 1 处 |
 | [admin.users.rows](admin.md) | filter | 1 处 |
+| [request.before](lifecycle.md) | run | 1 处 |
+| [route.not_found](lifecycle.md) | run | 1 处 |
+| [api.request](content.md) | filter | 1 处 |
+| [api.response](content.md) | filter | 1 处 |
 | [api.siteinfo](content.md) | filter | 1 处 |
 | [gate.check](content.md) | filter | 1 处 |
 | [http.headers](content.md) | filter | 1 处 |

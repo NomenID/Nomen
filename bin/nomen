@@ -26,6 +26,9 @@ switch ($cmd) {
     case 'plugins':
         exit(Nomen\Src\Cli\Plugin::run(array_slice($args, 2)));
 
+    case 'hooks':
+        exit(Nomen\Src\Cli\Hooks::run(array_slice($args, 2)));
+
     case 'schedule':
         exit(Nomen\Src\Cli\Schedule::run(array_slice($args, 2)));
 
@@ -73,6 +76,7 @@ switch ($cmd) {
         echo '  plugins list     列出插件与启用状态', PHP_EOL;
         echo '  plugins migrate  跑插件自己的 database/migrations', PHP_EOL;
         echo '  plugins <命令>   跑插件注册的命令，plugins list 里能看到', PHP_EOL;
+        echo '  hooks [事件]     看谁订阅了钩子、插件声明了哪些钩子、哪些已弃用', PHP_EOL;
         echo '  schedule run     跑这一分钟到点的定时任务（服务器 crontab 每分钟调用）', PHP_EOL;
         echo '  schedule list    列出定时任务、上次 / 下次运行时间和要加的 crontab 那一行', PHP_EOL;
         echo '  update status    查看自动更新状态（默认）', PHP_EOL;

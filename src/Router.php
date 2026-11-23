@@ -52,6 +52,12 @@ class Router
             $uri = '/' . trim($uri, '/');
         }
 
+        // 请求级扩展点：插件可以在这里做维护页、IP 拦截、整站跳转。
+        // 返回 false = 已处理（插件自己输出响应），不再往下匹配路由。
+        if (Hooks::run('request.before', [$method, $uri]) === false) {
+            return;
+        }
+
         // 尝试精确匹配
         if (isset($this->routes[$method][$uri])) {
             $this->call($this->routes[$method][$uri]);
@@ -65,6 +71,11 @@ class Router
                 $this->call($route, $params);
                 return;
             }
+        }
+
+        // 没有命中：给插件一次兜底机会（自定义固定链接、旧地址跳转这类）
+        if (Hooks::run('route.not_found', [$method, $uri]) === false) {
+            return;
         }
 
         Response::error(404);

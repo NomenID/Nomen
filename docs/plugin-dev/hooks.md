@@ -241,6 +241,21 @@ public static function headers(array $headers, string $kind): array
 - `robots.txt`（`body`）：返回完整正文，可以追加 `Disallow`。
 - `sitemap.xml`（`xml`）：返回完整 XML。
 
+## 请求生命周期
+
+这几个钩子不管具体功能，给的是**请求本身**的接缝：
+
+| 钩子 | 类型 | 参数 | 用法 |
+|---|---|---|---|
+| `request.before` | run | `method, path` | 路由匹配之前；返回 `false` 表示你已经输出响应，不再匹配 |
+| `route.not_found` | run | `method, path` | 没有路由命中、统一 404 之前；返回 `false` 表示你处理了 |
+| `api.request` | filter | `params` | `/nomen-api` 参数合并之后、校验之前；可改参数 |
+| `api.response` | filter | `data` | `/nomen-api` 正常响应编码之前 |
+
+`request.before` 适合维护页、IP 拦截、整站跳转；`route.not_found` 适合自定义固定链接、旧地址跳转。
+两者返回 `false` 时**必须自己把响应发出去**（`Response::redirect()` / `Response::view()` / `echo` 都行），
+否则访客会看到一个空白 200。
+
 ## 账号变更通知
 
 `user.password.changed`（`userId, source`）、`user.email.changed`（`userId, oldEmail, newEmail`）、
@@ -257,10 +272,16 @@ public static function headers(array $headers, string $kind): array
 {
     "provides": {
         "bookmarks.saved": "书签保存之后",
-        "bookmarks.page.rendered": "书签页正文渲染完之后"
+        "bookmarks.page.rendered": {
+            "description": "书签页正文渲染完之后",
+            "type": "filter",
+            "args": "html, userId"
+        }
     }
 }
 ```
+
+值写字符串就是一句说明；写对象可以带上 `type`（`run` / `filter`）、`args`、`since`。
 
 规则：
 
@@ -272,8 +293,32 @@ Hooks::run('bookmarks.saved', [$userId, $bookmarkId]);
 $html = Hooks::filter('bookmarks.page.rendered', $html, $userId);
 ```
 
+- 也可以在 `boot` 里用代码登记，效果一样：
+
+```php
+Hooks::define('bookmarks.saved', [
+    'owner'       => 'bookmarks',
+    'type'        => 'run',
+    'args'        => 'userId, bookmarkId',
+    'description' => '书签保存之后',
+]);
+```
+
 - 别的插件按普通钩子订阅，写在清单 `hooks` 里或 `boot` 里都行。
-- `php bin/nomen plugins list` 会列出已启用插件声明了哪些钩子；它们的参数和时机由插件自己在 README 里写。
+- `php bin/nomen hooks` 会列出核心钩子目录（类型、参数）、**运行时**的监听者、插件声明了哪些钩子、
+  哪些已弃用；`php bin/nomen hooks bookmarks.saved` 看单个钩子的类型、参数和监听者。
+  核心目录由 `src/HookCatalog.php` 提供，docgen 从 `hooks.json` 生成，CI 会检查它是否过期。
+
+### 改名与弃用：`Hooks::alias()`
+
+钩子名要改时，别直接把旧名字删掉——老插件会静默失效。加一条别名：
+
+```php
+Hooks::alias('bookmarks.saved', 'bookmarks.saved.v2', '2.0.0');
+```
+
+两个方向都生效：触发新名字时旧监听者照跑，触发旧名字时新监听者也照跑，第一次用到旧名字会往
+`error_log` 写一条弃用提示。**参数必须保持兼容**，别名只换名字，不换参数顺序和含义。
 
 ## 全部钩子
 

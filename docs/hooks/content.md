@@ -8,6 +8,8 @@
 
 | 钩子 | 类型 | 参数 | 时机 |
 |---|---|---|---|
+| `api.request` | filter | params | `/nomen-api` 的参数（`$_GET` + `$_POST`）合并、类型过滤之后，format / action 校验之前；可以改参数或按 action 分流 |
+| `api.response` | filter | data | `/nomen-api` 正常响应编码成 JSON 之前；错误响应（`api.error`）不走这里 |
 | `api.siteinfo` | filter | info, siprops, params | `/nomen-api` 的 siteinfo 组装完 |
 | `gate.check` | filter | allowed, ability, userId, context | `Gate::userCan()` 算完组判定之后；插件可以改判（按 IP 段、按站点开关），返回布尔值覆盖结果 |
 | `http.headers` | filter | headers, kind | 响应输出前；`kind` 是 `view` / `json` / `redirect`。返回 `名称 => 值` 数组，值再给数组就发多条同名头。只加头，不改状态码 |
@@ -24,6 +26,22 @@
 | `update.preflight` | filter | reason, offer, current | 自动更新下载并校验完包、覆盖文件之前；返回非空字符串就中止这次更新（此时插件仍是旧代码，文件与数据库都完整，中止是安全的） |
 
 ## 触发点
+
+### api.request
+
+- 类型：filter
+- 参数：params
+- 时机：`/nomen-api` 的参数（`$_GET` + `$_POST`）合并、类型过滤之后，format / action 校验之前；可以改参数或按 action 分流
+- 触发点：
+  - `src/Api.php`（filter）
+
+### api.response
+
+- 类型：filter
+- 参数：data
+- 时机：`/nomen-api` 正常响应编码成 JSON 之前；错误响应（`api.error`）不走这里
+- 触发点：
+  - `src/Api.php`（filter）
 
 ### api.siteinfo
 

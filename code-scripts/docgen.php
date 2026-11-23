@@ -34,6 +34,7 @@ $pluginsDir = rtrim((string)($localPaths['plugins'] ?? $root . '/plugins'), '/\\
 $skinsDir = rtrim((string)($localPaths['skins'] ?? $root . '/skins'), '/\\');
 
 $pages = [];
+$artifacts = [];
 $drift = [];
 $notes = [];
 
@@ -397,13 +398,42 @@ function buildConfig(): void
 
 function buildHooks(): void
 {
-    global $root, $pluginsDir, $skinsDir, $pages, $drift;
+    global $root, $pluginsDir, $skinsDir, $pages, $artifacts, $drift;
 
     $meta = readJson($GLOBALS['metaDir'] . '/hooks.json');
     if (!$meta) {
         $drift[] = 'docs-internal/docmeta/hooks.json 不存在，钩子页无法生成';
         return;
     }
+
+    // 核心钩子的运行时目录：CLI / 自省用，扩展侧（带 owner）的钩子不进这里
+    $catalog = [];
+    foreach ($meta as $hook => $info) {
+        if ((string)($info['owner'] ?? '') !== '') {
+            continue;
+        }
+        $catalog[$hook] = [
+            'type' => (string)($info['type'] ?? ''),
+            'args' => is_array($info['args'] ?? null) ? implode(', ', $info['args']) : (string)($info['args'] ?? ''),
+        ];
+    }
+    ksort($catalog);
+
+    $catalogHeader = <<<'PHP'
+<?php
+/*
+ * Copyright (c) 2025-2026 Yunyun (Wang Yaoze)
+ * Licensed under the GNU General Public License, version 3 only.
+ * Attribution requests are in the NOTICE file.
+ * Source: https://github.com/NomenID/Nomen
+ * Project: https://nomenid.org/
+ */
+
+// 本文件由 code-scripts/docgen.php 从 docs-internal/docmeta/hooks.json 生成，别手改。
+return 
+PHP;
+
+    $artifacts['src/HookCatalog.php'] = $catalogHeader . var_export($catalog, true) . ";\n";
 
     $sites = [];
     // 只扫核心仓自己的目录：插件和皮肤是独立仓库，扫进去会让生成的页面随本地 clone 情况变化，
@@ -429,6 +459,7 @@ function buildHooks(): void
         'render' => ['name' => '页面渲染与导航', 'match' => ['layout.', 'nav.', 'footer.', 'meta.', 'viewer.']],
         'home' => ['name' => '首页', 'match' => ['homepage.']],
         'admin' => ['name' => '后台', 'match' => ['admin.']],
+        'lifecycle' => ['name' => '请求与路由', 'match' => ['request.', 'route.']],
         'content' => ['name' => '内容与站点 API', 'match' => ['pages.', 'api.']],
         'notify' => ['name' => '邮件与通知', 'match' => ['email.', 'notification.']],
     ];
@@ -894,6 +925,23 @@ foreach ($pages as $relPath => $content) {
     }
 }
 
+$changedArtifacts = [];
+foreach ($artifacts as $relPath => $content) {
+    $target = $root . '/' . $relPath;
+    $current = is_file($target) ? (string)file_get_contents($target) : null;
+    if ($current === $content) {
+        continue;
+    }
+    $changedArtifacts[] = $relPath;
+    if (!$check) {
+        $dir = dirname($target);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0775, true);
+        }
+        file_put_contents($target, $content);
+    }
+}
+
 foreach ($GLOBALS['notes'] as $note) {
     echo $note, PHP_EOL;
 }
@@ -917,8 +965,21 @@ if ($changed) {
             echo '  - docs/', $relPath, PHP_EOL;
         }
     }
-} else {
+}
+
+if ($changedArtifacts) {
+    if ($check) {
+        echo PHP_EOL, '有 ', count($changedArtifacts), ' 个生成文件和代码不一致：', PHP_EOL;
+    } else {
+        echo PHP_EOL, '已更新 ', count($changedArtifacts), ' 个生成文件：', PHP_EOL;
+    }
+    foreach ($changedArtifacts as $relPath) {
+        echo '  - ', $relPath, PHP_EOL;
+    }
+}
+
+if (!$changed && !$changedArtifacts) {
     echo PHP_EOL, '文档已是最新。', PHP_EOL;
 }
 
-exit($check && ($changed || $drift) ? 1 : 0);
+exit($check && ($changed || $changedArtifacts || $drift) ? 1 : 0);

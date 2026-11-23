@@ -65,3 +65,48 @@ test('插件 provides 只收自己 slug 前缀的钩子', function (): void {
     assertTrue(isset($provided['bookmarks.page.rendered']));
     assertTrue(!isset($provided['pages.saved']));
 });
+
+test('Hooks::define 记定义，别的命名空间不能抢', function (): void {
+    assertTrue(Hooks::define('demo.page.rendered', [
+        'owner'       => 'demo',
+        'type'        => 'filter',
+        'args'        => 'html, page',
+        'description' => '演示页渲染完之后',
+    ]));
+
+    $definition = Hooks::describe('demo.page.rendered');
+    assertSame('demo', $definition['owner']);
+    assertSame('filter', $definition['type']);
+    assertSame('html, page', $definition['args']);
+
+    assertTrue(!Hooks::define('demo.page.rendered', ['owner' => 'other']), '别人的命名空间不能定义');
+    assertTrue(!Hooks::define('demo.page.rendered', ['owner' => 'demo', 'type' => 'whatever']), '类型不合法');
+});
+
+test('Hooks::alias 两个方向都触发，并标记弃用', function (): void {
+    $calls = [];
+
+    Hooks::add('demo.old_event', static function (string $value) use (&$calls): void {
+        $calls[] = 'old:' . $value;
+    }, 10, 'legacy-plugin');
+
+    Hooks::alias('demo.old_event', 'demo.new_event', '2.0.0');
+
+    Hooks::add('demo.new_event', static function (string $value) use (&$calls): void {
+        $calls[] = 'new:' . $value;
+    }, 20, 'modern-plugin');
+
+    Hooks::run('demo.new_event', ['a']);
+    assertSame(['old:a', 'new:a'], $calls, '触发新名字时旧监听者也跑');
+
+    $calls = [];
+    Hooks::run('demo.old_event', ['b']);
+    assertSame(['old:b', 'new:b'], $calls, '触发旧名字时新监听者也跑');
+
+    assertSame('demo.new_event', Hooks::canonicalName('demo.old_event'));
+    assertSame('demo.new_event', Hooks::deprecated()['demo.old_event']['replacement']);
+
+    $listeners = Hooks::listeners()['demo.new_event'] ?? [];
+    assertSame(2, count($listeners));
+});
+
