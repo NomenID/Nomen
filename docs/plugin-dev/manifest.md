@@ -47,6 +47,7 @@
 | `autoload` | 对象 | PSR-4：命名空间前缀 → 目录，相对插件根 |
 | `boot` | 数组 | `[类, 方法]`，所有注册做完之后调一次 |
 | `hooks` | 对象 | 事件名 → 回调，见 [钩子](hooks.md) |
+| `provides` | 对象 | 自己会触发的钩子 → 说明，必须以插件 slug 加点开头；见 [插件自己的钩子](hooks.md#插件自己的钩子) |
 | `specialPages` | 对象 | `/special/<slug>` 页面 |
 | `adminPages` | 对象 | `/admin/<slug>` 页面 |
 | `mounts` | 对象 | 公开挂载点声明，后台「接入点」页能看能改路径 |
@@ -85,7 +86,7 @@
 "boot": ["Nomen\\Plugin\\Example\\Plugin", "boot"]
 ```
 
-注册顺序是：`autoload` → `hooks` → `specialPages` → `adminPages` → `mounts` → **`boot`**。
+注册顺序是：`autoload` → `hooks` → `provides`（只登记） → `specialPages` → `adminPages` → `mounts` → **`boot`**。
 所以 `boot` 里能直接用已经注册好的东西，但钩子里的代码不能假设 `boot` 已经跑过（`boot` 最后才跑）。
 
 `boot` 适合做：注册路由（`Plugins::route()`）、注册后台页面（`Admin::page()`）、注册命令（`Plugins::command()`）、

@@ -69,14 +69,14 @@ class Email
 
         if (empty(self::$config['host'])) {
             error_log('[Email] SMTP 未配置，邮件未发送');
-            return ['ok' => false, 'code' => 0, 'error' => 'SMTP 未配置'];
+            return self::notifySent($to, $subject, ['ok' => false, 'code' => 0, 'error' => 'SMTP 未配置']);
         }
 
         // 使用 Composer autoload
         $autoloadPath = __DIR__ . '/../vendor/autoload.php';
         if (!file_exists($autoloadPath)) {
             error_log('[Email] vendor/autoload.php 不存在，请运行 composer install');
-            return ['ok' => false, 'code' => 0, 'error' => 'vendor 缺失'];
+            return self::notifySent($to, $subject, ['ok' => false, 'code' => 0, 'error' => 'vendor 缺失']);
         }
 
         require_once $autoloadPath;
@@ -120,12 +120,26 @@ class Email
             }
 
             $mail->send();
-            return ['ok' => true, 'code' => 250, 'error' => ''];
+            return self::notifySent($to, $subject, ['ok' => true, 'code' => 250, 'error' => '']);
         } catch (\PHPMailer\PHPMailer\Exception $e) {
             $info = (string)$mail->ErrorInfo;
             error_log('[Email] 发送失败: ' . $info);
-            return ['ok' => false, 'code' => self::extractSmtpCode($info), 'error' => $info ?: $e->getMessage()];
+            return self::notifySent($to, $subject, ['ok' => false, 'code' => self::extractSmtpCode($info), 'error' => $info ?: $e->getMessage()]);
         }
+    }
+
+    /**
+     * 投递结束后通知插件（审计、退信统计这类）。
+     * $to / $subject 是经过 email.sending 过滤之后的最终值。
+     *
+     * @param array{ok: bool, code: int, error: string} $result
+     * @return array{ok: bool, code: int, error: string}
+     */
+    private static function notifySent(string $to, string $subject, array $result): array
+    {
+        Hooks::run('email.sent', [$to, $subject, (bool)$result['ok'], (string)$result['error']]);
+
+        return $result;
     }
 
     /**

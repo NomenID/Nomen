@@ -2048,5 +2048,7 @@
     "{:total} entries": "{:total} entries",
     "{:total} in total": "{:total} in total",
     "{:total} users": "{:total} users",
-    "»": "»"
+    "»": "»",
+    "Please complete the human check": "Please complete the human check",
+    "Sign-in was rejected, try again later": "Sign-in was rejected, try again later"
 }

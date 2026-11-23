@@ -2049,5 +2049,7 @@
   "Group": "群組",
   "Updated groups": "更新了群組",
     "Branch {:branch} is no longer maintained.": "分支 {:branch} 已停止維護。",
-    "Upgrade in order: {:path}.": "建議按順序升級：{:path}。"
+    "Upgrade in order: {:path}.": "建議按順序升級：{:path}。",
+    "Please complete the human check": "Please complete the human check",
+    "Sign-in was rejected, try again later": "Sign-in was rejected, try again later"
 }

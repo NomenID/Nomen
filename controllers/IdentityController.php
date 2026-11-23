@@ -188,6 +188,9 @@ class IdentityController
                 $this->fail(t('The linked account no longer exists'));
                 return null;
             }
+            if ($this->socialBlocked($profile, $user)) {
+                return null;
+            }
             $this->saveIdentity((int)$user['id'], $provider, $profile);
 
             return $user;
@@ -199,6 +202,9 @@ class IdentityController
             $stmt->execute([':e' => $profile['email']]);
             $user = $stmt->fetch();
             if ($user) {
+                if ($this->socialBlocked($profile, $user)) {
+                    return null;
+                }
                 $this->saveIdentity((int)$user['id'], $provider, $profile);
 
                 ActivityLog::record([
@@ -220,10 +226,40 @@ class IdentityController
         return $this->createUser($provider, $profile);
     }
 
+    /**
+     * 第三方登录的风险筛查。被拒时已经输出错误并返回 true。
+     *
+     * @param array $user 已存在的账号行
+     */
+    private function socialBlocked(array $profile, array $user): bool
+    {
+        $identifier = $profile['email'] !== '' ? (string)$profile['email'] : (string)$profile['subject'];
+        $screen = AuthController::screenLoginRequest('social', $identifier, [$user]);
+
+        if ($screen === null) {
+            return false;
+        }
+
+        $this->fail($screen['message']);
+
+        return true;
+    }
+
     private function createUser(array $provider, array $profile): ?array
     {
         $db = Database::getInstance();
         $config = require dirname(__DIR__) . '/config/app.php';
+
+        // 建号前先过站点级风险筛查（auth.register.pre）
+        $screen = AuthController::screenRegisterRequest([
+            'username' => (string)$profile['name'],
+            'email'    => (string)$profile['email'],
+            'provider' => (string)$provider['slug'],
+        ]);
+        if ($screen !== null) {
+            $this->fail($screen['message']);
+            return null;
+        }
 
         $base = $profile['name'] !== '' ? $profile['name'] : ($profile['email'] !== '' ? strstr($profile['email'], '@', true) : $provider['slug'] . '-user');
         $username = $this->uniqueUsername($base);

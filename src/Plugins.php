@@ -23,6 +23,8 @@ class Plugins
     private static array $scripts = [];
     /** @var array<string, array{handler: callable, description: string}> */
     private static array $commands = [];
+    /** @var array<string, array<string, string>> slug => 钩子名 => 说明 */
+    private static array $provided = [];
 
     private const ASSET_TYPES = [
         'css'   => 'text/css; charset=utf-8',
@@ -109,6 +111,7 @@ class Plugins
 
             self::registerAutoload($slug, $manifest);
             self::registerHooks($manifest);
+            self::registerProvides($slug, $manifest);
             self::registerSpecialPages($manifest);
             self::registerAdminPages($slug, $manifest);
             self::registerMounts($slug, $manifest);
@@ -321,6 +324,16 @@ class Plugins
         return self::$commands;
     }
 
+    /**
+     * 插件在清单 provides 里声明的、由插件自己触发的钩子。
+     *
+     * @return array<string, array<string, string>> slug => 钩子名 => 说明
+     */
+    public static function providedHooks(): array
+    {
+        return self::$provided;
+    }
+
     /** 由 /plugin-assets/{slug}/{path} 路由调用；只发插件 assets/ 下的白名单类型。 */
     public static function serveAsset(string $slug, string $path): void
     {
@@ -437,6 +450,28 @@ class Plugins
         }
 
         return $out;
+    }
+
+    /**
+     * 插件在清单里用 provides 声明自己会触发的钩子：{"pages.rendered": "正文渲染完之后"}。
+     * 钩子名必须落在自己的 slug 前缀下，避免和核心或别的插件撞名。
+     */
+    private static function registerProvides(string $slug, array $manifest): void
+    {
+        foreach ((array)($manifest['provides'] ?? []) as $hook => $description) {
+            // 允许写成 {"pages.rendered": "说明"}，也允许直接列 ["pages.rendered"]
+            if (is_int($hook)) {
+                $hook = (string)$description;
+                $description = '';
+            }
+            $hook = strtolower(trim((string)$hook));
+            if (!preg_match('/^[a-z0-9][a-z0-9_-]*(\.[a-z0-9][a-z0-9_-]*)+$/', $hook)
+                || !str_starts_with($hook, $slug . '.')) {
+                error_log('[Plugins] ' . $slug . ' 的 provides 钩子名不合法：' . $hook . '（必须以 ' . $slug . '. 开头）');
+                continue;
+            }
+            self::$provided[$slug][$hook] = is_string($description) ? $description : '';
+        }
     }
 
     private static function registerSpecialPages(array $manifest): void

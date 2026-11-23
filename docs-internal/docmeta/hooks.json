@@ -14,6 +14,51 @@
     "args": "userId, username",
     "when": "清会话之前"
   },
+  "user.password.changed": {
+    "type": "run",
+    "args": "userId, source",
+    "when": "密码写入新哈希之后；`source` 是 `settings`（设置页改密）/ `recovery`（恢复流程）/ `email_code`（邮箱验证码重置）"
+  },
+  "user.email.changed": {
+    "type": "run",
+    "args": "userId, oldEmail, newEmail",
+    "when": "首选邮箱切换成功之后"
+  },
+  "user.deleted": {
+    "type": "run",
+    "args": "userId, username, email",
+    "when": "注销未验证账号、删库之前；拿到的是删前的快照"
+  },
+  "user.profile.changed": {
+    "type": "run",
+    "args": "userId, profile, before",
+    "when": "个人资料（显示名 / 简介）保存之后；`profile` 是新值，`before` 是旧值"
+  },
+  "user.avatar.changed": {
+    "type": "run",
+    "args": "userId, oldAvatar, newAvatar",
+    "when": "头像更换并写入数据库之后；两个文件名都不带 `/assets/avatars/` 前缀"
+  },
+  "auth.page": {
+    "type": "run",
+    "args": "page, context",
+    "when": "登录 / 注册 / 临时密钥页渲染前；`page` 是 `login` / `register` / `fast-pass`，插件可以在这一步设置设备 cookie、预置挑战状态"
+  },
+  "auth.login.pre": {
+    "type": "filter",
+    "args": "screen, context",
+    "when": "带凭据的登录入口在验证凭据 / 建立会话之前（密码、邮箱验证码、第三方登录）。`screen` 是 `decision`（`allow` / `block` / `challenge` / `degraded`）/ `message` / `payload`，`context` 有 method、identifier、accounts（只有 id / username / email）、ip、user_agent、is_ajax。`challenge` 会让下一次尝试要求图片验证码；插件拿不到密码，也不能替用户免验证通过"
+  },
+  "auth.login.failed": {
+    "type": "run",
+    "args": "message, userId, context",
+    "when": "统一登录失败出口（活动日志写完之后）；`context` 带 method、identifier、ip、is_ajax，风险筛查拒绝时还有 decision"
+  },
+  "auth.register.pre": {
+    "type": "filter",
+    "args": "screen, context",
+    "when": "核心注册页和第三方建号写库之前；`screen` 形状同 `auth.login.pre`，`context` 有 username、email、ip、user_agent、data"
+  },
   "userinfo.claims": {
     "type": "filter",
     "args": "claims, user, scopes",
@@ -28,6 +73,31 @@
     "type": "filter",
     "args": "tags, layout",
     "when": "页面 head 的 meta 组装完；以 `og:` 开头的按 `property` 输出，其余按 `name`"
+  },
+  "meta.robots": {
+    "type": "filter",
+    "args": "directives, layout, path",
+    "when": "head 里的 robots meta 组装时；返回指令数组（如 `['noindex']`），空数组表示不输出。后台布局默认 `noindex, nofollow`，插件可按路径放开或追加 `noarchive` 这类指令"
+  },
+  "http.headers": {
+    "type": "filter",
+    "args": "headers, kind",
+    "when": "响应输出前；`kind` 是 `view` / `json` / `redirect`。返回 `名称 => 值` 数组，值再给数组就发多条同名头。只加头，不改状态码"
+  },
+  "response.html": {
+    "type": "filter",
+    "args": "html, layout",
+    "when": "页面布局渲染完、`Url::filterHtml` 之后、输出之前；适合注入分析脚本、改全站链接这类整页处理"
+  },
+  "robots.txt": {
+    "type": "filter",
+    "args": "body",
+    "when": "`/robots.txt` 输出前；返回完整正文"
+  },
+  "sitemap.xml": {
+    "type": "filter",
+    "args": "xml",
+    "when": "`/sitemap.xml` 输出前；返回完整 XML"
   },
   "oauth.authorize.quick": {
     "type": "filter",
@@ -63,6 +133,11 @@
     "type": "filter",
     "args": "payload（to / subject / body）, embedded",
     "when": "真正投递 SMTP 之前；返回数组可替换"
+  },
+  "email.sent": {
+    "type": "run",
+    "args": "to, subject, ok, error",
+    "when": "SMTP 投递结束（成功或失败都触发）；SMTP 未配置 / vendor 缺失也算 `ok=false`"
   },
   "notification.created": {
     "type": "run",

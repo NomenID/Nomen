@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{ActivityLog, AppData, Database, Session, Csrf, Response, Email, EmailTemplate, EmailPolicy, EmailSet, I18n, RateLimiter, GeoIP, NotificationHelper, RecoveryHelper, FamilyHelper, Skins, Password};
+use Nomen\Src\{ActivityLog, AppData, Database, Session, Csrf, Response, Email, EmailTemplate, EmailPolicy, EmailSet, I18n, RateLimiter, GeoIP, NotificationHelper, RecoveryHelper, FamilyHelper, Skins, Password, Hooks};
 use Nomen\Controllers\DeviceController;
 use PDO;
 
@@ -85,6 +85,12 @@ class DashboardController
             'summary'  => '更新个人资料',
         ]);
 
+        Hooks::run('user.profile.changed', [
+            (int)$userId,
+            ['display_name' => $displayName, 'bio' => $bio],
+            $before,
+        ]);
+
         if ($isAjax) {
             Response::json(['success' => true, 'message' => t('Profile updated')]);
         }
@@ -166,6 +172,8 @@ class DashboardController
             'category' => ActivityLog::CAT_SECURITY,
             'summary'  => $recoveryMode ? '恢复流程中修改密码' : '修改密码',
         ]);
+
+        Hooks::run('user.password.changed', [(int)$userId, $recoveryMode ? 'recovery' : 'settings']);
 
         if ($isAjax) {
             Response::json(['success' => true, 'message' => t('Password changed, other devices signed out')]);
@@ -825,6 +833,8 @@ class DashboardController
             'summary'     => '首选邮箱更换为 ' . $email,
         ]);
 
+        Hooks::run('user.email.changed', [(int)$userId, (string)$user['email'], $email]);
+
         $this->emailBack($isAjax, t('Primary email changed to {:email}', ['email' => $email]), true);
     }
 
@@ -1153,6 +1163,8 @@ class DashboardController
             'summary'  => '使用邮箱验证码重置密码',
         ]);
 
+        Hooks::run('user.password.changed', [(int)$userId, 'email_code']);
+
         if ($isAjax) Response::json(['success' => true, 'message' => t('Password reset, other devices signed out')]);
         Session::flash('success', t('Password reset, other devices signed out'));
         Response::redirect('/settings/security#sec-reset-code');
@@ -1214,6 +1226,8 @@ class DashboardController
             ),
             'summary'     => '更换头像',
         ]);
+
+        Hooks::run('user.avatar.changed', [(int)$userId, $oldAvatar ?: null, $filename]);
 
         if ($isAjax) {
             Response::json(['success' => true, 'message' => t('Avatar updated'), 'avatar_url' => '/assets/avatars/' . $filename]);

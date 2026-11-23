@@ -13,6 +13,7 @@
 | `layout.body.end` | filter | html, layout | 布局 `</body>` 前 |
 | `layout.body.start` | filter | html, layout | 布局 `<body>` 后 |
 | `layout.head` | filter | html, layout | 布局 `</head>` 前；返回值原样输出（核心先在这里给出 generator / 版本 / 皮肤 / 语言 meta） |
+| `meta.robots` | filter | directives, layout, path | head 里的 robots meta 组装时；返回指令数组（如 `['noindex']`），空数组表示不输出。后台布局默认 `noindex, nofollow`，插件可按路径放开或追加 `noarchive` 这类指令 |
 | `meta.tags` | filter | tags, layout | 页面 head 的 meta 组装完；以 `og:` 开头的按 `property` 输出，其余按 `name` |
 | `nav.items` | filter | items, userId | 站点导航组装完（PHP 布局和 Vue 外壳共用） |
 | `viewer.props` | filter | viewer, userId, user | SPA 的 viewer 数据组装完 |
@@ -55,6 +56,14 @@
 - 参数：html, layout
 - 时机：布局 `</head>` 前；返回值原样输出（核心先在这里给出 generator / 版本 / 皮肤 / 语言 meta）
 - 触发点：皮肤布局 那边触发，源码在它自己的仓库里
+
+### meta.robots
+
+- 类型：filter
+- 参数：directives, layout, path
+- 时机：head 里的 robots meta 组装时；返回指令数组（如 `['noindex']`），空数组表示不输出。后台布局默认 `noindex, nofollow`，插件可按路径放开或追加 `noarchive` 这类指令
+- 触发点：
+  - `src/Meta.php`（filter）
 
 ### meta.tags
 

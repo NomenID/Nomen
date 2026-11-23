@@ -63,6 +63,16 @@ class Plugin
             }
         }
 
+        $provided = Plugins::providedHooks();
+        if ($provided !== []) {
+            echo PHP_EOL, '插件自己触发的钩子：', PHP_EOL;
+            foreach ($provided as $slug => $hooks) {
+                foreach ($hooks as $hook => $description) {
+                    echo '  ', $hook, $description !== '' ? '  ' . $description : '', PHP_EOL;
+                }
+            }
+        }
+
         return 0;
     }
 

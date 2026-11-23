@@ -13,6 +13,7 @@ class Response
 {
     public static function json($data, int $status = 200): void
     {
+        self::hookHeaders('json');
         http_response_code($status);
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($data, JSON_UNESCAPED_UNICODE);
@@ -21,6 +22,7 @@ class Response
 
     public static function redirect(string $url, int $status = 302): void
     {
+        self::hookHeaders('redirect');
         http_response_code($status);
         header('Location: ' . Url::to($url));
         exit;
@@ -58,7 +60,11 @@ class Response
         ob_start();
         require $layoutFile;
         $html = (string)ob_get_clean();
-        echo Url::filterHtml($html);
+        $html = Url::filterHtml($html);
+        $html = (string)Hooks::filter('response.html', $html, $layout);
+
+        self::hookHeaders('view');
+        echo $html;
     }
 
     public static function viewPartial(string $template, array $data = []): string
@@ -83,5 +89,48 @@ class Response
         // 独立渲染器：不碰语言包 / 皮肤 / 数据库，报错这步自己不能再二次炸掉。
         // show() 内部会 exit —— 调用方靠这个守卫，后面不会继续执行
         ErrorPage::show($code, $message);
+    }
+
+    /**
+     * 插件追加 HTTP 头（CSP、X-Robots-Tag、HSTS 这类）。
+     * $kind 是 view / json / redirect，方便插件只处理其中一种。
+     */
+    private static function hookHeaders(string $kind): void
+    {
+        if (headers_sent()) {
+            return;
+        }
+
+        $headers = Hooks::filter('http.headers', [], $kind);
+
+        foreach ((array)$headers as $name => $value) {
+            if (!is_string($name) || !preg_match('/^[A-Za-z0-9!#$%&\'*+.^_`|~-]+$/', $name)) {
+                continue;
+            }
+
+            if (is_array($value)) {
+                foreach ($value as $one) {
+                    $one = self::cleanHeaderValue($one);
+                    if ($one !== '') {
+                        header($name . ': ' . $one, false);
+                    }
+                }
+                continue;
+            }
+
+            $one = self::cleanHeaderValue($value);
+            if ($one !== '') {
+                header($name . ': ' . $one, true);
+            }
+        }
+    }
+
+    private static function cleanHeaderValue(mixed $value): string
+    {
+        if (!is_scalar($value) && $value !== null) {
+            return '';
+        }
+
+        return trim(str_replace(["\r", "\n"], '', (string)$value));
     }
 }

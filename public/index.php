@@ -182,23 +182,27 @@ $router->get('/sitemap.xml', function () {
     $docs = Plugins::mountUrl('pages');
 
     header('Content-Type: application/xml; charset=utf-8');
-    echo '<?xml version="1.0" encoding="UTF-8"?>', "\n";
 
     if ($docs === null) {
-        echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>';
-        return;
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n"
+            . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>';
+    } else {
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n"
+            . '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><sitemap><loc>'
+            . htmlspecialchars($base . \Nomen\Src\Url::to($docs . '/sitemap'))
+            . '</loc></sitemap></sitemapindex>';
     }
 
-    echo '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><sitemap><loc>'
-        . htmlspecialchars($base . \Nomen\Src\Url::to($docs . '/sitemap'))
-        . '</loc></sitemap></sitemapindex>';
+    echo (string)\Nomen\Src\Hooks::filter('sitemap.xml', $xml);
 });
 
 $router->get('/robots.txt', function () {
     $base = rtrim((string)\Nomen\Src\Brand::get('base_url'), '/');
 
     header('Content-Type: text/plain; charset=utf-8');
-    echo "User-agent: *\nAllow: /\n\nSitemap: " . $base . \Nomen\Src\Url::to('/sitemap.xml') . "\n";
+    $body = "User-agent: *\nAllow: /\n\nSitemap: " . $base . \Nomen\Src\Url::to('/sitemap.xml') . "\n";
+
+    echo (string)\Nomen\Src\Hooks::filter('robots.txt', $body);
 });
 
 // 人机验证

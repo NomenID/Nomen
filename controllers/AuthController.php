@@ -53,6 +53,9 @@ class AuthController
         $success = Session::getFlash('success');
         $redirect_to = $_GET['redirect_to'] ?? '/dashboard';
 
+        // 插件在登录页渲染前的准备（设置设备 cookie、预置挑战状态这类）
+        Hooks::run('auth.page', ['login', ['redirect_to' => (string)$redirect_to]]);
+
         // 账号注销成功提示
         if (isset($_GET['deleted'])) {
             $success = '账号已成功注销';
@@ -108,6 +111,10 @@ class AuthController
 
         if (!$username || !$password) {
             $this->failLogin($loginUrl, $isAjax, '请输入用户名和密码');
+        }
+
+        if ($this->screenLogin('password', $username, $accounts, $isAjax, $loginUrl)) {
+            return;
         }
 
         if (!$accounts) {
@@ -356,7 +363,7 @@ class AuthController
         if ($this->isCaptchaRequired() && !$this->captchaGraceActive()) {
             if (!Captcha::verify($_POST['captcha'] ?? null)) {
                 Session::flash('require_captcha', true);
-                $this->failLogin($loginUrl, $isAjax, '登录尝试过于频繁，请输入图片验证码');
+                $this->failLogin($loginUrl, $isAjax, '登录尝试过于频繁，请输入图片验证码', null, $userId);
                 return true;
             }
             Session::set('captcha_passed_until', time() + 120);
@@ -366,7 +373,7 @@ class AuthController
         $hardLimit = (int)($config['login_ip_hard_limit'] ?? 20);
         $ipRate = RateLimiter::check("auth:login:{$ip}", $hardLimit, 60);
         if (!$ipRate['allowed']) {
-            $this->failLogin($loginUrl, $isAjax, '登录尝试太频繁，请 ' . $ipRate['retry_after'] . ' 秒后重试');
+            $this->failLogin($loginUrl, $isAjax, '登录尝试太频繁，请 ' . $ipRate['retry_after'] . ' 秒后重试', null, $userId);
             return true;
         }
 
@@ -374,7 +381,7 @@ class AuthController
         if ($userId !== null && $userId > 0) {
             $userRate = RateLimiter::check("auth:login:user:{$userId}", 5, 60);
             if (!$userRate['allowed']) {
-                $this->failLogin($loginUrl, $isAjax, '登录尝试太频繁，请 ' . $userRate['retry_after'] . ' 秒后重试');
+                $this->failLogin($loginUrl, $isAjax, '登录尝试太频繁，请 ' . $userRate['retry_after'] . ' 秒后重试', null, $userId);
                 return true;
             }
         }
@@ -383,12 +390,176 @@ class AuthController
     }
 
     /**
+     * 登录前风险筛查（auth.login.pre）。所有带凭据的登录入口都该走这里：
+     * 密码、邮箱验证码，第三方 / 生物识别这类外部入口直接调静态版本。
+     * 插件可以放行、拒绝或要求一次人机验证，但拿不到密码、也不能替用户「免验证通过」。
+     *
+     * @param array<int, array> $accounts 候选账号（只给 id / username / email，不给哈希）
+     * @return array{decision: string, message: string, payload: array, user_id: int|null, context: array}|null
+     *         null = 放行
+     */
+    public static function screenLoginRequest(string $method, string $identifier, array $accounts, bool $isAjax = false): ?array
+    {
+        $safe = [];
+        foreach ($accounts as $account) {
+            $safe[] = [
+                'id'       => (int)($account['id'] ?? 0),
+                'username' => (string)($account['username'] ?? ''),
+                'email'    => (string)($account['email'] ?? ''),
+            ];
+        }
+
+        $context = [
+            'method'     => $method,
+            'identifier' => $identifier,
+            'accounts'   => $safe,
+            'ip'         => (string)($_SERVER['REMOTE_ADDR'] ?? ''),
+            'user_agent' => (string)($_SERVER['HTTP_USER_AGENT'] ?? ''),
+            'is_ajax'    => $isAjax,
+        ];
+
+        $result = self::normalizeScreen('auth.login.pre', Hooks::filter('auth.login.pre', [
+            'decision' => 'allow',
+            'message'  => '',
+            'payload'  => [],
+        ], $context));
+        if ($result === null) {
+            return null;
+        }
+
+        $message = $result['message'];
+        if ($message === '') {
+            $message = match ($result['decision']) {
+                'challenge' => t('Please complete the human check'),
+                'degraded'  => t('Service temporarily unavailable, try again later'),
+                default     => t('Sign-in was rejected, try again later'),
+            };
+        }
+
+        $userId = (int)($safe[0]['id'] ?? 0);
+
+        return [
+            'decision' => $result['decision'],
+            'message'  => $message,
+            'payload'  => $result['payload'],
+            'user_id'  => $userId > 0 ? $userId : null,
+            'context'  => $context + ['decision' => $result['decision']],
+        ];
+    }
+
+    /**
+     * 密码 / 邮箱验证码登录里的筛查：拦下时直接输出失败响应。
+     */
+    private function screenLogin(string $method, string $identifier, array $accounts, bool $isAjax, string $loginUrl): bool
+    {
+        $result = self::screenLoginRequest($method, $identifier, $accounts, $isAjax);
+        if ($result === null) {
+            return false;
+        }
+
+        if ($result['decision'] === 'challenge') {
+            // 和核心自己的「这个 IP 要验证码」共用同一个标记
+            Session::set('captcha_required_until', time() + 300);
+        }
+
+        $this->failLogin($loginUrl, $isAjax, $result['message'], null, $result['user_id'], $result['context'] + [
+            'payload' => $result['payload'],
+        ]);
+
+        return true;
+    }
+
+    /**
+     * 注册前风险筛查（auth.register.pre）。核心注册页和第三方建号共用。
+     *
+     * @return array{decision: string, message: string, payload: array}|null null = 放行
+     */
+    public static function screenRegisterRequest(array $data): ?array
+    {
+        $context = [
+            'username'   => (string)($data['username'] ?? ''),
+            'email'      => (string)($data['email'] ?? ''),
+            'ip'         => (string)($_SERVER['REMOTE_ADDR'] ?? ''),
+            'user_agent' => (string)($_SERVER['HTTP_USER_AGENT'] ?? ''),
+            'data'       => $data,
+        ];
+
+        $result = self::normalizeScreen('auth.register.pre', Hooks::filter('auth.register.pre', [
+            'decision' => 'allow',
+            'message'  => '',
+            'payload'  => [],
+        ], $context));
+        if ($result === null) {
+            return null;
+        }
+
+        $message = $result['message'];
+        if ($message === '') {
+            $message = match ($result['decision']) {
+                'challenge' => t('Please complete the human check'),
+                'degraded'  => t('Service temporarily unavailable, try again later'),
+                default     => t('Sign-up failed, try again later'),
+            };
+        }
+
+        return [
+            'decision' => $result['decision'],
+            'message'  => $message,
+            'payload'  => $result['payload'],
+        ];
+    }
+
+    /**
+     * 注册页里的筛查：被拒时保留已填字段并回注册页。
+     */
+    private function screenRegister(array $data): void
+    {
+        $result = self::screenRegisterRequest($data);
+        if ($result === null) {
+            return;
+        }
+
+        Session::flash('error', $result['message']);
+        Session::flash('old', $data);
+        Response::redirect('/register');
+    }
+
+    /**
+     * 把筛查钩子的返回值收成固定形状；放行返回 null。
+     *
+     * @return array{decision: string, message: string, payload: array}|null
+     */
+    private static function normalizeScreen(string $event, mixed $result): ?array
+    {
+        if (!is_array($result)) {
+            error_log('[Hooks] ' . $event . ' 的返回值不是数组，按放行处理');
+            return null;
+        }
+
+        $decision = strtolower(trim((string)($result['decision'] ?? 'allow')));
+        if (!in_array($decision, ['allow', 'block', 'challenge', 'degraded'], true)) {
+            error_log('[Hooks] ' . $event . ' 返回了未知的 decision：' . $decision);
+            return null;
+        }
+        if ($decision === 'allow') {
+            return null;
+        }
+
+        return [
+            'decision' => $decision,
+            'message'  => trim((string)($result['message'] ?? '')),
+            'payload'  => is_array($result['payload'] ?? null) ? $result['payload'] : [],
+        ];
+    }
+
+    /**
      * 统一的登录失败处理：AJAX 返回 JSON，否则 flash + 回登录页
      *
      * @param string|null $method 传了表示「这个登录方式本身没成功」，登录页会把主区让给别的方式；
      *                            输入没填全、图片验证码没过、账号被禁用这类不算，传 null
+     * @param array $context 风险筛查等附加信息，会原样交给 auth.login.failed；payload 键会并入 AJAX 响应
      */
-    private function failLogin(string $loginUrl, bool $isAjax, string $message, ?string $method = null): void
+    private function failLogin(string $loginUrl, bool $isAjax, string $message, ?string $method = null, ?int $userId = null, array $context = []): void
     {
         if ($method !== null) {
             self::recordFailedMethod($method, $message);
@@ -402,8 +573,18 @@ class AuthController
             'summary'  => '登录失败：' . $message,
         ]);
 
+        $extra = is_array($context['payload'] ?? null) ? $context['payload'] : [];
+        unset($context['payload']);
+
+        Hooks::run('auth.login.failed', [$message, $userId, $context + [
+            'method'     => $method,
+            'identifier' => mb_substr(trim((string)($_POST['username'] ?? $_POST['email'] ?? '')), 0, 191, 'UTF-8'),
+            'ip'         => (string)($_SERVER['REMOTE_ADDR'] ?? ''),
+            'is_ajax'    => $isAjax,
+        ]]);
+
         if ($isAjax) {
-            Response::json(['success' => false, 'message' => $message]);
+            Response::json(['success' => false, 'message' => $message] + $extra);
         }
         Session::flash('error', $message);
         Response::redirect($loginUrl);
@@ -991,6 +1172,10 @@ class AuthController
             $this->failLogin($loginUrl, false, '请输入邮箱（或用户名）和验证码');
         }
 
+        if ($this->screenLogin('email_code', $identifier, $accounts, false, $loginUrl)) {
+            return;
+        }
+
         if (!$accounts) {
             $this->failLogin($loginUrl, false, '邮箱或验证码错误', 'email_code');
         }
@@ -1065,6 +1250,8 @@ class AuthController
         if (!str_starts_with($redirect_to, '/') || str_contains($redirect_to, '://')) {
             $redirect_to = '/dashboard';
         }
+
+        Hooks::run('auth.page', ['fast-pass', ['redirect_to' => (string)$redirect_to]]);
 
         Response::view('fast-pass', compact('error', 'success', 'redirect_to'));
     }
@@ -1177,6 +1364,8 @@ class AuthController
         $old = Session::getFlash('old', []);
         $passwordRegistration = LoginMethods::on('password');
 
+        Hooks::run('auth.page', ['register', ['redirect_to' => (string)($_GET['redirect_to'] ?? '')]]);
+
         // 第三步按来访 IP 预填国家/地区，只是默认值（取不到就空着，用户随时能改）
         $detectedCountry = '';
         if (Features::country() && empty($old['country'])) {
@@ -1241,6 +1430,9 @@ class AuthController
             Session::flash('old', $old);
             Response::redirect('/register');
         }
+
+        // 风险筛查在限流之后、建号之前；被拒时保留已填字段
+        $this->screenRegister($old);
 
         $username = $old['username'];
         $email = $old['email'];

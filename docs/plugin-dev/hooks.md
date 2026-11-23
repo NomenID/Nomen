@@ -2,7 +2,9 @@
 
 钩子是核心主动开的口子，分两种：`run` 是「事情发生了，通知一下」，`filter` 是「这个值你还能改」。
 
-钩子只在动作之后通知，**别把安全判断做成钩子**：密码校验、两步验证、恢复审核这些能不能过，不该由插件说了算。
+**密码校验、两步验证、恢复审核这些「能不能过」仍由核心决定**，插件不能替用户免验证通过。
+需要按 IP、设备、风险分决定「这次登录要不要先拦一下」时，用 `auth.login.pre` / `auth.register.pre`：
+它们只能放行、拒绝或要求补一次人机验证，拿不到密码，也不能绕过第二因素。
 
 ## 两种语义
 
@@ -154,6 +156,124 @@ public static function quick(?string $decision, int $userId, array $client, arra
 
 返回的字符串会被当成 `spicallogin` 参数发给接入方，所以别在里面放用户信息。判定逻辑必须自己写清楚，
 默认返回 `null` 是最安全的。
+
+## 登录 / 注册风控：`auth.login.pre` / `auth.register.pre`
+
+这两个是「拦一下」的钩子，返回一个数组：
+
+| 键 | 说明 |
+|---|---|
+| `decision` | `allow`（放行）、`block`（拒绝）、`challenge`（要求人机验证）、`degraded`（依赖的服务不可用） |
+| `message` | 显示给用户的成品文案；留空时核心用内置的兜底文案 |
+| `payload` | 只并入 AJAX 失败响应，给前端自己处理（比如触发工作量证明） |
+
+```php
+public static function screenLogin(array $screen, array $context): array
+{
+    if ($context['method'] !== 'password') {
+        return $screen;                    // 只管密码登录，其它入口放行
+    }
+
+    if (risk_ok($context['ip'])) {
+        return $screen;                    // decision 仍是 allow
+    }
+
+    return [
+        'decision' => 'block',
+        'message'  => '登录尝试被拒绝，请稍后再试',
+        'payload'  => ['reason' => 'risk'],
+    ];
+}
+```
+
+`auth.login.pre` 覆盖密码、邮箱验证码和第三方登录；`auth.register.pre` 覆盖核心注册页和第三方首次建号。
+`context` 里给的是 `identifier`、`accounts`（只有 `id` / `username` / `email`）、`ip`、`user_agent`，
+**没有密码**。返回 `challenge` 会让这台客户端下一次尝试要求图片验证码。
+
+风控服务自己不可用时要明确选一种策略：返回 `allow`（放行）或 `degraded`（拒绝并提示服务不可用）。
+别让异常冒到钩子外面——那会把所有人的登录打成 500。
+
+要记录失败次数、报告风控结果，用 `auth.login.failed`（`message, userId, context`）。登录成功用
+`user.login.succeeded`，注册成功用 `user.registered`。
+
+`auth.page`（`page, context`）在登录 / 注册 / 临时密钥页渲染前触发，适合放设备 cookie、预置挑战状态。
+它只在这些页面被真正渲染时跑，不是每个请求都跑。
+
+## SEO 与响应头
+
+### `meta.robots`：控制 noindex
+
+返回指令数组。后台布局默认已经是 `noindex, nofollow`；其它页面可按路径决定：
+
+```php
+/** @param string[] $directives */
+public static function robots(array $directives, string $layout, string $path): array
+{
+    if (str_starts_with($path, '/preview/')) {
+        return ['noindex', 'nofollow'];
+    }
+
+    return $directives;
+}
+```
+
+指令会拼成 `<meta name="robots" content="noindex, nofollow">`，空数组表示不输出这一条。
+`meta.tags` 也能改 `robots`，但 `meta.robots` 更明确，按路径判断时优先用它。
+
+### `http.headers`：CSP、HSTS 这类响应头
+
+```php
+public static function headers(array $headers, string $kind): array
+{
+    if ($kind === 'view') {
+        $headers['Content-Security-Policy'] = "default-src 'self'";
+    }
+
+    return $headers;
+}
+```
+
+`kind` 是 `view` / `json` / `redirect`。值的数组会发成多条同名头；头名和值里的换行会被清掉。
+
+### `response.html` / `robots.txt` / `sitemap.xml`
+
+- `response.html`（`html, layout`）：整页 HTML 输出前，适合注入分析脚本、统一改链接。
+- `robots.txt`（`body`）：返回完整正文，可以追加 `Disallow`。
+- `sitemap.xml`（`xml`）：返回完整 XML。
+
+## 账号变更通知
+
+`user.password.changed`（`userId, source`）、`user.email.changed`（`userId, oldEmail, newEmail`）、
+`user.profile.changed`（`userId, profile, before`）、`user.avatar.changed`（`userId, oldAvatar, newAvatar`）、
+`user.deleted`（`userId, username, email`）在对应动作成功后触发。`source` 是 `settings` / `recovery` /
+`email_code`，需要区分改密来源时用它。头像钩子给的是文件名，不带 `/assets/avatars/` 前缀。
+这些钩子跑在数据库写入之后，删号的在删之前。
+
+## 插件自己的钩子
+
+插件也可以开自己的钩子，让别的插件接。先在 `plugin.json` 里声明：
+
+```json
+{
+    "provides": {
+        "bookmarks.saved": "书签保存之后",
+        "bookmarks.page.rendered": "书签页正文渲染完之后"
+    }
+}
+```
+
+规则：
+
+- 钩子名必须以插件 slug 加点开头（`bookmarks.`），核心会给不合规的名字记一条日志并跳过。
+- 声明只是登记，真正触发还是调用 `Hooks::run()` / `Hooks::filter()`：
+
+```php
+Hooks::run('bookmarks.saved', [$userId, $bookmarkId]);
+$html = Hooks::filter('bookmarks.page.rendered', $html, $userId);
+```
+
+- 别的插件按普通钩子订阅，写在清单 `hooks` 里或 `boot` 里都行。
+- `php bin/nomen plugins list` 会列出已启用插件声明了哪些钩子；它们的参数和时机由插件自己在 README 里写。
 
 ## 全部钩子
 

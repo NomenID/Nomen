@@ -10,12 +10,16 @@
 |---|---|---|---|
 | `api.siteinfo` | filter | info, siprops, params | `/nomen-api` 的 siteinfo 组装完 |
 | `gate.check` | filter | allowed, ability, userId, context | `Gate::userCan()` 算完组判定之后；插件可以改判（按 IP 段、按站点开关），返回布尔值覆盖结果 |
+| `http.headers` | filter | headers, kind | 响应输出前；`kind` 是 `view` / `json` / `redirect`。返回 `名称 => 值` 数组，值再给数组就发多条同名头。只加头，不改状态码 |
 | `login.methods` | filter | methods | 登录页组装登录方式时；插件返回条目注册自己的登录方式（id / label 成品文案 / url 入口 / logo 可选 / by 插件显示名），登录页渲染成独立选项，可被设为默认方式 |
 | `pages.admin.editor.extras` | filter | html, page | Pages 插件后台的 Markdown 编辑器下方，返回值原样输出，用来给编辑器加额外表单片段 |
 | `pages.content.before_save` | filter | data, existing, isNew | Pages 插件写库前，可改字段 |
 | `pages.content.deleted` | run | pageId, page, userId | Pages 插件删除前 |
 | `pages.content.saved` | run | pageId, data, isNew, userId | Pages 插件保存后 |
+| `response.html` | filter | html, layout | 页面布局渲染完、`Url::filterHtml` 之后、输出之前；适合注入分析脚本、改全站链接这类整页处理 |
+| `robots.txt` | filter | body | `/robots.txt` 输出前；返回完整正文 |
 | `schedule.tasks` | filter | tasks | 定时任务清单组装时（`schedule run`、后台设置页）；返回条目注册插件自己的任务，id 用 `slug.name`，间隔写 `every`（秒）或 `daily_at`（HH:MM），`run` 是回调 |
+| `sitemap.xml` | filter | xml | `/sitemap.xml` 输出前；返回完整 XML |
 | `update.completed` | run | from, to, info | 自动更新成功后的第一次正常站点请求（插件已按新代码启动）；更新进程内不会触发，一次更新只触发一次 |
 | `update.preflight` | filter | reason, offer, current | 自动更新下载并校验完包、覆盖文件之前；返回非空字符串就中止这次更新（此时插件仍是旧代码，文件与数据库都完整，中止是安全的） |
 
@@ -36,6 +40,14 @@
 - 时机：`Gate::userCan()` 算完组判定之后；插件可以改判（按 IP 段、按站点开关），返回布尔值覆盖结果
 - 触发点：
   - `src/Gate.php`（filter）
+
+### http.headers
+
+- 类型：filter
+- 参数：headers, kind
+- 时机：响应输出前；`kind` 是 `view` / `json` / `redirect`。返回 `名称 => 值` 数组，值再给数组就发多条同名头。只加头，不改状态码
+- 触发点：
+  - `src/Response.php`（filter）
 
 ### login.methods
 
@@ -74,6 +86,22 @@
 - 时机：Pages 插件保存后
 - 触发点：Pages 插件 那边触发，源码在它自己的仓库里
 
+### response.html
+
+- 类型：filter
+- 参数：html, layout
+- 时机：页面布局渲染完、`Url::filterHtml` 之后、输出之前；适合注入分析脚本、改全站链接这类整页处理
+- 触发点：
+  - `src/Response.php`（filter）
+
+### robots.txt
+
+- 类型：filter
+- 参数：body
+- 时机：`/robots.txt` 输出前；返回完整正文
+- 触发点：
+  - `public/index.php`（filter）
+
 ### schedule.tasks
 
 - 类型：filter
@@ -81,6 +109,14 @@
 - 时机：定时任务清单组装时（`schedule run`、后台设置页）；返回条目注册插件自己的任务，id 用 `slug.name`，间隔写 `every`（秒）或 `daily_at`（HH:MM），`run` 是回调
 - 触发点：
   - `src/Schedule.php`（filter）
+
+### sitemap.xml
+
+- 类型：filter
+- 参数：xml
+- 时机：`/sitemap.xml` 输出前；返回完整 XML
+- 触发点：
+  - `public/index.php`（filter）
 
 ### update.completed
 

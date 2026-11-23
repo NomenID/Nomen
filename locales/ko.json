@@ -2049,5 +2049,7 @@
   "Group": "그룹",
   "Updated groups": "그룹을 업데이트했습니다",
     "Branch {:branch} is no longer maintained.": "Branch {:branch} is no longer maintained.",
-    "Upgrade in order: {:path}.": "Upgrade in order: {:path}."
+    "Upgrade in order: {:path}.": "Upgrade in order: {:path}.",
+    "Please complete the human check": "Please complete the human check",
+    "Sign-in was rejected, try again later": "Sign-in was rejected, try again later"
 }

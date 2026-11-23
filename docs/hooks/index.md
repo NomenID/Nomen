@@ -4,9 +4,18 @@
 
 | 钩子 | 类型 | 触发点 |
 |---|---|---|
+| [auth.login.failed](auth.md) | run | 1 处 |
+| [auth.login.pre](auth.md) | filter | 1 处 |
 | [auth.notice](auth.md) | filter | 2 处 |
+| [auth.page](auth.md) | run | 3 处 |
+| [auth.register.pre](auth.md) | filter | 1 处 |
+| [user.avatar.changed](auth.md) | run | 1 处 |
+| [user.deleted](auth.md) | run | 1 处 |
+| [user.email.changed](auth.md) | run | 1 处 |
 | [user.login.succeeded](auth.md) | run | 1 处 |
 | [user.logout](auth.md) | run | 1 处 |
+| [user.password.changed](auth.md) | run | 2 处 |
+| [user.profile.changed](auth.md) | run | 1 处 |
 | [user.registered](auth.md) | run | 3 处 |
 | [oauth.authorize.approved](oauth.md) | run | 2 处 |
 | [oauth.authorize.quick](oauth.md) | filter | 1 处 |
@@ -19,6 +28,7 @@
 | [layout.body.end](render.md) | filter | 扩展侧 |
 | [layout.body.start](render.md) | filter | 扩展侧 |
 | [layout.head](render.md) | filter | 扩展侧 |
+| [meta.robots](render.md) | filter | 1 处 |
 | [meta.tags](render.md) | filter | 1 处 |
 | [nav.items](render.md) | filter | 1 处 |
 | [viewer.props](render.md) | filter | 1 处 |
@@ -46,13 +56,18 @@
 | [admin.users.rows](admin.md) | filter | 1 处 |
 | [api.siteinfo](content.md) | filter | 1 处 |
 | [gate.check](content.md) | filter | 1 处 |
+| [http.headers](content.md) | filter | 1 处 |
 | [login.methods](content.md) | filter | 1 处 |
 | [pages.admin.editor.extras](content.md) | filter | 扩展侧 |
 | [pages.content.before_save](content.md) | filter | 扩展侧 |
 | [pages.content.deleted](content.md) | run | 扩展侧 |
 | [pages.content.saved](content.md) | run | 扩展侧 |
+| [response.html](content.md) | filter | 1 处 |
+| [robots.txt](content.md) | filter | 1 处 |
 | [schedule.tasks](content.md) | filter | 1 处 |
+| [sitemap.xml](content.md) | filter | 1 处 |
 | [update.completed](content.md) | run | 1 处 |
 | [update.preflight](content.md) | filter | 1 处 |
 | [email.sending](notify.md) | filter | 1 处 |
+| [email.sent](notify.md) | run | 1 处 |
 | [notification.created](notify.md) | run | 1 处 |

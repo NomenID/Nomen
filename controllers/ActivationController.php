@@ -1,7 +1,7 @@
 <?php
 namespace Nomen\Controllers;
 
-use Nomen\Src\{ActivityLog, Database, Session, Csrf, Response, Email, EmailTemplate, I18n, RateLimiter, FamilyHelper, EmailSet, Features};
+use Nomen\Src\{ActivityLog, Database, Session, Csrf, Response, Email, EmailTemplate, I18n, RateLimiter, FamilyHelper, EmailSet, Features, Hooks};
 use PDO;
 
 class ActivationController
@@ -404,7 +404,13 @@ class ActivationController
             $this->db->prepare("DELETE FROM {$table} WHERE user_id = :id")->execute([':id' => $userId]);
         }
 
-        // 删除用户
+        // 删除用户；快照在日志里已经留过，钩子拿到的是删前的那份
+        Hooks::run('user.deleted', [
+            (int)$userId,
+            (string)($snapshot['username'] ?? ''),
+            (string)($snapshot['email'] ?? ''),
+        ]);
+
         $stmt = $this->db->prepare('DELETE FROM users WHERE id = :id');
         $stmt->execute([':id' => $userId]);
 

@@ -51,6 +51,24 @@ final class Meta
             }
         }
 
+        // 后台默认不许收录；插件可以按路径改（比如把某个公开预览页放出来）
+        $path = (string)parse_url((string)($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH);
+        $robots = Hooks::filter(
+            'meta.robots',
+            $layout === 'admin' ? ['noindex', 'nofollow'] : [],
+            $layout,
+            $path
+        );
+        if (is_array($robots)) {
+            $robots = array_values(array_unique(array_filter(array_map(
+                static fn($directive): string => strtolower(trim((string)$directive)),
+                $robots
+            ))));
+            if ($robots !== []) {
+                $tags['robots'] = implode(', ', $robots);
+            }
+        }
+
         // 插件可增删改任意一条（键名以 og: 开头按 property 输出，其余按 name）
         $tags = Hooks::filter('meta.tags', $tags, $layout);
 
