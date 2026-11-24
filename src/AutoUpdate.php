@@ -427,7 +427,7 @@ final class AutoUpdate
             return ['status' => 'failed', 'current' => $current, 'latest' => $latest, 'message' => $preflight];
         }
 
-        return self::apply($offer, $current, $onStep);
+        return self::apply($offer, $current, $onStep, $manual);
     }
 
     /** 调度器每秒都能调，真正要不要查由 interval 决定；异常不能把心跳打挂 */
@@ -706,7 +706,7 @@ final class AutoUpdate
 
     // ==================== 安装流程 ====================
 
-    private static function apply(array $offer, string $from, ?callable $onStep): array
+    private static function apply(array $offer, string $from, ?callable $onStep, bool $manual = false): array
     {
         $to = (string)($offer['version'] ?? '');
         $root = self::root();
@@ -719,6 +719,7 @@ final class AutoUpdate
             'id'          => gmdate('Ymd\THis\Z') . '-' . preg_replace('/[^0-9A-Za-z._-]/', '_', $to),
             'from'        => $from,
             'to'          => $to,
+            'manual'      => $manual,
             'status'      => 'running',
             'started_at'  => time(),
             'finished_at' => 0,
@@ -837,7 +838,12 @@ final class AutoUpdate
                 self::log('warning', 'completed_hook', '写更新完成标记失败：' . $e->getMessage(), ['run' => $run['id']]);
             }
 
-            self::activity('system.update_success', '自动更新 ' . $from . ' → ' . $to, $from, $to);
+            self::activity(
+                $manual ? 'system.update_manual_success' : 'system.update_success',
+                ($manual ? '手动更新 ' : '自动更新 ') . $from . ' → ' . $to,
+                $from,
+                $to
+            );
             try {
                 self::sendEmail('success', $run, $offer);
             } catch (Throwable $e) {
@@ -892,7 +898,12 @@ final class AutoUpdate
             $state['history'] = array_slice(array_merge([$run], (array)($state['history'] ?? [])), 0, self::HISTORY_MAX);
             self::saveState($state);
 
-            self::activity('system.update_failed', '自动更新失败 ' . $from . ' → ' . $to . '（' . $reason . '）', $from, $to);
+            self::activity(
+                $manual ? 'system.update_manual_failed' : 'system.update_failed',
+                ($manual ? '手动更新失败 ' : '自动更新失败 ') . $from . ' → ' . $to . '（' . $reason . '）',
+                $from,
+                $to
+            );
 
             // 瞬时失败第一次不打扰站长，一小时后自动再试；回滚成功按普通失败通知
             $attempts = (int)($state['failed']['attempts'] ?? 1);
@@ -1226,6 +1237,7 @@ final class AutoUpdate
         $x = static fn(string $key): string => I18n::tIn($locale, $key);
         $site = rtrim((string)Brand::get('base_url'), '/');
         $from = (string)($run['from'] ?? '');
+        $manual = (bool)($run['manual'] ?? false);
         $badge = match ($type) {
             'success'  => ['text' => $x('Updated'), 'tone' => 'success'],
             'critical' => ['text' => $x('Needs attention'), 'tone' => 'danger'],
@@ -1237,7 +1249,9 @@ final class AutoUpdate
             $blocks[] = [
                 'type' => 'paragraph',
                 'text' => sprintf(
-                    $x('Your site at %s was updated automatically from %s to %s.'),
+                    $manual
+                        ? $x('Your site at %s was updated manually from %s to %s.')
+                        : $x('Your site at %s was updated automatically from %s to %s.'),
                     $site,
                     $from,
                     $version
@@ -1256,7 +1270,9 @@ final class AutoUpdate
             $blocks[] = [
                 'type' => 'paragraph',
                 'text' => sprintf(
-                    $x('Your site at %s could not be updated automatically to %s.'),
+                    $manual
+                        ? $x('Your site at %s could not be updated manually to %s.')
+                        : $x('Your site at %s could not be updated automatically to %s.'),
                     $site,
                     $version
                 ),
@@ -1291,9 +1307,9 @@ final class AutoUpdate
         }
 
         $title = match ($type) {
-            'success'  => $x('Nomen was updated automatically'),
-            'critical' => $x('URGENT: automatic update failed'),
-            default    => $x('Automatic update failed'),
+            'success'  => $manual ? $x('Nomen was updated manually') : $x('Nomen was updated automatically'),
+            'critical' => $manual ? $x('URGENT: manual update failed') : $x('URGENT: automatic update failed'),
+            default    => $manual ? $x('Manual update failed') : $x('Automatic update failed'),
         };
         $subject = EmailTemplate::subjectPrefix() . $title . ' ' . $version;
 
@@ -1481,6 +1497,7 @@ final class AutoUpdate
             'from'        => (string)($run['from'] ?? ''),
             'to'          => (string)($run['to'] ?? ''),
             'run'         => (string)($run['id'] ?? ''),
+            'manual'      => (bool)($run['manual'] ?? false),
             'finished_at' => (int)($run['finished_at'] ?? time()),
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 

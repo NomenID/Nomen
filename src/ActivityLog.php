@@ -128,6 +128,8 @@ class ActivityLog
         'admin.update_manual'             => 'Started a manual update',
         'system.update_success'           => 'Automatic update installed',
         'system.update_failed'            => 'Automatic update failed',
+        'system.update_manual_success'    => 'Manual update installed',
+        'system.update_manual_failed'     => 'Manual update failed',
         'admin.homepage_update'           => 'Homepage settings changed',
         'admin.identity_create'           => 'Add sign-in method',
         'admin.identity_update'           => 'Update sign-in method',

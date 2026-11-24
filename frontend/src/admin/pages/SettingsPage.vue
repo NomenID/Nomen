@@ -399,7 +399,7 @@ onMounted(load)
             {{ t('Automatic updates need the PHP zip and curl extensions.') }}
           </AdminAlert>
           <AdminAlert v-else-if="!data.autoUpdate.writable" type="warning">
-            {{ t('The web server cannot write to the site directory, so automatic updates are unavailable.') }}
+            {{ t('The web server user cannot write to the site directory. Updates started by this user will fail; if the scheduler runs as root (for example a root crontab), they still work.') }}
           </AdminAlert>
           <AdminAlert v-else-if="!data.autoUpdate.phpOk" type="warning">
             {{ t('This release needs a newer PHP version.') }}
