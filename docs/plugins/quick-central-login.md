@@ -16,7 +16,7 @@ git clone https://github.com/NomenID/plugin-quick-central-login plugins/quick-ce
 'enabled' => ['open-platform', 'geoip', 'pages', 'totp-qr', 'quick-central-login'],
 ```
 
-要求核心 **≥ 1.3.2**（这个版本起核心才有 `oauth.authorize.quick` 钩子）。
+要求核心 **≥ 1.10.2**（`oauth.authorize.quick` 从 1.3.2 起有；插件 1.1.0 起用到的 `oauth.authorize.quick.settings` 从 1.10.2 起有）。
 
 ## 它做什么
 
