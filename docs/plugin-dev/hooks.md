@@ -157,6 +157,22 @@ public static function quick(?string $decision, int $userId, array $client, arra
 返回的字符串会被当成 `spicallogin` 参数发给接入方，所以别在里面放用户信息。判定逻辑必须自己写清楚，
 默认返回 `null` 是最安全的。
 
+已经授权过的应用会直接重定向（用户之前点过同意）；还没授权过的会先显示中间页（打勾动画）再自动提交，
+中间页不会带 `spicallogin`，免得接入方再弹一次提示。
+
+### `oauth.authorize.quick.settings`：中间页的设置入口
+
+中间页上有一句「可以随时在设置里关掉快速登录」，这个钩子决定链接指向哪里：
+
+```php
+public static function quickSettings(mixed $url, int $userId, array $client): string
+{
+    return '/special/quick-login';         // 只接受站内路径；空串 = 不显示链接
+}
+```
+
+只有 `oauth.authorize.quick` 批了快速登录、并且要渲染中间页时才会触发。核心里不写死任何插件的设置页地址。
+
 ## 登录 / 注册风控：`auth.login.pre` / `auth.register.pre`
 
 这两个是「拦一下」的钩子，返回一个数组：

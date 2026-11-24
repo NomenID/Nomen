@@ -2064,5 +2064,10 @@
   "No third-party sign-in is configured yet.": "No third-party sign-in is configured yet.",
   "No users match these filters.": "No users match these filters.",
   "Nothing has been recorded yet.": "Nothing has been recorded yet.",
-  "This action changed no fields.": "This action changed no fields."
+  "This action changed no fields.": "This action changed no fields.",
+  "Authorizing for {:name}…": "Authorizing for {:name}…",
+  "Authorization complete, returning to {:name}…": "Authorization complete, returning to {:name}…",
+  "Granted": "Granted",
+  "You can turn quick sign-in off in settings at any time.": "You can turn quick sign-in off in settings at any time.",
+  "Open settings": "Open settings"
 }

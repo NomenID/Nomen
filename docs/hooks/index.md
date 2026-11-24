@@ -20,6 +20,7 @@
 | [user.registered](auth.md) | run | 3 处 |
 | [oauth.authorize.approved](oauth.md) | run | 2 处 |
 | [oauth.authorize.quick](oauth.md) | filter | 1 处 |
+| [oauth.authorize.quick.settings](oauth.md) | filter | 1 处 |
 | [oauth.token.issued](oauth.md) | run | 2 处 |
 | [oauth.token.revoked](oauth.md) | run | 1 处 |
 | [oidc.claims](oauth.md) | filter | 1 处 |

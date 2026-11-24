@@ -45,7 +45,7 @@
 OAuth 授权确认页。列出应用名称、要的 scope 和当前登录账号；`prompt=none` 或已授权时不会渲染这一页。
 
 - 文件：`templates/authorize.php`
-- 变量：`client`、`scope`、`state`、`user`、`scopeDescriptions`、`requestedScopeList`、`redirectUri`、`clientId`、`responseType`、`isFirstParty`
+- 变量：`client`、`scope`、`state`、`user`、`scopeDescriptions`、`requestedScopeList`、`redirectUri`、`clientId`、`responseType`、`isFirstParty`、`quickLogin`、`quickSettingsUrl`
 
 ### fast-pass
 

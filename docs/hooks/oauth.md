@@ -9,7 +9,8 @@
 | 钩子 | 类型 | 参数 | 时机 |
 |---|---|---|---|
 | `oauth.authorize.approved` | run | userId, clientId, scope, silent | 授权码发出之后；`silent` 表示这次没经过确认页（已授权过、`prompt=none` 或插件批了快速通道） |
-| `oauth.authorize.quick` | filter | null, userId, client, scopes | 授权请求判定阶段；返回非空字符串 = 该请求免确认直接发码，回调带上 `spicallogin=<返回值>`（返回 `null` 走普通确认流程）。这是产品策略钩子，跳不跳确认由插件自己判断 |
+| `oauth.authorize.quick` | filter | null, userId, client, scopes | 授权请求判定阶段；返回非空字符串 = 该请求免确认直接发码，回调带上 `spicallogin=<返回值>`（返回 `null` 走普通确认流程）。已经授权过的应用直接重定向；还没授权过的走中间页（打勾动画 + 自动提交）。这是产品策略钩子，跳不跳确认由插件自己判断 |
+| `oauth.authorize.quick.settings` | filter | '', userId, client | 插件批了快速登录、但应用还没授权过、要渲染中间页时触发；返回站内路径（以 / 开头）作为「在哪关闭快速登录」的链接，返回空串则不显示链接（只接受站内路径，外部地址会被忽略） |
 | `oauth.token.issued` | run | userId, clientId, scopes, grantType | 发出 access token 之后（`authorization_code` / `refresh_token`） |
 | `oauth.token.revoked` | run | tokenTypeHint | 撤销端点处理完 |
 | `oidc.claims` | filter | claims, user, scopes | id_token 的 claims 组装完；`/api/userinfo` 不走这个钩子 |
@@ -29,7 +30,15 @@
 
 - 类型：filter
 - 参数：null, userId, client, scopes
-- 时机：授权请求判定阶段；返回非空字符串 = 该请求免确认直接发码，回调带上 `spicallogin=<返回值>`（返回 `null` 走普通确认流程）。这是产品策略钩子，跳不跳确认由插件自己判断
+- 时机：授权请求判定阶段；返回非空字符串 = 该请求免确认直接发码，回调带上 `spicallogin=<返回值>`（返回 `null` 走普通确认流程）。已经授权过的应用直接重定向；还没授权过的走中间页（打勾动画 + 自动提交）。这是产品策略钩子，跳不跳确认由插件自己判断
+- 触发点：
+  - `controllers/OAuthController.php`（filter）
+
+### oauth.authorize.quick.settings
+
+- 类型：filter
+- 参数：'', userId, client
+- 时机：插件批了快速登录、但应用还没授权过、要渲染中间页时触发；返回站内路径（以 / 开头）作为「在哪关闭快速登录」的链接，返回空串则不显示链接（只接受站内路径，外部地址会被忽略）
 - 触发点：
   - `controllers/OAuthController.php`（filter）
 

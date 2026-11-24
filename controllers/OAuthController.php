@@ -111,16 +111,17 @@ class OAuthController
         // prompt=none 时**绝不能渲染页面**（OIDC 规范）：需要用户交互就只能回 error。
         $silent = ($prompt === 'none');
 
-        // 不经过授权页、直接发码的两种情况：
+        // 不经过授权页、直接发码：
         //   1) prompt=none：能免确认（已授权，或插件批了快速通道）就直接发码，
         //      需要用户点头就只能回 interaction_required；
-        //   2) 普通交互请求 + 应用已授权过、scope 也够 —— 第三方应用的常规静默续授。
-        $directIssue = $allGranted || $quickLogin;
+        //   2) 普通交互请求 + 应用已经授权过 —— 不管快速登录开没开都直接返回。
+        // 快速登录但还没授权过：走中间页（打勾动画 + 自动提交），别再让用户勾一遍权限。
+        $directIssue = $silent ? ($allGranted || $quickLogin) : $allGranted;
 
         if ($directIssue) {
             if (!$allGranted) {
-                // 插件批了快速通道但还没授权过会走到这儿：这次的 scope 隐式写进
-                // user_authorizations —— 用户在控制台的已授权列表里看得到、也能随时撤销。
+                // 只有 prompt=none + 插件批了快速通道 + 还没授权过会走到这儿：这次的 scope
+                // 隐式写进 user_authorizations —— 用户在控制台的已授权列表里看得到、也能随时撤销。
                 $this->saveAuthorization($userId, $clientId, $scope);
             }
             // 已授权那条路要自己确保 subject 在；saveAuthorization 内部已经调过了（幂等，重复无害）
@@ -131,7 +132,9 @@ class OAuthController
             );
             $params = ['code' => $code];
             if ($state) $params['state'] = $state;
-            // spicallogin 是「快速登录成功」的提示标记，应用侧只判参数在不在，别比对值
+            // spicallogin 是「快速登录成功」的提示标记，应用侧只判参数在不在，别比对值。
+            // 只在用户全程没看见任何页面时带；中间页那条路用户已经看过打勾动画了，不带，
+            // 免得应用侧再弹一次多余的提示。
             if ($quickLogin) $params['spicallogin'] = $quickFlag;
 
             $clientName = $this->clientName($clientId);
@@ -159,10 +162,23 @@ class OAuthController
             return;
         }
 
-        // 剩下的都是用户主动点登录点过来的（比如明确退出之后又点了一次登录），显示授权页面
+        // 剩下的都是用户主动点登录点过来的（比如明确退出之后又点了一次登录），显示授权页面：
+        // 快速登录但还没授权过走中间页（打勾动画 + 顶部进度条，自动提交），其余是普通授权页。
         $user = $this->getUser($userId);
         $scopeDescriptions = $config['scopes'];
         $requestedScopeList = $grantedScopes;
+
+        // 插件可以选择提供「在哪关掉快速登录」的页面地址；只收站内路径，避免插件塞外链。
+        $quickSettingsUrl = '';
+        if ($quickLogin) {
+            $url = Hooks::filter('oauth.authorize.quick.settings', '', (int)$userId, $client);
+            if (is_string($url)) {
+                $url = trim($url);
+                if ($url !== '' && preg_match('#^/[^/\\\\]#', $url)) {
+                    $quickSettingsUrl = $url;
+                }
+            }
+        }
 
         // 存 session 给 handleAuthorize 用，不依赖表单隐藏域
         // （code_challenge 若靠表单传递则可被篡改，放到会话里由服务端自己记）
@@ -177,7 +193,8 @@ class OAuthController
         Response::view('authorize', compact(
             'client', 'scope', 'state', 'user',
             'scopeDescriptions', 'requestedScopeList',
-            'redirectUri', 'clientId', 'responseType', 'isFirstParty'
+            'redirectUri', 'clientId', 'responseType', 'isFirstParty',
+            'quickLogin', 'quickSettingsUrl'
         ));
     }
 

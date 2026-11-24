@@ -7,7 +7,7 @@
 -->
 
 <script setup>
-import { computed, reactive, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useT } from '../../composables/useT.js'
 const { t } = useT()
 import Icon from '../../components/Icon.vue'
@@ -24,6 +24,8 @@ const props = defineProps({
   clientId: { type: String, default: '' },
   responseType: { type: String, default: 'code' },
   isFirstParty: { type: Boolean, default: false },
+  quickLogin: { type: Boolean, default: false },
+  quickSettingsUrl: { type: String, default: '' },
   urls: { type: Object, default: () => ({}) },
 })
 
@@ -60,6 +62,31 @@ const denyUrl = computed(() => (
   + '&state=' + encodeURIComponent(props.state)
   + '&redirect_uri=' + encodeURIComponent(props.redirectUri)
 ))
+
+// 快速登录但还没授权过：先放打勾动画，再自动提交，用户不用再勾权限
+const autoText = ref(t('Authorizing for {:name}…', { name: props.client.name }))
+let autoTimer = null
+let progressEl = null
+
+onMounted(() => {
+  if (!props.quickLogin) return
+
+  progressEl = document.createElement('div')
+  progressEl.className = 'nomen-top-progress'
+  progressEl.innerHTML = '<div class="nomen-top-progress__bar"></div>'
+  document.body.appendChild(progressEl)
+
+  autoTimer = setTimeout(() => {
+    progressEl.classList.add('nomen-top-progress--active')
+    autoText.value = t('Authorization complete, returning to {:name}…', { name: props.client.name })
+    formEl.value?.submit()
+  }, 1200)
+})
+
+onBeforeUnmount(() => {
+  if (autoTimer) clearTimeout(autoTimer)
+  if (progressEl) progressEl.remove()
+})
 
 function scopeIcon(scope) {
   return { openid: 'fingerprint', profile: 'user', email: 'mail' }[scope] || 'key'
@@ -110,6 +137,8 @@ function submitForm() {
 
 function onSubmit(event) {
   event.preventDefault()
+
+  if (props.quickLogin) return
 
   if (mediumRiskScopes.value.length > 0) {
     showConfirmModal(props.client.name, mediumRiskScopes.value).then((confirmed) => {
@@ -163,13 +192,23 @@ function onSubmit(event) {
         <input type="hidden" name="_csrf" :value="csrf">
         <input type="hidden" name="client_id" :value="clientId">
         <input type="hidden" name="redirect_uri" :value="redirectUri">
-        <input type="hidden" name="scope" :value="scopeValue">
+        <input type="hidden" name="scope" :value="quickLogin ? scope : scopeValue">
         <input type="hidden" name="state" :value="state">
         <input type="hidden" name="response_type" :value="responseType">
         <input type="hidden" name="action" value="allow">
+        <template v-if="quickLogin">
+          <input v-for="item in requestedScopeList" :key="'scope-' + item" type="hidden" name="scopes[]" :value="item">
+        </template>
 
         <div class="authorize-scopes">
-          <ul class="scope-list">
+          <ul v-if="quickLogin" class="scope-list">
+            <li v-for="item in requestedScopeList" :key="item" class="scope-item">
+              <span :class="['scope-icon', 'icon', 'icon-' + scopeIcon(item)]"></span>
+              <span class="scope-name">{{ scopeLabel(item) }}</span>
+              <span class="scope-hint scope-hint--granted">{{ t('Granted') }}</span>
+            </li>
+          </ul>
+          <ul v-else class="scope-list">
             <template v-for="item in requestedScopeList" :key="item">
               <li v-if="item === 'openid'" class="scope-item">
                 <span class="scope-icon icon icon-fingerprint"></span>
@@ -205,9 +244,21 @@ function onSubmit(event) {
           </ul>
         </div>
 
-        <div class="authorize-buttons">
+        <div v-if="!quickLogin" class="authorize-buttons">
           <a :href="denyUrl" class="btn btn-secondary">{{ t('Deny') }}</a>
           <button type="submit" name="action" value="allow" class="btn btn-primary">{{ t('Authorize') }}</button>
+        </div>
+
+        <div v-else class="authorize-auto">
+          <svg class="authorize-check" viewBox="0 0 52 52" aria-hidden="true">
+            <circle class="authorize-check__circle" cx="26" cy="26" r="23"></circle>
+            <path class="authorize-check__mark" d="M14.5 27 L22.5 35.5 L38 19"></path>
+          </svg>
+          <p class="authorize-auto-text" aria-live="polite">{{ autoText }}</p>
+          <p class="authorize-auto-hint">
+            {{ t('You can turn quick sign-in off in settings at any time.') }}
+            <a v-if="quickSettingsUrl" :href="quickSettingsUrl">{{ t('Open settings') }}</a>
+          </p>
         </div>
       </form>
     </div>

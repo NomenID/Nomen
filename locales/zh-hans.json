@@ -2064,5 +2064,10 @@
   "No third-party sign-in is configured yet.": "还没有配置第三方登录。",
   "No users match these filters.": "没有符合这些筛选条件的用户。",
   "Nothing has been recorded yet.": "还没有任何记录。",
-  "This action changed no fields.": "这次操作没有改动任何字段。"
+  "This action changed no fields.": "这次操作没有改动任何字段。",
+  "Authorizing for {:name}…": "正在为 {:name} 授权…",
+  "Authorization complete, returning to {:name}…": "授权完成，正在返回 {:name}…",
+  "Granted": "已授予",
+  "You can turn quick sign-in off in settings at any time.": "您可以随时在设置中关闭快速登录。",
+  "Open settings": "打开设置"
 }

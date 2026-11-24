@@ -18,6 +18,8 @@
  * @var string $clientId
  * @var string $responseType
  * @var bool $isFirstParty 第一方应用（开发者 Id=1）
+ * @var bool $quickLogin 快速登录但还没授权过：走中间页，打勾后自动提交
+ * @var string $quickSettingsUrl 插件给的「关闭快速登录」页面地址，空串表示插件没提供
  */
 $title = t('Authorized apps');
 
@@ -43,6 +45,8 @@ $props = [
     'clientId' => $clientId,
     'responseType' => $responseType,
     'isFirstParty' => (bool)$isFirstParty,
+    'quickLogin' => (bool)$quickLogin,
+    'quickSettingsUrl' => (string)$quickSettingsUrl,
     'urls' => [
         'authorize' => '/oauth/authorize',
         'deny' => '/oauth/deny',

@@ -21,16 +21,20 @@ git clone https://github.com/NomenID/plugin-quick-central-login plugins/quick-ce
 ## 它做什么
 
 1. 挂 `oauth.authorize.quick`：判定这个请求是不是第一方应用 + 用户没关掉快速登录。
-2. 是的话返回一个标记字符串，核心跳过确认页直接发 code，回调带上 `spicallogin=<标记>`。
-3. 在 `/special/quick-login` 给用户一个开关页。
+2. 是的话返回一个标记字符串，核心免掉逐项勾权限：
+   - 应用**已经授权过**：直接发 code，回调带上 `spicallogin=<标记>`；
+   - **还没授权过**：显示中间页（打勾动画 + 自动提交），用户看完直接回来，回调**不带** `spicallogin`。
+3. 挂 `oauth.authorize.quick.settings`：告诉中间页「关闭快速登录」的入口是 `/special/quick-login`。
+4. 在 `/special/quick-login` 给用户一个开关页。
 
 用户偏好存在插件自己的表 `quick_login_prefs` 里，**没有记录 = 开启**（默认开）。
 
 ## 用户看到什么
 
-- 开着：从第一方应用点登录，直接回来，页面不闪。
+- 开着、应用授权过：从第一方应用点登录，直接回来，页面不闪。
+- 开着、第一次用：先看到打勾中间页，1.2 秒后自动返回应用。
 - 关了：正常弹确认页。
-- 用户能在 `/special/quick-login` 改。
+- 用户能在 `/special/quick-login` 改，中间页上也有入口。
 
 ## 接入方要做的
 

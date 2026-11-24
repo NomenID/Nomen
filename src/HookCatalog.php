@@ -229,6 +229,11 @@ return array (
     'type' => 'filter',
     'args' => 'null, userId, client, scopes',
   ),
+  'oauth.authorize.quick.settings' => 
+  array (
+    'type' => 'filter',
+    'args' => '\'\', userId, client',
+  ),
   'oauth.token.issued' => 
   array (
     'type' => 'run',
