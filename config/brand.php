@@ -20,6 +20,14 @@ return [
     // 站点图标：布局左上角、favicon、页脚都用它。留空就用包里带的 Nomen 图标
     'logo'               => getenv('BRAND_LOGO') ?: (($app['logo'] ?? '') ?: '/assets/brand/nomen-icon.svg'),
 
+    // 分享预览图（og:image）。很多平台不认 SVG，所以单独配置，不跟站点图标联动。
+    // 默认是包里带的 1200×630 封面，可以换成自己的图；留空就不输出 og:image。
+    'og_image'           => getenv('BRAND_OG_IMAGE') ?: '/assets/brand/nomen-og.png',
+
+    // 首屏加载层是否用站点图标（'logo'）当加载图标。默认 false：固定用包里带的
+    // Nomen 图标，站长换了自己的图标也还能看到 Nomen 的加载动画；true 才用站点图标。
+    'loading_logo'       => false,
+
     // 页脚版权行：站点所有者自己填，留空就不显示。要加链接写成 [文字](https://example.com)
     'copyright'          => getenv('BRAND_COPYRIGHT') ?: ($app['copyright'] ?? ''),
 

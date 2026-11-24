@@ -6,7 +6,7 @@
 
 品牌相关的兜底值：站点名、地址、支持邮箱、图标、页脚版权、法律链接。安装向导和后台「设置」写的是 `installed.php` 和数据库，这里的字面量只是初始值；在后台改过的不会回头覆盖这里。
 
-共 16 项。
+共 18 项。
 
 ## 配置项
 
@@ -23,6 +23,8 @@
 | 键 | 环境变量 | 默认值 | 说明 |
 |---|---|---|---|
 | `logo` | `BRAND_LOGO` | /assets/brand/nomen-icon.svg | 布局左上角、favicon、页脚都用它。留空就用包里带的 Nomen 图标 |
+| `og_image` | `BRAND_OG_IMAGE` | /assets/brand/nomen-og.png | 分享预览图（og:image）。很多平台不认 SVG，所以单独配置，不跟站点图标联动。默认是包里带的 1200×630 封面，可以换成自己的图；留空就不输出 og:image。 |
+| `loading_logo` | — | false | 首屏加载层是否用站点图标（'logo'）当加载图标。默认 false：固定用包里带的 Nomen 图标，站长换了自己的图标也还能看到 Nomen 的加载动画；true 才用站点图标。 |
 
 ## 页脚版权行
 

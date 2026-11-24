@@ -6,7 +6,7 @@
 |---|---|
 | [app.php](app.md) | 51 |
 | [autoupdate.php](autoupdate.md) | 22 |
-| [brand.php](brand.md) | 16 |
+| [brand.php](brand.md) | 18 |
 | [consent-age.php](consent-age.md) | 46 |
 | [email-policy.php](email-policy.md) | 11 |
 | [email.php](email.md) | 7 |

@@ -45,7 +45,8 @@ final class Meta
             $tags['og:type'] = 'website';
             $tags['og:url'] = self::currentUrl();
 
-            $image = self::absoluteUrl((string)($brand['logo'] ?? ''));
+            // 分享预览图单独配，不跟站点图标联动：SVG 当 og:image 很多平台不认
+            $image = self::absoluteUrl((string)($brand['og_image'] ?? '/assets/brand/nomen-og.png'));
             if ($image !== '') {
                 $tags['og:image'] = $image;
             }

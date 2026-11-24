@@ -140,12 +140,14 @@ final class Loading
     }
 
     /**
-     * 优先把品牌 logo 内联成 SVG（默认就是 Nomen 图标），避免弱网再多一个
-     * 图标请求；外链 / 过大的 logo 退回 img。文件必须落在 public/ 内。
+     * 优先把图标内联成 SVG，避免弱网再多一个图标请求；外链 / 过大的图退回 img。
+     * 默认固定用包里带的 Nomen 图标；brand.php 的 loading_logo 改成 true 才用站点图标。
      */
     private static function logoMarkup(): string
     {
-        $logo = (string)Brand::get('logo');
+        $logo = Brand::get('loading_logo', false)
+            ? (string)Brand::get('logo')
+            : '/assets/brand/nomen-icon.svg';
         $path = (string)(parse_url($logo, PHP_URL_PATH) ?: '');
 
         if ($path !== '' && str_ends_with(strtolower($path), '.svg')) {
