@@ -535,7 +535,7 @@ onMounted(load)
           <code class="a-code">{{ data.schedule.crontab }}</code>
 
           <div v-if="data.schedule.tasks.length" class="a-table-wrap">
-            <table class="a-table">
+            <table class="a-table a-table--cards">
               <thead>
                 <tr>
                   <th>{{ t('Task') }}</th>
@@ -547,14 +547,14 @@ onMounted(load)
               </thead>
               <tbody>
                 <tr v-for="task in data.schedule.tasks" :key="task.id">
-                  <td>
+                  <td :data-label="t('Task')">
                     <strong>{{ task.label }}</strong>
                     <div class="a-mono a-text--muted">{{ task.id }}</div>
                   </td>
-                  <td>{{ scheduleText(task) }}</td>
-                  <td>{{ formatted(task.lastRun) }}</td>
-                  <td>{{ formatted(task.nextRun) }}</td>
-                  <td>
+                  <td :data-label="t('Schedule')">{{ scheduleText(task) }}</td>
+                  <td :data-label="t('Last run')">{{ formatted(task.lastRun) }}</td>
+                  <td :data-label="t('Next run')">{{ formatted(task.nextRun) }}</td>
+                  <td :data-label="t('Actions')">
                     <AdminBadge v-if="task.status === 'error'" tone="danger">{{ t('Failed') }}</AdminBadge>
                     <AdminBadge v-else-if="task.status === 'running'" tone="primary">{{ t('Running') }}</AdminBadge>
                     <AdminBadge v-else-if="task.status === 'ok'" tone="success">{{ t('OK') }}</AdminBadge>

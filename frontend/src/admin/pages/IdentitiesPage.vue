@@ -223,7 +223,7 @@ onMounted(load)
       </AdminCard>
 
       <AdminCard :padded="false">
-        <AdminEmpty v-if="!data.providers.length" text="No third-party sign-in is configured yet." />
+        <AdminEmpty v-if="!data.providers.length" :text="t('No third-party sign-in is configured yet.')" />
         <div v-else class="a-table-wrap">
           <table class="a-table">
             <thead><tr><th>{{ t('Name') }}</th><th>{{ t('Slug') }}</th><th>{{ t('Type') }}</th><th>{{ t('Callback URL') }}</th><th>{{ t('Status') }}</th><th class="a-td-actions">{{ t('Actions') }}</th></tr></thead>

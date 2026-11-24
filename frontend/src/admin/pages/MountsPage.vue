@@ -96,7 +96,7 @@ onMounted(load)
       </AdminCard>
 
       <AdminCard :title="t('Plugin mount points')" :description="t('Mount points are the public paths a plugin serves. Changes apply from the next request.')">
-        <AdminEmpty v-if="!data.mounts.length" text="No enabled plugin registers a mount point." />
+        <AdminEmpty v-if="!data.mounts.length" :text="t('No enabled plugin registers a mount point.')" />
         <div v-else class="a-table-wrap">
           <table class="a-table">
             <thead><tr><th>{{ t('Plugin') }}</th><th>{{ t('Mount') }}</th><th>{{ t('Path') }}</th><th>{{ t('Access') }}</th><th class="a-td-actions">{{ t('Actions') }}</th></tr></thead>

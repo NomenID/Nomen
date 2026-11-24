@@ -204,7 +204,7 @@ onMounted(load)
       </div>
 
       <AdminCard :title="t('Authorized apps')">
-        <AdminEmpty v-if="!data.authorizations.length" text="No app has been authorized." />
+        <AdminEmpty v-if="!data.authorizations.length" :text="t('No app has been authorized.')" />
         <div v-else class="a-table-wrap">
           <table class="a-table">
             <thead><tr><th>{{ t('App') }}</th><th>Client ID</th><th>{{ t('Scopes') }}</th><th>{{ t('Authorized at') }}</th></tr></thead>
@@ -221,7 +221,7 @@ onMounted(load)
       </AdminCard>
 
       <AdminCard :title="t('Account recovery history')">
-        <AdminEmpty v-if="!data.recoveryHistory.length" text="No recovery requests." />
+        <AdminEmpty v-if="!data.recoveryHistory.length" :text="t('No recovery requests.')" />
         <div v-else class="a-table-wrap">
           <table class="a-table">
             <thead><tr><th>#</th><th>{{ t('Status') }}</th><th>{{ t('Contact email') }}</th><th>{{ t('Submitted at') }}</th><th>{{ t('Reviewed at') }}</th></tr></thead>
@@ -257,7 +257,7 @@ onMounted(load)
       </AdminCard>
 
       <AdminCard :title="t('Recent activity')">
-        <AdminEmpty v-if="!data.recentLogs.length" text="No activity was recorded." />
+        <AdminEmpty v-if="!data.recentLogs.length" :text="t('No activity was recorded.')" />
         <div v-else class="a-table-wrap">
           <table class="a-table">
             <thead><tr><th>{{ t('Time') }}</th><th>{{ t('Category') }}</th><th>{{ t('Action') }}</th><th>{{ t('Summary') }}</th><th>{{ t('Device') }}</th></tr></thead>

@@ -165,7 +165,7 @@ onMounted(load)
       </AdminCard>
 
       <AdminCard :title="t('Evidence')">
-        <AdminEmpty v-if="!data.attachments.length" text="No evidence was uploaded." />
+        <AdminEmpty v-if="!data.attachments.length" :text="t('No evidence was uploaded.')" />
         <div v-else class="a-attachments">
           <a v-for="file in data.attachments" :key="file.name" :href="file.url" target="_blank" rel="noopener" class="a-attachment">
             <img :src="file.url" :alt="file.name" loading="lazy">
@@ -175,7 +175,7 @@ onMounted(load)
       </AdminCard>
 
       <AdminCard :title="t('Recent activity on the account')">
-        <AdminEmpty v-if="!data.recentLogs.length" text="No activity was recorded." />
+        <AdminEmpty v-if="!data.recentLogs.length" :text="t('No activity was recorded.')" />
         <div v-else class="a-table-wrap">
           <table class="a-table">
             <thead><tr><th>{{ t('Time') }}</th><th>{{ t('Category') }}</th><th>{{ t('Action') }}</th><th>{{ t('Summary') }}</th><th>{{ t('Device') }}</th></tr></thead>

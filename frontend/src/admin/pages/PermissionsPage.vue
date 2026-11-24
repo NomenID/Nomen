@@ -100,7 +100,7 @@ onMounted(load)
           <span class="a-sub">{{ t('Everyone is in them; they cannot be assigned or overridden.') }}</span>
         </div>
 
-        <AdminEmpty v-if="!editableGroups.length" text="No assignable groups. Add one in config/permissions.php." />
+        <AdminEmpty v-if="!editableGroups.length" :text="t('No assignable groups. Add one in config/permissions.php.')" />
         <div v-else class="a-table-wrap perms-wrap">
           <table class="a-table perms-table">
             <thead>

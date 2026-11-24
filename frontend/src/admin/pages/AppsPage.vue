@@ -91,15 +91,15 @@ onMounted(load)
 
     <AdminCard :padded="false">
       <div v-if="loading" class="a-loading">{{ t('Loading…') }}</div>
-      <AdminEmpty v-else-if="!apps.length" text="No apps yet. Create one and hand the client ID and secret to the integrator." />
+      <AdminEmpty v-else-if="!apps.length" :text="t('No apps yet. Create one and hand the client ID and secret to the integrator.')" />
       <div v-else class="a-table-wrap">
-        <table class="a-table">
+        <table class="a-table a-table--cards">
           <thead>
             <tr><th>{{ t('App') }}</th><th>Client ID</th><th>{{ t('Type') }}</th><th>{{ t('Owner') }}</th><th>{{ t('Status') }}</th><th>{{ t('Created at') }}</th><th class="a-td-actions">{{ t('Actions') }}</th></tr>
           </thead>
           <tbody>
             <tr v-for="app in apps" :key="app.client_id">
-              <td>
+              <td :data-label="t('App')">
                 <div class="a-appcell">
                   <img v-if="app.icon" :src="`/assets/develops/${app.icon}`" alt="" class="a-appcell__icon">
                   <span v-else class="a-appcell__icon a-appcell__icon--text">{{ (app.name || '?').slice(0, 1).toUpperCase() }}</span>
@@ -109,13 +109,13 @@ onMounted(load)
                   </div>
                 </div>
               </td>
-              <td class="a-mono a-nowrap">{{ app.client_id }}</td>
-              <td>{{ app.client_type === 'public' ? t('Public') : t('Confidential') }}</td>
-              <td>{{ app.owner_username || app.developer_name || '—' }}</td>
-              <td>
+              <td class="a-mono a-nowrap" data-label="Client ID">{{ app.client_id }}</td>
+              <td :data-label="t('Type')">{{ app.client_type === 'public' ? t('Public') : t('Confidential') }}</td>
+              <td :data-label="t('Owner')">{{ app.owner_username || app.developer_name || '—' }}</td>
+              <td :data-label="t('Status')">
                 <AdminBadge :tone="Number(app.status) === 1 ? 'success' : 'danger'">{{ Number(app.status) === 1 ? t('Enabled') : t('Disabled') }}</AdminBadge>
               </td>
-              <td class="a-nowrap">{{ app.created_at }}</td>
+              <td class="a-nowrap" :data-label="t('Created at')">{{ app.created_at }}</td>
               <td class="a-td-actions">
                 <router-link class="a-btn a-btn--ghost a-btn--sm" :to="`/admin/apps/${app.client_id}`">{{ t('Details') }}</router-link>
                 <button class="a-btn a-btn--ghost a-btn--sm" type="button" :disabled="busyId === app.client_id" @click="toggle(app)">

@@ -103,23 +103,23 @@ onMounted(() => load(1))
 
     <AdminCard :padded="false">
       <div v-if="loading" class="a-loading">{{ t('Loading…') }}</div>
-      <AdminEmpty v-else-if="!data?.requests.length" text="No requests match these filters." />
+      <AdminEmpty v-else-if="!data?.requests.length" :text="t('No requests match these filters.')" />
       <div v-else class="a-table-wrap">
-        <table class="a-table">
+        <table class="a-table a-table--cards">
           <thead>
             <tr><th>#</th><th>{{ t('User') }}</th><th>{{ t('Contact email') }}</th><th>{{ t('Status') }}</th><th>{{ t('Submitted at') }}</th><th>{{ t('Reviewed at') }}</th><th>{{ t('Description') }}</th></tr>
           </thead>
           <tbody>
             <tr v-for="req in data.requests" :key="req.unid">
-              <td><router-link class="a-link a-link--strong" :to="`/admin/recovery/${req.unid}`">#{{ req.unid }}</router-link></td>
-              <td>
+              <td data-label="#"><router-link class="a-link a-link--strong" :to="`/admin/recovery/${req.unid}`">#{{ req.unid }}</router-link></td>
+              <td :data-label="t('User')">
                 <router-link class="a-link" :to="`/admin/users/${req.user_unid}`">{{ req.username }}</router-link>
               </td>
-              <td>{{ req.contact_email }}</td>
-              <td><AdminBadge :tone="statusTone[req.status] || ''">{{ t(statusLabel(req.status)) }}</AdminBadge></td>
-              <td class="a-nowrap">{{ req.created_at }}</td>
-              <td class="a-nowrap">{{ req.reviewed_at || '—' }}</td>
-              <td class="a-cell-summary">{{ req.description }}</td>
+              <td :data-label="t('Contact email')">{{ req.contact_email }}</td>
+              <td :data-label="t('Status')"><AdminBadge :tone="statusTone[req.status] || ''">{{ t(statusLabel(req.status)) }}</AdminBadge></td>
+              <td class="a-nowrap" :data-label="t('Submitted at')">{{ req.created_at }}</td>
+              <td class="a-nowrap" :data-label="t('Reviewed at')">{{ req.reviewed_at || '—' }}</td>
+              <td class="a-cell-summary" :data-label="t('Description')">{{ req.description }}</td>
             </tr>
           </tbody>
         </table>

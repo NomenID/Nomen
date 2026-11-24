@@ -87,7 +87,7 @@ onMounted(load)
       </AdminCard>
 
       <AdminCard :title="t('Changed fields')">
-        <AdminEmpty v-if="!log.changes.length" text="This action changed no fields." />
+        <AdminEmpty v-if="!log.changes.length" :text="t('This action changed no fields.')" />
         <div v-else class="a-table-wrap">
           <table class="a-table">
             <thead><tr><th>{{ t('Field') }}</th><th>{{ t('Old value') }}</th><th>{{ t('New value') }}</th></tr></thead>

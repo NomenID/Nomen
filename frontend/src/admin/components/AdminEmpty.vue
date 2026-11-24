@@ -11,11 +11,11 @@ import { useT } from '../../composables/useT.js'
 const { t } = useT()
 
 defineProps({
-  // 传的是词典键，渲染时才翻；不传就用默认那句
+  // 调用方传翻好的成品文案（t 的结果）；不传就用默认那句
   text: { type: String, default: '' },
 })
 </script>
 
 <template>
-  <div class="a-empty">{{ text ? t(text) : t('No data yet') }}</div>
+  <div class="a-empty">{{ text || t('No data yet') }}</div>
 </template>

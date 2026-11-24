@@ -7,7 +7,7 @@
 -->
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { url } from '../lib/url.js'
 import { useT } from '../composables/useT.js'
@@ -24,6 +24,26 @@ const props = defineProps({
 const route = useRoute()
 const sidebarOpen = ref(false)
 const currentTheme = ref(document.documentElement.getAttribute('data-theme') || 'dark')
+
+// 抽屉打开时锁住背景滚动；路由变化、Esc、点遮罩都关掉，别让手机用户找不着北
+watch(sidebarOpen, (open) => {
+  document.documentElement.classList.toggle('admin-drawer-open', open)
+})
+
+watch(() => route.fullPath, () => {
+  sidebarOpen.value = false
+})
+
+function onKeydown(event) {
+  if (event.key === 'Escape') sidebarOpen.value = false
+}
+
+onMounted(() => document.addEventListener('keydown', onKeydown))
+
+onBeforeUnmount(() => {
+  document.removeEventListener('keydown', onKeydown)
+  document.documentElement.classList.remove('admin-drawer-open')
+})
 
 const SCHEDULE_BANNER_KEY = 'nomen.scheduleBannerHiddenUntil'
 const scheduleBannerHidden = ref(Number(localStorage.getItem(SCHEDULE_BANNER_KEY) || 0) > Date.now())
@@ -74,7 +94,7 @@ const userInitial = computed(() => {
   <div class="a-shell" :class="{ 'a-shell--open': sidebarOpen }">
     <div class="a-scrim" @click="sidebarOpen = false"></div>
 
-    <aside class="a-sidebar">
+    <aside id="admin-sidebar" class="a-sidebar">
       <a href="/" class="a-brand">
         <img v-if="brand.logo" :src="brand.logo" alt="" width="28" height="28">
         <span class="a-brand__text">
@@ -105,7 +125,14 @@ const userInitial = computed(() => {
 
     <div class="a-main">
       <header class="a-topbar">
-        <button class="a-topbar__menu" type="button" :aria-label="t('Menu')" @click="sidebarOpen = !sidebarOpen">
+        <button
+          class="a-topbar__menu"
+          type="button"
+          :aria-label="t('Menu')"
+          :aria-expanded="sidebarOpen"
+          aria-controls="admin-sidebar"
+          @click="sidebarOpen = !sidebarOpen"
+        >
           <span></span><span></span><span></span>
         </button>
         <div class="a-topbar__right">

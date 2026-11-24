@@ -124,9 +124,9 @@ onMounted(() => load(1))
 
     <AdminCard :padded="false">
       <div v-if="loading" class="a-loading">{{ t('Loading…') }}</div>
-      <AdminEmpty v-else-if="!data?.users.length" text="No users match these filters." />
+      <AdminEmpty v-else-if="!data?.users.length" :text="t('No users match these filters.')" />
       <div v-else class="a-table-wrap">
-        <table class="a-table a-table--users">
+        <table class="a-table a-table--users a-table--cards">
           <thead>
             <tr>
               <th>{{ t('User') }}</th>
@@ -140,22 +140,22 @@ onMounted(() => load(1))
           </thead>
           <tbody>
             <tr v-for="user in data.users" :key="user.unid">
-              <td>
+              <td :data-label="t('User')">
                 <router-link class="a-link a-link--strong" :to="`/admin/users/${user.unid}`">{{ user.username }}</router-link>
                 <div v-if="user.display_name" class="a-sub">{{ user.display_name }}</div>
               </td>
-              <td>
+              <td :data-label="t('Email')">
                 <span>{{ user.email || '—' }}</span>
                 <AdminBadge v-if="Number(user.email_verified) === 1" tone="success">{{ t('Verified') }}</AdminBadge>
                 <AdminBadge v-else tone="muted">{{ t('Unverified') }}</AdminBadge>
               </td>
-              <td>
+              <td :data-label="t('Role / status')">
                 <AdminBadge :tone="user.role === 'admin' ? 'primary' : ''">{{ user.role === 'admin' ? t('Administrator') : t('Regular user') }}</AdminBadge>
                 <AdminBadge :tone="Number(user.status) === 1 ? 'success' : 'danger'">{{ Number(user.status) === 1 ? t('Normal') : t('Disabled') }}</AdminBadge>
               </td>
-              <td>{{ user.login_method_count }}</td>
-              <td class="a-nowrap">{{ user.created_at }}</td>
-              <td class="a-nowrap">
+              <td :data-label="t('Sign-in methods')">{{ user.login_method_count }}</td>
+              <td class="a-nowrap" :data-label="t('Created at')">{{ user.created_at }}</td>
+              <td class="a-nowrap" :data-label="t('Last sign-in')">
                 <div>{{ user.last_login_at || t('Never signed in') }}</div>
                 <div v-if="user.last_login_ip" class="a-sub a-mono">{{ user.last_login_ip }}</div>
               </td>

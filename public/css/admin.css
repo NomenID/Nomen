@@ -245,6 +245,10 @@
 }
 
 .a-user__name {
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     font-size: 12.5px;
     color: var(--color-text-muted);
 }
@@ -305,6 +309,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
     gap: 12px;
     padding: 13px 18px;
     border-bottom: 1px solid var(--color-border);
@@ -319,6 +324,7 @@
 .a-card__actions {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 8px;
 }
 
@@ -692,6 +698,7 @@
 .a-form__actions {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 8px;
     margin-top: 16px;
 }
@@ -809,6 +816,7 @@
 .a-filters {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 8px;
 }
 
@@ -828,6 +836,12 @@
     gap: 4px;
     margin-bottom: 14px;
     border-bottom: 1px solid var(--color-border);
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.a-tabs::-webkit-scrollbar {
+    display: none;
 }
 
 .a-tabs--card {
@@ -847,6 +861,8 @@
     color: var(--color-text-muted);
     font: inherit;
     font-size: 13px;
+    white-space: nowrap;
+    flex: 0 0 auto;
     cursor: pointer;
 }
 
@@ -999,6 +1015,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
     gap: 12px;
     margin-top: 14px;
 }
@@ -1045,9 +1062,14 @@
     font-weight: 650;
 }
 
+.a-profile > div:not(.a-profile__avatar) {
+    min-width: 0;
+}
+
 .a-profile p {
     margin: 3px 0 6px;
     font-size: 13px;
+    overflow-wrap: anywhere;
 }
 
 .a-badges {
@@ -1172,6 +1194,10 @@
 /* ========== 响应式 ========== */
 
 @media (max-width: 960px) {
+    html.admin-drawer-open {
+        overflow: hidden;
+    }
+
     .a-shell {
         grid-template-columns: 1fr;
     }
@@ -1181,12 +1207,16 @@
         inset: 0 auto 0 0;
         z-index: 40;
         width: 250px;
+        height: 100dvh;
+        visibility: hidden;
         transform: translateX(-100%);
-        transition: transform 0.2s ease;
+        transition: transform 0.2s ease, visibility 0s linear 0.2s;
     }
 
     .a-shell--open .a-sidebar {
+        visibility: visible;
         transform: translateX(0);
+        transition: transform 0.2s ease;
     }
 
     .a-shell--open .a-scrim {
@@ -1215,6 +1245,91 @@
     .a-page__head {
         align-items: flex-start;
         flex-direction: column;
+    }
+
+    .a-btn {
+        height: 38px;
+    }
+
+    .a-btn--sm {
+        height: 32px;
+        min-width: 32px;
+    }
+}
+
+@media (max-width: 720px) {
+    .a-topbar {
+        gap: 8px;
+        padding: 0 14px;
+    }
+
+    .a-user__name {
+        display: none;
+    }
+
+    /* 13px 在 iOS 上聚焦会自动放大页面 */
+    .a-input,
+    .a-filters .a-input {
+        font-size: 16px;
+    }
+
+    /* 手机屏装不下多列表格：给一个最小宽度，让列保持可读、表格自己横滚 */
+    .a-table {
+        min-width: 620px;
+    }
+
+    /* 主列表改成卡片：每行一张卡，单元格前面带标签，不再把中文挤成一字一行 */
+    .a-table--cards {
+        min-width: 0;
+    }
+
+    .a-table--cards thead {
+        display: none;
+    }
+
+    .a-table--cards tbody tr {
+        display: block;
+        padding: 12px 14px;
+    }
+
+    .a-table--cards tbody tr + tr {
+        border-top: 1px solid var(--color-border);
+    }
+
+    .a-table--cards td {
+        position: relative;
+        display: block;
+        padding: 4px 0 4px 92px;
+        border-top: 0;
+        vertical-align: top;
+    }
+
+    .a-table--cards td[data-label]::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 0;
+        top: 5px;
+        width: 84px;
+        color: var(--color-text-muted);
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    .a-table--cards td:not([data-label]) {
+        padding-left: 0;
+    }
+
+    .a-table--cards .a-td-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding-top: 8px;
+        text-align: left;
+        white-space: normal;
+    }
+
+    .a-table--cards .a-td-actions .a-btn + .a-btn {
+        margin-left: 0;
     }
 }
 

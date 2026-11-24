@@ -122,25 +122,25 @@ onMounted(() => load(1))
 
     <AdminCard :padded="false">
       <div v-if="loading" class="a-loading">{{ t('Loading…') }}</div>
-      <AdminEmpty v-else-if="!data?.logs.length" text="No log entries match these filters." />
+      <AdminEmpty v-else-if="!data?.logs.length" :text="t('No log entries match these filters.')" />
       <div v-else class="a-table-wrap">
-        <table class="a-table">
+        <table class="a-table a-table--cards">
           <thead><tr><th>{{ t('Time') }}</th><th>{{ t('Actor') }}</th><th>{{ t('Category') }}</th><th>{{ t('Action') }}</th><th>{{ t('Target') }}</th><th>{{ t('Summary') }}</th></tr></thead>
           <tbody>
             <tr v-for="log in data.logs" :key="log.unid">
-              <td class="a-nowrap"><router-link class="a-link" :to="`/admin/logs/${log.unid}`">{{ log.created_at }}</router-link></td>
-              <td>
+              <td class="a-nowrap" :data-label="t('Time')"><router-link class="a-link" :to="`/admin/logs/${log.unid}`">{{ log.created_at }}</router-link></td>
+              <td :data-label="t('Actor')">
                 <router-link v-if="log.actor_url" class="a-link" :to="log.actor_url">{{ log.actor_username || t('System') }}</router-link>
                 <span v-else>{{ log.actor_username || t('System') }}</span>
                 <AdminBadge tone="muted">{{ log.actor_label }}</AdminBadge>
               </td>
-              <td>{{ log.category_label }}</td>
-              <td>{{ log.action_label }}</td>
-              <td>
+              <td :data-label="t('Category')">{{ log.category_label }}</td>
+              <td :data-label="t('Action')">{{ log.action_label }}</td>
+              <td :data-label="t('Target')">
                 <router-link v-if="log.target_url" class="a-link" :to="log.target_url">{{ log.target_name || log.target_unid }}</router-link>
                 <span v-else>{{ log.target_name || log.target_unid || '—' }}</span>
               </td>
-              <td class="a-cell-summary">{{ log.summary }}</td>
+              <td class="a-cell-summary" :data-label="t('Summary')">{{ log.summary }}</td>
             </tr>
           </tbody>
         </table>
