@@ -282,7 +282,8 @@ class Plugins
     {
         $path = ltrim(str_replace('\\', '/', $path), '/');
         $file = self::dir() . '/' . $slug . '/assets/' . $path;
-        $version = is_file($file) ? (string)filemtime($file) : '0';
+        // ?v= 用内容哈希，不用 filemtime：时间戳会泄露部署时间，缓存键也不稳定。
+        $version = is_file($file) ? substr((string)md5_file($file), 0, 8) : '0';
         $encoded = implode('/', array_map('rawurlencode', explode('/', $path)));
 
         return Url::to('/plugin-assets/' . rawurlencode($slug) . '/' . $encoded, ['v' => $version]);
@@ -367,8 +368,19 @@ class Plugins
             return;
         }
 
+        // 静态资源不写 Session Cookie：带上 Set-Cookie 时 Cloudflare 会直接 BYPASS
+        // 缓存，每次页面加载都要回源拿 verify.js。
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+        header_remove('Set-Cookie');
+        header_remove('Expires');
+        header_remove('Pragma');
+
         header('Content-Type: ' . self::ASSET_TYPES[$ext]);
-        header('Cache-Control: public, max-age=604800');
+        header('Cache-Control: public, max-age=604800, immutable');
+        header('CDN-Cache-Control: public, max-age=604800');
+        header('Cloudflare-CDN-Cache-Control: public, max-age=604800');
         header('X-Content-Type-Options: nosniff');
         readfile($file);
         exit;
