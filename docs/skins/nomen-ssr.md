@@ -2,6 +2,12 @@
 
 没有星图、没有卡片堆叠，文字优先、窄栏阅读。首页和文档都由 PHP 直接输出。
 
+> **从 2026-11-25 起不再随发布包分发。** 需要时手动安装：
+> `git clone https://github.com/NomenID/skin-nomen-ssr.git skins/nomen-ssr`，
+> 再把 `nomen-ssr` 加进 `config/skins.php` 的 `enabled`。
+> 如果站点是从旧包升级上来的，升级会删掉包里带的旧副本；还想用它就先装好，并在
+> `config/autoupdate.php` 的 `protect` 里加上 `skins/nomen-ssr`。
+
 ## 目录
 
 ```

@@ -102,9 +102,9 @@
 | [API 发码登录](api-code.md) | 标识符绑定、HTTP 接口发验证码登录（随包分发，默认关闭） |
 | [Quick Central Login](plugins/quick-central-login.md) | 第一方免确认、`spicallogin` |
 | [Site Notice](plugins/site-notice.md) | 登录页提示条（不随包） |
-| [官方皮肤](skins/index.md) | 两个皮肤的定位和启用规则 |
-| [nomen-2026](skins/nomen-2026.md) | 默认皮肤：星野、卡片式认证页 |
-| [nomen-ssr](skins/nomen-ssr.md) | 轻量皮肤：无星图、文字优先 |
+| [官方皮肤](skins/index.md) | 两个皮肤的定位和启用规则（nomen-ssr 需手动安装） |
+| [nomen-2026](skins/nomen-2026.md) | 默认皮肤：星野、卡片式认证页（随包） |
+| [nomen-ssr](skins/nomen-ssr.md) | 轻量皮肤：无星图、文字优先（不随包） |
 
 ## 运维
 

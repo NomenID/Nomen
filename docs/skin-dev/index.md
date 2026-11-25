@@ -30,7 +30,7 @@ example/
 // config/skins.php
 return [
     'default' => 'nomen-2026',
-    'enabled' => ['nomen-2026', 'nomen-ssr', 'example'],
+    'enabled' => ['nomen-2026', 'example'],
 ];
 ```
 

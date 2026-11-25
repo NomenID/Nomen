@@ -1,11 +1,13 @@
 # 官方皮肤
 
-随包发两个，都是独立仓库、Apache-2.0：
+都是独立仓库、Apache-2.0。`nomen-2026` 随包分发；`nomen-ssr` 从 2026-11-25 起改为手动安装：
 
-| 皮肤 | 定位 |
-|---|---|
-| [nomen-2026](nomen-2026.md) | 默认皮肤：星野背景、卡片式认证页 |
-| [nomen-ssr](nomen-ssr.md) | 轻量：无星图、无前端框架、纯 PHP 输出、窄栏阅读 |
+| 皮肤 | 定位 | 安装 |
+|---|---|---|
+| [nomen-2026](nomen-2026.md) | 默认皮肤：星野背景、卡片式认证页 | 随包 |
+| [nomen-ssr](nomen-ssr.md) | 轻量：无星图、纯 PHP 输出、窄栏阅读 | 手动安装 |
+
+`nomen-ssr` 安装：clone 到 `skins/nomen-ssr/`，再把 `nomen-ssr` 加进 `config/skins.php` 的 `enabled`。
 
 ## 启用与切换
 
@@ -14,7 +16,7 @@
 ```php
 return [
     'default' => 'nomen-2026',
-    'enabled' => ['nomen-2026', 'nomen-ssr'],
+    'enabled' => ['nomen-2026'],
 ];
 ```
 
@@ -24,7 +26,7 @@ return [
 
 用户的选择优先于站点默认：账号设置 → cookie `nomen_skin` → 站点默认。所以换默认皮肤**不影响已有用户**。
 
-## 两个都有的
+## 共同结构
 
 ```
 layouts/default.php     普通页面

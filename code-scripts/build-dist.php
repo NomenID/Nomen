@@ -82,7 +82,7 @@ $pluginsDir = $localPlugins === '' ? $root . '/plugins' : $localPlugins;
 $skinsDir = $localSkins === '' ? $root . '/skins' : $localSkins;
 
 $bundledPlugins = ['pages', 'open-platform', 'geoip', 'totp-qr', 'search', 'api-code'];
-$bundledSkins = ['nomen-2026', 'nomen-ssr'];
+$bundledSkins = ['nomen-2026'];
 foreach ($bundledPlugins as $bundled) {
     if (!is_file($pluginsDir . '/' . $bundled . '/plugin.json')) {
         fwrite(STDERR, '缺插件：' . $pluginsDir . '/' . $bundled . '（见 docs/plugin-dev/index.md）' . PHP_EOL);

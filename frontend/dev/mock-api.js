@@ -237,7 +237,6 @@ const settingsPage = {
     features: { country: true, guardians: true },
     skins: [
       { slug: 'nomen-2026', name: 'Nomen 2026' },
-      { slug: 'nomen-ssr', name: 'Nomen SSR' },
     ],
     currentSkin: 'nomen-2026',
     identities: [

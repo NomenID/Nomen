@@ -98,7 +98,7 @@ Nginx 要加伪静态，服务器环境、定时任务和升级见下面的[部�
 **界面与扩展**
 
 - 25 种界面语言，默认语言和是否允许用户切换由站长决定
-- 皮肤可替换，包括纯 PHP 渲染的 `nomen-ssr`，用户可以在设置里选择启用哪个
+- 皮肤可替换，随包带默认皮肤，也可以自己写；用户可以在设置里选择启用哪个
 - 功能以插件形式扩展
 - 站点名、图标、版权、页脚、法律链接都能配置
 
@@ -223,12 +223,12 @@ php bin/nomen doctor
 
 ### 皮肤
 
-皮肤放在 `skins/<slug>/`，用 `skin.json` 描述，可以覆盖任何模板，整个账号系统的外观都能换。官方皮肤单独发版，发布包里带了两个：
+皮肤放在 `skins/<slug>/`，用 `skin.json` 描述，可以覆盖任何模板，整个账号系统的外观都能换。官方皮肤单独发版，发布包里带了默认皮肤：
 
 | 皮肤 | 说明 |
 | --- | --- |
-| [`nomen-2026`](https://github.com/NomenID/skin-nomen-2026) | 默认皮肤 |
-| [`nomen-ssr`](https://github.com/NomenID/skin-nomen-ssr) | 纯 PHP 服务端渲染 |
+| [`nomen-2026`](https://github.com/NomenID/skin-nomen-2026) | 默认皮肤（随包） |
+| [`nomen-ssr`](https://github.com/NomenID/skin-nomen-ssr) | 轻量皮肤（需要手动安装） |
 
 开发文档：[皮肤开发](docs/skin-dev/index.md)
 

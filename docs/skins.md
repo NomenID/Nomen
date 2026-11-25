@@ -8,7 +8,7 @@
 // config/skins.php
 return [
     'default' => 'nomen-2026',
-    'enabled' => ['nomen-2026', 'nomen-ssr'],
+    'enabled' => ['nomen-2026'],
 ];
 ```
 
@@ -27,14 +27,16 @@ return [
 
 **核心没有布局兜底**：缺一个只会回退到默认皮肤的同名布局；如果这个皮肤自己就是默认皮肤，那个页面直接 500。
 
-## 官方两个
+## 官方皮肤
 
-| 皮肤 | 定位 |
-|---|---|
-| [nomen-2026](skins/nomen-2026.md) | 默认：星野背景、卡片式认证页 |
-| [nomen-ssr](skins/nomen-ssr.md) | 轻量：无星图、文字优先、窄栏 |
+| 皮肤 | 定位 | 安装 |
+|---|---|---|
+| [nomen-2026](skins/nomen-2026.md) | 默认：星野背景、卡片式认证页 | 随包 |
+| [nomen-ssr](skins/nomen-ssr.md) | 轻量：无星图、文字优先、窄栏 | 手动安装 |
 
-两个都用核心的 `public/css/style.css`，皮肤本身不带样式表——改配色靠 CSS 变量。
+`nomen-ssr` 从 2026-11-25 起不再随发布包分发，需要的话手动 clone 到 `skins/nomen-ssr/`。
+
+它们都用核心的 `public/css/style.css`，皮肤本身不带样式表——改配色靠 CSS 变量。
 
 ## 自己写
 

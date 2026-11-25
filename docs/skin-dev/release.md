@@ -35,7 +35,7 @@
 ```php
 return [
     'default' => 'example',
-    'enabled' => ['nomen-2026', 'nomen-ssr', 'example'],
+    'enabled' => ['nomen-2026', 'example'],
 ];
 ```
 
@@ -88,7 +88,7 @@ Release 说明写清楚**看到的变化**（「登录页改成左右两栏，�
 
 ## 随核心包分发
 
-官方皮肤随发布包发（`nomen-2026`、`nomen-ssr`）。第三方皮肤要进包得改核心的
+官方皮肤里目前只有 `nomen-2026` 随发布包发（`nomen-ssr` 从 2026-11-25 起改为手动安装）。第三方皮肤要进包得改核心的
 `code-scripts/build-dist.php` 的 `$bundledSkins`，并且接受「每个新站点都会带上它」。一般不建议——皮肤是外观选择，
 让站长自己 clone 更合适。
 
