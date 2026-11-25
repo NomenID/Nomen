@@ -12,6 +12,7 @@ import { useT } from '../../composables/useT.js'
 const { t } = useT()
 import BaseAlert from '../../components/BaseAlert.vue'
 import Icon from '../../components/Icon.vue'
+import PluginSlot from '../../components/PluginSlot.vue'
 import { toast } from '../../lib/toast.js'
 
 const props = defineProps({
@@ -226,6 +227,8 @@ onBeforeUnmount(() => {
           <p class="form-hint">{{ t('The code goes to the address above — switch it in the dropdown') }}</p>
         </template>
       </div>
+
+      <PluginSlot name="auth.2fa.before_submit" />
 
       <button
         type="button"

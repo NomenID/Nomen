@@ -12,6 +12,7 @@ import { useT } from '../../composables/useT.js'
 const { t } = useT()
 import BaseAlert from '../../components/BaseAlert.vue'
 import CaptchaInput from '../../components/CaptchaInput.vue'
+import PluginSlot from '../../components/PluginSlot.vue'
 import { consumeHandoff, pickLoginMethod, recommendMethod, rememberedAccount } from '../../composables/useLoginMemory.js'
 import { parseJsonResponse } from '../../lib/http.js'
 import { base64urlToBytes, bytesToBase64url } from '../../lib/webauthn.js'
@@ -468,6 +469,8 @@ onBeforeUnmount(() => {
           <p class="form-hint">{{ t('Too many sign-in attempts — enter the CAPTCHA') }}</p>
         </div>
 
+        <PluginSlot v-if="current === 'password'" name="auth.login.before_submit" />
+
         <button type="submit" class="btn btn-primary btn-block">{{ t('Sign in') }}</button>
       </form>
 
@@ -566,11 +569,15 @@ onBeforeUnmount(() => {
           <p class="form-hint">{{ t('Too many sign-in attempts — enter the CAPTCHA') }}</p>
         </div>
 
+        <PluginSlot v-if="current === 'email_code'" name="auth.login.before_submit" />
+
         <button type="submit" class="btn btn-primary btn-block">{{ t('Sign in') }}</button>
       </form>
 
       <form class="auth-form" id="biometric-form" v-show="current === 'biometric'">
         <p class="login-biometric-tip">{{ t('Sign in with the fingerprint / face / Windows Hello bound to this device — no need to enter an account.') }}</p>
+
+        <PluginSlot v-if="current === 'biometric'" name="auth.login.before_submit" />
 
         <button
           type="button"

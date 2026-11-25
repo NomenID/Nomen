@@ -16,6 +16,7 @@ import CaptchaInput from '../../components/CaptchaInput.vue'
 import CountryPicker from '../../components/CountryPicker.vue'
 import Icon from '../../components/Icon.vue'
 import PasswordInput from '../../components/PasswordInput.vue'
+import PluginSlot from '../../components/PluginSlot.vue'
 import { copyText, generateStrongPassword, passwordStrength } from '../../composables/usePasswordTools.js'
 import { toast } from '../../lib/toast.js'
 import RegisterProgress from './RegisterProgress.vue'
@@ -588,6 +589,8 @@ onMounted(() => {
             </div>
           </div>
         </div>
+
+        <PluginSlot name="auth.register.before_submit" />
 
         <div class="form-navigation">
           <BaseButton v-if="currentStep > 1" id="btn-prev" variant="secondary" @click="prevStep">{{ t('Previous') }}</BaseButton>

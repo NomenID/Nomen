@@ -3,7 +3,8 @@
 插件是一个目录 `plugins/<slug>/`，里面有 `plugin.json`。装插件不用改核心代码：放进 `plugins/`，把目录名写进
 `config/plugins.php` 的 `enabled`。
 
-这篇从骨架仓库开始，一步一步改出一个能用的插件。后面几篇分别讲清单、钩子、页面、后台、模板、迁移、API 和多语言。
+这篇从骨架仓库开始，一步一步改出一个能用的插件。后面几篇分别讲清单、钩子、页面、后台、模板、前端插槽、
+迁移、API 和多语言。
 
 ## 一、拿到骨架
 
@@ -119,6 +120,7 @@ public static function renderStatus(): string
 | 挂钩子改行为 | [钩子](hooks.md) |
 | 加页面、加路由、加公开入口 | [页面与路由](pages-and-routes.md) |
 | 加后台页面 | [后台页面](admin-pages.md) |
+| 往前端页面里挂 UI | [前端插槽](ui-slots.md) |
 | 模板与静态资源 | [模板与资源](templates-and-assets.md) |
 | 建表、跑迁移、注册命令 | [迁移与命令](migrations.md) |
 | 给 `/nomen-api` 加模块 | [站点 API](api.md) |
