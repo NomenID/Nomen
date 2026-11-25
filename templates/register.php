@@ -10,6 +10,7 @@
 /** @var string|null $error */
 /** @var array $old */
 /** @var string $detectedCountry */
+/** @var string $redirect_to 注册完成后要回去的站内地址（应用发起登录时带过来） */
 $title = t('Sign up');
 $extraCss = '/css/register.css?v=83568981';
 
@@ -42,6 +43,7 @@ $props = [
     'csrf' => \Nomen\Src\Csrf::getToken(),
     'error' => $error ?: '',
     'old' => $old ?: new \stdClass(),
+    'redirectTo' => (string)($redirect_to ?? ''),
     'country' => $countryValue,
     'autoCountry' => $autoCountry,
     'today' => date('Y-m-d'),

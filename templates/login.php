@@ -108,7 +108,8 @@ require __DIR__ . '/_loading.php';
             </form>
             <?php endif; ?>
             <div class="auth-footer">
-                <p><a href="/register"><?= t('Create one') ?></a><?php if ($methods['temp_key']): ?> · <a href="/fast-pass"><?= t('Temp key sign-in') ?></a><?php endif; ?></p>
+                <?php $registerUrl = '/register' . ($redirect_to !== '/dashboard' ? '?redirect_to=' . urlencode($redirect_to) : ''); ?>
+                <p><a href="<?= $registerUrl ?>"><?= t('Create one') ?></a><?php if ($methods['temp_key']): ?> · <a href="/fast-pass"><?= t('Temp key sign-in') ?></a><?php endif; ?></p>
             </div>
         </div>
     </noscript>

@@ -19,6 +19,7 @@ const props = defineProps({
   success: { type: String, default: '' },
   email: { type: String, default: '' },
   usesGuardianAddress: { type: Boolean, default: false },
+  redirectTo: { type: String, default: '' },
   brandLogo: { type: String, default: '/assets/brand/nomen-icon.svg' },
 })
 
@@ -65,6 +66,7 @@ async function sendVerification() {
 
   const body = new URLSearchParams()
   body.set('_csrf', props.csrf)
+  body.set('redirect_to', props.redirectTo)
 
   try {
     const response = await fetch(url('/activate/send'), {

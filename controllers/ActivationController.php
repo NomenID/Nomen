@@ -23,6 +23,9 @@ class ActivationController
             Response::redirect('/login');
         }
 
+        // 从应用里发起注册时带上来的目标：验证完要回得去
+        $redirect_to = AuthController::safeRedirectPath($_GET['redirect_to'] ?? '', '');
+
         // 检查用户是否已验证
         $stmt = $this->db->prepare('SELECT id, email, email_verified, birth_date, country FROM users WHERE id = :id');
         $stmt->execute([':id' => $userId]);
@@ -35,7 +38,7 @@ class ActivationController
 
         if ($user['email_verified']
             || (Features::guardians() && FamilyHelper::guardianConfirmed((int)$userId))) {
-            Response::redirect('/dashboard');
+            Response::redirect($redirect_to !== '' ? $redirect_to : '/dashboard');
         }
 
         $error = Session::getFlash('error');
@@ -46,7 +49,7 @@ class ActivationController
         $is_minor = Features::guardians() && FamilyHelper::isMinorRow($user);
         $uses_guardian_address = Features::guardians() && empty($user['email']);
 
-        Response::view('activate', compact('error', 'success', 'email', 'is_minor', 'uses_guardian_address'));
+        Response::view('activate', compact('error', 'success', 'email', 'is_minor', 'uses_guardian_address', 'redirect_to'));
     }
 
     /**
@@ -59,13 +62,16 @@ class ActivationController
             Response::redirect('/login');
         }
 
+        $redirect_to = AuthController::safeRedirectPath($_POST['redirect_to'] ?? '', '');
+        $activateUrl = '/activate' . ($redirect_to !== '' ? '?redirect_to=' . urlencode($redirect_to) : '');
+
         $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
                   strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
             if ($isAjax) Response::json(['success' => false, 'message' => t('Invalid request, try again')]);
             Session::flash('error', t('Invalid request, try again'));
-            Response::redirect('/activate');
+            Response::redirect($activateUrl);
         }
 
         // 检查是否已验证
@@ -86,7 +92,7 @@ class ActivationController
             if ($isAjax) {
                 Response::json(['success' => true, 'message' => t('Email verified')]);
             }
-            Response::redirect('/dashboard');
+            Response::redirect($redirect_to !== '' ? $redirect_to : '/dashboard');
         }
 
         // 频率限制检查
@@ -96,7 +102,7 @@ class ActivationController
                 Response::json(['success' => false, 'message' => $rateCheck['message'], 'retry_after' => $rateCheck['retry_after']]);
             }
             Session::flash('error', $rateCheck['message']);
-            Response::redirect('/activate');
+            Response::redirect($activateUrl);
         }
 
         // 生成验证 token
@@ -116,7 +122,8 @@ class ActivationController
         // 构建验证链接
         $config = require __DIR__ . '/../config/app.php';
         $baseUrl = rtrim($config['base_url'], '/');
-        $verifyUrl = "{$baseUrl}/activate/verify?token={$token}";
+        $verifyUrl = "{$baseUrl}/activate/verify?token={$token}"
+            . ($redirect_to !== '' ? '&redirect_to=' . urlencode($redirect_to) : '');
 
         // 判断是否未成年
         $is_minor = Features::guardians() && FamilyHelper::isMinorRow($user);
@@ -130,7 +137,7 @@ class ActivationController
                 Response::json(['success' => false, 'message' => t('The account has no usable mailbox — contact support')]);
             }
             Session::flash('error', t('The account has no usable mailbox — contact support (id@caellab.com)'));
-            Response::redirect('/activate');
+            Response::redirect($activateUrl);
         }
 
         // 发送邮件
@@ -163,7 +170,7 @@ class ActivationController
             Session::flash('error', t('Email failed to send, try again later'));
         }
 
-        Response::redirect('/activate');
+        Response::redirect($activateUrl);
     }
 
     /**
@@ -175,6 +182,8 @@ class ActivationController
         if (!$token) {
             Response::error(400, t('Invalid verification link'));
         }
+
+        $redirect_to = AuthController::safeRedirectPath($_GET['redirect_to'] ?? '', '');
 
         // 查找用户
         $stmt = $this->db->prepare(
@@ -199,7 +208,7 @@ class ActivationController
             Session::set('user_id', $user['id']);
             Session::markSignedIn(false);
             AuthController::touchLogin((int)$user['id']);
-            Response::redirect('/dashboard');
+            Response::redirect($redirect_to !== '' ? $redirect_to : '/dashboard');
         }
 
         // 检查是否过期
@@ -263,7 +272,7 @@ class ActivationController
         AuthController::touchLogin((int)$user['id']);
 
         Session::flash('success', t('Email verified!'));
-        Response::redirect('/dashboard');
+        Response::redirect($redirect_to !== '' ? $redirect_to : '/dashboard');
     }
 
     /**

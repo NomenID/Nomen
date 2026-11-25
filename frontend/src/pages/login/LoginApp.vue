@@ -699,7 +699,7 @@ onBeforeUnmount(() => {
     </div>
 
     <div class="auth-footer">
-      <p>{{ t('Don\'t have an account?') }} <a href="/register">{{ t('Create one') }}</a></p>
+      <p>{{ t('Don\'t have an account?') }} <a :href="props.redirectTo && props.redirectTo !== '/dashboard' ? '/register?redirect_to=' + encodeURIComponent(props.redirectTo) : '/register'">{{ t('Create one') }}</a></p>
       <p class="auth-footer__note">
         {{ t('Remember any one of your verification methods? Use it to pass the first step — once you reach the two-step verification page you can start online recovery') }}
       </p>

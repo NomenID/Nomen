@@ -13,6 +13,7 @@
 /** @var string|null $error */
 /** @var string|null $success */
 /** @var int $resendAfter */
+/** @var string $redirect_to 验证完成后要回去的站内地址 */
 $title = t('Verify email');
 $extraCss = ['/css/activate.css?v=16054932', '/css/register-verify.css?v=16054932'];
 
@@ -24,6 +25,7 @@ $props = [
     'error' => $error ?: '',
     'success' => $success ?: '',
     'resendAfter' => (int)$resendAfter,
+    'redirectTo' => (string)($redirect_to ?? ''),
     'brandLogo' => (string)\Nomen\Src\Brand::get('logo'),
 ];
 

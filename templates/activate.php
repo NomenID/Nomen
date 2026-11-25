@@ -12,6 +12,7 @@
 /** @var string $email */
 /** @var bool $is_minor 账号不到本地区的独立使用年龄 */
 /** @var bool $uses_guardian_address 收信地址是家长的（账号没有自己的邮箱） */
+/** @var string $redirect_to 验证完成后要回去的站内地址 */
 $title = t('Email verification');
 $extraCss = '/css/activate.css?v=16054932';
 
@@ -21,6 +22,7 @@ $props = [
     'success' => $success ?: '',
     'email' => $email,
     'usesGuardianAddress' => (bool)($uses_guardian_address ?? false),
+    'redirectTo' => (string)($redirect_to ?? ''),
     'brandLogo' => (string)\Nomen\Src\Brand::get('logo'),
 ];
 

@@ -17,21 +17,21 @@
 注册页。密码注册关闭时只剩第三方登录按钮，这个判断在 `RegisterApp` 的 `passwordRegistration` 属性里。
 
 - 文件：`templates/register.php`
-- 变量：`error`、`old`、`detectedCountry`、`passwordRegistration`、`requireCaptcha`
+- 变量：`error`、`old`、`detectedCountry`、`passwordRegistration`、`requireCaptcha`、`redirect_to`
 
 ### register-verify
 
 注册完成后的「去邮箱点激活链接」提示页。
 
 - 文件：`templates/register-verify.php`
-- 变量：`email`、`maskedEmail`、`isMinor`、`error`、`success`、`resendAfter`
+- 变量：`email`、`maskedEmail`、`isMinor`、`error`、`success`、`resendAfter`、`redirect_to`
 
 ### activate
 
 激活链接的落地页。成功、失败、已激活三种结果都用这一页，靠变量区分。
 
 - 文件：`templates/activate.php`
-- 变量：`error`、`success`、`email`、`is_minor`、`uses_guardian_address`
+- 变量：`error`、`success`、`email`、`is_minor`、`uses_guardian_address`、`redirect_to`
 
 ### 2fa-verify
 

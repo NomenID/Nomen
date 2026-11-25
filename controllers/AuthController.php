@@ -32,6 +32,25 @@ class AuthController
     /** 「本次已尝试」区里可能出现的方式名称（临时密钥在独立的 /fast-pass 页面上，没有主区表单） */
     public const LOGIN_METHOD_LABELS = self::LOGIN_METHODS + ['temp_key' => 'Temp key sign-in'];
 
+    /**
+     * 只接受站内绝对路径，挡掉协议、`//host` 和反斜杠；空值或非法值回落到 $fallback。
+     *
+     * 登录 / 注册 / 激活整条链都靠它校验 redirect_to，别再各写一份。
+     */
+    public static function safeRedirectPath(?string $value, string $fallback = '/dashboard'): string
+    {
+        $path = trim((string)$value);
+        if ($path === ''
+            || $path[0] !== '/'
+            || str_starts_with($path, '//')
+            || str_contains($path, '\\')
+            || str_contains($path, '://')
+            || preg_match('/[\x00-\x1F\x7F]/', $path)) {
+            return $fallback;
+        }
+        return $path;
+    }
+
     public function __construct()
     {
         $this->db = Database::getInstance();
@@ -51,7 +70,8 @@ class AuthController
 
         $error = Session::getFlash('error');
         $success = Session::getFlash('success');
-        $redirect_to = $_GET['redirect_to'] ?? '/dashboard';
+        // 防止开放重定向
+        $redirect_to = self::safeRedirectPath($_GET['redirect_to'] ?? '/dashboard');
 
         // 插件在登录页渲染前的准备（设置设备 cookie、预置挑战状态这类）
         Hooks::run('auth.page', ['login', ['redirect_to' => (string)$redirect_to]]);
@@ -59,11 +79,6 @@ class AuthController
         // 账号注销成功提示
         if (isset($_GET['deleted'])) {
             $success = '账号已成功注销';
-        }
-
-        // 防止开放重定向
-        if (!str_starts_with($redirect_to, '/') || str_contains($redirect_to, '://')) {
-            $redirect_to = '/dashboard';
         }
 
         // 图片验证码默认不出现，只有该 IP 短时间内尝试过多才要求
@@ -197,10 +212,7 @@ class AuthController
      */
     private function resolveRedirect(): array
     {
-        $redirect_to = $_POST['redirect_to'] ?? $_GET['redirect_to'] ?? '/dashboard';
-        if (!str_starts_with($redirect_to, '/') || str_contains($redirect_to, '://')) {
-            $redirect_to = '/dashboard';
-        }
+        $redirect_to = self::safeRedirectPath($_POST['redirect_to'] ?? $_GET['redirect_to'] ?? '/dashboard');
         return [$redirect_to, '/login?redirect_to=' . urlencode($redirect_to)];
     }
 
@@ -980,10 +992,7 @@ class AuthController
                   strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
         // 提前读取跳转目标，失败重定向时保留
-        $redirect_to = $_POST['redirect_to'] ?? '/dashboard';
-        if (!str_starts_with($redirect_to, '/') || str_contains($redirect_to, '://')) {
-            $redirect_to = '/dashboard';
-        }
+        $redirect_to = self::safeRedirectPath($_POST['redirect_to'] ?? '/dashboard');
         $loginUrl = '/login?redirect_to=' . urlencode($redirect_to);
 
         if (!$isAjax) {
@@ -1287,11 +1296,7 @@ class AuthController
 
         $error = Session::getFlash('error');
         $success = Session::getFlash('success');
-        $redirect_to = $_GET['redirect_to'] ?? '/dashboard';
-
-        if (!str_starts_with($redirect_to, '/') || str_contains($redirect_to, '://')) {
-            $redirect_to = '/dashboard';
-        }
+        $redirect_to = self::safeRedirectPath($_GET['redirect_to'] ?? '/dashboard');
 
         Hooks::run('auth.page', ['fast-pass', ['redirect_to' => (string)$redirect_to]]);
 
@@ -1406,7 +1411,13 @@ class AuthController
         $old = Session::getFlash('old', []);
         $passwordRegistration = LoginMethods::on('password');
 
-        Hooks::run('auth.page', ['register', ['redirect_to' => (string)($_GET['redirect_to'] ?? '')]]);
+        // GET 上的优先；失败回显时从 old 里捞回同一个目标，别让用户重填一遍表就丢了应用
+        $redirect_to = self::safeRedirectPath($_GET['redirect_to'] ?? '', '');
+        if ($redirect_to === '') {
+            $redirect_to = self::safeRedirectPath($old['redirect_to'] ?? '', '');
+        }
+
+        Hooks::run('auth.page', ['register', ['redirect_to' => $redirect_to]]);
 
         // 第三步按来访 IP 预填国家/地区，只是默认值（取不到就空着，用户随时能改）
         $detectedCountry = '';
@@ -1421,7 +1432,7 @@ class AuthController
         $human = self::humanCheck('register', 'render', true);
         $requireCaptcha = $human['required'] && !$human['verified'];
 
-        Response::view('register', compact('error', 'old', 'detectedCountry', 'passwordRegistration', 'requireCaptcha'));
+        Response::view('register', compact('error', 'old', 'detectedCountry', 'passwordRegistration', 'requireCaptcha', 'redirect_to'));
     }
 
     /**
@@ -1435,6 +1446,7 @@ class AuthController
         }
 
         // 回显数据走白名单，绝不整体闪 $_POST —— 明文密码不能进 session / 页面
+        $redirect_to = self::safeRedirectPath($_POST['redirect_to'] ?? '', '');
         $old = [
             'username' => trim($_POST['username'] ?? ''),
             'email' => trim($_POST['email'] ?? ''),
@@ -1442,6 +1454,7 @@ class AuthController
             'birth_date' => trim($_POST['birth_date'] ?? ''),
             'gender' => trim($_POST['gender'] ?? ''),
             'parent_email' => Features::guardians() ? trim($_POST['parent_email'] ?? '') : '',
+            'redirect_to' => $redirect_to,
             // 密码不回显，所以失败后必须回到第 2 步重新输入，不能再停在第 5 步提交
             'current_step' => min((int)($_POST['current_step'] ?? 1), 2),
             'agree_terms' => $_POST['agree_terms'] ?? '',
@@ -1593,7 +1606,7 @@ class AuthController
         if (!$usernameTaken && $emailOwner
             && empty($emailOwner['email_verified'])
             && ($emailOwner['role'] ?? 'user') !== 'admin') {
-            $this->startRegisterClaim($username, $email, $password, $country, $birth_date, $gender, $is_minor, $old);
+            $this->startRegisterClaim($username, $email, $password, $country, $birth_date, $gender, $is_minor, $old, $redirect_to);
             return;
         }
 
@@ -1685,12 +1698,15 @@ class AuthController
         Session::markSignedIn(false);
         self::touchLogin($userId);
 
+        // 带上注册前的目标：应用内发起注册的用户，验证完要能直接回到授权页
+        $activateUrl = '/activate' . ($redirect_to !== '' ? '?redirect_to=' . urlencode($redirect_to) : '');
+
         if ($useGuardianEmail) {
             Session::flash('success', t('Account created. Press Send verification email below — the mail goes to {:email}. The account activates once a parent confirms.', ['email' => RecoveryHelper::maskEmail($parent_email)]));
-            Response::redirect('/activate');
+            Response::redirect($activateUrl);
         }
 
-        Response::redirect('/activate');
+        Response::redirect($activateUrl);
     }
 
     // ========== 注册支线：回收被未验证账号占用的邮箱 ==========
@@ -1700,9 +1716,11 @@ class AuthController
      *
      * 资料暂存在服务端而不是 session —— 用户可能在另一个浏览器、或隔一会儿才回来输验证码。
      */
-    private function startRegisterClaim(string $username, string $email, string $password, string $country, string $birth_date, string $gender, bool $is_under_16, array $old): void
+    private function startRegisterClaim(string $username, string $email, string $password, string $country, string $birth_date, string $gender, bool $is_under_16, array $old, string $redirect_to = ''): void
     {
-        $verifyUrl = '/register/verify?e=' . urlencode($email);
+        $verifyUrl = '/register/verify?e=' . urlencode($email)
+            . ($redirect_to !== '' ? '&redirect_to=' . urlencode($redirect_to) : '');
+        $registerUrl = '/register' . ($redirect_to !== '' ? '?redirect_to=' . urlencode($redirect_to) : '');
 
         $limited = $this->enforceClaimSendLimits($email, $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0');
         if ($limited) {
@@ -1712,7 +1730,7 @@ class AuthController
             }
             // 没有可用的待注册行时，验证页会把用户弹回注册页，所以错误提示得带回去
             Session::flash('old', $old);
-            Response::redirect('/register');
+            Response::redirect($registerUrl);
         }
 
         $config = require __DIR__ . '/../config/app.php';
@@ -1755,10 +1773,11 @@ class AuthController
     public function showRegisterVerify(): void
     {
         $email = trim((string)($_GET['e'] ?? ''));
+        $redirect_to = self::safeRedirectPath($_GET['redirect_to'] ?? '', '');
         $row = $this->findPendingRegistration($email);
         if (!$row) {
             Session::flash('error', t('This pending registration expired — please register again'));
-            Response::redirect('/register');
+            Response::redirect('/register' . ($redirect_to !== '' ? '?redirect_to=' . urlencode($redirect_to) : ''));
         }
 
         $error = Session::getFlash('error');
@@ -1768,7 +1787,7 @@ class AuthController
         // 冷却没走完就在页面上显示倒计时，别等用户点了才被拒
         $resendAfter = max(0, self::CLAIM_RESEND_COOLDOWN - (time() - (int)strtotime((string)$row['last_sent_at'])));
 
-        Response::view('register-verify', compact('email', 'maskedEmail', 'isMinor', 'error', 'success', 'resendAfter'));
+        Response::view('register-verify', compact('email', 'maskedEmail', 'isMinor', 'error', 'success', 'resendAfter', 'redirect_to'));
     }
 
     /**
@@ -1777,7 +1796,9 @@ class AuthController
     public function resendRegisterVerifyCode(): void
     {
         $email = trim((string)($_POST['email'] ?? ''));
-        $back = '/register/verify?e=' . urlencode($email);
+        $redirect_to = self::safeRedirectPath($_POST['redirect_to'] ?? '', '');
+        $back = '/register/verify?e=' . urlencode($email)
+            . ($redirect_to !== '' ? '&redirect_to=' . urlencode($redirect_to) : '');
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
             Session::flash('error', t('Invalid request, try again'));
@@ -1787,7 +1808,7 @@ class AuthController
         $row = $this->findPendingRegistration($email);
         if (!$row) {
             Session::flash('error', t('This pending registration expired — please register again'));
-            Response::redirect('/register');
+            Response::redirect('/register' . ($redirect_to !== '' ? '?redirect_to=' . urlencode($redirect_to) : ''));
         }
 
         $wait = self::CLAIM_RESEND_COOLDOWN - (time() - (int)strtotime((string)$row['last_sent_at']));
@@ -1828,7 +1849,9 @@ class AuthController
     {
         $email = trim((string)($_POST['email'] ?? ''));
         $code = trim((string)($_POST['code'] ?? ''));
-        $back = '/register/verify?e=' . urlencode($email);
+        $redirect_to = self::safeRedirectPath($_POST['redirect_to'] ?? '', '');
+        $back = '/register/verify?e=' . urlencode($email)
+            . ($redirect_to !== '' ? '&redirect_to=' . urlencode($redirect_to) : '');
 
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
             Session::flash('error', t('Invalid request, try again'));
@@ -1838,7 +1861,7 @@ class AuthController
         $row = $this->findPendingRegistration($email);
         if (!$row) {
             Session::flash('error', t('This pending registration expired — please register again'));
-            Response::redirect('/register');
+            Response::redirect('/register' . ($redirect_to !== '' ? '?redirect_to=' . urlencode($redirect_to) : ''));
         }
 
         if ((int)$row['attempts'] >= self::CLAIM_MAX_ATTEMPTS) {
@@ -1874,7 +1897,7 @@ class AuthController
             if ($owner && (!empty($owner['email_verified']) || ($owner['role'] ?? 'user') === 'admin')) {
                 $this->db->rollBack();
                 Session::flash('error', t('This address is already verified — sign in to the existing account with an email code.'));
-                Response::redirect('/register');
+                Response::redirect('/register' . ($redirect_to !== '' ? '?redirect_to=' . urlencode($redirect_to) : ''));
             }
 
             $stmt = $this->db->prepare('SELECT id FROM users WHERE username = :u LIMIT 1');
@@ -1888,10 +1911,11 @@ class AuthController
                     'birth_date'    => (string)$row['birth_date'],
                     'gender'        => (string)$row['gender'],
                     'parent_email'  => !empty($row['is_under_16']) ? $email : '',
+                    'redirect_to'   => $redirect_to,
                     'current_step'  => 2,
                 ]);
                 Session::flash('error', t('The username “{:name}” was just taken — go back and pick another.', ['name' => $row['username']]));
-                Response::redirect('/register');
+                Response::redirect('/register' . ($redirect_to !== '' ? '?redirect_to=' . urlencode($redirect_to) : ''));
             }
 
             $oldId = 0;
@@ -2012,7 +2036,7 @@ class AuthController
             'role'             => 'user',
             'email_verified'   => 1,
             'two_factor_policy' => 'new_device',
-        ], '/dashboard', false);
+        ], $redirect_to !== '' ? $redirect_to : '/dashboard', false);
     }
 
     /**

@@ -20,6 +20,7 @@ const props = defineProps({
   error: { type: String, default: '' },
   success: { type: String, default: '' },
   resendAfter: { type: Number, default: 0 },
+  redirectTo: { type: String, default: '' },
   brandLogo: { type: String, default: '/assets/brand/nomen-icon.svg' },
 })
 
@@ -80,6 +81,7 @@ onBeforeUnmount(() => {
     <form id="claim-form" method="POST" action="/register/verify" class="auth-form">
       <input type="hidden" name="_csrf" :value="csrf">
       <input type="hidden" name="email" :value="email">
+      <input type="hidden" name="redirect_to" :value="props.redirectTo">
 
       <div class="form-group">
         <label for="code">{{ t('6-digit code') }}</label>
@@ -104,6 +106,7 @@ onBeforeUnmount(() => {
     <form id="resend-form" method="POST" action="/register/verify/resend" class="claim-resend-form">
       <input type="hidden" name="_csrf" :value="csrf">
       <input type="hidden" name="email" :value="email">
+      <input type="hidden" name="redirect_to" :value="props.redirectTo">
       <button type="submit" id="resend-btn" class="btn btn-secondary btn-block" :disabled="left > 0">
         <span id="resend-text">{{ left > 0 ? t('Resend (in {:n}s)', { n: left }) : t('Resend code') }}</span>
       </button>

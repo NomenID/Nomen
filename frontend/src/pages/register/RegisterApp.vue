@@ -25,6 +25,7 @@ const props = defineProps({
   csrf: { type: String, default: '' },
   error: { type: String, default: '' },
   old: { type: [Object, Array], default: () => ({}) },
+  redirectTo: { type: String, default: '' },
   country: { type: String, default: '' },
   autoCountry: { type: Boolean, default: false },
   today: { type: String, default: '' },
@@ -408,6 +409,7 @@ onMounted(() => {
       <form v-else method="POST" action="/register" class="auth-form" id="register-form" novalidate>
         <input type="hidden" name="_csrf" :value="csrf">
         <input type="hidden" name="current_step" :value="currentStep">
+        <input type="hidden" name="redirect_to" :value="props.redirectTo">
 
         <div :class="['form-step', { active: currentStep === 1 }]" id="step-1">
           <StepHero icon="user" :title="t('Pick a name for yourself')" :desc="t('This is your unique ID — other users will see this name')" />
