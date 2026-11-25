@@ -95,6 +95,10 @@ export function recommendMethod(available, siteDefault = '') {
   const last = mine[mine.length - 1]
   if (mine[mine.length - 2] !== last) return fallback
 
+  // 生物识别只在用户主动点「更多登录选项」时出现：共用电脑上，上一个人的
+  // 本地记录会把下一个人直接带进指纹/面容面板，没绑定过的人只会一脸懵。
+  if (last === 'biometric') return fallback
+
   return available(last) ? last : fallback
 }
 
