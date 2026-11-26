@@ -8,7 +8,7 @@
 | 名称 | 位置 |
 |---|---|
 | `auth.login.before_submit` | 登录页主按钮上方（密码 / 邮箱验证码 / 生物识别三个面板共用） |
-| `auth.register.before_submit` | 注册表单「完成注册」上方 |
+| `auth.register.before_submit` | 注册表单最后一步「完成注册」上方（只有最后一步渲染） |
 | `auth.2fa.before_submit` | 两步验证主按钮上方 |
 
 ## 契约

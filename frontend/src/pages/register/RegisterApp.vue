@@ -590,7 +590,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <PluginSlot name="auth.register.before_submit" />
+        <PluginSlot v-if="currentStep === totalSteps" name="auth.register.before_submit" />
 
         <div class="form-navigation">
           <BaseButton v-if="currentStep > 1" id="btn-prev" variant="secondary" @click="prevStep">{{ t('Previous') }}</BaseButton>
