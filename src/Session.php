@@ -21,6 +21,12 @@ class Session
     private const INDEX_READY_KEY = 'nomen:session_index_ready';
     /** 索引集合攒到这么多成员就先清一遍已失效的（正常用户远到不了） */
     private const INDEX_PRUNE_AT = 50;
+    /**
+     * flash 是「下一次页面渲染看一眼」的消息，正常几秒内就被取走。
+     * 超过这个时间还在会话里，说明中间那一步没渲染（页面没打开、后台页面不消费、
+     * 被别的请求顶掉了），再翻出来给用户看只会莫名其妙，直接当过期丢掉。
+     */
+    private const FLASH_TTL = 300;
 
     public static function start(): void
     {
@@ -465,12 +471,29 @@ class Session
     public static function flash(string $key, $value): void
     {
         $_SESSION['_flash'][$key] = $value;
+        // 记下写入时刻，取的时候才能判断这条提示是不是已经放凉了
+        $_SESSION['_flash_at'][$key] = time();
     }
 
     public static function getFlash(string $key, $default = null)
     {
-        $value = $_SESSION['_flash'][$key] ?? $default;
-        unset($_SESSION['_flash'][$key]);
+        $flash = is_array($_SESSION['_flash'] ?? null) ? $_SESSION['_flash'] : [];
+        $times = is_array($_SESSION['_flash_at'] ?? null) ? $_SESSION['_flash_at'] : [];
+        $has   = array_key_exists($key, $flash);
+        $value = $has ? $flash[$key] : $default;
+        $at    = (int)($times[$key] ?? 0);
+
+        if (is_array($_SESSION['_flash'] ?? null)) {
+            unset($_SESSION['_flash'][$key]);
+        }
+        if (is_array($_SESSION['_flash_at'] ?? null)) {
+            unset($_SESSION['_flash_at'][$key]);
+        }
+
+        if ($has && ($at <= 0 || time() - $at > self::FLASH_TTL)) {
+            return $default;
+        }
+
         return $value;
     }
 

@@ -16,9 +16,14 @@ const { t } = useT()
 
 export function usePageData(pageName, buildPath) {
   const initial = inject('initialPage')
-  const data = ref(initial && initial.page === pageName ? initial.data : null)
+  // 首屏注入的数据只给第一次挂载用：里面的 success / error 是服务端一次性 flash，
+  // 页面组件在 SPA 里来回切换时不能再拿旧数据把提示重放一遍。
+  const useInitial = !!(initial && initial.page === pageName && !initial.consumed)
+  const data = ref(useInitial ? initial.data : null)
   const loading = ref(!data.value)
   const error = ref('')
+
+  if (useInitial) initial.consumed = true
 
   async function load() {
     loading.value = true

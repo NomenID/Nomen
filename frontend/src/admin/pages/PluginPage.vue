@@ -37,6 +37,10 @@ async function load() {
   error.value = ''
   try {
     data.value = await apiGet(apiUrl())
+    // 插件表单提交后的结果由服务端的 flash 带过来（插件自己还是 POST + 302）
+    const flash = data.value.flash || {}
+    if (flash.success) window.Nomen.toast(flash.success, 'success')
+    else if (flash.error) window.Nomen.toast(flash.error, 'error', 8000)
   } catch (err) {
     error.value = t('Could not load the plugin page. Check that the plugin is enabled.')
   } finally {

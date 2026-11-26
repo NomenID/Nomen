@@ -20,7 +20,6 @@ const { data, loading } = usePageData('dashboard')
 const router = useRouter()
 const csrf = inject('csrf')
 const viewer = inject('viewer')
-const initial = inject('initialPage')
 
 // 撤销授权：确认弹窗 + JSON 动作，成功后原地更新列表
 const revoking = ref(false)
@@ -46,11 +45,6 @@ async function revoke(auth) {
   } finally {
     revoking.value = false
   }
-}
-
-// 首页重定向过来的提示只显示一次
-if (initial?.name === 'dashboard' && initial.data?.redirectedFromHome) {
-  initial.consumed = true
 }
 
 void router; void viewer; void csrf; void loading

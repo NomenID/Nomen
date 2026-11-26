@@ -172,6 +172,13 @@ class Admin
 
         $body = Hooks::filter('admin.plugin.page.body', (string)call_user_func($handler), $slug, $page, $active);
 
+        // 插件的后台表单还是 POST + flash + 302 那套；这里取走并随 JSON 回给 SPA 弹 toast。
+        // 不在这里消费的话，提示会一直躺在会话里，等下一次进应用区（可能是第二天）才冒出来。
+        $flash = [
+            'success' => (string)(Session::getFlash('success') ?: ''),
+            'error'   => (string)(Session::getFlash('error') ?: ''),
+        ];
+
         Response::json([
             'success'     => true,
             'slug'        => $slug,
@@ -180,6 +187,7 @@ class Admin
             'tabs'        => array_map(static fn(array $tab): array => ['id' => $tab['id'], 'label' => I18n::t((string)$tab['label'])], $tabs),
             'activeTab'   => $active,
             'body'        => (string)$body,
+            'flash'       => $flash,
         ]);
     }
 
