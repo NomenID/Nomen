@@ -490,10 +490,13 @@ final class SiteHealth
 
         $legacy = self::legacyHashCount($info['algorithm']);
         if ($legacy > 0) {
-            $parts[] = $info['upgrade'] === 'off'
-                ? sprintf(t('%s stored passwords still use an older algorithm or parameters; automatic upgrades are off.'), $legacy)
-                : sprintf(t('%s stored passwords still use an older algorithm or parameters; they will be upgraded when the user signs in.'), $legacy);
-            $status = 'recommended';
+            if ($info['upgrade'] === 'off') {
+                $parts[] = sprintf(t('%s stored passwords still use an older algorithm or parameters; automatic upgrades are off.'), $legacy);
+                $status = 'recommended';
+            } else {
+                // 登录时会自动改写，站长不需要做任何事，别报成「建议处理」
+                $parts[] = sprintf(t('%s stored passwords still use an older algorithm or parameters; they will be upgraded when the user signs in.'), $legacy);
+            }
         }
 
         return [$status, implode(' ', $parts)];

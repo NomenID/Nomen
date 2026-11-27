@@ -136,6 +136,19 @@ test('切到 bcrypt 后 argon2id 老哈希依然能验证并标记升级', stati
     }
 });
 
+test('CaelLabID 迁移来的 bcrypt($password . $pepper) 老哈希还能登录', static function (): void {
+    Password::override(['algorithm' => 'argon2id']);
+    try {
+        $legacy = password_hash('CorrectHorse1' . 'pepper-123', PASSWORD_BCRYPT, ['cost' => 4]);
+        $result = Password::check('CorrectHorse1', $legacy, 'pepper-123');
+        assertSame(true, $result['ok']);
+        assertSame(true, $result['upgrade']);
+        assertSame(false, Password::check('wrong', $legacy, 'pepper-123')['ok']);
+    } finally {
+        Password::reset();
+    }
+});
+
 test('upgrade=off 时老哈希不标记升级', static function (): void {
     if (!defined('PASSWORD_ARGON2ID')) {
         return;

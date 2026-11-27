@@ -168,25 +168,28 @@ final class Password
             return ['ok' => false, 'upgrade' => false];
         }
 
-        // 老哈希是 argon2id 拼接 pepper；bcrypt 是新方案，pepper 走 HMAC 预哈希
-        $input = self::algorithmOf($hash) === 'bcrypt' ? self::hmac($plain, $pepper) : $plain . $pepper;
+        // 当前格式：argon2id 拼接 pepper，bcrypt 走 HMAC 预哈希。
+        // 老站可能留下两种更早的哈希：bcrypt($password . $pepper)（CaelLabID 迁移过来）
+        // 和更早的 bcrypt($password)。验证要按顺序都试一遍，登录成功后再统一升级。
+        $isBcrypt = self::algorithmOf($hash) === 'bcrypt';
+        $input = $isBcrypt ? self::hmac($plain, $pepper) : $plain . $pepper;
+        $fallbacks = $isBcrypt ? [$plain . $pepper, $plain] : [$plain];
 
-        try {
-            $ok = password_verify($input, $hash);
-        } catch (Throwable $e) {
-            $ok = false;
-        }
-
+        $ok = false;
         $legacy = false;
-        if (!$ok) {
+        foreach (array_merge([$input], $fallbacks) as $index => $candidate) {
             try {
-                $legacy = password_verify($plain, $hash);
+                if (password_verify($candidate, $hash)) {
+                    $ok = true;
+                    $legacy = $index > 0;
+                    break;
+                }
             } catch (Throwable $e) {
-                $legacy = false;
+                // 继续试下一种输入
             }
         }
 
-        if (!$ok && !$legacy) {
+        if (!$ok) {
             return ['ok' => false, 'upgrade' => false];
         }
 
