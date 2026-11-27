@@ -221,6 +221,30 @@ class ActivityLog
             }
         }
 
+        $targetType = (string)($opts['target_type'] ?? '');
+        $targetId = $opts['target_id'] ?? null;
+        $targetName = isset($opts['target_name']) ? (string)$opts['target_name'] : '';
+
+        // 执行者 / 目标是用户却没给名字时按 id 补上，别让后台把真实用户显示成「系统」
+        $needActor = in_array($actorType, ['user', 'admin'], true)
+            && $actorId !== null && trim((string)$actorName) === '';
+        $needTarget = $targetType === 'user' && $targetId !== null && $targetName === '';
+        if ($needActor || $needTarget) {
+            try {
+                $lookup = self::db()->prepare('SELECT username FROM users WHERE id = :id');
+                if ($needActor) {
+                    $lookup->execute([':id' => (int)$actorId]);
+                    $actorName = (string)($lookup->fetchColumn() ?: '');
+                }
+                if ($needTarget) {
+                    $lookup->execute([':id' => (int)$targetId]);
+                    $targetName = (string)($lookup->fetchColumn() ?: '');
+                }
+            } catch (\Throwable $e) {
+                // 查不到就留空，日志本身不能被这次回查拖垮
+            }
+        }
+
         $changes = $opts['changes'] ?? null;
         if (is_array($changes) && !$changes) {
             $changes = null;
@@ -239,9 +263,9 @@ class ActivityLog
                 ':an' => $actorName !== null ? mb_substr((string)$actorName, 0, 64, 'UTF-8') : null,
                 ':ac' => mb_substr($action, 0, 64, 'UTF-8'),
                 ':cg' => mb_substr((string)($opts['category'] ?? self::CAT_AUTH), 0, 32, 'UTF-8'),
-                ':tt' => $opts['target_type'] ?? null,
-                ':ti' => isset($opts['target_id']) ? mb_substr((string)$opts['target_id'], 0, 64, 'UTF-8') : null,
-                ':tn' => isset($opts['target_name']) ? mb_substr((string)$opts['target_name'], 0, 255, 'UTF-8') : null,
+                ':tt' => $targetType !== '' ? $targetType : null,
+                ':ti' => $targetId !== null ? mb_substr((string)$targetId, 0, 64, 'UTF-8') : null,
+                ':tn' => $targetName !== '' ? mb_substr($targetName, 0, 255, 'UTF-8') : null,
                 ':sm' => isset($opts['summary']) ? mb_substr((string)$opts['summary'], 0, 255, 'UTF-8') : null,
                 ':ch' => $changes !== null ? json_encode($changes, JSON_UNESCAPED_UNICODE) : null,
                 ':ip' => !empty($opts['skip_ip']) ? null : (mb_substr((string)($_SERVER['REMOTE_ADDR'] ?? ''), 0, 45, 'UTF-8') ?: null),
@@ -285,8 +309,16 @@ class ActivityLog
         $params = [];
 
         if (!empty($filter['actor_type'])) {
-            $where[] = 'actor_type = :actor_type';
-            $params[':actor_type'] = $filter['actor_type'];
+            $actorType = (string)$filter['actor_type'];
+            if ($actorType === 'system') {
+                // 老记录把用户动作写成了 system 但带着 actor_id，筛选时按真实语义算
+                $where[] = "actor_type = 'system' AND actor_id IS NULL";
+            } elseif ($actorType === 'user') {
+                $where[] = "(actor_type = 'user' OR (actor_type = 'system' AND actor_id IS NOT NULL))";
+            } else {
+                $where[] = 'actor_type = :actor_type';
+                $params[':actor_type'] = $actorType;
+            }
         }
         if (!empty($filter['actor_id'])) {
             $where[] = 'actor_id = :actor_id';

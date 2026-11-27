@@ -251,7 +251,9 @@ class ActivationController
                     'action'   => 'family.group_claimed',
                     'category' => ActivityLog::CAT_FAMILY,
                     'actor_type' => 'system',
-                    'actor_id' => (int)$user['id'],
+                    'target_type' => 'user',
+                    'target_id' => (int)$user['id'],
+                    'target_name' => (string)($user['username'] ?? ''),
                     'summary'  => '家长确认时自动接进家庭',
                 ]);
             }

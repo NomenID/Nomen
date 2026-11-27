@@ -14,6 +14,9 @@ class AdminController
 
     /** 日志页把内部 id 换成 UNID 时的请求内缓存 */
     private static array $unidCache = [];
+
+    /** 日志里缺用户名时按 id 回查的请求内缓存 */
+    private static array $nameCache = [];
     private const LOGS_PER_PAGE = 50;
 
     private PDO $db;
@@ -246,7 +249,8 @@ class AdminController
         ];
 
         if (Features::guardians()) {
-            $cards[] = ['label' => I18n::t('Families pending'), 'value' => (int)$stats['unclaimed_families'], 'hint' => $stats['unclaimed_families'] > 0 ? I18n::t('Waiting for the guardian to join with an account') : I18n::t('All handled'), 'alert' => $stats['unclaimed_families'] > 0];
+            // 家庭在等家长注册，站长插不了手，别做成告警框
+            $cards[] = ['label' => I18n::t('Families pending'), 'value' => (int)$stats['unclaimed_families'], 'hint' => $stats['unclaimed_families'] > 0 ? I18n::t('Waiting for the guardian to join with an account') : I18n::t('All handled')];
             $cards[] = ['label' => I18n::t('Children in families'), 'value' => (int)$stats['managed_children'], 'hint' => I18n::t('Accounts shared with a guardian')];
         }
 
@@ -998,6 +1002,13 @@ class AdminController
         ]);
 
         $userUnids = self::unidsFor('users', array_column($rows, 'actor_id'));
+        $nameIds = array_column($rows, 'actor_id');
+        foreach ($rows as $row) {
+            if (($row['target_type'] ?? '') === 'user') {
+                $nameIds[] = $row['target_id'];
+            }
+        }
+        $userNames = self::usernamesFor($nameIds);
         $requestUnids = self::unidsFor(
             'account_recovery_requests',
             array_map(
@@ -1008,22 +1019,38 @@ class AdminController
 
         foreach ($rows as $row) {
             $targetType = (string)($row['target_type'] ?? '');
+            $targetId = (int)($row['target_id'] ?? 0);
             $targetUnid = $targetType === 'user'
-                ? ($userUnids[(int)($row['target_id'] ?? 0)] ?? '')
-                : ($targetType === 'recovery_request' ? ($requestUnids[(int)($row['target_id'] ?? 0)] ?? '') : (string)($row['target_id'] ?? ''));
+                ? ($userUnids[$targetId] ?? '')
+                : ($targetType === 'recovery_request' ? ($requestUnids[$targetId] ?? '') : (string)($row['target_id'] ?? ''));
+
+            $actorId = (int)($row['actor_id'] ?? 0);
+            $actorName = (string)($row['actor_username'] ?? '');
+            if ($actorName === '' && $actorId > 0) {
+                $actorName = (string)($userNames[$actorId] ?? '');
+            }
+            $actorType = (string)($row['actor_type'] ?? '');
+            if ($actorType === 'system' && $actorId > 0 && $actorName !== '') {
+                $row['actor_type'] = 'user';
+            }
+
+            $targetName = (string)($row['target_name'] ?? '');
+            if ($targetName === '' && $targetType === 'user') {
+                $targetName = (string)($userNames[$targetId] ?? '');
+            }
 
             fputcsv($out, array_map(static fn($value): string => self::csvCell($value), [
                 $row['unid'] ?? '',
                 $row['created_at'],
                 I18n::t(ActivityLog::actorLabel($row)),
-                $userUnids[(int)($row['actor_id'] ?? 0)] ?? '',
-                $row['actor_username'],
+                $userUnids[$actorId] ?? '',
+                $actorName,
                 I18n::t(ActivityLog::categoryLabel((string)$row['category'])),
                 I18n::t(ActivityLog::actionLabel((string)$row['action'])),
                 $row['action'],
                 $row['target_type'] ? self::targetTypeLabel((string)$row['target_type']) : '',
                 $targetUnid,
-                $row['target_name'],
+                $targetName,
                 $row['summary'],
                 self::changesText($row['changes'] ?? null),
                 $row['ip_address'],
@@ -1056,23 +1083,42 @@ class AdminController
         }
         $userUnids = self::unidsFor('users', $userIds);
         $requestUnids = self::unidsFor('account_recovery_requests', $requestIds);
+        $userNames = self::usernamesFor($userIds);
 
-        return array_map(static function (array $row) use ($full, $userUnids, $requestUnids): array {
+        return array_map(static function (array $row) use ($full, $userUnids, $requestUnids, $userNames): array {
             $targetType = (string)($row['target_type'] ?? '');
-            $actorUnid = $userUnids[(int)($row['actor_id'] ?? 0)] ?? '';
+            $targetId = (int)($row['target_id'] ?? 0);
+            $actorId = (int)($row['actor_id'] ?? 0);
+            $actorUnid = $userUnids[$actorId] ?? '';
             $targetUnid = '';
             if ($targetType === 'user') {
-                $targetUnid = $userUnids[(int)($row['target_id'] ?? 0)] ?? '';
+                $targetUnid = $userUnids[$targetId] ?? '';
             } elseif ($targetType === 'recovery_request') {
-                $targetUnid = $requestUnids[(int)($row['target_id'] ?? 0)] ?? '';
+                $targetUnid = $requestUnids[$targetId] ?? '';
+            }
+
+            // 老记录里有些用户动作写成了 system，又不带用户名；展示时按 actor_id 补回来
+            $actorType = (string)($row['actor_type'] ?? '');
+            $actorName = (string)($row['actor_username'] ?? '');
+            if ($actorName === '' && $actorId > 0) {
+                $actorName = (string)($userNames[$actorId] ?? '');
+            }
+            if ($actorType === 'system' && $actorId > 0 && $actorName !== '') {
+                $actorType = 'user';
+            }
+            $row['actor_type'] = $actorType;
+
+            $targetName = (string)($row['target_name'] ?? '');
+            if ($targetName === '' && $targetType === 'user') {
+                $targetName = (string)($userNames[$targetId] ?? '');
             }
 
             return [
                 'unid'             => (string)($row['unid'] ?? ''),
                 'created_at'       => (string)$row['created_at'],
-                'actor_type'       => (string)($row['actor_type'] ?? ''),
+                'actor_type'       => $actorType,
                 'actor_unid'       => $actorUnid,
-                'actor_username'   => (string)($row['actor_username'] ?? ''),
+                'actor_username'   => $actorName,
                 'actor_label'      => I18n::t(ActivityLog::actorLabel($row)),
                 'actor_url'        => $actorUnid !== '' ? '/admin/users/' . $actorUnid : null,
                 'category'         => (string)$row['category'],
@@ -1082,7 +1128,7 @@ class AdminController
                 'target_type'      => $targetType,
                 'target_type_label' => $targetType !== '' ? self::targetTypeLabel($targetType) : '',
                 'target_unid'      => $targetUnid,
-                'target_name'      => (string)($row['target_name'] ?? ''),
+                'target_name'      => $targetName,
                 'target_url'       => self::targetUrl($row, $targetUnid),
                 'summary'          => (string)($row['summary'] ?? ''),
                 'ip_address'       => (string)($row['ip_address'] ?? ''),
@@ -1125,6 +1171,41 @@ class AdminController
         }
 
         self::$unidCache[$table] = $known;
+
+        return $known;
+    }
+
+    /**
+     * 一批用户 id → 用户名。老日志的 actor_username / target_name 可能是空的，
+     * 展示时按 id 回查，别让后台把真实用户显示成「系统」。
+     *
+     * @param  int[] $ids
+     * @return array<int, string>
+     */
+    private static function usernamesFor(array $ids): array
+    {
+        $ids = array_values(array_unique(array_filter(array_map('intval', $ids))));
+        if (!$ids) {
+            return [];
+        }
+
+        $known = self::$nameCache;
+        $missing = array_values(array_diff($ids, array_keys($known)));
+        if (!$missing) {
+            return $known;
+        }
+
+        $db = Database::getInstance();
+        foreach (array_chunk($missing, 900) as $chunk) {
+            $in = implode(',', array_fill(0, count($chunk), '?'));
+            $stmt = $db->prepare("SELECT id, username FROM users WHERE id IN ({$in})");
+            $stmt->execute($chunk);
+            foreach ($stmt->fetchAll() as $row) {
+                $known[(int)$row['id']] = (string)$row['username'];
+            }
+        }
+
+        self::$nameCache = $known;
 
         return $known;
     }

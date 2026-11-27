@@ -512,11 +512,18 @@ class OAuthController
             ':e' => $refreshExpiresAt,
         ]);
 
+        // 这条日志是用户授权后的结果，执行者记成用户本人；别写成 system 再挂一个
+        // 用户 id，后台会出现「系统」却链到用户页
+        $stmt = $this->db->prepare('SELECT username FROM users WHERE id = :id');
+        $stmt->execute([':id' => (int)$authCode['user_id']]);
+        $username = (string)($stmt->fetchColumn() ?: '');
+
         ActivityLog::record([
             'action'   => 'oauth.token_issued',
             'category' => ActivityLog::CAT_OAUTH,
-            'actor_type' => 'system',
+            'actor_type' => 'user',
             'actor_id' => (int)$authCode['user_id'],
+            'actor_username' => $username,
             'target_type' => 'oauth_client',
             'target_id' => $clientId,
             'target_name' => $this->clientName($clientId),

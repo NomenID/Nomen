@@ -820,7 +820,7 @@ class AuthController
             ActivityLog::record([
                 'action'   => $autonomy === 'auto' ? 'family.child_independent_auto' : 'family.invite_expired',
                 'category' => ActivityLog::CAT_FAMILY,
-                'actor_type' => 'system',
+                'actor_type' => 'user',
                 'actor_id' => $userId,
                 'actor_username' => (string)$user['username'],
                 'summary'  => $autonomy === 'auto' ? '成年后自动停止监护' : '成年后家庭邀请自动作废',
